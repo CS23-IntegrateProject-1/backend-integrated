@@ -7,5 +7,636 @@ generator client {
 
 datasource db {
   provider = "mysql"
-  url      = env("DATABASE_URL")
+  url      = "mysql://win:win@db.sunthewhat.com:13306/intprojdemo"
+}
+
+model User {
+  id                    Int                    @id @default(autoincrement())
+  username              String                 @unique
+  hashed_password       String?
+  fname                 String
+  lname                 String
+  phonenum              String                 @db.VarChar(10)
+  email                 String                 @unique @db.VarChar(125)
+  profile_picture       String?
+  user_type             User_type
+  User_bio              User_bio?
+  chatRoomId            Int
+  chat_room             Chat_room              @relation(fields: [chatRoomId], references: [id])
+  Payment_method        Payment_method?
+  Notification_setting  Notification_setting?
+  System_access         System_access?
+  Term_of_services      Term_of_services?
+  Privacy_policies      Privacy_policies?
+  Saved_place           Saved_place[]
+  Member_tier           Member_tier?
+  Point                 Point[]
+  Venue                 Venue?
+  User_voucher          User_voucher[]
+  Venue_reviews         Venue_reviews[]
+  Search_history        Search_history[]
+  Message               Message[]
+  Orders                Orders[]
+  Business_royal_member Business_royal_member?
+  Ticket                Ticket[]
+  Article               Article[]
+  Comments              Comments[]
+  Like                  Like[]
+  Reservation           Reservation[]
+  Recommendation        Recommendation[]
+  Advertisement         Advertisement?
+  Notification          Notification[]
+  Event                 Event[]
+}
+
+enum User_type {
+  Customer
+  Business
+  Admin
+}
+
+model User_bio {
+  userId   Int      @id
+  birthday DateTime @db.Date
+  gender   Gender
+  user     User     @relation(fields: [userId], references: [id])
+}
+
+enum Gender {
+  Male
+  Female
+  Others
+}
+
+model Payment_method {
+  id     Int     @id @default(autoincrement())
+  method Method?
+  userId Int     @unique
+  user   User    @relation(fields: [userId], references: [id])
+}
+
+enum Method {
+  Cash
+  QR
+}
+
+model Notification_setting {
+  userId    Int     @id
+  in_app    Boolean @default(false)
+  email     Boolean @default(false)
+  offers    Boolean @default(false)
+  updates   Boolean @default(false)
+  feedbacks Boolean @default(false)
+  user      User    @relation(fields: [userId], references: [id])
+}
+
+model System_access {
+  userId         Int     @id
+  location_acces Boolean @default(false)
+  file_access    Boolean @default(false)
+  phone_access   Boolean @default(false)
+  // camera         Boolean @default(false)
+  user           User    @relation(fields: [userId], references: [id])
+}
+
+model Term_of_services {
+  id              Int     @id @default(autoincrement())
+  privacy_consent Boolean @default(false)
+  userId          Int     @unique
+  user            User    @relation(fields: [userId], references: [id])
+}
+
+model Privacy_policies {
+  id              Int     @id @default(autoincrement())
+  privacy_consent Boolean @default(false)
+  cookie_consent  Boolean @default(false)
+  userId          Int     @unique
+  user            User    @relation(fields: [userId], references: [id])
+}
+
+model About_app {
+  id          Int      @id
+  version     String
+  detail      String?
+  last_update DateTime
+}
+
+model Venue {
+  id                    Int                     @id
+  name                  String
+  description           String?
+  type                  Venue_type //
+  category              String? //
+  capacity              Int
+  opening_status        String
+  banking_type          String
+  userId                Int                     @unique
+  //
+  Saved_place           Saved_place[]
+  Voucher               Voucher[]
+  user                  User                    @relation(fields: [userId], references: [id])
+  Venue_photo           Venue_photo?
+  Venue_overviews       Venue_overviews?
+  Venue_contacts        Venue_contacts?
+  Venue_keywords        Venue_keywords?
+  Venue_managers        Venue_managers[]
+  Venue_reviews         Venue_reviews[]
+  Venue_answer          Venue_answer[]
+  Chatroom              Chat_room[]
+  Orders                Orders[]
+  Menu                  Menu[]
+  Sets                  Sets[]
+  Business_royal_member Business_royal_member[]
+  Ticket                Ticket[]
+  Article               Article[]
+  Reservation           Reservation[]
+  Tables                Tables[]
+  Recommendation        Recommendation[]
+  Event                 Event[]
+}
+
+enum Venue_type {
+  Club
+  Bar
+  Restaurant
+}
+
+model Venue_reviews {
+  id         Int      @id @default(autoincrement())
+  venuId     Int
+  userId     Int
+  rating     Int
+  review     String?
+  date_added DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id])
+  venue      Venue    @relation(fields: [venuId], references: [id])
+}
+
+model Venue_managers {
+  venueId     Int     @id
+  first_name  String
+  middle_name String?
+  last_name   String
+  email       String?
+  phone       String?
+  venue       Venue   @relation(fields: [venueId], references: [id])
+}
+
+model Venue_keywords {
+  venueId Int     @id
+  keyword String?
+  venue   Venue   @relation(fields: [venueId], references: [id])
+}
+
+model Venue_contacts {
+  venueId Int     @id
+  phone   String? @db.VarChar(10)
+  email   String?
+  venue   Venue   @relation(fields: [venueId], references: [id])
+}
+
+model Venue_overviews {
+  venueId       Int         @id
+  openingDayId  Int         @unique
+  opening_hours DateTime
+  closing_hours DateTime
+  website_url   String?
+  opening_day   Opening_day @relation(fields: [openingDayId], references: [id])
+  venue         Venue       @relation(fields: [venueId], references: [id])
+}
+
+model Opening_day {
+  id              Int              @id @default(autoincrement())
+  mon             String?
+  tue             String?
+  wed             String?
+  thu             String?
+  fri             String?
+  sat             String?
+  sun             String?
+  Venue_overviews Venue_overviews?
+}
+
+model Venue_photo {
+  venueId    Int      @id
+  image_url  String?
+  date_added DateTime @default(now())
+  venue      Venue    @relation(fields: [venueId], references: [id])
+}
+
+model Search_history {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  keywords  String?
+  timestamp DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model Saved_place {
+  id      Int   @id
+  userId  Int
+  venueId Int
+  user    User  @relation(fields: [userId], references: [id])
+  venue   Venue @relation(fields: [venueId], references: [id])
+}
+
+model Member_tier {
+  id           Int    @id
+  tier_name    String
+  tier_benefit String
+  userId       Int    @unique
+  user         User   @relation(fields: [userId], references: [id])
+}
+
+model Point {
+  id            Int      @id
+  amount        Int
+  month_created DateTime @default(now())
+  amount_used   Int?
+  userId        Int
+  user          User     @relation(fields: [userId], references: [id])
+}
+
+model Voucher {
+  id               Int               @id
+  voucher_name     String
+  voucher_image    String
+  start_date       DateTime          @db.Date
+  end_date         DateTime          @db.Date
+  description      String
+  point_use        Int?
+  venueId          Int
+  venue            Venue             @relation(fields: [venueId], references: [id])
+  Discount_voucher Discount_voucher?
+  Food_voucher     Food_voucher?
+  User_voucher     User_voucher[]
+}
+
+model Discount_voucher {
+  id               Int     @id
+  fix_discount     Int?
+  percent_discount Float?
+  limitation       Int?
+  minimum_spend    Int?
+  voucherId        Int     @unique
+  discount_voucher Voucher @relation(fields: [voucherId], references: [id])
+}
+
+model Food_voucher {
+  id            Int     @id
+  limitation    Int?
+  minimum_spend Int?
+  voucherId     Int     @unique
+  food_voucher  Voucher @relation(fields: [voucherId], references: [id])
+}
+
+model User_voucher {
+  userId    Int
+  voucherId Int
+  user      User    @relation(fields: [userId], references: [id])
+  vouchers  Voucher @relation(fields: [voucherId], references: [id])
+
+  @@id([userId, voucherId])
+}
+
+model General_questions {
+  id              Int              @id @default(autoincrement())
+  g_question      String
+  General_answers General_answers?
+}
+
+model General_answers {
+  id               Int               @id @default(autoincrement())
+  gQuestionId      Int               @unique
+  g_answer         String
+  general_question General_questions @relation(fields: [gQuestionId], references: [id])
+}
+
+model Venue_question {
+  id           Int            @id @default(autoincrement())
+  question     String
+  Venue_answer Venue_answer[]
+}
+
+model Venue_answer {
+  id         Int            @id @default(autoincrement())
+  answer     String
+  questionId Int
+  venueId    Int
+  question   Venue_question @relation(fields: [questionId], references: [id])
+  venue      Venue          @relation(fields: [venueId], references: [id])
+}
+
+model Chat_room {
+  id       Int       @id @default(autoincrement())
+  venueId  Int
+  roomname String
+  venue    Venue     @relation(fields: [venueId], references: [id])
+  Message  Message[]
+  User     User[]
+}
+
+model Message {
+  id        Int       @id @default(autoincrement())
+  roomId    Int
+  userId    Int
+  message   String
+  date_time DateTime  @default(now())
+  room      Chat_room @relation(fields: [roomId], references: [id])
+  user      User      @relation(fields: [userId], references: [id])
+}
+
+model Orders {
+  id           Int            @id @default(autoincrement())
+  userId       Int
+  venueId      Int
+  order_date   DateTime
+  total_amount Decimal        @db.Decimal(10, 2)
+  isComplete   Boolean        @default(false)
+  user         User           @relation(fields: [userId], references: [id])
+  venue        Venue          @relation(fields: [venueId], references: [id])
+  Order_detail Order_detail[]
+}
+
+model Order_detail {
+  id             Int      @id @default(autoincrement())
+  unit_price     Decimal  @db.Decimal(10, 2)
+  order_time     DateTime @db.Timestamp()
+  additional_req String?
+  orderId        Int
+  menuId         Int
+  setId          Int
+  order          Orders   @relation(fields: [orderId], references: [id])
+  menu           Menu     @relation(fields: [menuId], references: [id])
+  set            Sets     @relation(fields: [setId], references: [id])
+}
+
+model Menu {
+  id           Int            @id @default(autoincrement())
+  name         String
+  description  String?        @db.Text
+  category     String?
+  price        Decimal        @db.Decimal(10, 2)
+  stock        Int
+  image_url    String?
+  venueId      Int
+  venue        Venue          @relation(fields: [venueId], references: [id])
+  Order_detail Order_detail[]
+  Set_items    Set_items[]
+}
+
+model Sets {
+  id           Int            @id @default(autoincrement())
+  name         String
+  price        Decimal        @db.Decimal(5, 2)
+  description  String?
+  image_url    String?
+  venueId      Int
+  venue        Venue          @relation(fields: [venueId], references: [id])
+  Order_detail Order_detail[]
+  Set_items    Set_items[]
+}
+
+model Set_items {
+  setId  Int
+  menuId Int
+  set    Sets @relation(fields: [setId], references: [id])
+  menu   Menu @relation(fields: [menuId], references: [id])
+
+  @@id([setId, menuId])
+}
+
+model Business_royal_member {
+  id      Int      @id @default(autoincrement())
+  userId  Int      @unique
+  venueId Int
+  date    DateTime @db.Date
+  user    User     @relation(fields: [userId], references: [id])
+  venue   Venue    @relation(fields: [venueId], references: [id])
+}
+
+model Ticket {
+  id        Int      @id @default(autoincrement())
+  date      DateTime @default(now())
+  topic     String
+  complaint String   @db.Text
+  venueId   Int
+  userId    Int
+  venue     Venue    @relation(fields: [venueId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model Article {
+  id                      Int                       @id @default(autoincrement())
+  topic                   String
+  content                 String                    @db.Text
+  created_date            DateTime                  @default(now()) @db.Date
+  category                Article_category
+  venueId                 Int
+  userId                  Int
+  venue                   Venue                     @relation(fields: [venueId], references: [id])
+  user                    User                      @relation(fields: [userId], references: [id])
+  Image                   Images[]
+  Article_tags            Article_tags[]
+  Comments                Comments[]
+  Comment_like_by_creator Comment_like_by_creator[]
+  Like                    Like[]
+}
+
+enum Article_category {
+  Review
+  Blog
+  Question
+}
+
+model Images {
+  id          Int     @id @default(autoincrement())
+  url         String
+  description String?
+  articleId   Int
+  article     Article @relation(fields: [articleId], references: [id])
+}
+
+model Tag {
+  id           Int            @id @default(autoincrement())
+  tag_name     String
+  Article_tags Article_tags[]
+}
+
+model Article_tags {
+  tagId     Int
+  articleId Int
+  tag       Tag     @relation(fields: [tagId], references: [id])
+  article   Article @relation(fields: [articleId], references: [id])
+
+  @@id([tagId, articleId])
+}
+
+model Comments {
+  id                      Int                       @id @default(autoincrement())
+  created_date            DateTime                  @default(now()) @db.Date
+  content                 String
+  userId                  Int
+  articleId               Int
+  isReply                 Boolean                   @default(false)
+  user                    User                      @relation(fields: [userId], references: [id])
+  article                 Article                   @relation(fields: [articleId], references: [id])
+  Comment_like_by_creator Comment_like_by_creator[]
+}
+
+model Comment_like_by_creator {
+  id        Int      @id @default(autoincrement())
+  commentId Int
+  articleId Int
+  comment   Comments @relation(fields: [commentId], references: [id])
+  article   Article  @relation(fields: [articleId], references: [id])
+}
+
+model Like {
+  id        Int     @id @default(autoincrement())
+  articleId Int
+  userId    Int
+  isLike    Boolean
+  article   Article @relation(fields: [articleId], references: [id])
+  user      User    @relation(fields: [userId], references: [id])
+}
+
+model Reservation {
+  id            Int            @id @default(autoincrement())
+  venueId       Int
+  tableId       Int
+  guest_amount  Int
+  reserved_time DateTime       @default(now())
+  status        Status
+  userId        Int
+  user          User           @relation(fields: [userId], references: [id])
+  venue         Venue          @relation(fields: [venueId], references: [id])
+  table         Tables         @relation(fields: [tableId], references: [id])
+  Deposit       Deposit?
+  Share_reserve Share_reserve?
+  Notes         Notes?
+  Check_in_log  Check_in_log?
+}
+
+enum Status {
+  On_going
+  Complete
+  Cancel
+}
+
+model Share_reserve {
+  id         Int         @id @default(autoincrement())
+  link_or_qr String
+  reserveId  Int         @unique
+  reserve    Reservation @relation(fields: [reserveId], references: [id])
+}
+
+model Notes {
+  id        Int         @id @default(autoincrement())
+  detail    String
+  reserveId Int         @unique
+  reserve   Reservation @relation(fields: [reserveId], references: [id])
+}
+
+model Deposit {
+  id             Int         @id @default(autoincrement())
+  reserveId      Int         @unique
+  deposit_amount Decimal     @db.Decimal(10, 2)
+  status         Int
+  reserve        Reservation @relation(fields: [reserveId], references: [id])
+}
+
+model Tables {
+  id                Int                @id @default(autoincrement())
+  venueId           Int
+  status            String
+  image_url         String?
+  venue             Venue              @relation(fields: [venueId], references: [id])
+  Reservation       Reservation[]
+  Table_type_detail Table_type_detail?
+}
+
+model Table_type_detail {
+  id       Int        @id @default(autoincrement())
+  capacity Int
+  type     Table_type
+  tableId  Int        @unique
+  table    Tables     @relation(fields: [tableId], references: [id])
+}
+
+enum Table_type {
+  Small
+  Medium
+  Large
+  Extra_large
+}
+
+model Check_in_log {
+  id             Int         @id @default(autoincrement())
+  reserveId      Int         @unique
+  check_in_time  DateTime
+  check_out_time DateTime
+  isCheckIn      Boolean
+  reserve        Reservation @relation(fields: [reserveId], references: [id])
+}
+
+model Recommendation {
+  userId  Int
+  venueId Int
+  user    User  @relation(fields: [userId], references: [id])
+  venue   Venue @relation(fields: [venueId], references: [id])
+
+  @@id([userId, venueId])
+}
+
+model Advertisement {
+  id          Int      @id @default(autoincrement())
+  name        String
+  user_id     Int      @unique
+  description String?
+  image_url   String?
+  type        Ad_type
+  start_date  DateTime
+  end_date    DateTime
+  user        User     @relation(fields: [user_id], references: [id])
+}
+
+enum Ad_type {
+  Promotion
+  Event
+}
+
+model Notification {
+  id                Int       @id @default(autoincrement())
+  userId            Int
+  message           String
+  timestamp         DateTime
+  notification_type Noti_type
+  isRead            Boolean
+  user              User      @relation(fields: [userId], references: [id])
+}
+
+enum Noti_type {
+  Reservation
+  Order
+  Checkout
+  Admin_update
+  Promo_event
+  Commu_update
+  Recommendation
+  Survey
+  Tickets
+}
+
+model Event {
+  id                Int      @id @default(autoincrement())
+  event_name        String
+  event_description String
+  event_date        DateTime
+  event_start       DateTime @db.Timestamp()
+  event_end         DateTime @db.Timestamp()
+  venueId           Int
+  userId            Int
+  user              User     @relation(fields: [userId], references: [id])
+  venue             Venue    @relation(fields: [venueId], references: [id])
 }
