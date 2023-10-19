@@ -21,8 +21,8 @@ model User {
   profile_picture       String?
   user_type             User_type
   User_bio              User_bio?
-  chatRoomId            Int
-  chat_room             Chat_room              @relation(fields: [chatRoomId], references: [id])
+  chatRoomId            Int?
+  chat_room             Chat_room?             @relation(fields: [chatRoomId], references: [id])
   Payment_method        Payment_method?
   Notification_setting  Notification_setting?
   System_access         System_access?
