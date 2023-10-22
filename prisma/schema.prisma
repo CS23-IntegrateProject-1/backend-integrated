@@ -359,16 +359,14 @@ model Orders {
 }
 
 model Order_detail {
-  id             Int      @id @default(autoincrement())
-  unit_price     Decimal  @db.Decimal(10, 2)
-  order_time     DateTime @db.Timestamp()
+  id             Int            @id @default(autoincrement())
+  unit_price     Decimal        @db.Decimal(10, 2)
+  order_time     DateTime       @db.Timestamp()
   additional_req String?
   orderId        Int
-  menuId         Int
-  setId          Int
-  order          Orders   @relation(fields: [orderId], references: [id])
-  menu           Menu     @relation(fields: [menuId], references: [id])
-  set            Sets     @relation(fields: [setId], references: [id])
+  order          Orders         @relation(fields: [orderId], references: [id])
+  Menu_ordered   Menu_ordered[]
+  Sets_ordered   Sets_ordered[]
 }
 
 model Menu {
@@ -381,20 +379,39 @@ model Menu {
   image_url    String?
   venueId      Int
   venue        Venue          @relation(fields: [venueId], references: [id])
-  Order_detail Order_detail[]
   Set_items    Set_items[]
+  Menu_ordered Menu_ordered[]
+}
+
+model Menu_ordered {
+  menuId        Int
+  orderDetailId Int
+  menu          Menu         @relation(fields: [menuId], references: [id])
+  order         Order_detail @relation(fields: [orderDetailId], references: [id])
+
+  @@id([menuId, orderDetailId])
 }
 
 model Sets {
-  id           Int            @id @default(autoincrement())
-  name         String
-  price        Decimal        @db.Decimal(5, 2)
-  description  String?
-  image_url    String?
-  venueId      Int
-  venue        Venue          @relation(fields: [venueId], references: [id])
-  Order_detail Order_detail[]
+  id          Int     @id @default(autoincrement())
+  name        String
+  price       Decimal @db.Decimal(5, 2)
+  description String?
+  image_url   String?
+  venueId     Int
+  venue       Venue   @relation(fields: [venueId], references: [id])
+
   Set_items    Set_items[]
+  Sets_ordered Sets_ordered[]
+}
+
+model Sets_ordered {
+  orderDetailId Int
+  setId         Int
+  order         Order_detail @relation(fields: [orderDetailId], references: [id])
+  set           Sets         @relation(fields: [setId], references: [id])
+
+  @@id([orderDetailId, setId])
 }
 
 model Set_items {
