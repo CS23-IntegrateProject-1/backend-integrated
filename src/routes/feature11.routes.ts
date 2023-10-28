@@ -23,6 +23,7 @@ feature11Router.get("/", getfeature11);
 //  }
 //};
 
+// not 100% finish
 const addArticle = async (req: Request, res: Response) => {
   try {
     const { topic, content, category, venueId, userId } = req.body;
@@ -44,7 +45,107 @@ const addArticle = async (req: Request, res: Response) => {
   }
   };
 
-feature11Router.post("/addarticle", addArticle);
+const addComment = async (req: Request, res: Response) => {
+  try {
+    const { content, userId, articleId, isReply } = req.body;
+
+    const newComment = await prisma.comments.create({
+      data: {
+        content,
+        userId,
+        articleId,
+        isReply,
+      },
+    });
+
+    res.json(newComment);
+  } catch (error) {
+    console.error(error);
+    res.json({ error: "Internal server error" });
+  }
+  };
+
+const getArticleDetail = async (req: Request, res: Response) => {
+  const { id } = req.params;
+
+  try {
+    const article = await prisma.article.findUnique({
+      where: { id: parseInt(id) },
+      include: {
+        Image: true,
+        Article_tags: {
+          include: {
+            tag: true,
+          },
+        },
+        Like: true,
+      },
+    });
+
+    if (!article) {
+      res.json({ error: "Article not found" });
+    } else {
+      res.json(article);
+    }
+  } catch (error) {
+    console.error(error);
+    res.json({ error: "Internal server error" });
+  }
+};
+
+// not 100% finish -> how to get comment like by creator?
+const getArticleComment = async (req: Request, res: Response) => {
+  const { id } = req.params;
+
+  try {
+    const comment = await prisma.comments.findMany({
+      where: { articleId: parseInt(id) },
+    });
+
+    if (!comment) {
+      res.json({ error: "Comment not found" });
+    } else {
+      res.json(comment);
+    }
+  } catch (error) {
+    console.error(error);
+    res.json({ error: "Internal server error" });
+  }
+};
+
+const getAllArticle = async (req: Request, res: Response) => {
+  try {
+    const article = await prisma.article.findMany({
+      include: {
+        Image: true,
+        Article_tags: {
+          include: {
+            tag: true,
+          },
+        },
+        Like: true,
+      },
+    });
+
+    if (!article) {
+      res.json({ error: "Article not found" });
+    } else {
+      res.json(article);
+    }
+  } catch (error) {
+    console.error(error);
+    res.json({ error: "Internal server error" });
+  }
+};
+
+feature11Router.post("/addArticle", addArticle);
+feature11Router.post("/writeComment", addComment);
+feature11Router.get("/fetchAllArticle", getAllArticle);
+
+//parameter = article id
+feature11Router.get("/fetchArticleDetail/:id", getArticleDetail);
+feature11Router.get("/fetchArticleComment/:id", getArticleComment);
+
 //feature11Router.get("/getAllUsers", getAllUsers);
 
 export default feature11Router;
