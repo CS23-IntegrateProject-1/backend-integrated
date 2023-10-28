@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -10,650 +7,665 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id                    Int                    @id @default(autoincrement())
-  username              String                 @unique
-  hashed_password       String?
-  fname                 String
-  lname                 String
-  phonenum              String                 @db.VarChar(10)
-  email                 String                 @unique @db.VarChar(125)
-  profile_picture       String?
-  user_type             User_type
-  User_bio              User_bio?
-  chatRoomId            Int?
-  chat_room             Chat_room?             @relation(fields: [chatRoomId], references: [id])
-  Payment_method        Payment_method?
-  Notification_setting  Notification_setting?
-  System_access         System_access?
-  Term_of_services      Term_of_services?
-  Privacy_policies      Privacy_policies?
-  Saved_place           Saved_place[]
-  Member_tier           Member_tier?
-  Point                 Point[]
-  Venue                 Venue?
-  User_voucher          User_voucher[]
-  Venue_reviews         Venue_reviews[]
-  Search_history        Search_history[]
-  Message               Message[]
-  Orders                Orders[]
-  Business_royal_member Business_royal_member?
-  Ticket                Ticket[]
-  Article               Article[]
-  Comments              Comments[]
-  Like                  Like[]
-  Reservation           Reservation[]
-  Recommendation        Recommendation[]
-  Advertisement         Advertisement?
-  Notification          Notification[]
-  Event                 Event[]
+model advertisement {
+  id          Int                @id @default(autoincrement())
+  name        String             @db.VarChar(100)
+  user_id     Int
+  description String?            @db.Text
+  image_url   String             @db.VarChar(255)
+  type        advertisement_type
+  start_date  DateTime           @db.Date
+  end_date    DateTime           @db.Date
 }
 
-enum User_type {
-  Customer
-  Business
-  Admin
+model article_comments {
+  id           Int       @id @default(autoincrement())
+  created_date DateTime? @db.Date
+  content      String?   @db.VarChar(255)
+  user_id      Int?
+  article_id   Int?
+  is_reply     Boolean?
 }
 
-model User_bio {
-  userId   Int      @id
-  birthday DateTime @db.Date
-  gender   Gender
-  user     User     @relation(fields: [userId], references: [id])
+model article_images {
+  id          Int     @id @unique(map: "article_image_pk2") @default(autoincrement())
+  url         String? @db.VarChar(255)
+  description String? @db.VarChar(100)
+  article_id  Int?
 }
 
-enum Gender {
-  Male
-  Female
-  Others
-}
-
-model Payment_method {
-  id     Int     @id @default(autoincrement())
-  method Method?
-  userId Int     @unique
-  user   User    @relation(fields: [userId], references: [id])
-}
-
-enum Method {
-  Cash
-  QR
-}
-
-model Notification_setting {
-  userId    Int     @id
-  in_app    Boolean @default(false)
-  email     Boolean @default(false)
-  offers    Boolean @default(false)
-  updates   Boolean @default(false)
-  feedbacks Boolean @default(false)
-  user      User    @relation(fields: [userId], references: [id])
-}
-
-model System_access {
-  userId         Int     @id
-  location_acces Boolean @default(false)
-  file_access    Boolean @default(false)
-  phone_access   Boolean @default(false)
-  // camera         Boolean @default(false)
-  user           User    @relation(fields: [userId], references: [id])
-}
-
-model Term_of_services {
-  id              Int     @id @default(autoincrement())
-  privacy_consent Boolean @default(false)
-  userId          Int     @unique
-  user            User    @relation(fields: [userId], references: [id])
-}
-
-model Privacy_policies {
-  id              Int     @id @default(autoincrement())
-  privacy_consent Boolean @default(false)
-  cookie_consent  Boolean @default(false)
-  userId          Int     @unique
-  user            User    @relation(fields: [userId], references: [id])
-}
-
-model About_app {
-  id          Int      @id
-  version     String
-  detail      String?
-  last_update DateTime
-}
-
-model Venue {
-  id                    Int                     @id
-  name                  String
-  description           String?
-  type                  Venue_type //
-  category              String? //
-  capacity              Int
-  opening_status        String
-  banking_type          String
-  userId                Int                     @unique
-  //
-  Saved_place           Saved_place[]
-  Voucher               Voucher[]
-  user                  User                    @relation(fields: [userId], references: [id])
-  Venue_photo           Venue_photo?
-  Venue_overviews       Venue_overviews?
-  Venue_contacts        Venue_contacts?
-  Venue_keywords        Venue_keywords?
-  Venue_managers        Venue_managers[]
-  Venue_reviews         Venue_reviews[]
-  Venue_answer          Venue_answer[]
-  Chatroom              Chat_room[]
-  Orders                Orders[]
-  Menu                  Menu[]
-  Sets                  Sets[]
-  Business_royal_member Business_royal_member[]
-  Ticket                Ticket[]
-  Article               Article[]
-  Reservation           Reservation[]
-  Tables                Tables[]
-  Recommendation        Recommendation[]
-  Event                 Event[]
-}
-
-enum Venue_type {
-  Club
-  Bar
-  Restaurant
-}
-
-model Venue_reviews {
+model article_likes {
   id         Int      @id @default(autoincrement())
-  venuId     Int
-  userId     Int
-  rating     Int
-  review     String?
-  date_added DateTime @default(now())
-  user       User     @relation(fields: [userId], references: [id])
-  venue      Venue    @relation(fields: [venuId], references: [id])
+  article_id Int?
+  user_id    Int?
+  is_liked   Boolean?
 }
 
-model Venue_managers {
-  venueId     Int     @id
-  first_name  String
-  middle_name String?
-  last_name   String
-  email       String?
-  phone       String?
-  venue       Venue   @relation(fields: [venueId], references: [id])
+model article_tags {
+  article_id Int
+  tag_id     Int
+
+  @@id([article_id, tag_id])
 }
 
-model Venue_keywords {
-  venueId Int     @id
-  keyword String?
-  venue   Venue   @relation(fields: [venueId], references: [id])
+model articles {
+  id           Int                @id @unique(map: "articles_pk2") @default(autoincrement())
+  topic        String?            @db.VarChar(100)
+  content      String?            @db.Text
+  created_date DateTime?          @db.Date
+  category     articles_category?
+  user_id      Int?
+  venue_id     Int?
 }
 
-model Venue_contacts {
-  venueId Int     @id
-  phone   String? @db.VarChar(10)
-  email   String?
-  venue   Venue   @relation(fields: [venueId], references: [id])
+model available_users {
+  user_id     Int                     @id @default(autoincrement())
+  username    String?                 @db.VarChar(255)
+  gender      available_users_gender?
+  chatroom_id Int
 }
 
-model Venue_overviews {
-  venueId       Int         @id
-  openingDayId  Int         @unique
-  opening_hours DateTime
-  closing_hours DateTime
-  website_url   String?
-  opening_day   Opening_day @relation(fields: [openingDayId], references: [id])
-  venue         Venue       @relation(fields: [venueId], references: [id])
+model bank_account {
+  id              Int     @id
+  bank_name       String? @db.VarChar(255)
+  bank_number     String? @db.VarChar(255)
+  amount          Int?
+  type_of_payment String? @db.VarChar(255)
 }
 
-model Opening_day {
-  id              Int              @id @default(autoincrement())
-  mon             String?
-  tue             String?
-  wed             String?
-  thu             String?
-  fri             String?
-  sat             String?
-  sun             String?
-  Venue_overviews Venue_overviews?
+model bar_restaurant {
+  id                    Int                     @id @default(autoincrement())
+  name                  String?                 @db.VarChar(100)
+  category              String?                 @db.VarChar(100)
+  capacity              Int?
+  email                 String?                 @db.VarChar(100)
+  imageURL              String?                 @db.VarChar(255)
+  website               String?                 @db.VarChar(255)
+  phonenum              String?                 @db.VarChar(10)
+  opening_hours         DateTime?               @db.DateTime(0)
+  closing_hours         DateTime?               @db.DateTime(0)
+  opening_status        String?                 @db.VarChar(100)
+  openingDayId          Int?
+  banking_type          String?                 @db.VarChar(100)
+  userId                Int
+  users                 users                   @relation(fields: [userId], references: [id], onUpdate: Restrict, map: "bar_restaurant_users_id_fk")
+  business_royal_member business_royal_member[]
+  clubEvents            clubEvents[]
+  clubLocations         clubLocations[]
+  menu_update           menu_update[]
+  ticket                ticket[]
+  voucher               voucher[]
+
+  @@index([userId], map: "bar_restaurant_users_id_fk")
 }
 
-model Venue_photo {
-  venueId    Int      @id
-  image_url  String?
-  date_added DateTime @default(now())
-  venue      Venue    @relation(fields: [venueId], references: [id])
+model business_royal_member {
+  id             Int            @id @default(autoincrement())
+  userId         Int?
+  restaurantId   Int
+  usingTime      DateTime?      @db.Date
+  bar_restaurant bar_restaurant @relation(fields: [restaurantId], references: [id], onUpdate: Restrict, map: "business_royal_member_bar_restaurant_id_fk")
+
+  @@index([restaurantId], map: "business_royal_member_bar_restaurant_id_fk")
 }
 
-model Search_history {
-  id        Int      @id @default(autoincrement())
-  userId    Int
-  keywords  String?
-  timestamp DateTime @default(now())
-  user      User     @relation(fields: [userId], references: [id])
+model chatroom {
+  id       Int     @id @default(autoincrement())
+  venue_id Int
+  roomname String? @db.VarChar(40)
 }
 
-model Saved_place {
-  id      Int   @id
-  userId  Int
-  venueId Int
-  user    User  @relation(fields: [userId], references: [id])
-  venue   Venue @relation(fields: [venueId], references: [id])
+model check_in_out {
+  check_in_out_id Int       @id @default(autoincrement())
+  check_in_time   DateTime? @db.Time(0)
+  check_out_time  DateTime? @db.Time(0)
+  user_id         Int
+  available       Boolean
 }
 
-model Member_tier {
-  id           Int    @id
-  tier_name    String
-  tier_benefit String
-  userId       Int    @unique
-  user         User   @relation(fields: [userId], references: [id])
+model checkin_log {
+  id             Int       @id @default(autoincrement())
+  checkin_status String?   @db.VarChar(30)
+  checkinDate    DateTime? @db.DateTime(0)
 }
 
-model Point {
-  id            Int      @id
-  amount        Int
-  month_created DateTime @default(now())
-  amount_used   Int?
-  userId        Int
-  user          User     @relation(fields: [userId], references: [id])
+model clubEvents {
+  id                Int            @id @default(autoincrement())
+  club_id           Int
+  name              String?        @db.VarChar(255)
+  description       String?        @db.Text
+  start_date        DateTime?      @db.DateTime(0)
+  end_date          DateTime?      @db.DateTime(0)
+  status            String?        @db.VarChar(255)
+  event_poster_link String?        @db.Text
+  bar_restaurant    bar_restaurant @relation(fields: [club_id], references: [id], onUpdate: Restrict, map: "clubEvents_bar_restaurant_id_fk")
+
+  @@index([club_id], map: "clubEvents_bar_restaurant_id_fk")
 }
 
-model Voucher {
-  id               Int               @id
-  voucher_name     String
-  voucher_image    String
-  start_date       DateTime          @db.Date
-  end_date         DateTime          @db.Date
-  description      String
-  point_use        Int?
-  venueId          Int
-  venue            Venue             @relation(fields: [venueId], references: [id])
-  Discount_voucher Discount_voucher?
-  Food_voucher     Food_voucher?
-  User_voucher     User_voucher[]
+model clubLocations {
+  id             Int            @id @default(autoincrement())
+  club_id        Int
+  country        String?        @db.VarChar(255)
+  state          String?        @db.VarChar(255)
+  city           String?        @db.VarChar(255)
+  road           String?        @db.VarChar(255)
+  postal_code    Int?
+  bar_restaurant bar_restaurant @relation(fields: [club_id], references: [id], onUpdate: Restrict, map: "clubLocations_bar_restaurant_id_fk")
+
+  @@index([club_id], map: "clubLocations_bar_restaurant_id_fk")
 }
 
-model Discount_voucher {
-  id               Int     @id
+model comment_liked_by_creator {
+  id         Int  @id @default(autoincrement())
+  comment_id Int?
+  article_id Int?
+}
+
+model deposit {
+  id             Int      @id @default(autoincrement())
+  deposit_amount Decimal? @db.Decimal(10, 2)
+  status         Int?
+}
+
+model discount_code {
+  id                  Int       @id @default(autoincrement())
+  discount_percentage Float?    @db.Float
+  discount_code       String?   @db.VarChar(50)
+  expired_date        DateTime? @db.DateTime(0)
+}
+
+model discount_voucher {
+  id               Int    @id @default(autoincrement())
   fix_discount     Int?
-  percent_discount Float?
+  percent_discount Float? @db.Float
   limitation       Int?
   minimum_spend    Int?
-  voucherId        Int     @unique
-  discount_voucher Voucher @relation(fields: [voucherId], references: [id])
+  voucherId        Int?
 }
 
-model Food_voucher {
-  id            Int     @id
+model event {
+  id            Int      @id @default(autoincrement())
+  name          String   @db.VarChar(100)
+  description   String?  @db.Text
+  date          DateTime @db.Date
+  start_time    DateTime @db.Time(0)
+  end_time      DateTime @db.Time(0)
+  restaurant_id Int
+}
+
+model feedbacks {
+  id     Int      @id @default(autoincrement())
+  inApp  Boolean?
+  email  Boolean?
+  userId Int?
+}
+
+model food_voucher {
+  id            Int  @id @default(autoincrement())
   limitation    Int?
   minimum_spend Int?
-  voucherId     Int     @unique
-  food_voucher  Voucher @relation(fields: [voucherId], references: [id])
+  voucherId     Int?
 }
 
-model User_voucher {
+model general_answer {
+  id            Int     @id @default(autoincrement())
+  g_question_id String? @db.VarChar(255)
+  g_answer      String  @db.VarChar(255)
+}
+
+model general_question {
+  id         Int     @id @default(autoincrement())
+  g_question String? @db.VarChar(255)
+}
+
+model item_in_set {
+  set_id  Int @id
+  menu_id Int @unique(map: "item_in_set_pk2")
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model locations {
+  id          Int
+  bar_name    String?  @db.VarChar(100)
+  address     String?  @db.VarChar(255)
+  city        String?  @db.VarChar(100)
+  province    String?  @db.VarChar(100)
+  postal_code String?  @db.VarChar(10)
+  rating      Decimal? @db.Decimal(3, 2)
+  open_hour   String?  @db.VarChar(50)
+  latitude    Decimal? @db.Decimal(10, 8)
+  longtitude  Decimal? @db.Decimal(11, 8)
+  image       String?  @db.VarChar(255)
+
+  @@ignore
+}
+
+model member_tier {
+  id            Int     @id @default(autoincrement())
+  tier_name     String? @db.VarChar(50)
+  point         Int?
+  tier_benefits String? @db.Text
+  tier_icon     String? @db.VarChar(255)
+  userId        Int?
+}
+
+model menu {
+  id           Int     @id @default(autoincrement())
+  name         String  @db.VarChar(100)
+  description  String? @db.Text
+  category     String  @db.VarChar(100)
+  price        Decimal @db.Decimal(7, 2)
+  is_available Boolean
+  image_url    String  @db.VarChar(255)
+}
+
+model menu_set {
+  id          Int     @id @default(autoincrement())
+  name        String  @db.VarChar(100)
+  price       Decimal @db.Decimal(7, 2)
+  description String? @db.Text
+  image_url   String? @db.VarChar(255)
+}
+
+model menu_update {
+  update_id      Int             @id @default(autoincrement())
+  menu_id        Int?
+  restaurant_id  Int?
+  bar_restaurant bar_restaurant? @relation(fields: [restaurant_id], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "menu_update_bar_restaurant_id_fk")
+
+  @@index([restaurant_id], map: "menu_update_bar_restaurant_id_fk")
+}
+
+model messange {
+  id        Int       @id @default(autoincrement())
+  room_id   Int
+  user_id   Int
+  message   String?   @db.VarChar(255)
+  date_time DateTime? @db.DateTime(0)
+}
+
+model notes {
+  id          Int     @id @default(autoincrement())
+  note_detail String? @db.VarChar(100)
+}
+
+model notification {
+  id        Int               @id @default(autoincrement())
+  user_id   Int
+  message   String            @db.VarChar(255)
+  timestamp DateTime          @db.DateTime(0)
+  type      notification_type
+  is_read   Boolean
+}
+
+model notifications {
+  userId        Int      @id
+  in_app_noti   Boolean?
+  email_noti    Boolean?
+  offer_noti    Boolean?
+  update_noti   Boolean?
+  feedback_noti Boolean?
+}
+
+model opening_day {
+  id  Int      @id @default(autoincrement())
+  mon Boolean?
+  tue Boolean?
+  wed Boolean?
+  thu Boolean?
+  fri Boolean?
+  sat Boolean?
+  sun Boolean?
+}
+
+model order {
+  order_id Int      @id @default(autoincrement())
+  user_id  Int
+  date     DateTime @db.DateTime(0)
+}
+
+model order_detail {
+  id             Int     @id @default(autoincrement())
+  order_id       Int
+  menu_id        Int
+  set_id         Int?
+  additional_req String? @db.VarChar(255)
+}
+
+model payment_cards {
+  id              Int                   @id
+  method          payment_cards_method?
+  firstname       String?               @db.VarChar(255)
+  lastname        String?               @db.VarChar(255)
+  bank_name       String?               @db.VarChar(255)
+  card_number     String?               @db.VarChar(40)
+  expiration_date String?               @db.VarChar(40)
+  cvv_cvc         String?               @map("cvv/cvc") @db.VarChar(40)
+}
+
+model payment_methods {
+  id          Int                     @id
+  method      payment_methods_method?
+  description String?                 @db.VarChar(255)
+  userId      Int?
+  users       users?                  @relation(fields: [userId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "payment_methods_users_id_fk")
+
+  @@index([userId], map: "payment_methods_users_id_fk")
+}
+
+model point {
+  id           Int       @id @default(autoincrement())
+  amount       Int?
+  expired_date DateTime? @db.DateTime(0)
+  user_date    DateTime? @db.DateTime(0)
+  userId       Int?
+  users        users?    @relation(fields: [userId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "point_users_id_fk")
+
+  @@index([userId], map: "point_users_id_fk")
+}
+
+model privacy_policies {
+  userId          Int      @id
+  privacy_consent Boolean?
+  cookie_consent  Boolean?
+  users           users    @relation(fields: [userId], references: [id], onUpdate: Restrict, map: "privacy_policies_users_id_fk")
+}
+
+model promotions_voucher {
+  id                      Int       @id @default(autoincrement())
+  promotions_details      String?   @db.VarChar(255)
+  promotions_expired_date DateTime? @db.DateTime(0)
+  venueId                 Int?
+}
+
+model qrcode_methods {
+  id         Int                    @id
+  method     qrcode_methods_method?
+  qrcode     String?                @db.VarChar(255)
+  amount     Int?
+  time_stamp DateTime?              @db.DateTime(0)
+}
+
+model reservation {
+  id                     Int     @id @default(autoincrement())
+  name                   String  @db.VarChar(100)
+  image_url              String? @db.VarChar(255)
+  distance_from_customer String  @db.VarChar(255)
+  about                  String  @db.Text
+  restaurant_id          Int
+}
+
+model saved_places {
+  id      Int  @id @default(autoincrement())
+  userId  Int?
+  venueId Int?
+}
+
+model search_history {
+  id        Int       @id @default(autoincrement())
+  user_id   Int
+  keywrods  String?   @db.Text
+  timestamp DateTime? @db.DateTime(0)
+}
+
+model share_to_friend {
+  id         Int     @id @default(autoincrement())
+  link_or_qr String? @db.VarChar(255)
+}
+
+model social_medias {
+  userId    Int      @id
+  google    Boolean?
+  microsoft Boolean?
+  users     users    @relation(fields: [userId], references: [id], onUpdate: Restrict, map: "social_medias_users_id_fk")
+}
+
+model system_accesses {
+  userId          Int      @id
+  location_access Boolean?
+  file_access     Boolean?
+  phone_access    Int?
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model table_type_detail {
+  capacity   Int?
+  table_type table_type_detail_table_type?
+
+  @@ignore
+}
+
+model tables {
+  id        Int     @id @default(autoincrement())
+  status    String? @db.VarChar(30)
+  image_url String? @db.VarChar(255)
+}
+
+model tags {
+  id       Int     @id @unique(map: "tags_pk2") @default(autoincrement())
+  tag_name String? @db.VarChar(50)
+}
+
+model term_of_services {
+  userId       Int      @id
+  term_consent Boolean?
+  users        users    @relation(fields: [userId], references: [id], onUpdate: Restrict, map: "term_of_services_users_id_fk")
+}
+
+model ticket {
+  id             Int            @id @default(autoincrement())
+  date           DateTime?      @db.DateTime(0)
+  topic          String?        @db.VarChar(100)
+  complaint      String?        @db.Text
+  restaurantId   Int
+  userId         Int
+  bar_restaurant bar_restaurant @relation(fields: [restaurantId], references: [id], onUpdate: Restrict, map: "ticket_bar_restaurant_id_fk")
+
+  @@index([restaurantId], map: "ticket_bar_restaurant_id_fk")
+}
+
+model transactions {
+  sender_id       Int?
+  receiver_id     Int?
+  specific_detail String?   @db.VarChar(255)
+  status          String?   @db.VarChar(15)
+  timestamp       DateTime? @db.DateTime(0)
+  amount          Int?
+  transaction_id  Int       @id
+}
+
+model user_bios {
+  userId    Int               @id
+  birthdate DateTime?         @db.Date
+  gender    user_bios_gender?
+  users     users             @relation(fields: [userId], references: [id], onUpdate: Restrict, map: "user_bios_users_id_fk")
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model user_discount {
+  userId     Int?
+  discountId Int?
+  users      users? @relation(fields: [userId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "user_discount_users_id_fk")
+
+  @@index([userId], map: "user_discount_users_id_fk")
+  @@ignore
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model user_voucher {
   userId    Int
   voucherId Int
-  user      User    @relation(fields: [userId], references: [id])
-  vouchers  Voucher @relation(fields: [voucherId], references: [id])
+  users     users @relation(fields: [userId], references: [id], onUpdate: Restrict, map: "user_voucher_users_id_fk")
 
-  @@id([userId, voucherId])
+  @@index([userId], map: "user_voucher_users_id_fk")
+  @@ignore
 }
 
-model General_questions {
-  id              Int              @id @default(autoincrement())
-  g_question      String
-  General_answers General_answers?
+model users {
+  id               Int               @id
+  username         String?           @db.VarChar(20)
+  firstname        String?           @db.VarChar(40)
+  lastname         String?           @db.VarChar(40)
+  phone            Int?
+  email            String?           @db.VarChar(125)
+  user_type        users_user_type?
+  profile_pic      String?           @db.VarChar(255)
+  payments         Int?
+  bar_restaurant   bar_restaurant[]
+  payment_methods  payment_methods[]
+  point            point[]
+  privacy_policies privacy_policies?
+  social_medias    social_medias?
+  term_of_services term_of_services?
+  user_bios        user_bios?
+  user_discount    user_discount[]   @ignore
+  user_voucher     user_voucher[]    @ignore
 }
 
-model General_answers {
-  id               Int               @id @default(autoincrement())
-  gQuestionId      Int               @unique
-  g_answer         String
-  general_question General_questions @relation(fields: [gQuestionId], references: [id])
-}
-
-model Venue_question {
-  id           Int            @id @default(autoincrement())
-  question     String
-  Venue_answer Venue_answer[]
-}
-
-model Venue_answer {
-  id         Int            @id @default(autoincrement())
-  answer     String
-  questionId Int
-  venueId    Int
-  question   Venue_question @relation(fields: [questionId], references: [id])
-  venue      Venue          @relation(fields: [venueId], references: [id])
-}
-
-model Chat_room {
-  id       Int       @id @default(autoincrement())
-  venueId  Int
-  roomname String
-  venue    Venue     @relation(fields: [venueId], references: [id])
-  Message  Message[]
-  User     User[]
-}
-
-model Message {
-  id        Int       @id @default(autoincrement())
-  roomId    Int
-  userId    Int
-  message   String
-  date_time DateTime  @default(now())
-  room      Chat_room @relation(fields: [roomId], references: [id])
-  user      User      @relation(fields: [userId], references: [id])
-}
-
-model Orders {
-  id           Int            @id @default(autoincrement())
-  userId       Int
-  venueId      Int
-  order_date   DateTime
-  total_amount Decimal        @db.Decimal(10, 2)
-  isComplete   Boolean        @default(false)
-  user         User           @relation(fields: [userId], references: [id])
-  venue        Venue          @relation(fields: [venueId], references: [id])
-  Order_detail Order_detail[]
-}
-
-model Order_detail {
-  id             Int            @id @default(autoincrement())
-  unit_price     Decimal        @db.Decimal(10, 2)
-  order_time     DateTime       @db.Timestamp()
-  additional_req String?
-  orderId        Int
-  order          Orders         @relation(fields: [orderId], references: [id])
-  Menu_ordered   Menu_ordered[]
-  Sets_ordered   Sets_ordered[]
-}
-
-model Menu {
-  id           Int            @id @default(autoincrement())
-  name         String
-  description  String?        @db.Text
-  category     String?
-  price        Decimal        @db.Decimal(10, 2)
-  stock        Int
-  image_url    String?
-  venueId      Int
-  venue        Venue          @relation(fields: [venueId], references: [id])
-  Set_items    Set_items[]
-  Menu_ordered Menu_ordered[]
-}
-
-model Menu_ordered {
-  menuId        Int
-  orderDetailId Int
-  menu          Menu         @relation(fields: [menuId], references: [id])
-  order         Order_detail @relation(fields: [orderDetailId], references: [id])
-
-  @@id([menuId, orderDetailId])
-}
-
-model Sets {
+model venue {
   id          Int     @id @default(autoincrement())
-  name        String
-  price       Decimal @db.Decimal(5, 2)
-  description String?
-  image_url   String?
-  venueId     Int
-  venue       Venue   @relation(fields: [venueId], references: [id])
-
-  Set_items    Set_items[]
-  Sets_ordered Sets_ordered[]
+  name        String? @db.VarChar(255)
+  description String? @db.Text
 }
 
-model Sets_ordered {
-  orderDetailId Int
-  setId         Int
-  order         Order_detail @relation(fields: [orderDetailId], references: [id])
-  set           Sets         @relation(fields: [setId], references: [id])
-
-  @@id([orderDetailId, setId])
-}
-
-model Set_items {
-  setId  Int
-  menuId Int
-  set    Sets @relation(fields: [setId], references: [id])
-  menu   Menu @relation(fields: [menuId], references: [id])
-
-  @@id([setId, menuId])
-}
-
-model Business_royal_member {
-  id      Int      @id @default(autoincrement())
-  userId  Int      @unique
-  venueId Int
-  date    DateTime @db.Date
-  user    User     @relation(fields: [userId], references: [id])
-  venue   Venue    @relation(fields: [venueId], references: [id])
-}
-
-model Ticket {
-  id        Int      @id @default(autoincrement())
-  date      DateTime @default(now())
-  topic     String
-  complaint String   @db.Text
-  venueId   Int
-  userId    Int
-  venue     Venue    @relation(fields: [venueId], references: [id])
-  user      User     @relation(fields: [userId], references: [id])
-}
-
-model Article {
-  id                      Int                       @id @default(autoincrement())
-  topic                   String
-  content                 String                    @db.Text
-  created_date            DateTime                  @default(now()) @db.Date
-  category                Article_category
-  venueId                 Int
-  userId                  Int
-  venue                   Venue                     @relation(fields: [venueId], references: [id])
-  user                    User                      @relation(fields: [userId], references: [id])
-  Image                   Images[]
-  Article_tags            Article_tags[]
-  Comments                Comments[]
-  Comment_like_by_creator Comment_like_by_creator[]
-  Like                    Like[]
-}
-
-enum Article_category {
-  Review
-  Blog
-  Question
-}
-
-model Images {
+model venue_answers {
   id          Int     @id @default(autoincrement())
-  url         String
-  description String?
-  articleId   Int
-  article     Article @relation(fields: [articleId], references: [id])
+  venue_id    Int?
+  question_id Int?
+  answer      String? @db.VarChar(255)
 }
 
-model Tag {
-  id           Int            @id @default(autoincrement())
-  tag_name     String
-  Article_tags Article_tags[]
+model venue_contacts {
+  id      Int     @id @default(autoincrement())
+  club_id Int?
+  email   String? @db.VarChar(255)
+  phone   String? @db.VarChar(10)
 }
 
-model Article_tags {
-  tagId     Int
-  articleId Int
-  tag       Tag     @relation(fields: [tagId], references: [id])
-  article   Article @relation(fields: [articleId], references: [id])
-
-  @@id([tagId, articleId])
+model venue_keywords {
+  id      Int     @id @default(autoincrement())
+  club_id Int
+  keyword String? @db.VarChar(255)
 }
 
-model Comments {
-  id                      Int                       @id @default(autoincrement())
-  created_date            DateTime                  @default(now()) @db.Date
-  content                 String
-  userId                  Int
-  articleId               Int
-  isReply                 Boolean                   @default(false)
-  user                    User                      @relation(fields: [userId], references: [id])
-  article                 Article                   @relation(fields: [articleId], references: [id])
-  Comment_like_by_creator Comment_like_by_creator[]
+model venue_managers {
+  id          Int     @id @default(autoincrement())
+  club_id     Int
+  first_name  String? @db.VarChar(255)
+  middle_name String? @db.VarChar(255)
+  email       String? @db.VarChar(255)
+  phone       String? @db.VarChar(255)
 }
 
-model Comment_like_by_creator {
-  id        Int      @id @default(autoincrement())
-  commentId Int
-  articleId Int
-  comment   Comments @relation(fields: [commentId], references: [id])
-  article   Article  @relation(fields: [articleId], references: [id])
+model venue_overviews {
+  id            Int       @id @default(autoincrement())
+  club_id       Int
+  details       String?   @db.Text
+  opening_hour  DateTime? @db.Time(0)
+  closing_hour  DateTime? @db.Time(0)
+  website_url   String?   @db.Text
+  club_logo_url Int?
 }
 
-model Like {
-  id        Int     @id @default(autoincrement())
-  articleId Int
-  userId    Int
-  isLike    Boolean
-  article   Article @relation(fields: [articleId], references: [id])
-  user      User    @relation(fields: [userId], references: [id])
+model venue_photo {
+  id         Int       @id @default(autoincrement())
+  club_id    Int?
+  image_url  String?   @db.Text
+  date_added DateTime? @db.DateTime(0)
+
+  @@index([club_id], map: "bar_restaurant_photo_bar_restaurant_contacts_id_fk")
 }
 
-model Reservation {
-  id            Int            @id @default(autoincrement())
-  venueId       Int
-  tableId       Int
-  guest_amount  Int
-  reserved_time DateTime       @default(now())
-  status        Status
-  userId        Int
-  user          User           @relation(fields: [userId], references: [id])
-  venue         Venue          @relation(fields: [venueId], references: [id])
-  table         Tables         @relation(fields: [tableId], references: [id])
-  Deposit       Deposit?
-  Share_reserve Share_reserve?
-  Notes         Notes?
-  Check_in_log  Check_in_log?
+model venue_questions {
+  id       Int     @id @default(autoincrement())
+  question String? @db.VarChar(255)
 }
 
-enum Status {
-  On_going
-  Complete
-  Cancel
+model venue_reviews {
+  id         Int       @id @default(autoincrement())
+  clubId     Int
+  userId     Int?
+  rating     Int?
+  review     String?   @db.Text
+  date_added DateTime? @db.DateTime(0)
 }
 
-model Share_reserve {
-  id         Int         @id @default(autoincrement())
-  link_or_qr String
-  reserveId  Int         @unique
-  reserve    Reservation @relation(fields: [reserveId], references: [id])
+model voucher {
+  id             Int             @id @default(autoincrement())
+  voucher_name   String?         @db.VarChar(100)
+  voucher_image  String?         @db.VarChar(255)
+  start_date     DateTime?       @db.DateTime(0)
+  end_date       DateTime?       @db.DateTime(0)
+  description    String?         @db.VarChar(255)
+  point          Int?
+  restaurantId   Int?
+  bar_restaurant bar_restaurant? @relation(fields: [restaurantId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "voucher_bar_restaurant_id_fk")
+
+  @@index([restaurantId], map: "voucher_bar_restaurant_id_fk")
 }
 
-model Notes {
-  id        Int         @id @default(autoincrement())
-  detail    String
-  reserveId Int         @unique
-  reserve   Reservation @relation(fields: [reserveId], references: [id])
+enum table_type_detail_table_type {
+  small
+  medium
+  large
+  extralarge
 }
 
-model Deposit {
-  id             Int         @id @default(autoincrement())
-  reserveId      Int         @unique
-  deposit_amount Decimal     @db.Decimal(10, 2)
-  status         Int
-  reserve        Reservation @relation(fields: [reserveId], references: [id])
+enum payment_cards_method {
+  cash
+  promptpay
+  mobilebanking
 }
 
-model Tables {
-  id                Int                @id @default(autoincrement())
-  venueId           Int
-  status            String
-  image_url         String?
-  venue             Venue              @relation(fields: [venueId], references: [id])
-  Reservation       Reservation[]
-  Table_type_detail Table_type_detail?
+enum payment_methods_method {
+  cash
+  promptpay
+  mobilebanking
 }
 
-model Table_type_detail {
-  id       Int        @id @default(autoincrement())
-  capacity Int
-  type     Table_type
-  tableId  Int        @unique
-  table    Tables     @relation(fields: [tableId], references: [id])
+enum qrcode_methods_method {
+  cash
+  promptpay
+  mobilebanking
 }
 
-enum Table_type {
-  Small
-  Medium
-  Large
-  Extra_large
+enum user_bios_gender {
+  male
+  female
+  other
 }
 
-model Check_in_log {
-  id             Int         @id @default(autoincrement())
-  reserveId      Int         @unique
-  check_in_time  DateTime
-  check_out_time DateTime
-  isCheckIn      Boolean
-  reserve        Reservation @relation(fields: [reserveId], references: [id])
+enum available_users_gender {
+  male
+  female
 }
 
-model Recommendation {
-  userId  Int
-  venueId Int
-  user    User  @relation(fields: [userId], references: [id])
-  venue   Venue @relation(fields: [venueId], references: [id])
-
-  @@id([userId, venueId])
+enum articles_category {
+  review
+  question
+  blog
 }
 
-model Advertisement {
-  id          Int      @id @default(autoincrement())
-  name        String
-  user_id     Int      @unique
-  description String?
-  image_url   String?
-  type        Ad_type
-  start_date  DateTime
-  end_date    DateTime
-  user        User     @relation(fields: [user_id], references: [id])
+enum notification_type {
+  reservation
+  order
+  checkout
+  admin_update
+  promo_event
+  commu_update
+  recommendation
+  survey
+  ticket
 }
 
-enum Ad_type {
-  Promotion
-  Event
+enum advertisement_type {
+  promotion
+  event
 }
 
-model Notification {
-  id                Int       @id @default(autoincrement())
-  userId            Int
-  message           String
-  timestamp         DateTime
-  notification_type Noti_type
-  isRead            Boolean
-  user              User      @relation(fields: [userId], references: [id])
-}
-
-enum Noti_type {
-  Reservation
-  Order
-  Checkout
-  Admin_update
-  Promo_event
-  Commu_update
-  Recommendation
-  Survey
-  Tickets
-}
-
-model Event {
-  id                Int      @id @default(autoincrement())
-  event_name        String
-  event_description String
-  event_date        DateTime
-  event_start       DateTime @db.Timestamp()
-  event_end         DateTime @db.Timestamp()
-  venueId           Int
-  userId            Int
-  user              User     @relation(fields: [userId], references: [id])
-  venue             Venue    @relation(fields: [venueId], references: [id])
+enum users_user_type {
+  customer
+  business
+  admin
 }
