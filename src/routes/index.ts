@@ -18,7 +18,10 @@ import Feature14Routes from "./feature14.routes";
 class Routes {
     constructor(app: Application) {
         // app.use("/api/mock", MockRoutes);
-        // specify your path here
+        // specify your path here 
+
+        // You can specify your path name with your feature name instead of 'feature1'
+        // as example https://harmoni.social/api/business/revenue
         app.use("/feature1",Feature1Routes);
         app.use("/feature2",Feature2Routes);
         app.use("/feature3",Feature3Routes);
