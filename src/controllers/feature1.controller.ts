@@ -14,6 +14,7 @@ export const notificationHandler = async (req: Request, res: Response) => {};
 
 export const privacyHandler = async (req: Request, res: Response) => {};
 
+// TODO: @SoeThandarLwin Let authenticated and authorized users access this
 export const termOfServiceHandler = async (req: Request, res: Response) => {
   switch (req.method) {
     case "GET":
