@@ -14,10 +14,10 @@ class MockController implements IMockController {
     }
 
     async multipleHelloWorld(req: Request, res: Response): Promise<void> {
-        const count: number = parseInt(req.params.count);
-        const dataSet: string[] = [];
+        const count = parseInt(req.params.count);
+        const dataSet = [];
         for (let i = 0; i < count; i++) {
-            const data: string = await MockService.helloWorld();
+            const data = await MockService.helloWorld();
             dataSet.push(data);
         }
         res.status(200).send(dataSet);
