@@ -9,7 +9,7 @@ export const getfeature12 = async (req: Request, res: Response) => {
 export const createGQuestions = async (req: Request, res: Response) => {
   const { Questionid, QuestionText } = req.body;
   try {
-    const GQuestions = await feature12Client.general_question.create({
+    const GQuestions = await feature12Client.general_questions.create({
       data: {
         id: Questionid,
         g_question: QuestionText,
@@ -25,7 +25,7 @@ export const createGQuestions = async (req: Request, res: Response) => {
 //Read
 export const getAllGeneralQuestions = async (req: Request, res: Response) => {
   try {
-    const GQuestions = await feature12Client.general_question.findMany();
+    const GQuestions = await feature12Client.general_questions.findMany();
     return res.status(200).json(GQuestions);
   } catch (error) {
     return res.status(500).json({ error });
