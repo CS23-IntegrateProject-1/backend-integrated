@@ -2,7 +2,7 @@ import TOSRepository from "../services/feature1/tos.repository";
 import TOSService from "../services/feature1/tos.service";
 
 import { Response, Request } from "express";
-import { TOS } from "./feature1/models/TOS.model";
+import { TOSResponse } from "./feature1/models/TOS.model";
 
 export const getfeature1 = async (req: Request, res: Response) => {
   return res.json({});
@@ -15,6 +15,26 @@ export const notificationHandler = async (req: Request, res: Response) => {};
 export const privacyHandler = async (req: Request, res: Response) => {};
 
 // TODO: @SoeThandarLwin Let authenticated and authorized users access this
+// TODO: @SoeThandarLwin Implement better validation
+export const termOfServiceChangeHandler = async (
+  req: Request,
+  res: Response
+) => {
+  const { user_id: userId, consent } = req.body;
+
+  const tosService = new TOSService(new TOSRepository());
+  try {
+    const tosStatus = await tosService.setTOSStatus(userId, consent);
+    return res.json(tosStatus);
+  } catch (e) {
+    return res.status(404).json({
+      message: "user not found",
+    });
+  }
+};
+
+// TODO: @SoeThandarLwin Let authenticated and authorized users access this
+// TODO: @SoeThandarLwin Implement better validation
 export const termOfServiceHandler = async (req: Request, res: Response) => {
   switch (req.method) {
     case "GET":
@@ -40,7 +60,7 @@ export const termOfServiceHandler = async (req: Request, res: Response) => {
         });
       }
 
-      const tosStatus: TOS = {
+      const tosStatus: TOSResponse = {
         user_id: userIdNum,
         consented: consent,
       };

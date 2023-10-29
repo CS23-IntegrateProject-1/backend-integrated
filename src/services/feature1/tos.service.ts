@@ -16,11 +16,17 @@ class TOSService implements ITOSService {
     try {
       return this.tosRepository.getTOSStatus(userId);
     } catch (e) {
-      throw new Error("User not found");
+      throw e;
     }
   }
 
-  setTOSStatus(userId: number, consented: boolean) {}
+  setTOSStatus(userId: number, consented: boolean) {
+    try {
+      return this.tosRepository.setTOSStatus(userId, consented);
+    } catch (e) {
+      throw e;
+    }
+  }
 }
 
 export default TOSService;
