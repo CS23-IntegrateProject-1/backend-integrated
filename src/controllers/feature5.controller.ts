@@ -19,6 +19,18 @@ export const getAdvertisement = async (req: Request, res: Response) => {
         res.status(500).json({ error: 'Failed to retrieve data' });
     }
 };
+
+export const getUser = async (req: Request, res: Response) => {  
+    try {
+        // console.log("Hello world!");
+        const allUsers = await feature5Client.user.findMany();
+        res.status(200).json(allUsers);
+            
+    } catch (e) {
+        console.log(e);
+        res.status(500).json({ error: 'Failed to retrieve data' });
+    }
+};
 // example of controller getAllAuthors
 // export const getAllAuthors = async (req: Request, res: Response) => {
 //   try {
