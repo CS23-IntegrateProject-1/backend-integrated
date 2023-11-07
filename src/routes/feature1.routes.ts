@@ -3,7 +3,7 @@ import { Router } from "express";
 // here import your controllers(function)
 import {
   aboutHandler,
-  accountHandler,
+  accountHandler, bioFetchHandler,
   getfeature1,
   helpHandler,
   notificationHandler,
@@ -23,5 +23,6 @@ feature1Router.get("/term-of-service", termOfServiceHandler);
 feature1Router.post("/term-of-service", termOfServiceChangeHandler);
 feature1Router.all("/help", helpHandler);
 feature1Router.all("/about", aboutHandler);
+feature1Router.get('/bio', bioFetchHandler);
 
 export default feature1Router;

@@ -3,7 +3,7 @@ import {
   PrismaClientKnownRequestError,
 } from "@prisma/client/runtime/library";
 import { Prisma, PrismaClient } from "@prisma/client";
-import { TOSResponse } from "../../controllers/feature1/models/TOS.model";
+import { TOSResponse } from "../../controllers/feature1/models/tos.model";
 
 interface ITOSRepository {
   getTOSStatus(userId: number): Promise<boolean>;

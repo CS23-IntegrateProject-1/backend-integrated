@@ -2,7 +2,7 @@ import TOSRepository from "../services/feature1/tos.repository";
 import TOSService from "../services/feature1/tos.service";
 
 import { Response, Request } from "express";
-import { TOSResponse } from "./feature1/models/TOS.model";
+import { TOSResponse } from "./feature1/models/tos.model";
 
 export const getfeature1 = async (req: Request, res: Response) => {
   return res.json({});
@@ -69,6 +69,9 @@ export const termOfServiceHandler = async (req: Request, res: Response) => {
     default:
   }
 };
+
+export const bioFetchHandler = async (req: Request, res: Response) => {
+}
 
 export const helpHandler = async (req: Request, res: Response) => {};
 
