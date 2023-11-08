@@ -419,7 +419,7 @@ model Orders {
   orderId      Int            @id @default(autoincrement())
   userId       Int?
   venueId      Int
-  addressId    Int
+  addressId    Int?
   status       Order_status
   order_date   DateTime
   total_amount Decimal        @db.Decimal(10, 2)
@@ -428,7 +428,7 @@ model Orders {
   isDelivery   Boolean        @default(false)
   driverId     Int?
   driver       Driver_list?   @relation(fields: [driverId], references: [driverId])
-  address      Saved_address  @relation(fields: [addressId], references: [addressId])
+  address      Saved_address? @relation(fields: [addressId], references: [addressId])
   reserve      Reservation?   @relation(fields: [reservedId], references: [reservationId])
   branch       Venue_branch   @relation(fields: [branchId], references: [branchId])
   user         User?          @relation(fields: [userId], references: [userId])
@@ -455,22 +455,22 @@ model Order_detail {
 }
 
 model Menu {
-  menuId           Int                @id @default(autoincrement())
-  name             String
-  description      String?            @db.Text
-  price            Decimal            @db.Decimal(10, 2)
-  image            String?
-  venueId          Int
-  branchId         Int
-  isAvailiable     Boolean            @default(false)
-  branch           Venue_branch       @relation(fields: [branchId], references: [branchId])
-  venue            Venue              @relation(fields: [venueId], references: [venueId])
-  Set_items        Set_items?
-  Promotion        Promotion[]
-  Food_reviews     Food_reviews[]
-  Menu_category    Menu_category[]
-  menu_ingredients menu_ingredients[]
-  Order_detail     Order_detail[]
+  menuId               Int                @id @default(autoincrement())
+  name                 String
+  description          String?            @db.Text
+  price                Decimal            @db.Decimal(10, 2)
+  image                String?
+  venueId              Int
+  isAvailiable         Boolean            @default(false)
+  venue                Venue              @relation(fields: [venueId], references: [venueId])
+  Set_items            Set_items?
+  Promotion            Promotion[]
+  Food_reviews         Food_reviews[]
+  Menu_category        Menu_category[]
+  menu_ingredients     menu_ingredients[]
+  Order_detail         Order_detail[]
+  Venue_branch         Venue_branch?      @relation(fields: [venue_branchBranchId], references: [branchId])
+  venue_branchBranchId Int?
 }
 
 model Menu_category {
