@@ -32,7 +32,7 @@ class TOSRepository implements ITOSRepository {
       throw Error("User not found");
     }
 
-    return !!consentResult.term_consent;
+    return !!consentResult.privacy_consent;
   }
 
   async setTOSStatus(userId: number, consented: boolean): Promise<TOSResponse> {
@@ -42,13 +42,13 @@ class TOSRepository implements ITOSRepository {
           userId,
         },
         data: {
-          term_consent: consented,
+          privacy_consent: consented,
         },
       });
 
       return {
         user_id: consentResult.userId,
-        consented: consentResult.term_consent!!,
+        consented: consentResult.privacy_consent!!,
       };
     } catch (e: unknown) {
       if ((e as PrismaClientKnownRequestError).code === "P2025") {
