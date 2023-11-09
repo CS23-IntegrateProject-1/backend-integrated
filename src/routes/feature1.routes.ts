@@ -20,10 +20,8 @@ feature1Router.all("/account", accountHandler);
 feature1Router.all("/notification", notificationHandler);
 feature1Router.all("/privacy-policy", privacyHandler);
 
-feature1Router.group('/term-of-service', function () {
-  feature1Router.get("/", termOfServiceHandler);
-  feature1Router.post("/", termOfServiceChangeHandler);
-});
+feature1Router.get("/", termOfServiceHandler);
+feature1Router.post("/", termOfServiceChangeHandler);
 
 feature1Router.all("/help", helpHandler);
 feature1Router.all("/about", aboutHandler);
