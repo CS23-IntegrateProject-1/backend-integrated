@@ -193,7 +193,6 @@ model Venue_branch {
   venueId     Int
   branch_name String
   venue       Venue    @relation(fields: [venueId], references: [venueId])
-  Menu        Menu[]
   Orders      Orders[]
 }
 
@@ -455,22 +454,20 @@ model Order_detail {
 }
 
 model Menu {
-  menuId               Int                @id @default(autoincrement())
-  name                 String
-  description          String?            @db.Text
-  price                Decimal            @db.Decimal(10, 2)
-  image                String?
-  venueId              Int
-  isAvailiable         Boolean            @default(false)
-  venue                Venue              @relation(fields: [venueId], references: [venueId])
-  Set_items            Set_items?
-  Promotion            Promotion[]
-  Food_reviews         Food_reviews[]
-  Menu_category        Menu_category[]
-  menu_ingredients     menu_ingredients[]
-  Order_detail         Order_detail[]
-  Venue_branch         Venue_branch?      @relation(fields: [venue_branchBranchId], references: [branchId])
-  venue_branchBranchId Int?
+  menuId           Int                @id @default(autoincrement())
+  name             String
+  description      String?            @db.Text
+  price            Decimal            @db.Decimal(10, 2)
+  image            String?
+  venueId          Int
+  isAvailiable     Boolean            @default(false)
+  venue            Venue              @relation(fields: [venueId], references: [venueId])
+  Set_items        Set_items?
+  Promotion        Promotion[]
+  Food_reviews     Food_reviews[]
+  Menu_category    Menu_category[]
+  menu_ingredients menu_ingredients[]
+  Order_detail     Order_detail[]
 }
 
 model Menu_category {
@@ -1119,14 +1116,14 @@ model Venue_transaction_detail {
 }
 
 model Notification {
-  notificationId     Int               @id @default(autoincrement())
+  notificationId     Int                @id @default(autoincrement())
   title              String
   message            String
   send_on            DateTime
-  venueTransactionId Int
-  appTransactionId   Int
-  app_transac        App_transaction   @relation(fields: [appTransactionId], references: [appTransactionId])
-  venue_transaction  Venue_transaction @relation(fields: [venueTransactionId], references: [venueTransactionId])
+  venueTransactionId Int?
+  appTransactionId   Int?
+  app_transac        App_transaction?   @relation(fields: [appTransactionId], references: [appTransactionId])
+  venue_transaction  Venue_transaction? @relation(fields: [venueTransactionId], references: [venueTransactionId])
 }
 
 model Credit_card {
