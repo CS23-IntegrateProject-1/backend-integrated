@@ -186,6 +186,8 @@ model Venue {
   Transaction       Transaction[]
   App_transaction   App_transaction[]
   Venue_transaction Venue_transaction[]
+  Article_venue     Article_venue[]
+  Deposit           Deposit[]
 }
 
 model Venue_branch {
@@ -652,6 +654,16 @@ model Article {
   Comments                Comments[]
   Comment_like_by_creator Comment_like_by_creator[]
   Like                    Like[]
+  Article_venue           Article_venue[]
+}
+
+model Article_venue {
+  articleId Int
+  venueId   Int
+  article   Article @relation(fields: [articleId], references: [articleId])
+  venue     Venue   @relation(fields: [venueId], references: [venueId])
+
+  @@id([articleId, venueId])
 }
 
 enum Article_category {
@@ -721,9 +733,10 @@ model Reservation {
   entry_time        DateTime
   status            Status
   isReview          Boolean             @default(false)
+  depositId         Int                 @unique
+  deposit           Deposit             @relation(fields: [depositId], references: [depositId])
   user              User                @relation(fields: [userId], references: [userId])
   venue             Venue               @relation(fields: [venueId], references: [venueId])
-  Deposit           Deposit?
   Share_reserve     Share_reserve?
   Notes             Notes?
   Check_in_log      Check_in_log?
@@ -762,11 +775,17 @@ model Notes {
 }
 
 model Deposit {
-  depositId      Int         @id @default(autoincrement())
-  reserveId      Int         @unique
-  deposit_amount Decimal     @db.Decimal(10, 2)
-  status         Int
-  reserve        Reservation @relation(fields: [reserveId], references: [reservationId])
+  depositId      Int            @id @default(autoincrement())
+  deposit_amount Decimal        @db.Decimal(10, 2)
+  venueId        Int
+  venue          Venue          @relation(fields: [venueId], references: [venueId])
+  status         Deposit_status
+  Reservation    Reservation?
+}
+
+enum Deposit_status {
+  Pending
+  Completed
 }
 
 model Tables {
