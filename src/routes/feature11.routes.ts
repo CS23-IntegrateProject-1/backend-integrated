@@ -7,7 +7,11 @@ import {
     getAllArticle,
     addComment,
     getArticleDetail,
-    getArticleComment
+    getArticleComment,
+    addLike,
+    deleteArticle,
+    deleteComment,
+    deleteLike
 } from "../controllers/feature11.controller";
 
 const feature11Router = Router();
@@ -17,10 +21,14 @@ const feature11Router = Router();
 
 feature11Router.post("/addArticle", addArticle);
 feature11Router.post("/writeComment", addComment);
+feature11Router.post("/addLike", addLike);
+feature11Router.delete("/deleteArticle", deleteArticle);
+feature11Router.delete("/deleteComment", deleteComment);
+feature11Router.delete("/deleteLike", deleteLike);
 feature11Router.get("/fetchAllArticle", getAllArticle);
 
 //parameter = article id
-feature11Router.get("/fetchArticleDetail/:id", getArticleDetail);
+feature11Router.get("/fetchArticleDetail/:articleId", getArticleDetail);
 feature11Router.get("/fetchArticleComment/:id", getArticleComment);
 
 //feature11Router.get("/getAllUsers", getAllUsers);
