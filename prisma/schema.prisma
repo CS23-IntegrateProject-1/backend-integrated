@@ -426,7 +426,7 @@ model Orders {
   orderId      Int            @id @default(autoincrement())
   reservedId   Int?           @unique
   status       Order_status
-  Order_detail Order_detail?
+  Order_detail Order_detail[]
   address      Saved_address? @relation(fields: [addressId], references: [addressId])
   branch       Venue_branch   @relation(fields: [branchId], references: [branchId])
   driver       Driver_list?   @relation(fields: [driverId], references: [driverId])
@@ -442,10 +442,11 @@ model Orders {
 }
 
 model Order_detail {
+  orderDetailId Int      @id @default(autoincrement())
   unit_price     Decimal  @db.Decimal(10, 2)
   order_time     DateTime @default(now()) @db.Timestamp(0)
   additional_req String?
-  orderId        Int      @id @default(autoincrement())
+  orderId        Int      
   menuId         Int?
   quantity       Int
   setId          Int?
@@ -462,6 +463,7 @@ model Menu {
   description      String?            @db.Text
   price            Decimal            @db.Decimal(10, 2)
   venueId          Int
+  menu_no Int
   image            String?
   isAvailiable     Boolean            @default(false)
   menuId           Int                @id @default(autoincrement())
