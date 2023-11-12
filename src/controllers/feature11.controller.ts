@@ -71,7 +71,7 @@ export const addArticle = async (req: Request, res: Response) => {
     const tags: string[] = req.body.tags;
     const imageDetails: ImageInput[] = req.body.images;
 
-    const userId = 1;
+    const userId = 3;
     //const secret: Secret = 'fwjjpjegjwpjgwej' || "";
     //const token = req.cookies.token;
     //if (!token)
@@ -291,7 +291,7 @@ export const addComment = async (req: Request, res: Response) => {
 
     //const decoded = jwt.verify(token, secret) as CustomJwtPayload;
     //const userId = decoded.userId;
-    const userId = 1;
+    const userId = 3;
 
     const newComment = await prisma.comments.create({
       data: {
@@ -437,11 +437,16 @@ export const getAllArticle = async (req: Request, res: Response) => {
         const likeCount = await prisma.like.count({
           where: { articleId: article.articleId },
         });
+
+        const commentCount = await prisma.comments.count({
+          where: { articleId: article.articleId }
+        })
   
         // Add the like count to each article object
         return {
           ...article,
           Like: likeCount,
+          Comment: commentCount
         };
       })
     );
@@ -461,7 +466,7 @@ export const addLike = async (req: Request, res: Response) => {
 
   //const decoded = jwt.verify(token, secret) as CustomJwtPayload;
   //const userId = decoded.userId;
-  const userId = 1;
+  const userId = 3;
   
   const like: LikeCreateInput = req.body;
   const { articleId } = like;
