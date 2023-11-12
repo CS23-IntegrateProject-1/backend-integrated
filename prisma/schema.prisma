@@ -285,7 +285,7 @@ model Voucher {
   description      String
   point_use        Int?
   venueId          Int
-  isApprove        Boolean           @default(false)
+  isApprove        Approve_status
   voucherId        Int               @id @default(autoincrement())
   Discount_voucher Discount_voucher?
   Food_voucher     Food_voucher?
@@ -473,7 +473,7 @@ model Menu {
   Menu_category    Menu_category[]
   Order_detail     Order_detail[]
   Promotion        Promotion[]
-  Set_items        Set_items?
+  Set_items        Set_items[]
   menu_ingredients menu_ingredients[]
   Stocks           Stocks?
 
@@ -523,7 +523,7 @@ model Sets {
 
 model Set_items {
   setId  Int
-  menuId Int  @unique
+  menuId Int
   menu   Menu @relation(fields: [menuId], references: [menuId])
   set    Sets @relation(fields: [setId], references: [setId])
 
@@ -758,6 +758,7 @@ model Reservation {
   isReview          Boolean             @default(false)
   reservationId     Int                 @id @default(autoincrement())
   depositId         Int                 @unique
+  isPaidDeposit     Deposit_status
   Check_in_log      Check_in_log?
   Notes             Notes?
   Orders            Orders?
@@ -798,11 +799,10 @@ model Notes {
 }
 
 model Deposit {
-  deposit_amount Decimal        @db.Decimal(10, 2)
-  status         Deposit_status
-  depositId      Int            @id @default(autoincrement())
+  deposit_amount Decimal      @db.Decimal(10, 2)
+  depositId      Int          @id @default(autoincrement())
   venueId        Int
-  venue          Venue          @relation(fields: [venueId], references: [venueId])
+  venue          Venue        @relation(fields: [venueId], references: [venueId])
   Reservation    Reservation?
 
   @@index([venueId], map: "Deposit_venueId_fkey")
@@ -878,7 +878,7 @@ model Ad_business {
   start_date        DateTime
   end_date          DateTime
   cost              Float
-  isApprove         Boolean            @default(false)
+  isApprove         Approve_status
   customer_type     Customer_type
   target_group      Target_group
   businessId        Int
@@ -887,6 +887,12 @@ model Ad_business {
   Venue_transaction Venue_transaction?
 
   @@index([businessId], map: "Ad_business_businessId_fkey")
+}
+
+enum Approve_status {
+  Rejected
+  In_progress
+  Completed
 }
 
 model Ad_tag {
