@@ -1,7 +1,8 @@
+import { Response, Request } from "express";
+
 import TOSRepository from "../services/feature1/tos.repository";
 import TOSService from "../services/feature1/tos.service";
-
-import { Response, Request } from "express";
+import { PaymentMethodController } from "./feature1/PaymentMethodController";
 import { TOSResponse } from "./feature1/models/tos.model";
 
 export const getfeature1 = async (req: Request, res: Response) => {
@@ -10,17 +11,13 @@ export const getfeature1 = async (req: Request, res: Response) => {
 
 export const accountHandler = async (req: Request, res: Response) => {};
 
-export const notificationHandler = async (req: Request, res: Response) => {
-  console.log(req.query);
-};
-
 export const privacyHandler = async (req: Request, res: Response) => {};
 
 // TODO: @SoeThandarLwin Let authenticated and authorized users access this
 // TODO: @SoeThandarLwin Implement better validation
 export const termOfServiceChangeHandler = async (
   req: Request,
-  res: Response
+  res: Response,
 ) => {
   const { user_id: userId, consent } = req.body;
 
@@ -72,8 +69,22 @@ export const termOfServiceHandler = async (req: Request, res: Response) => {
   }
 };
 
-export const bioFetchHandler = async (req: Request, res: Response) => {}
+export const bioFetchHandler = async (req: Request, res: Response) => {};
 
 export const helpHandler = async (req: Request, res: Response) => {};
 
 export const aboutHandler = async (req: Request, res: Response) => {};
+
+export const paymentMethodHandler = async (req: Request, res: Response) => {
+  switch (req.method) {
+    case "POST":
+      return new PaymentMethodController().store(req, res);
+    case "PUT":
+      return new PaymentMethodController().update(req, res);
+    case "DELETE":
+      return new PaymentMethodController().destroy(req, res);
+    case "GET":
+    default:
+      return new PaymentMethodController().show(req, res);
+  }
+};
