@@ -169,6 +169,7 @@ model Venue {
   Venue_reviews     Venue_reviews[]
   Venue_transaction Venue_transaction[]
   Voucher           Voucher[]
+  Stocks            Stocks[]
 }
 
 model Venue_branch {
@@ -177,6 +178,7 @@ model Venue_branch {
   branch_name String
   Orders      Orders[]
   venue       Venue    @relation(fields: [venueId], references: [venueId])
+  Stocks      Stocks[]
 
   @@index([venueId], map: "Venue_branch_venueId_fkey")
 }
@@ -442,11 +444,11 @@ model Orders {
 }
 
 model Order_detail {
-  orderDetailId Int      @id @default(autoincrement())
+  orderDetailId  Int      @id @default(autoincrement())
   unit_price     Decimal  @db.Decimal(10, 2)
   order_time     DateTime @default(now()) @db.Timestamp(0)
   additional_req String?
-  orderId        Int      
+  orderId        Int
   menuId         Int?
   quantity       Int
   setId          Int?
@@ -463,9 +465,8 @@ model Menu {
   description      String?            @db.Text
   price            Decimal            @db.Decimal(10, 2)
   venueId          Int
-  menu_no Int
+  menu_no          Int
   image            String?
-  isAvailiable     Boolean            @default(false)
   menuId           Int                @id @default(autoincrement())
   Food_reviews     Food_reviews[]
   venue            Venue              @relation(fields: [venueId], references: [venueId])
@@ -474,8 +475,20 @@ model Menu {
   Promotion        Promotion[]
   Set_items        Set_items?
   menu_ingredients menu_ingredients[]
+  Stocks           Stocks?
 
   @@index([venueId], map: "Menu_venueId_fkey")
+}
+
+model Stocks {
+  stockId      Int          @id @default(autoincrement())
+  menuId       Int          @unique
+  venueId      Int
+  branchId     Int
+  menue        Menu         @relation(fields: [menuId], references: [menuId])
+  venue        Venue        @relation(fields: [venueId], references: [venueId])
+  branch       Venue_branch @relation(fields: [branchId], references: [branchId])
+  availability Boolean      @default(true)
 }
 
 model Menu_category {
@@ -1209,6 +1222,7 @@ model Films {
   filmId       Int      @id @default(autoincrement())
   name         String
   genre        Genre
+  language     String
   synopsis     String   @db.Text
   release_date DateTime @db.Date
   duration     Decimal  @db.Decimal(10, 2)
