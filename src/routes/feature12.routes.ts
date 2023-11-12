@@ -2,24 +2,34 @@ import { Router } from "express";
 
 // here import your controllers(function)
 import {
-  createGAnswer,
-  getAllGeneralQuestions,
-  updateGQuestion,
   displayAllGQuestions,
   displayAnswer,
+  displayAllDistinctCategory,
+  displayAllDistinctName,
+  displayAllQuestionsWrtName,
+  displayAnswerWrtVenueID,
+  getAllUsers,
 } from "../controllers/feature12.controller";
 
 const feature12Router = Router();
-
-// here define your routes
-feature12Router.post("/create", createGAnswer);
-feature12Router.get("/read", getAllGeneralQuestions);
-feature12Router.put("/update/:id", updateGQuestion);
+//CRUD
+// feature12Router.post("/create", createGAnswer);
+// feature12Router.get("/read", getAllGeneralQuestions);
+// feature12Router.put("/update/:id", updateGQuestion);
 //feature12Router.delete("/deleteGQuestion/:id", deleteGQuestion);
 
 //Displaying all Questions
 feature12Router.get("/printAllQuestions", displayAllGQuestions);
 feature12Router.get("/printAnswer/:id", displayAnswer);
 
-
+//Display Distinct Category
+feature12Router.get("/displayCategory", displayAllDistinctCategory);
+//Display Distinct name wrt category
+feature12Router.get("/displayName/:category", displayAllDistinctName);
+//Display All question wrt name
+feature12Router.get("/displayQuestion/:id", displayAllQuestionsWrtName);
+//Display answer wrt question
+feature12Router.get("/displayAnswer/:id", displayAnswerWrtVenueID);
+//Get all user
+feature12Router.get("/displayUser", getAllUsers);
 export default feature12Router;
