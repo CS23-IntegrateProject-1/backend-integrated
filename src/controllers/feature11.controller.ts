@@ -64,7 +64,7 @@ export const addArticle = async (req: Request, res: Response) => {
     const venueIds: number[] = req.body.venueIds;
     const tags: string[] = req.body.tags;
 
-    const userId = 1;
+    const userId = 2;
     //const secret: Secret = 'fwjjpjegjwpjgwej' || "";
     //const token = req.cookies.token;
     //if (!token)
@@ -204,15 +204,24 @@ export const getArticleDetail = async (req: Request, res: Response) => {
             venue: true,
           }
         },
-        Like: true,
       },
     });
 
     if (!article) {
       res.json({ error: "Article not found" });
-    } else {
-      res.json(article);
     }
+
+    const likeCount = await prisma.like.count({
+      where: { articleId: parseInt(articleId) },
+    });
+  
+    // Add the like count to the article object
+    const articleWithLikeCount = {
+      ...article,
+      Like: likeCount,
+    };
+  
+    res.json(articleWithLikeCount);
   } catch (error) {
     console.error(error);
     res.json({ error: "Internal server error" });
@@ -242,7 +251,7 @@ export const getArticleComment = async (req: Request, res: Response) => {
 export const getAllArticle = async (req: Request, res: Response) => {
   // ! like should only show the count not all information that who like this article?
   try {
-    const article = await prisma.article.findMany({
+    const articles = await prisma.article.findMany({
       include: {
         Image: true,
         Article_tags: {
@@ -253,17 +262,31 @@ export const getAllArticle = async (req: Request, res: Response) => {
         Article_venue: {
           include: {
             venue: true,
-          }
+          },
         },
-        Like: true,
       },
     });
-
-    if (!article) {
-      res.json({ error: "Article not found" });
-    } else {
-      res.json(article);
+  
+    if (articles.length === 0) {
+      res.status(404).json({ error: "Article not found" });
+      return;
     }
+  
+    const articlesWithLikeCount = await Promise.all(
+      articles.map(async (article) => {
+        const likeCount = await prisma.like.count({
+          where: { articleId: article.articleId },
+        });
+  
+        // Add the like count to each article object
+        return {
+          ...article,
+          Like: likeCount,
+        };
+      })
+    );
+  
+    res.json(articlesWithLikeCount);
   } catch (error) {
     console.error(error);
     res.json({ error: "Internal server error" });
