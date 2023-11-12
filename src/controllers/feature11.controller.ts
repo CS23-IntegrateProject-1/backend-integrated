@@ -328,6 +328,26 @@ export const deleteLike = async (req: Request, res: Response) => {
   }
 }
 
+export const getAllVenueName = async (req: Request, res: Response) => {
+  try {
+    const venue = await prisma.venue.findMany({
+      select: {
+        venueId: true,
+        name: true
+      },
+    });
+
+    if (!venue) {
+      res.json({ error: "Venue not found" });
+    } else {
+      res.json(venue);
+    }
+  } catch (error) {
+    console.error(error);
+    res.json({ error: "Internal server error" });
+  }
+};
+
 // example of controller getAllAuthors
 // export const getAllAuthors = async (req: Request, res: Response) => {
 //   try {
