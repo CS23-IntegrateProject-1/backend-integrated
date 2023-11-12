@@ -6,10 +6,12 @@ const feature11Client = new PrismaClient();
 const prisma = new PrismaClient();
 
 // * TODO : 
-// * edit article / comment, 
+// * edit article 
 // * change keyword to link, 
 // * get comment like by creator
 // * add comment like by creator
+// * delete tag for article                                                  |  -->   maybe do both of this at the same time
+// * delete a tag in tag table when there is no article left pointing to it  |
 
 enum Category {
     Review = "Review",
@@ -129,7 +131,87 @@ export const addArticle = async (req: Request, res: Response) => {
   }
 };
 
-// ! need to add delete image later
+// ! haven't test
+export const editArticle = async (req: Request, res: Response) => {
+  try {
+    //const article: ArticleCreateInput = req.body;
+    const { articleId, topic, content, category, author_name } = req.body;
+    const venueIds: number[] = req.body.venueIds;
+    const tags: string[] = req.body.tags;
+    const imageDetails: ImageInput[] = req.body.images;
+
+    //const userId = 1;
+    //const secret: Secret = 'fwjjpjegjwpjgwej' || "";
+    //const token = req.cookies.token;
+    //if (!token)
+    //  return res.json({ error: 'Unauthorized' });
+
+    //const decoded = jwt.verify(token, secret) as CustomJwtPayload;
+    //const userId = decoded.userId;
+
+    const newArticle = await prisma.article.update({
+      where: { articleId: parseInt(articleId) },
+      data: {
+        topic,
+        content,
+        category,
+        author_name,
+      },
+    });
+
+    await prisma.article_venue.deleteMany({
+      where: { articleId: parseInt(articleId) }
+    })
+
+    for (const venueId of venueIds) {
+      const newVenue = await prisma.article_venue.create({
+        data: {
+          articleId,
+          venueId
+        }
+      })
+    }
+
+    await prisma.article_tags.deleteMany({
+      where: { articleId: parseInt(articleId) }
+    })
+
+    for (const tag of tags) {
+      const newTag = await prisma.tag.create({
+        data: {
+          tag_name: tag,
+        }
+      })
+
+      await prisma.article_tags.create({
+        data: {
+          articleId,
+          tagId: newTag.tagId,
+        },
+      });
+    }
+
+    await prisma.images.deleteMany({
+      where: { articleId: parseInt(articleId) }
+    })
+
+    for (const imageDetail of imageDetails) {
+      await prisma.images.create({
+        data: {
+          url: imageDetail.url,
+          description: imageDetail.description,
+          articleId,
+        },
+      });
+    }
+
+    res.json(newArticle);
+  } catch (error) {
+    console.error(error);
+    res.json({ error: "Internal server error" });
+  }
+}
+
 export const deleteArticle = async (req: Request, res: Response) => {
   const { articleId } = req.body;
 
@@ -164,6 +246,39 @@ export const deleteArticle = async (req: Request, res: Response) => {
     res.status(500).json({ error: "Internal server error" });
   }
 };
+
+export const deleteImage = async (req: Request, res: Response) => {
+  const { imageId } = req.body;
+
+  try {
+    const deletedImage = await prisma.images.delete({
+      where: { imageId: parseInt(imageId) },
+    })
+
+    res.json(deletedImage);
+  } catch (error) {
+    console.error(error);
+    res.json({ error: "Internal server error" });
+  }
+}
+
+export const deleteVenue = async (req: Request, res: Response) => {
+  const { articleId, venueId } = req.body;
+
+  try {
+    const deletedVenue = await prisma.article_venue.delete({
+      where: { articleId_venueId: {
+        articleId,
+        venueId,
+      }, }
+    })
+
+    res.json(deletedVenue);
+  } catch (error) {
+    console.error(error);
+    res.json({ error: "internal server error" });
+  }
+}
 
 export const addComment = async (req: Request, res: Response) => {
   try {
@@ -207,7 +322,25 @@ export const deleteComment = async (req: Request, res: Response) => {
     res.status(500).json({ error: "Internal server error" });
   }
 };
-  
+
+export const editComment = async (req: Request, res: Response) => {
+  const { commentId, content } = req.body;
+
+  try {
+    const editedComment = await prisma.comments.update({
+      where: { commentId: parseInt(commentId), },
+      data: {
+        content
+      },
+    })
+
+    res.json(editedComment);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
 export const getArticleDetail = async (req: Request, res: Response) => {
   const { articleId } = req.params;
 

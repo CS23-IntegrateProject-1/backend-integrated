@@ -12,7 +12,10 @@ import {
     deleteArticle,
     deleteComment,
     deleteLike,
-    getAllVenueName
+    getAllVenueName,
+    editComment,
+    deleteImage,
+    deleteVenue
 } from "../controllers/feature11.controller";
 
 const feature11Router = Router();
@@ -29,6 +32,11 @@ feature11Router.post("/addLike", addLike);
 feature11Router.delete("/deleteArticle", deleteArticle);
 feature11Router.delete("/deleteComment", deleteComment);
 feature11Router.delete("/deleteLike", deleteLike);
+feature11Router.delete("/deleteImage", deleteImage);
+feature11Router.delete("/deleteVenue", deleteVenue);
+
+// * UPDATE
+feature11Router.patch("/editComment", editComment);
 
 // * READ
 feature11Router.get("/fetchAllArticle", getAllArticle);
