@@ -418,9 +418,15 @@ export const getAllArticle = async (req: Request, res: Response) => {
             venue: true,
           },
         },
+        user: {
+          include: {
+            user: true,
+          }
+        }
       },
     });
   
+    // ! count comment
     if (articles.length === 0) {
       res.status(404).json({ error: "Article not found" });
       return;
