@@ -27,7 +27,6 @@ interface ArticleCreateInput {
     category: Category;
     author_name: string;
     userId: number;
-    venudId: number;
 }
 
 interface CommentCreateInput {
@@ -37,6 +36,12 @@ interface CommentCreateInput {
 
 interface LikeCreateInput {
   articleId: number;
+}
+
+interface ImageInput {
+  url: string;
+  description: string;
+  //articleId: number;
 }
 
 //export const getfeature11 = async (req: Request, res: Response) => {
@@ -56,15 +61,15 @@ interface LikeCreateInput {
 
 // ! if it doesn't work then the problem is at decoding userId
 // ! other than that is working fine (alr test in postman)
-// ! still cannot add image
 export const addArticle = async (req: Request, res: Response) => {
   try {
     const article: ArticleCreateInput = req.body;
     const { topic, content, category, author_name } = article;
     const venueIds: number[] = req.body.venueIds;
     const tags: string[] = req.body.tags;
+    const imageDetails: ImageInput[] = req.body.images;
 
-    const userId = 2;
+    const userId = 1;
     //const secret: Secret = 'fwjjpjegjwpjgwej' || "";
     //const token = req.cookies.token;
     //if (!token)
@@ -107,6 +112,16 @@ export const addArticle = async (req: Request, res: Response) => {
       });
     }
 
+    for (const imageDetail of imageDetails) {
+      await prisma.images.create({
+        data: {
+          url: imageDetail.url,
+          description: imageDetail.description,
+          articleId: newArticle.articleId,
+        },
+      });
+    }
+
     res.json(newArticle);
   } catch (error) {
     console.error(error);
@@ -123,6 +138,10 @@ export const deleteArticle = async (req: Request, res: Response) => {
       where: { articleId: parseInt(articleId) },
     });
 
+    await prisma.images.deleteMany({
+      where: { articleId: parseInt(articleId) },
+    })
+
     await prisma.article_tags.deleteMany({
       where: { articleId: parseInt(articleId) },
     });
@@ -130,6 +149,10 @@ export const deleteArticle = async (req: Request, res: Response) => {
     await prisma.like.deleteMany({
       where: { articleId: parseInt(articleId) },
     });
+
+    await prisma.comments.deleteMany({
+      where: { articleId: parseInt(articleId) },
+    })
 
     const deletedArticle = await prisma.article.delete({
       where: { articleId: parseInt(articleId) },
@@ -146,14 +169,14 @@ export const addComment = async (req: Request, res: Response) => {
   try {
     const comment: CommentCreateInput = req.body;
     const { content, articleId } = comment;
-    const secret: Secret = 'fwjjpjegjwpjgwej' || "";
-    const token = req.cookies.token;
-    if (!token)
-      return res.json({ error: 'Unauthorized' });
+    //const secret: Secret = 'fwjjpjegjwpjgwej' || "";
+    //const token = req.cookies.token;
+    //if (!token)
+    //  return res.json({ error: 'Unauthorized' });
 
-    const decoded = jwt.verify(token, secret) as CustomJwtPayload;
-    const userId = decoded.userId;
-    //const userId = 2;
+    //const decoded = jwt.verify(token, secret) as CustomJwtPayload;
+    //const userId = decoded.userId;
+    const userId = 1;
 
     const newComment = await prisma.comments.create({
       data: {
@@ -188,7 +211,6 @@ export const deleteComment = async (req: Request, res: Response) => {
 export const getArticleDetail = async (req: Request, res: Response) => {
   const { articleId } = req.params;
 
-  // ! like should only show the count not all information that who like this article?
   try {
     const article = await prisma.article.findUnique({
       where: { articleId: parseInt(articleId) },
@@ -249,7 +271,6 @@ export const getArticleComment = async (req: Request, res: Response) => {
 };
 
 export const getAllArticle = async (req: Request, res: Response) => {
-  // ! like should only show the count not all information that who like this article?
   try {
     const articles = await prisma.article.findMany({
       include: {
@@ -301,7 +322,7 @@ export const addLike = async (req: Request, res: Response) => {
 
   //const decoded = jwt.verify(token, secret) as CustomJwtPayload;
   //const userId = decoded.userId;
-  const userId = 2;
+  const userId = 1;
   
   const like: LikeCreateInput = req.body;
   const { articleId } = like;
@@ -326,13 +347,14 @@ export const deleteLike = async (req: Request, res: Response) => {
   const like: LikeCreateInput = req.body;
   const { articleId } = like;
   
-  const secret: Secret = 'fwjjpjegjwpjgwej' || "";
-  const token = req.cookies.token;
-  if (!token)
-    return res.json({ error: 'Unauthorized' });
+  //const secret: Secret = 'fwjjpjegjwpjgwej' || "";
+  //const token = req.cookies.token;
+  //if (!token)
+  //  return res.json({ error: 'Unauthorized' });
 
-  const decoded = jwt.verify(token, secret) as CustomJwtPayload;
-  const userId = decoded.userId;
+  //const decoded = jwt.verify(token, secret) as CustomJwtPayload;
+  //const userId = decoded.userId;
+  const userId = 1;
 
   try {
     const deletedLike = await prisma.like.delete({
