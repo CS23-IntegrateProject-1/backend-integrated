@@ -10,7 +10,9 @@ export const getfeature1 = async (req: Request, res: Response) => {
 
 export const accountHandler = async (req: Request, res: Response) => {};
 
-export const notificationHandler = async (req: Request, res: Response) => {};
+export const notificationHandler = async (req: Request, res: Response) => {
+  console.log(req.query);
+};
 
 export const privacyHandler = async (req: Request, res: Response) => {};
 
@@ -70,8 +72,7 @@ export const termOfServiceHandler = async (req: Request, res: Response) => {
   }
 };
 
-export const bioFetchHandler = async (req: Request, res: Response) => {
-}
+export const bioFetchHandler = async (req: Request, res: Response) => {}
 
 export const helpHandler = async (req: Request, res: Response) => {};
 
