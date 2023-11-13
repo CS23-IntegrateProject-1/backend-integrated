@@ -71,6 +71,7 @@ export const addArticle = async (req: Request, res: Response) => {
     const tags: string[] = req.body.tags;
     const imageDetails: ImageInput[] = req.body.images;
 
+    //const Id = req.params.Id;
     const userId = 3;
     //const secret: Secret = 'fwjjpjegjwpjgwej' || "";
     //const token = req.cookies.token;
@@ -86,6 +87,7 @@ export const addArticle = async (req: Request, res: Response) => {
         content,
         category,
         userId,
+        //userId: parseInt(Id),
         author_name,
       },
     });

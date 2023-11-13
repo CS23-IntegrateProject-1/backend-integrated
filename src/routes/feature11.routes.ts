@@ -25,6 +25,7 @@ const feature11Router = Router();
 
 // * POST
 feature11Router.post("/addArticle", addArticle);
+//feature11Router.post("/addArticle/:Id", addArticle);
 feature11Router.post("/writeComment", addComment);
 feature11Router.post("/addLike", addLike);
 
