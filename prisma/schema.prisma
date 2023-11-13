@@ -772,12 +772,12 @@ model Reservation {
 }
 
 model Reservation_table {
-  reservationTableId Int         @id @default(autoincrement())
-  reserveId          Int
-  tableId            Int
-  reserve            Reservation @relation(fields: [reserveId], references: [reservationId])
-  reserve_table      Tables      @relation(fields: [tableId], references: [tableId])
+  reserveId     Int
+  tableId       Int
+  reserve       Reservation @relation(fields: [reserveId], references: [reservationId])
+  reserve_table Tables      @relation(fields: [tableId], references: [tableId])
 
+  @@id([reserveId, tableId])
   @@index([reserveId], map: "Reservation_table_reserveId_fkey")
   @@index([tableId], map: "Reservation_table_tableId_fkey")
 }
