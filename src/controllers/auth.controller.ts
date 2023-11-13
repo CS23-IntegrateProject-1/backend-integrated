@@ -25,7 +25,7 @@ class AuthController implements IAuthController {
 				await authService.createUser(newUser);
 
 				const userId = await authService.getUserByUsername(username);
-				const token = authService.generateToken(userId.id);
+				const token = authService.generateToken(userId!.userId);
 				res.cookie("authToken", token, {
 					httpOnly: true,
 					sameSite: "none",
@@ -39,34 +39,38 @@ class AuthController implements IAuthController {
 		}
 	}
 
-	async login(req: Request, res: Response): Promise<void> {
+	async login(req: Request, res: Response) {
 		const { username, password } = req.body;
 		try {
 			const user = await authService.getUserByUsername(username);
 			if (!user) {
-				res.status(404).send({ message: "User not found." });
+				return res.status(404).send({ message: "User not found." });
 			} else {
+				const hashed_password = user.hashed_password;
+				if (!hashed_password) throw new Error("Password not found.");
 				const passwordMatch = await authService.verifyPassword(
 					password,
-					user.hashed_password
+					hashed_password
 				);
 				if (!passwordMatch) {
-					res.status(401).send({ message: "Incorrect password." });
+					return res
+						.status(401)
+						.send({ message: "Incorrect password." });
 				} else {
-					const token = authService.generateToken(user.id);
+					const token = authService.generateToken(user.userId);
 					res.cookie("authToken", token, {
 						httpOnly: true,
 						sameSite: "none",
 						secure: true
 					});
-					res.status(200).send({
+					return res.status(200).send({
 						message: "Login successful."
 					});
 				}
 			}
 		} catch (e) {
 			console.log(e);
-			res.status(500).send({ message: "Internal server error." });
+			return res.status(500).send({ message: "Internal server error." });
 		}
 	}
 }

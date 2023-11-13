@@ -10,11 +10,12 @@ class AuthService {
 		return bcrypt.compare(password, hashedPassword);
 	}
 
-	hashPassword(password: string): Promise<string> {
-        const salt = Number(process.env.salt) || 5;
-        console.log(salt);
+	hashPassword(password: string): string {
+		const salt = Number(process.env.salt) || 5;
+		console.log(salt);
 		if (!salt) throw new Error("Check your .env file for salt.");
-		return bcrypt.hash(password, salt);
+		const hashedPassword = bcrypt.hashSync(password, salt);
+		return hashedPassword;
 	}
 
 	generateToken(userId: number): string {
@@ -23,15 +24,17 @@ class AuthService {
 		return token;
 	}
 
-	getUserByUsername(username: string): Promise<any> {
-		return this.prisma.user.findUnique({
+	getUserByUsername(username: string) {
+		const user = this.prisma.user.findUnique({
 			where: {
 				username: username
 			}
 		});
+		if (!user) throw new Error("User not found.");
+		return user;
 	}
 
-	createUser(data: UserType): Promise<any> {
+	createUser(data: UserType) {
 		return this.prisma.user.create({
 			data: {
 				fname: data.fname,
