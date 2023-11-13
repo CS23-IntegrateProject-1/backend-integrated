@@ -5,7 +5,7 @@ import Feature2Routes from "./feature2.routes";
 import Feature3Routes from "./feature3.routes";
 import Feature4Routes from "./feature4.routes";
 import Feature5Routes from "./feature5.routes";
-import Feature6Routes from "./feature6.routes";
+// import Feature6Routes from "./feature6.routes";
 import Feature7Routes from "./feature7.routes";
 import Feature8Routes from "./feature8.routes";
 import Feature9Routes from "./feature9.routes";
@@ -27,7 +27,7 @@ class Routes {
         app.use("/feature3",Feature3Routes);
         app.use("/feature4",Feature4Routes);
         app.use("/feature5",Feature5Routes);
-        app.use("/feature6",Feature6Routes);
+        // app.use("/feature6",Feature6Routes);
         app.use("/feature7",Feature7Routes);
         app.use("/feature8",Feature8Routes);
         app.use("/feature9",Feature9Routes);
