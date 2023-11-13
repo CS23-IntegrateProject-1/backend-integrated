@@ -14,6 +14,7 @@ import Feature11Routes from "./feature11.routes";
 import Feature12Routes from "./feature12.routes";
 import Feature13Routes from "./feature13.routes";
 import Feature14Routes from "./feature14.routes";
+import { customVerifyCookie } from "../middlewares/verifyCookies";
 
 class Routes {
 	constructor(app: Application) {
@@ -23,6 +24,7 @@ class Routes {
 		// You can specify your path name with your feature name instead of 'feature1'
 		// as example https://harmoni.social/api/business/revenue
 		app.use("/api/auth", AuthRoutes);
+		app.use(customVerifyCookie);
 		app.use("/feature1", Feature1Routes);
 		app.use("/feature3", Feature3Routes);
 		app.use("/feature4", Feature4Routes);
