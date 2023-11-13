@@ -473,16 +473,16 @@ model Menu {
   Menu_category    Menu_category[]
   Order_detail     Order_detail[]
   Promotion        Promotion[]
-  Set_items        Set_items[]
   menu_ingredients menu_ingredients[]
-  Stocks           Stocks?
+  Stocks           Stocks[]
+  Set_items        Set_items[]
 
   @@index([venueId], map: "Menu_venueId_fkey")
 }
 
 model Stocks {
   stockId      Int          @id @default(autoincrement())
-  menuId       Int          @unique
+  menuId       Int
   venueId      Int
   branchId     Int
   menue        Menu         @relation(fields: [menuId], references: [menuId])
@@ -522,12 +522,11 @@ model Sets {
 }
 
 model Set_items {
-  setId  Int
-  menuId Int
-  menu   Menu @relation(fields: [menuId], references: [menuId])
-  set    Sets @relation(fields: [setId], references: [setId])
-
-  @@id([setId, menuId])
+  setItemId Int  @id @default(autoincrement())
+  setId     Int
+  menuId    Int
+  menu      Menu @relation(fields: [menuId], references: [menuId])
+  set       Sets @relation(fields: [setId], references: [setId])
 }
 
 model Ingredients {
@@ -774,7 +773,6 @@ model Reservation {
 
 model Reservation_table {
   reservationTableId Int         @id @default(autoincrement())
-  amount             Int
   reserveId          Int
   tableId            Int
   reserve            Reservation @relation(fields: [reserveId], references: [reservationId])
