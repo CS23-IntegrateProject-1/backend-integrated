@@ -764,7 +764,7 @@ model Reservation {
   entry_time        DateTime
   isReview          Boolean             @default(false)
   reservationId     Int                 @id @default(autoincrement())
-  depositId         Int                 @unique
+  depositId         Int
   isPaidDeposit     Deposit_status
   Check_in_log      Check_in_log?
   Notes             Notes?
@@ -805,18 +805,18 @@ model Notes {
 }
 
 model Deposit {
-  deposit_amount Decimal      @db.Decimal(10, 2)
-  depositId      Int          @id @default(autoincrement())
+  deposit_amount Decimal       @db.Decimal(10, 2)
+  depositId      Int           @id @default(autoincrement())
   venueId        Int
-  venue          Venue        @relation(fields: [venueId], references: [venueId])
-  Reservation    Reservation?
+  venue          Venue         @relation(fields: [venueId], references: [venueId])
+  Reservation    Reservation[]
 
   @@index([venueId], map: "Deposit_venueId_fkey")
 }
 
 model Tables {
   venueId           Int
-  image_url         String?
+  table_no          Int
   information       String              @db.Text
   tableId           Int                 @id @default(autoincrement())
   tableTypeDetailId Int
@@ -832,6 +832,7 @@ model Table_type_detail {
   capacity          Int
   detail            String
   name              String
+  image_url         String?
   tableTypeDetailId Int      @id @default(autoincrement())
   venueId           Int
   venue             Venue    @relation(fields: [venueId], references: [venueId])
