@@ -1,5 +1,5 @@
 import { Response, Request } from "express";
-import jwt, { JsonWebTokenError } from 'jsonwebtoken';
+import jwt, { JsonWebTokenError } from "jsonwebtoken";
 
 import PaymentMethodRepository from "../../services/feature1/payment_method.repository";
 import PaymentMethodService, {
@@ -24,29 +24,40 @@ interface IPaymentMethodController {
   destroy: (req: Request, res: Response) => unknown;
 }
 
+function extractToken({ headers }: Request): string {
+  let { cookie: token } = headers;
+
+  if (!token) {
+    throw new Error("Invalid token");
+  }
+
+  return token.replace("authToken=", "");
+}
+
 export class PaymentMethodController implements IPaymentMethodController {
   private service: IPaymentMethodService = new PaymentMethodService(
     new PaymentMethodRepository(),
   );
 
   async store(req: Request, res: Response) {
-    let { cookie: token } = req.headers;
-
-    if (!token) {
-      return res
-        .status(401)
-        .json(makeErrorResponse("Unauthorized."));
-    }
-
-    token = token.replace('authToken=', '');
-
-    const { method } = req.body;
+    let token: string;
 
     try {
-      const decoded = jwt.verify(token as string, process.env.JWT_SECRET as string);
+      token = extractToken(req);
+    } catch (e) {
+      return res.status(401).json(makeErrorResponse("Unauthorized"));
+    }
+
+    try {
+      const decoded = jwt.verify(
+        token as string,
+        process.env.JWT_SECRET as string,
+      );
       const userId = (decoded as jwt.JwtPayload).userId;
 
       try {
+        const { method } = req.body;
+
         const response = await this.service.storePaymentMethod(userId, method);
 
         const webResponse = makePaymentMethodStoreWebResponse(response);
@@ -61,7 +72,9 @@ export class PaymentMethodController implements IPaymentMethodController {
             return res
               .status(409)
               .json(
-                makeErrorResponse("Payment method already exists for this user"),
+                makeErrorResponse(
+                  "Payment method already exists for this user",
+                ),
               )
               .send();
           }
@@ -74,22 +87,22 @@ export class PaymentMethodController implements IPaymentMethodController {
         return res.status(401).json(makeErrorResponse("Invalid token"));
       }
     }
-
   }
 
   async show(req: Request, res: Response) {
-    let { cookie: token } = req.headers;
-
-    if (!token) {
-      return res
-        .status(401)
-        .json(makeErrorResponse("Unauthorized."));
-    }
-
-    token = token.replace('authToken=', '');
+    let token: string;
 
     try {
-      const decoded = jwt.verify(token as string, process.env.JWT_SECRET as string);
+      token = extractToken(req);
+    } catch (e) {
+      return res.status(401).json(makeErrorResponse("Unauthorized"));
+    }
+
+    try {
+      const decoded = jwt.verify(
+        token as string,
+        process.env.JWT_SECRET as string,
+      );
       const userId = (decoded as jwt.JwtPayload).userId;
 
       try {
@@ -108,22 +121,22 @@ export class PaymentMethodController implements IPaymentMethodController {
         return res.status(401).json(makeErrorResponse("Invalid token"));
       }
     }
-
   }
 
   async update(req: Request, res: Response) {
-    let { cookie: token } = req.headers;
-
-    if (!token) {
-      return res
-        .status(401)
-        .json(makeErrorResponse("Unauthorized."));
-    }
-
-    token = token.replace('authToken=', '');
+    let token: string;
 
     try {
-      const decoded = jwt.verify(token as string, process.env.JWT_SECRET as string);
+      token = extractToken(req);
+    } catch (e) {
+      return res.status(401).json(makeErrorResponse("Unauthorized"));
+    }
+
+    try {
+      const decoded = jwt.verify(
+        token as string,
+        process.env.JWT_SECRET as string,
+      );
       const userId = (decoded as jwt.JwtPayload).userId;
 
       const { method } = req.body;
@@ -139,7 +152,10 @@ export class PaymentMethodController implements IPaymentMethodController {
         return res.json(webResponse);
       } catch (e) {
         if (e instanceof PrismaClientValidationError) {
-          return res.status(400).json(makeErrorResponse("Invalid request")).send();
+          return res
+            .status(400)
+            .json(makeErrorResponse("Invalid request"))
+            .send();
         } else {
           return res
             .status(404)
@@ -154,17 +170,19 @@ export class PaymentMethodController implements IPaymentMethodController {
   }
 
   async destroy(req: Request, res: Response) {
-    let { cookie: token } = req.headers;
+    let token: string;
 
-    if (!token) {
-      return res
-        .status(401)
-        .json(makeErrorResponse("Unauthorized."));
+    try {
+      token = extractToken(req);
+    } catch (e) {
+      return res.status(401).json(makeErrorResponse("Unauthorized"));
     }
 
-    token = token.replace('authToken=', '');
     try {
-      const decoded = jwt.verify(token as string, process.env.JWT_SECRET as string);
+      const decoded = jwt.verify(
+        token as string,
+        process.env.JWT_SECRET as string,
+      );
       const userId = (decoded as jwt.JwtPayload).userId;
 
       try {
@@ -187,6 +205,5 @@ export class PaymentMethodController implements IPaymentMethodController {
         return res.status(401).json(makeErrorResponse("Invalid token"));
       }
     }
-
   }
 }
