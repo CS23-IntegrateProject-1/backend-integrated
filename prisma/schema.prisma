@@ -156,7 +156,6 @@ model Venue {
   Reservation       Reservation[]
   Saved_place       Saved_place[]
   Sets              Sets[]
-  Stocks            Stocks[]
   Table_type_detail Table_type_detail[]
   Tables            Tables[]
   Transaction       Transaction[]
@@ -170,6 +169,7 @@ model Venue {
   Venue_reviews     Venue_reviews[]
   Venue_transaction Venue_transaction[]
   Voucher           Voucher[]
+  Stocks            Stocks[]
 }
 
 model Venue_branch {
@@ -177,8 +177,8 @@ model Venue_branch {
   venueId     Int
   branch_name String
   Orders      Orders[]
-  Stocks      Stocks[]
   venue       Venue    @relation(fields: [venueId], references: [venueId])
+  Stocks      Stocks[]
 
   @@index([venueId], map: "Venue_branch_venueId_fkey")
 }
@@ -285,7 +285,7 @@ model Voucher {
   description      String
   point_use        Int?
   venueId          Int
-  isApprove        Boolean           @default(false)
+  isApprove        Approve_status
   voucherId        Int               @id @default(autoincrement())
   Discount_voucher Discount_voucher?
   Food_voucher     Food_voucher?
@@ -457,7 +457,6 @@ model Order_detail {
   set            Sets?    @relation(fields: [setId], references: [setId])
 
   @@index([menuId], map: "Order_detail_menuId_fkey")
-  @@index([orderId], map: "Order_detail_orderId_fkey")
   @@index([setId], map: "Order_detail_setId_fkey")
 }
 
@@ -474,11 +473,22 @@ model Menu {
   Menu_category    Menu_category[]
   Order_detail     Order_detail[]
   Promotion        Promotion[]
-  Set_items        Set_items?
-  Stocks           Stocks?
   menu_ingredients menu_ingredients[]
+  Stocks           Stocks[]
+  Set_items        Set_items[]
 
   @@index([venueId], map: "Menu_venueId_fkey")
+}
+
+model Stocks {
+  stockId      Int          @id @default(autoincrement())
+  menuId       Int
+  venueId      Int
+  branchId     Int
+  menue        Menu         @relation(fields: [menuId], references: [menuId])
+  venue        Venue        @relation(fields: [venueId], references: [venueId])
+  branch       Venue_branch @relation(fields: [branchId], references: [branchId])
+  availability Boolean      @default(true)
 }
 
 model Menu_category {
@@ -512,12 +522,11 @@ model Sets {
 }
 
 model Set_items {
-  setId  Int
-  menuId Int  @unique
-  menu   Menu @relation(fields: [menuId], references: [menuId])
-  set    Sets @relation(fields: [setId], references: [setId])
-
-  @@id([setId, menuId])
+  setItemId Int  @id @default(autoincrement())
+  setId     Int
+  menuId    Int
+  menu      Menu @relation(fields: [menuId], references: [menuId])
+  set       Sets @relation(fields: [setId], references: [setId])
 }
 
 model Ingredients {
@@ -748,6 +757,7 @@ model Reservation {
   isReview          Boolean             @default(false)
   reservationId     Int                 @id @default(autoincrement())
   depositId         Int                 @unique
+  isPaidDeposit     Deposit_status
   Check_in_log      Check_in_log?
   Notes             Notes?
   Orders            Orders?
@@ -762,13 +772,12 @@ model Reservation {
 }
 
 model Reservation_table {
-  reservationTableId Int         @id @default(autoincrement())
-  amount             Int
-  reserveId          Int
-  tableId            Int
-  reserve            Reservation @relation(fields: [reserveId], references: [reservationId])
-  reserve_table      Tables      @relation(fields: [tableId], references: [tableId])
+  reserveId     Int
+  tableId       Int
+  reserve       Reservation @relation(fields: [reserveId], references: [reservationId])
+  reserve_table Tables      @relation(fields: [tableId], references: [tableId])
 
+  @@id([reserveId, tableId])
   @@index([reserveId], map: "Reservation_table_reserveId_fkey")
   @@index([tableId], map: "Reservation_table_tableId_fkey")
 }
@@ -788,11 +797,10 @@ model Notes {
 }
 
 model Deposit {
-  deposit_amount Decimal        @db.Decimal(10, 2)
-  status         Deposit_status
-  depositId      Int            @id @default(autoincrement())
+  deposit_amount Decimal      @db.Decimal(10, 2)
+  depositId      Int          @id @default(autoincrement())
   venueId        Int
-  venue          Venue          @relation(fields: [venueId], references: [venueId])
+  venue          Venue        @relation(fields: [venueId], references: [venueId])
   Reservation    Reservation?
 
   @@index([venueId], map: "Deposit_venueId_fkey")
@@ -868,7 +876,7 @@ model Ad_business {
   start_date        DateTime
   end_date          DateTime
   cost              Float
-  isApprove         Boolean            @default(false)
+  isApprove         Approve_status
   customer_type     Customer_type
   target_group      Target_group
   businessId        Int
@@ -877,6 +885,12 @@ model Ad_business {
   Venue_transaction Venue_transaction?
 
   @@index([businessId], map: "Ad_business_businessId_fkey")
+}
+
+enum Approve_status {
+  Rejected
+  In_progress
+  Completed
 }
 
 model Ad_tag {
@@ -1300,20 +1314,6 @@ model Payments {
   payment_method Movie_payment
   payment_status Payment_status
   reserved_log   Reservation_logs @relation(fields: [reservationId], references: [reservationId])
-}
-
-model Stocks {
-  stockId      Int          @id @default(autoincrement())
-  menuId       Int          @unique
-  venueId      Int
-  branchId     Int
-  availability Boolean      @default(true)
-  Venue_branch Venue_branch @relation(fields: [branchId], references: [branchId])
-  Menu         Menu         @relation(fields: [menuId], references: [menuId])
-  Venue        Venue        @relation(fields: [venueId], references: [venueId])
-
-  @@index([branchId], map: "Stocks_branchId_fkey")
-  @@index([venueId], map: "Stocks_venueId_fkey")
 }
 
 enum Gender {
