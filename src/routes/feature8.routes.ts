@@ -8,7 +8,8 @@ import {
     getAdvertisementById,
     getAllNotification,
     getAllTransactionDetails, 
-    getTransactionDetailById 
+    getTransactionDetailById ,
+    createTransactionDetail
 } from "../controllers/feature8.controller";
 
 const feature8Router = Router();
@@ -22,6 +23,7 @@ feature8Router.get("/notifications", getAllNotification);
 feature8Router.get("/transaction_details", getAllTransactionDetails); 
 feature8Router.get("/transaction_details/:transactionId", getTransactionDetailById); 
 
+feature8Router.post("/create_transaction_detail", createTransactionDetail);
 
 
 export default feature8Router;

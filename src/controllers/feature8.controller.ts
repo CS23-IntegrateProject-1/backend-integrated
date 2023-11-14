@@ -7,6 +7,13 @@ export const getfeature8 = async (req: Request, res: Response) => {
     res.status(200).json({ message: 'This is Feature8' });
 };
 
+interface TransactionDetail {
+    detail: string;
+    timestamp: Date;
+    status: string;
+    total_amount: number;
+}
+
 export const getAllUser = async (req: Request, res: Response) => {
     try {
         const allUsers = await feature8Client.user.findMany();
@@ -104,6 +111,45 @@ export const getTransactionDetailById = async (req: Request, res: Response) => {
     }
 };
 
+export const createTransactionDetail = async (req: Request, res: Response) => {
+    const { detail, timestamp, status, total_amount } = req.body as TransactionDetail;
+
+    try {
+        const newTransactionDetail = await feature8Client.transaction_detail.create({
+            data: {
+                detail,
+                timestamp,
+                status,
+                total_amount,
+                transaction: {
+                    connect: {
+                        transactionId: req.body.transactionId,
+                    },
+                },
+            },
+        });
+
+        res.status(201).json(newTransactionDetail);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Failed to create transaction detail' });
+    }
+};
+
+
+// example of controller createAuthor
+// export const createAuthor = async (req: Request, res: Response) => {
+//   try {
+//     const newAuthor = await feature1Client.modelName.create({
+//       data: {
+//         name: req.body.name,
+//       },
+//     });
+//     res.status(201).json(newAuthor);
+//   } catch (e) {
+//     console.log(e);
+//   }
+// };
 
 
 // example of controller getAllAuthors
