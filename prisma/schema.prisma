@@ -156,6 +156,7 @@ model Venue {
   Reservation       Reservation[]
   Saved_place       Saved_place[]
   Sets              Sets[]
+  Stocks            Stocks[]
   Table_type_detail Table_type_detail[]
   Tables            Tables[]
   Transaction       Transaction[]
@@ -169,7 +170,6 @@ model Venue {
   Venue_reviews     Venue_reviews[]
   Venue_transaction Venue_transaction[]
   Voucher           Voucher[]
-  Stocks            Stocks[]
 }
 
 model Venue_branch {
@@ -177,8 +177,8 @@ model Venue_branch {
   venueId     Int
   branch_name String
   Orders      Orders[]
-  venue       Venue    @relation(fields: [venueId], references: [venueId])
   Stocks      Stocks[]
+  venue       Venue    @relation(fields: [venueId], references: [venueId])
 
   @@index([venueId], map: "Venue_branch_venueId_fkey")
 }
@@ -458,6 +458,7 @@ model Order_detail {
 
   @@index([menuId], map: "Order_detail_menuId_fkey")
   @@index([setId], map: "Order_detail_setId_fkey")
+  @@index([orderId], map: "Order_detail_orderId_fkey")
 }
 
 model Menu {
@@ -473,9 +474,9 @@ model Menu {
   Menu_category    Menu_category[]
   Order_detail     Order_detail[]
   Promotion        Promotion[]
-  menu_ingredients menu_ingredients[]
-  Stocks           Stocks[]
   Set_items        Set_items[]
+  Stocks           Stocks[]
+  menu_ingredients menu_ingredients[]
 
   @@index([venueId], map: "Menu_venueId_fkey")
 }
@@ -485,10 +486,14 @@ model Stocks {
   menuId       Int
   venueId      Int
   branchId     Int
+  availability Boolean      @default(true)
+  branch       Venue_branch @relation(fields: [branchId], references: [branchId])
   menue        Menu         @relation(fields: [menuId], references: [menuId])
   venue        Venue        @relation(fields: [venueId], references: [venueId])
-  branch       Venue_branch @relation(fields: [branchId], references: [branchId])
-  availability Boolean      @default(true)
+
+  @@index([branchId], map: "Stocks_branchId_fkey")
+  @@index([menuId], map: "Stocks_menuId_fkey")
+  @@index([venueId], map: "Stocks_venueId_fkey")
 }
 
 model Menu_category {
@@ -527,6 +532,9 @@ model Set_items {
   menuId    Int
   menu      Menu @relation(fields: [menuId], references: [menuId])
   set       Sets @relation(fields: [setId], references: [setId])
+
+  @@index([menuId], map: "Set_items_menuId_fkey")
+  @@index([setId], map: "Set_items_setId_fkey")
 }
 
 model Ingredients {
@@ -885,12 +893,6 @@ model Ad_business {
   Venue_transaction Venue_transaction?
 
   @@index([businessId], map: "Ad_business_businessId_fkey")
-}
-
-enum Approve_status {
-  Rejected
-  In_progress
-  Completed
 }
 
 model Ad_tag {
@@ -1314,6 +1316,12 @@ model Payments {
   payment_method Movie_payment
   payment_status Payment_status
   reserved_log   Reservation_logs @relation(fields: [reservationId], references: [reservationId])
+}
+
+enum Approve_status {
+  Rejected
+  In_progress
+  Completed
 }
 
 enum Gender {
