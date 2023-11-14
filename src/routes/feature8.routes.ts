@@ -7,18 +7,20 @@ import {
     getAllAdvertisements,
     getAdvertisementById,
     getAllNotification,
-    getAllTransaction_detail
+    getAllTransactionDetails, 
+    getTransactionDetailById 
 } from "../controllers/feature8.controller";
 
 const feature8Router = Router();
 
 // here define your routes
 feature8Router.get("/", getfeature8);
-feature8Router.get("/AllUser", getAllUser);
-feature8Router.get("/ad_business", getAllAdvertisements);
-feature8Router.get("/ad_business/:advertisementId", getAdvertisementById);
-feature8Router.get("/notification", getAllNotification);
-feature8Router.get("/transaction_detail", getAllTransaction_detail);
+feature8Router.get("/users", getAllUser); 
+feature8Router.get("/advertisements", getAllAdvertisements); 
+feature8Router.get("/advertisements/:advertisementId", getAdvertisementById);
+feature8Router.get("/notifications", getAllNotification);
+feature8Router.get("/transaction_details", getAllTransactionDetails); 
+feature8Router.get("/transaction_details/:transactionId", getTransactionDetailById); 
 
 
 
