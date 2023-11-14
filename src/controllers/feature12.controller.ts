@@ -2,6 +2,9 @@ import { PrismaClient } from "@prisma/client";
 import { Response, Request } from "express";
 const feature12Client = new PrismaClient();
 
+import { Server } from "socket.io";
+const prisma = new PrismaClient();
+const io = new Server();
 /*
 import express from "express";
 import { Server, Socket } from "socket.io";
@@ -52,6 +55,71 @@ socket.on("receive-message", (message) => {
   displaychatUIMessage(message);
 });
 */
+// io.on("connection", (socket) => {
+//   // Handle server joining chat room here
+//   socket.on("joinServerRoom", (roomKey) => {
+//     socket.join(roomKey);
+//     console.log(`Server joined room: ${roomKey}`);
+//   });
+
+//   // socket.on("disconnect", () => {
+//   //   console.log("A user disconnected");
+//   // });
+// });
+
+// Function to create chat rooms on the server and insert data back to the Chat_room DB
+/*
+const roomState = new Set();
+async function createChatRooms() {
+  const venues = await feature12Client.venue.findMany();
+
+  venues.forEach(async (venue) => {
+    const roomKey = venue.chatRoomId;
+    const roomName = venue.name;
+    //Check if the chat room already exists
+    // const roomExists = io.sockets.adapter.rooms.has(roomKey.toString());
+    // console.log(`ROOM ${roomKey}+ ${roomExists}`);
+
+    if (!roomState.has(roomKey)) {
+      // Server joins the chat room
+      io.sockets.emit("joinServerRoom", roomKey);
+      console.log(`Creating chat room: ${roomKey}`);
+
+      //Insert chat room data into the database
+      try {
+        await feature12Client.chat_room.create({
+          data: {
+            chatRoomId: roomKey,
+            roomname: roomName,
+          },
+        });
+        console.log(`Chat room ${roomKey} inserted into the database.`);
+
+        // Add the room key to the room state
+        roomState.add(roomKey);
+      } catch (error) {
+        console.error(
+          `Chat room ${roomKey} already exists. SKIPPED !`);
+      }
+    } 
+  });
+}
+
+async function listenForDatabaseChanges() {
+  // Implement logic to listen for database changes
+  // This may involve setting up database triggers, change feeds, or using a message broker
+
+  // When a change is detected, fetch the updated venue records and create chat rooms
+  const updatedVenues = await feature12Client.venue.findMany();
+  await Promise.all(updatedVenues.map(createChatRooms));
+
+  // Set up a loop to continuously listen for changes
+  setTimeout(listenForDatabaseChanges, 10000); // Adjust the interval as needed
+}
+
+// Start listening for database changes
+listenForDatabaseChanges();
+*/
 
 //Extract all the user from the user table
 export const getAllUsers = async (req: Request, res: Response) => {
@@ -85,7 +153,10 @@ export const displayAnswerWrtVenueID = async (req: Request, res: Response) => {
   }
 };
 //Display All questions from Venue_Question table when user select specific venue (VenueId from Venue Table = VenueId from Venue_Question Table)
-export const displayAllQuestionsWrtName = async (req: Request, res: Response) => {
+export const displayAllQuestionsWrtName = async (
+  req: Request,
+  res: Response
+) => {
   const { id } = req.params;
   try {
     const questions = await feature12Client.venue_question.findMany({
@@ -94,6 +165,7 @@ export const displayAllQuestionsWrtName = async (req: Request, res: Response) =>
       },
       select: {
         question: true,
+        venueQuestionId: true,
       },
     });
     res.json(questions);
@@ -110,6 +182,8 @@ export const displayAllDistinctName = async (req: Request, res: Response) => {
         category: category,
       },
       select: {
+        category: true,
+        venueId: true,
         name: true,
       },
       distinct: ["name"],
@@ -121,7 +195,10 @@ export const displayAllDistinctName = async (req: Request, res: Response) => {
 };
 
 //Display All distinct category out of Venue Table from prisma
-export const displayAllDistinctCategory = async (req: Request, res: Response) => {
+export const displayAllDistinctCategory = async (
+  req: Request,
+  res: Response
+) => {
   try {
     const categories = await feature12Client.venue.findMany({
       select: {
@@ -168,8 +245,6 @@ export const displayAnswer = async (req: Request, res: Response) => {
     return res.status(500).json({ error });
   }
 };
-
-
 
 /*
 //Create
