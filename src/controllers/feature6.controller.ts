@@ -1,5 +1,6 @@
-import { PrismaClient } from "@prisma/client";
+import { Day, PrismaClient } from "@prisma/client";
 import { Response, Request } from "express";
+import { addMinutes, addHours } from "date-fns";
 
 const feature6Client = new PrismaClient();
 
@@ -101,7 +102,7 @@ export const getAllReservationByStatus = async (
 };
 
 //My Reservation Detail Page
-// waiting for get address from location table
+//Finished only get, can't Create
 export const getVenueAndReservationsById = async (
     req: Request,
     res: Response
@@ -114,6 +115,16 @@ export const getVenueAndReservationsById = async (
             },
             include: {
                 Venue_photo: true,
+            },
+        });
+        // console.log(venue)
+
+        const location = await feature6Client.location.findUnique({
+            where: {
+                locationId: venue?.locationId,
+            },
+            select: {
+                address: true,
             },
         });
 
@@ -133,7 +144,7 @@ export const getVenueAndReservationsById = async (
             },
         });
 
-        return res.json({ venue, reservations });
+        return res.json({ venue, location, reservations });
     } catch (e) {
         return res.status(500).json(e);
     }

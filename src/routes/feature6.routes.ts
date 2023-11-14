@@ -5,8 +5,6 @@ import { getAllReservationByStatus } from "../controllers/feature6.controller";
 import { getVenueById } from "../controllers/feature6.controller";
 import { getVenueAndReservationsById } from "../controllers/feature6.controller";
 import { getReservationById } from "../controllers/feature6.controller";
-
-
 const feature6Router = Router();
 
 //GET METHOD
@@ -15,7 +13,7 @@ feature6Router.get("/allReservation", getAllReservation);
 feature6Router.get("/venue/:venueId", getVenueById);
 feature6Router.get("/MyReservation/:reservationId", getReservationById);
 
-//Wait for Integration
+//Finished, Wait for Integration
 feature6Router.get("/MyReservation", getAllReservationByStatus);
 feature6Router.get("/MyReservation/:venueId/:reservationId", getVenueAndReservationsById);
 
