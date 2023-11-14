@@ -8,6 +8,7 @@ import {
   getfeature1,
   helpHandler,
   paymentMethodHandler,
+  tosHandler,
   privacyHandler,
 } from "../controllers/feature1.controller";
 
@@ -22,6 +23,11 @@ feature1Router.all("/privacy-policy", privacyHandler);
 feature1Router.all("/help", helpHandler);
 feature1Router.all("/about", aboutHandler);
 feature1Router.get("/bio", bioFetchHandler);
+
+feature1Router.get("/term-of-services", tosHandler);
+feature1Router.post("/term-of-services", tosHandler);
+feature1Router.put("/term-of-services", tosHandler);
+feature1Router.delete("/term-of-services", tosHandler);
 
 feature1Router.get("/payment-method", paymentMethodHandler);
 feature1Router.post("/payment-method", paymentMethodHandler);

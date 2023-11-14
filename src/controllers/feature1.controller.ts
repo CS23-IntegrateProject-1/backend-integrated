@@ -1,6 +1,7 @@
 import { Response, Request } from "express";
 
 import { PaymentMethodController } from "./feature1/PaymentMethodController";
+import { TosController } from "./feature1/TosController";
 
 export const getfeature1 = async (req: Request, res: Response) => {
   return res.json({});
@@ -27,5 +28,19 @@ export const paymentMethodHandler = async (req: Request, res: Response) => {
     case "GET":
     default:
       return new PaymentMethodController().show(req, res);
+  }
+};
+
+export const tosHandler = async (req: Request, res: Response) => {
+  switch (req.method) {
+    case "POST":
+      return new TosController().store(req, res);
+    case "PUT":
+      return new TosController().update(req, res);
+    case "DELETE":
+      return new TosController().destroy(req, res);
+    case "GET":
+    default:
+      return new TosController().show(req, res);
   }
 };
