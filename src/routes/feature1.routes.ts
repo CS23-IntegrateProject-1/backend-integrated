@@ -9,7 +9,7 @@ import {
   helpHandler,
   paymentMethodHandler,
   tosHandler,
-  privacyHandler,
+  privacyPolicyHandler,
 } from "../controllers/feature1.controller";
 
 const feature1Router = Router();
@@ -17,8 +17,6 @@ const feature1Router = Router();
 // here define your routes
 feature1Router.get("/", getfeature1);
 feature1Router.all("/account", accountHandler);
-
-feature1Router.all("/privacy-policy", privacyHandler);
 
 feature1Router.all("/help", helpHandler);
 feature1Router.all("/about", aboutHandler);
@@ -33,5 +31,10 @@ feature1Router.get("/payment-method", paymentMethodHandler);
 feature1Router.post("/payment-method", paymentMethodHandler);
 feature1Router.put("/payment-method", paymentMethodHandler);
 feature1Router.delete("/payment-method", paymentMethodHandler);
+
+feature1Router.get("/privacy-policy", privacyPolicyHandler);
+feature1Router.post("/privacy-policy", privacyPolicyHandler);
+feature1Router.put("/privacy-policy", privacyPolicyHandler);
+feature1Router.delete("/privacy-policy", privacyPolicyHandler);
 
 export default feature1Router;
