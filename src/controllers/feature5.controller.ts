@@ -1,4 +1,4 @@
-import { Customer_type, Prisma, PrismaClient, Target_group } from "@prisma/client";
+import { Approve_status, Customer_type, Prisma, PrismaClient, Target_group } from "@prisma/client";
 import { Response, Request } from "express";
 import internal from "stream";
 // import { createdAdBusiness } from "../services/testService";
@@ -10,6 +10,12 @@ export const getfeature5 = async (req: Request, res: Response) => {
     res.status(200).json({message: 'This is Feature5'});
 };
 
+enum isApprove {
+    Rejected = "Rejected",
+    In_progress = "In_progress",
+    Completed = "Completed"
+}
+
 interface adinfo {
     name: string;
     description: string;
@@ -17,9 +23,11 @@ interface adinfo {
     start_date: Date;
     end_date: Date;
     cost: number;
+    isApprove: isApprove;
     customer_type: Customer_type;
     target_group: Target_group;
     businessId: number;
+    
 }
 
 interface voucherinfo{
@@ -30,12 +38,14 @@ interface voucherinfo{
     description: string;
     point_use: number;
     venueId: number;
+    isApprove: isApprove;
 }
 
 export const AdBusiness = async (req: Request, res: Response) => {
     try {
         
         const Tags: number[] = req.body.Tags;
+        const isApprove = "In_progress"
 
         const newAd: adinfo = req.body;
         const {name,
@@ -60,7 +70,8 @@ export const AdBusiness = async (req: Request, res: Response) => {
                 cost,
                 customer_type,
                 target_group,
-                businessId: parseInt(id)
+                businessId: parseInt(id),
+                isApprove
             }
         })
 
@@ -140,6 +151,10 @@ export const DeleteAdvertisement = async (req: Request, res: Response) => {
     try {
         const {id} = req.params;
 
+        await feature5Client.ad_tag.deleteMany({
+            where: { adId: parseInt(id) }
+        })
+
         const DeleteAd = await feature5Client.ad_business.delete({
             where: {advertisementId: parseInt(id)},
             
@@ -154,7 +169,7 @@ export const DeleteAdvertisement = async (req: Request, res: Response) => {
 export const GetAllAdvertisement = async (req: Request, res: Response) => {
     try {
         const GetallAd = await feature5Client.ad_business.findMany({
-            where: {isApprove: false},
+            where: {isApprove: "In_progress"},
             
         })
         res.json(GetallAd)
@@ -177,6 +192,7 @@ export const GetAllTags = async (req: Request, res: Response) => {
 export const Voucher = async (req: Request, res: Response) => {
     try {
         const newVch: voucherinfo = req.body;
+        const isApprove = "In_progress";
 
         const {
             voucher_name,
@@ -197,7 +213,8 @@ export const Voucher = async (req: Request, res: Response) => {
                 end_date,
                 description,
                 point_use,
-                venueId: parseInt(id)
+                venueId: parseInt(id),
+                isApprove
             }
         })
 
@@ -248,10 +265,23 @@ export const Voucher = async (req: Request, res: Response) => {
 
 export const DeleteVoucher = async (req: Request, res: Response) => {
     try {
-        const {id} = req.params;
+        // const {id} = req.params;
+        const {Vouchertype,id} = req.body;
 
+        if(Vouchertype == "discount"){
+            await feature5Client.discount_voucher.delete({
+                where: {voucherId: parseInt(id)}
+            })
+        }
+
+        if(Vouchertype == "food"){
+            await feature5Client.food_voucher.delete({
+                where: {voucherId: parseInt(id)}
+            })
+        }
+        
         const DeleteAd = await feature5Client.voucher.delete({
-            where: {voucherId: parseInt(id)},
+            where: {voucherId: parseInt(id)}
             
         })
         res.json(DeleteAd)

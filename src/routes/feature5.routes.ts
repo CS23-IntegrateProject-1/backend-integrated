@@ -12,7 +12,7 @@ import {
     GetallVenue,
     DeleteVoucher,
     VoucherApprove
-    //getUser
+    // getUser
 } from "../controllers/feature5.controller";
 
 const feature5Router = Router();
