@@ -123,7 +123,7 @@ model Friendship {
   firstUserId   Int
   sencondUserId Int
   status        Friend_status
-  since         DateTime
+  since         DateTime      @default(now())
   user          User          @relation("user", fields: [firstUserId], references: [userId])
   friend        User          @relation("friend", fields: [sencondUserId], references: [userId])
 
@@ -444,17 +444,18 @@ model Orders {
 }
 
 model Order_detail {
-  orderDetailId  Int      @id @default(autoincrement())
-  unit_price     Decimal  @db.Decimal(10, 2)
-  order_time     DateTime @default(now()) @db.Timestamp(0)
+  orderDetailId  Int          @id @default(autoincrement())
+  status         Order_status 
+  unit_price     Decimal      @db.Decimal(10, 2)
+  order_time     DateTime     @default(now()) @db.Timestamp(0)
   additional_req String?
   orderId        Int
   menuId         Int?
   quantity       Int
   setId          Int?
-  menu           Menu?    @relation(fields: [menuId], references: [menuId])
-  order          Orders   @relation(fields: [orderId], references: [orderId])
-  set            Sets?    @relation(fields: [setId], references: [setId])
+  menu           Menu?        @relation(fields: [menuId], references: [menuId])
+  order          Orders       @relation(fields: [orderId], references: [orderId])
+  set            Sets?        @relation(fields: [setId], references: [setId])
 
   @@index([menuId], map: "Order_detail_menuId_fkey")
   @@index([setId], map: "Order_detail_setId_fkey")
@@ -766,6 +767,7 @@ model Reservation {
   venue             Venue               @relation(fields: [venueId], references: [venueId])
   Reservation_table Reservation_table[]
   Share_reserve     Share_reserve?
+  Transaction       Transaction?
 
   @@index([userId], map: "Reservation_userId_fkey")
   @@index([venueId], map: "Reservation_venueId_fkey")
@@ -1112,6 +1114,8 @@ model Transaction {
   transactionId      Int                 @id @default(autoincrement())
   userId             Int
   venueId            Int
+  reserveId          Int                 @unique
+  reserve            Reservation         @relation(fields: [reserveId], references: [reservationId])
   App_transaction    App_transaction?
   user               User                @relation(fields: [userId], references: [userId])
   venue              Venue               @relation(fields: [venueId], references: [venueId])
