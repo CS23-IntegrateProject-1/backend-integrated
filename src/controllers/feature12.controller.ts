@@ -2,90 +2,73 @@ import { PrismaClient } from "@prisma/client";
 import { Response, Request } from "express";
 const feature12Client = new PrismaClient();
 
-import { Server } from "socket.io";
-const prisma = new PrismaClient();
-const io = new Server();
-/*
-import express from "express";
 import { Server, Socket } from "socket.io";
+const prisma = new PrismaClient();
+
+import express from "express";
 import { createServer } from "http";
 import cors from "cors";
-import { ClientToServerEvents, ServerToClientEvents } from "../typings";
 
 const app = express();
 app.use(cors());
 const server = createServer(app);
-const io = new Server<ClientToServerEvents, ServerToClientEvents>(server, {
+const io = new Server(server, {
   cors: {
-    origin: ["http://localhost:5173", "https://admin.socket.io"],
+    origin: ["http:localhost:4000","https://admin.socket.io"],
     methods: ["GET", "POST"],
-    credentials: true,
   },
 });
+ interface ServerToClientEvents {
+  serverMsg: (data: { msg: string; room: string }) => void;
+}
 
-io.on("connection", (socket: Socket<ClientToServerEvents, ServerToClientEvents>) => {
-  console.log(socket.id, " connected");
+ interface ClientToServerEvents {
+  clientMsg: (data: { msg: string; room: string }) => void;
+}
+io.on(
+  "connection",
+  (socket) => {
+    console.log(`User connected: ${socket.id}`);
 
-  socket.on("send-message", (message, room) => {
-    console.log("sending message: " + message + " to room: " + room);
-    socket.broadcast.to(room).emit("receive-message", message);
-
-  })
-
-  socket.on("join-room", (room, cb) => {
-    socket.join(room);
-    cb('UserID+ joined the Group');
+    socket.on("clientMsg", (data) => {
+      console.log(data);
+      if (data.room === "") {
+        io.sockets.emit("serverMsg", data);
+      } else {
+        socket.join(data.room);
+        io.to(data.room).emit("serverMsg", data);
+      }
+    });
   }
-});
+);
 
+  // const existingChatRoom = await feature12Client.chat_room.findUnique({
+  //   where: {
+  //     //convert data.room to number
+  //     chatRoomId: parseInt(data.room),
+  //   },
+  // });
 
+  // if (existingChatRoom) {
+  //   socket.join(data.room);
+  //   console.log(`user joined room: ${data.room}`);
 
-  //client side
-  
-  socket.emit("join-room", room, message => {
-    displayMessage(message);
-  });
-  
+  //   io.to(data.room).emit("serverMsg", data);
+  // }
 
-socket.on("connect", () => {
-  socket.emit("send-message", message, room)
-});
-  
-socket.on("receive-message", (message) => {
-  displaychatUIMessage(message);
-});
-*/
-// io.on("connection", (socket) => {
-//   // Handle server joining chat room here
-//   socket.on("joinServerRoom", (roomKey) => {
-//     socket.join(roomKey);
-//     console.log(`Server joined room: ${roomKey}`);
-//   });
-
-//   // socket.on("disconnect", () => {
-//   //   console.log("A user disconnected");
-//   // });
-// });
-
-// Function to create chat rooms on the server and insert data back to the Chat_room DB
 /*
-const roomState = new Set();
+// Function to create chat rooms on the server and insert data back to the Chat_room DB
 async function createChatRooms() {
-  const venues = await feature12Client.venue.findMany();
+  try {
+    const venues = await feature12Client.venue.findMany();
 
-  venues.forEach(async (venue) => {
-    const roomKey = venue.chatRoomId;
-    const roomName = venue.name;
-    //Check if the chat room already exists
-    // const roomExists = io.sockets.adapter.rooms.has(roomKey.toString());
-    // console.log(`ROOM ${roomKey}+ ${roomExists}`);
+    venues.forEach(async (venue) => {
+      const roomKey = venue.chatRoomId;
+      const roomName = venue.name;
 
-    if (!roomState.has(roomKey)) {
-      // Server joins the chat room
-      io.sockets.emit("joinServerRoom", roomKey);
-      console.log(`Creating chat room: ${roomKey}`);
+    
 
-      //Insert chat room data into the database
+      // Insert chat room data into the database
       try {
         await feature12Client.chat_room.create({
           data: {
@@ -94,31 +77,21 @@ async function createChatRooms() {
           },
         });
         console.log(`Chat room ${roomKey} inserted into the database.`);
+        // Server joins the chat room
+        console.log(`Creating chat room: ${roomKey}`);
 
-        // Add the room key to the room state
-        roomState.add(roomKey);
-      } catch (error) {
-        console.error(
-          `Chat room ${roomKey} already exists. SKIPPED !`);
+        socket.emit("joinServerRoom", {"Hi", roomKey});
+
+      } catch {
+        console.log(`Chat room ${roomKey} already created`);
       }
-    } 
-  });
+    });
+  } catch (error) {
+    console.error("Error creating chat rooms:", error);
+  }
 }
-
-async function listenForDatabaseChanges() {
-  // Implement logic to listen for database changes
-  // This may involve setting up database triggers, change feeds, or using a message broker
-
-  // When a change is detected, fetch the updated venue records and create chat rooms
-  const updatedVenues = await feature12Client.venue.findMany();
-  await Promise.all(updatedVenues.map(createChatRooms));
-
-  // Set up a loop to continuously listen for changes
-  setTimeout(listenForDatabaseChanges, 10000); // Adjust the interval as needed
-}
-
-// Start listening for database changes
-listenForDatabaseChanges();
+// Run the function to create chat rooms when the server starts
+createChatRooms();
 */
 
 //Extract all the user from the user table
