@@ -12,22 +12,24 @@ import cors from "cors";
 const app = express();
 app.use(cors());
 const server = createServer(app);
-const io = new Server(server, {
+const io = new Server<ClientToServerEvents, ServerToClientEvents>(server, {
   cors: {
-    origin: ["http:localhost:4000","https://admin.socket.io"],
+    origin: ["http:localhost:4000", "https://admin.socket.io"],
     methods: ["GET", "POST"],
   },
 });
  interface ServerToClientEvents {
-  serverMsg: (data: { msg: string; room: string }) => void;
-}
+   serverMsg: (data: { msg: string; room: string }) => void;
+   joinRoom: (room: string, cb: (message: string) => void) => void;
+ }
 
  interface ClientToServerEvents {
-  clientMsg: (data: { msg: string; room: string }) => void;
-}
+   clientMsg: (data: { msg: string; room: string }) => void;
+   joinRoom: (room: string, cb: (message: string) => void) => void;
+ }
 io.on(
   "connection",
-  (socket) => {
+  (socket: Socket<ClientToServerEvents, ServerToClientEvents>) => {
     console.log(`User connected: ${socket.id}`);
 
     socket.on("clientMsg", (data) => {
