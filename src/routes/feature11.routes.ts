@@ -15,7 +15,8 @@ import {
     getAllVenueName,
     editComment,
     deleteImage,
-    deleteVenue
+    deleteVenue,
+    deleteTag
 } from "../controllers/feature11.controller";
 
 const feature11Router = Router();
@@ -35,6 +36,7 @@ feature11Router.delete("/deleteComment", deleteComment);
 feature11Router.delete("/deleteLike", deleteLike);
 feature11Router.delete("/deleteImage", deleteImage);
 feature11Router.delete("/deleteVenue", deleteVenue);
+feature11Router.delete("/deleteTag", deleteTag);
 
 // * UPDATE
 feature11Router.patch("/editComment", editComment);

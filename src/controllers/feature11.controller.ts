@@ -61,6 +61,42 @@ interface ImageInput {
 //  }
 //};
 
+export const deleteTag = async (req: Request, res: Response) => {
+  try {
+    const { articleId, tagId } = req.body;
+
+    const deletedTag = await prisma.article_tags.delete({
+      where: {
+        tagId_articleId: {
+          tagId: tagId,
+          articleId: articleId,
+        },
+      },
+    });
+    
+    const tags = await prisma.article_tags.findMany({
+      where: { tagId: tagId }
+    })
+
+    var deleteWholeTag
+    if (tags.length === 0) {
+      deleteWholeTag = await prisma.tag.delete({
+        where: { tagId: tagId }
+      })
+    }
+
+    const overAllDelteResult = {
+      ...deletedTag,
+      WholeTagDeleted: deleteWholeTag,
+    };
+
+    res.json(overAllDelteResult)
+  }
+  catch (error) {
+    res.json(error);
+  }
+}
+
 // ! if it doesn't work then the problem is at decoding userId
 // ! other than that is working fine (alr test in postman)
 export const addArticle = async (req: Request, res: Response) => {
