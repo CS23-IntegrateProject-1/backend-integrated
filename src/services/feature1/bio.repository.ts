@@ -23,7 +23,7 @@ class BioRespository implements IBioRepository {
   }
 
   async getBio(userId: number): Promise<BioResponse> {
-    const bioResult = await this.prismaClient.user_bios.findFirst({
+    const bioResult = await this.prismaClient.user_bio.findFirst({
       where: {
         userId,
       },
@@ -35,12 +35,12 @@ class BioRespository implements IBioRepository {
 
     return {
       userId: bioResult.userId,
-      birthdate: bioResult.birthdate!!,
+      birthdate: bioResult.birthday!!,
       gender: bioResult.gender,
     };
   }
 
   async setBio(bio: BioRequest): Promise<BioResponse> {
-    return { userId: 1, birthdate: new Date(), gender: "male" };
+    return { userId: 1, birthdate: new Date(), gender: "Male" };
   }
 }

@@ -10,4 +10,4 @@ export type BioResponse = {
   gender: Gender;
 };
 
-export type Gender = "male" | "female" | "other" | "empty" | null;
+export type Gender = "Male" | "Female" | "Others";
