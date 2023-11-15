@@ -381,6 +381,14 @@ export const editComment = async (req: Request, res: Response) => {
 
 export const getArticleDetail = async (req: Request, res: Response) => {
   const { articleId } = req.params;
+  const userId = 3;
+  //const secret: Secret = 'fwjjpjegjwpjgwej' || "";
+  //const token = req.cookies.token;
+  //if (!token)
+  //  return res.json({ error: 'Unauthorized' });
+
+  //const decoded = jwt.verify(token, secret) as CustomJwtPayload;
+  //const userId = decoded.userId;
 
   try {
     const article = await prisma.article.findUnique({
@@ -400,6 +408,19 @@ export const getArticleDetail = async (req: Request, res: Response) => {
       },
     });
 
+    const like = await prisma.like.findMany({
+      where: {
+        articleId: parseInt(articleId),
+        userId: userId
+      }
+    })
+
+    var isLike
+    if (like.length === 0)
+      isLike = false;
+    else
+      isLike = true;
+
     if (!article) {
       res.json({ error: "Article not found" });
     }
@@ -416,7 +437,8 @@ export const getArticleDetail = async (req: Request, res: Response) => {
     const articleWithLikeCount = {
       ...article,
       Like: likeCount,
-      CommentCount: commentCount
+      CommentCount: commentCount,
+      isLike: isLike
     };
   
     res.json(articleWithLikeCount);
@@ -450,6 +472,15 @@ export const getArticleComment = async (req: Request, res: Response) => {
 };
 
 export const getAllArticle = async (req: Request, res: Response) => {
+  const userId = 3;
+  //const secret: Secret = 'fwjjpjegjwpjgwej' || "";
+  //const token = req.cookies.token;
+  //if (!token)
+  //  return res.json({ error: 'Unauthorized' });
+
+  //const decoded = jwt.verify(token, secret) as CustomJwtPayload;
+  //const userId = decoded.userId;
+
   try {
     const articles = await prisma.article.findMany({
       include: {
@@ -472,7 +503,6 @@ export const getAllArticle = async (req: Request, res: Response) => {
       },
     });
   
-    // ! count comment
     if (articles.length === 0) {
       res.status(404).json({ error: "Article not found" });
       return;
@@ -487,12 +517,17 @@ export const getAllArticle = async (req: Request, res: Response) => {
         const commentCount = await prisma.comments.count({
           where: { articleId: article.articleId }
         })
+
+        const isLike = await prisma.like.findUnique({
+          where: { articleId_userId: { articleId: article.articleId, userId } },
+        });
   
         // Add the like count to each article object
         return {
           ...article,
           Like: likeCount,
-          Comment: commentCount
+          Comment: commentCount,
+          isLike: Boolean(isLike)
         };
       })
     );
