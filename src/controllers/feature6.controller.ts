@@ -345,7 +345,8 @@ export const checkAvailability = async (req: Request, res: Response) => {
         // ! new
         availabilityResponse = overlappingReservations;
 
-        res.status(200).json({ overlappingReservations });
+        // ! dont send response when we need to call this in checkTable endpoint because 2 response will cause error
+        //res.status(200).json({ overlappingReservations });
     } catch (e) {
         console.error("Error checking availability:", e);
         return res.status(500).json(e);
@@ -372,19 +373,10 @@ export const getAvailableTables = async (req: Request, res: Response) => {
         // const reservedTimeEnd = reservedTimeStart.add({ hours: 3 }); // Assuming a reservation lasts for 3 hours
 
         // Use the checkAvailability function to get reserved tables during the specified time
-        checkAvailability(req, res);
-        console.log("HEREEEEEE", availabilityResponse[0]);
+        // ! new
+        await checkAvailability(req, res);
+        console.log("HEREEEEEE", availabilityResponse);
 
-        const overlappingReservations: OverlapReservation[] = Array.isArray(
-            availabilityResponse
-        )
-            ? availabilityResponse
-            : [];
-        console.log("Overlap => ", overlappingReservations);
-        // Check if overlappingReservations is defined before mapping
-        // let Reservations: OverlapReservation[] = [];
-        // const overlappingReservations =
-        //     (availabilityResponse ? Reservations = checkAvailability : Reservations);
         // Query all tables and filter out the reserved tables
         const allTables = await feature6Client.tables.findMany({
             where: {
@@ -393,23 +385,20 @@ export const getAvailableTables = async (req: Request, res: Response) => {
         });
 
         // Filter tables based on availability during preparation time
+        // ! new
         const reservedTableIds: number[] = await Promise.all(
-            overlappingReservations.map(async (reservation) => {
+            availabilityResponse.map(async (reservation) => {
                 const tables = await feature6Client.reservation_table.findMany({
                     where: { reserveId: reservation.reservationId },
                 });
 
-                //for (const table of tables) {
-                //    reservedTableIds.push(table.tableId)
-                //}
                 return tables.map((table) => table.tableId);
             })
         ).then((nestedArrays) => nestedArrays.flat());
         console.log("TableIds", reservedTableIds);
-        // const reservedTableIds: number[] = Reservations.map((reservation) => reservation.tableId);
-        // const availableTables = allTables.filter((table) => !reservedTableIds.includes(table.tableId));
+         const availableTables = allTables.filter((table) => !reservedTableIds.includes(table.tableId));
 
-        // res.status(200).json({ availableTables });
+         res.status(200).json({ availableTables });
     } catch (e) {
         return res.status(500).json(e);
     }
