@@ -6,25 +6,25 @@ import { addMinutes, addHours, add } from "date-fns";
 const feature6Client = new PrismaClient();
 
 //GET METHOD
-export const getAllTable = async (req: Request, res: Response) => {
-    try {
-        const tables = await feature6Client.tables.findMany();
-        return res.json(tables);
-    } catch (e) {
-        console.log(e);
-        return res.status(500).json(e);
-    }
-};
+//export const getAllTable = async (req: Request, res: Response) => {
+//    try {
+//        const tables = await feature6Client.tables.findMany();
+//        return res.json(tables);
+//    } catch (e) {
+//        console.log(e);
+//        return res.status(500).json(e);
+//    }
+//};
 
-export const getAllReservation = async (req: Request, res: Response) => {
-    try {
-        const reservations = await feature6Client.reservation.findMany();
-        return res.json(reservations);
-    } catch (e) {
-        console.log(e);
-        return res.status(500).json(e);
-    }
-};
+//export const getAllReservation = async (req: Request, res: Response) => {
+//    try {
+//        const reservations = await feature6Client.reservation.findMany();
+//        return res.json(reservations);
+//    } catch (e) {
+//        console.log(e);
+//        return res.status(500).json(e);
+//    }
+//};
 
 export const getVenueById = async (req: Request, res: Response) => {
     try {
@@ -95,12 +95,12 @@ export const getAllReservationByStatus = async (
             },
         });
 
-        return res.json(Reservation);
-    } catch (e) {
-        console.error(e);
-        return res.status(500).json(e);
-    }
-};
+//        return res.json(Reservation);
+//    } catch (e) {
+//        console.error(e);
+//        return res.status(500).json(e);
+//    }
+//};
 
 //My Reservation Detail Page
 //Finished only get, can't Create
@@ -139,7 +139,6 @@ export const getVenueAndReservationsById = async (
                 user: {
                     include: {
                         User_bio: true,
-                    },
                 },
                 deposit: true,
             },
@@ -167,26 +166,6 @@ export const createReservation = async (req: Request, res: Response) => {
 
         // if (!selectedTable) {
         //   throw new Error('No suitable tables available.');
-        // }
-
-        const depositIds = await feature6Client.deposit.findMany({
-            where: {
-                venueId: venueId,
-            },
-            select: {
-                depositId: true,
-            },
-        });
-
-        const depositId = depositIds.length > 0 ? depositIds[0].depositId : -1;
-
-        if (depositId === -1) {
-            res.status(400).json({ error: "Insert deposit Id" });
-        }
-        // Create the reservation
-        const newReservation = await feature6Client.reservation.create({
-            data: {
-                userId,
                 venueId,
                 guest_amount: guest_amount,
                 reserved_time: reservedTimeStart,
