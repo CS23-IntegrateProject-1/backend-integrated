@@ -397,6 +397,9 @@ export const getArticleComment = async (req: Request, res: Response) => {
   try {
     const comment = await prisma.comments.findMany({
       where: { articleId: parseInt(id) },
+      include: {
+        user: true
+      }
     });
 
     if (!comment) {
