@@ -5,18 +5,20 @@ import UserType from "../interface/User.interface";
 interface IAuthController {}
 
 class AuthController implements IAuthController {
-	async signup(req: Request, res: Response): Promise<void> {
-		const { firstName, lastName, username, phone, email, password } =
+	async signup(req: Request, res: Response) {
+		const { firstname, lastname, username, phone, email, password } =
 			req.body;
 		try {
 			const user = await authService.getUserByUsername(username);
 			if (user) {
-				res.status(409).send({ message: "Username already exists." });
+				return res
+					.status(409)
+					.send({ message: "Username already exists." });
 			} else {
 				const hashedPassword = await authService.hashPassword(password);
 				const newUser: UserType = {
-					fname: firstName,
-					lname: lastName,
+					fname: firstname,
+					lname: lastname,
 					username: username,
 					phone: phone,
 					email: email,
@@ -24,18 +26,11 @@ class AuthController implements IAuthController {
 				};
 				await authService.createUser(newUser);
 
-				const userId = await authService.getUserByUsername(username);
-				const token = authService.generateToken(userId!.userId);
-				res.cookie("authToken", token, {
-					httpOnly: true,
-					sameSite: "none",
-					secure: true
-				});
-				res.status(201).send({ message: "User created." });
+				return res.status(201).send({ message: "User created." });
 			}
 		} catch (e) {
 			console.log(e);
-			res.status(500).send({ message: "Internal server error." });
+			return res.status(500).send({ message: "Internal server error." });
 		}
 	}
 
