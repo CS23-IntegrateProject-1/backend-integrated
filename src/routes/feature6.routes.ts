@@ -10,7 +10,7 @@ import { Router } from "express";
 //     getfeature6,
 // } from "../controllers/feature6.controller";
 
-// const feature6Router = Router();
+const feature6Router = Router();
 
 // // here define your routes
 // // feature6Router.get("/", getfeature6);
@@ -25,4 +25,4 @@ import { Router } from "express";
 // //POST METHOD
 // // feature6Router.post("/createReservation", createReservation);
 // // feature6Router.post("/createTable", createTable);
-// export default feature6Router;
+export default feature6Router;
