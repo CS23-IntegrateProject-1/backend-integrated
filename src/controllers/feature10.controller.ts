@@ -263,10 +263,25 @@ export const getUpcomingFilms = async (req: Request, res: Response) => {
 export const getShowsByFilmsId = async (req: Request, res: Response) => {
     try {
         const id = Number(req.params.id);
+        // const currentDate = new Date().toISOString().split('T')[0];
         const shows = await prisma.shows.findMany({
             where: {
-                filmId: id
+                filmId: id,
+                // date: {
+                //     gte: currentDate,
+                // },
+                // date: {
+                //     gte: '2023-11-15', 
+                // },
+                
             },
+            include: {
+                screen: {
+                    include: {
+                        theater: true
+                    }
+                }
+            }
         });
         res.json(shows);
 
