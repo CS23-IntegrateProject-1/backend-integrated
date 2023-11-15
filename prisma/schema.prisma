@@ -100,7 +100,7 @@ model About_app {
   version     String
   detail      String?
   last_update DateTime
-  aboutAppId  Int      @id
+  aboutAppId  Int      @id @default(autoincrement())
 }
 
 model Group_user {
