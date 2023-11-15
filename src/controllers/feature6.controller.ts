@@ -6,25 +6,25 @@ import { addMinutes, addHours, add } from "date-fns";
 const feature6Client = new PrismaClient();
 
 //GET METHOD
-//export const getAllTable = async (req: Request, res: Response) => {
-//    try {
-//        const tables = await feature6Client.tables.findMany();
-//        return res.json(tables);
-//    } catch (e) {
-//        console.log(e);
-//        return res.status(500).json(e);
-//    }
-//};
+export const getAllTable = async (req: Request, res: Response) => {
+   try {
+       const tables = await feature6Client.tables.findMany();
+       return res.json(tables);
+   } catch (e) {
+       console.log(e);
+       return res.status(500).json(e);
+   }
+};
 
-//export const getAllReservation = async (req: Request, res: Response) => {
-//    try {
-//        const reservations = await feature6Client.reservation.findMany();
-//        return res.json(reservations);
-//    } catch (e) {
-//        console.log(e);
-//        return res.status(500).json(e);
-//    }
-//};
+export const getAllReservation = async (req: Request, res: Response) => {
+   try {
+       const reservations = await feature6Client.reservation.findMany();
+       return res.json(reservations);
+   } catch (e) {
+       console.log(e);
+       return res.status(500).json(e);
+   }
+};
 
 export const getVenueById = async (req: Request, res: Response) => {
     try {
@@ -95,12 +95,12 @@ export const getAllReservationByStatus = async (
             },
         });
 
-//        return res.json(Reservation);
-//    } catch (e) {
-//        console.error(e);
-//        return res.status(500).json(e);
-//    }
-//};
+       return res.json(Reservation);
+   } catch (e) {
+       console.error(e);
+       return res.status(500).json(e);
+   }
+};
 
 //My Reservation Detail Page
 //Finished only get, can't Create
@@ -140,6 +140,7 @@ export const getVenueAndReservationsById = async (
                     include: {
                         User_bio: true,
                 },
+            },
                 deposit: true,
             },
         });
@@ -153,29 +154,29 @@ export const getVenueAndReservationsById = async (
 //POST METHOD
 
 // Not finish yet
-export const createReservation = async (req: Request, res: Response) => {
-    try {
-        const { venueId, userId, guest_amount, reserved_time } = req.body;
+// export const createReservation = async (req: Request, res: Response) => {
+//     try {
+        // const { venueId, userId, guest_amount, reserved_time } = req.body;
         // Use the previous functions to check availability and find a suitable table
-        const reservedTimeStart = reserved_time;
-        const reservedTimeEnd = reservedTimeStart.add({ hours: 3 }); // Assuming a reservation lasts for 3 hours
-        const entry_time = addMinutes(new Date(reserved_time), -30);
+        // const reservedTimeStart = reserved_time;
+        // const reservedTimeEnd = reservedTimeStart.add({ hours: 3 }); // Assuming a reservation lasts for 3 hours
+        // const entry_time = addMinutes(new Date(reserved_time), -30);
 
         // const availableTables = await getAvailableTables(reservedTimeStart, reservedTimeEnd);
         // const selectedTable = findSuitableTable(availableTables, guest_amount);
 
         // if (!selectedTable) {
         //   throw new Error('No suitable tables available.');
-                venueId,
-                guest_amount: guest_amount,
-                reserved_time: reservedTimeStart,
-                entry_time: entry_time,
-                status: "Pending",
-                isPaidDeposit: "Pending",
-                isReview: false,
-                depositId: depositId,
-            },
-        });
+        //         venueId,
+        //         guest_amount: guest_amount,
+        //         reserved_time: reservedTimeStart,
+        //         entry_time: entry_time,
+        //         status: "Pending",
+        //         isPaidDeposit: "Pending",
+        //         isReview: false,
+        //         depositId: depositId,
+        //     },
+        // });
 
         // Create the reservation table entries for multiple tables
         // const reservationTableEntries = await Promise.all(
@@ -189,12 +190,12 @@ export const createReservation = async (req: Request, res: Response) => {
         //     })
         //   );
 
-        res.status(200).json(newReservation);
-    } catch (e) {
-        console.log(e);
-        return res.status(500).json(e);
-    }
-};
+        // res.status(200).json(newReservation);
+//     } catch (e) {
+//         console.log(e);
+//         return res.status(500).json(e);
+//     }
+// };
 
 // function ที่หา reservation ในเวลาเดียวกับที่จะจองเพิ่ม
 export const checkAvailability = async (req: Request, res: Response) => {
