@@ -2,47 +2,9 @@ import { PrismaClient } from "@prisma/client";
 import { Response, Request } from "express";
 const feature12Client = new PrismaClient();
 
-import { Server, Socket } from "socket.io";
 const prisma = new PrismaClient();
 
-import express from "express";
-import { createServer } from "http";
-import cors from "cors";
 
-const app = express();
-app.use(cors());
-const server = createServer(app);
-const io = new Server<ClientToServerEvents, ServerToClientEvents>(server, {
-  cors: {
-    origin: ["http:localhost:4000", "https://admin.socket.io"],
-    methods: ["GET", "POST"],
-  },
-});
- interface ServerToClientEvents {
-   serverMsg: (data: { msg: string; room: string }) => void;
-   joinRoom: (room: string, cb: (message: string) => void) => void;
- }
-
- interface ClientToServerEvents {
-   clientMsg: (data: { msg: string; room: string }) => void;
-   joinRoom: (room: string, cb: (message: string) => void) => void;
- }
-io.on(
-  "connection",
-  (socket: Socket<ClientToServerEvents, ServerToClientEvents>) => {
-    console.log(`User connected: ${socket.id}`);
-
-    socket.on("clientMsg", (data) => {
-      console.log(data);
-      if (data.room === "") {
-        io.sockets.emit("serverMsg", data);
-      } else {
-        socket.join(data.room);
-        io.to(data.room).emit("serverMsg", data);
-      }
-    });
-  }
-);
 
   // const existingChatRoom = await feature12Client.chat_room.findUnique({
   //   where: {

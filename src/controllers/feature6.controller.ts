@@ -42,7 +42,7 @@ export const getAllReservationByStatus = async (
                 userId: userId,
             },
             include: {
-                Venue: {
+                venue: {
                     include: {
                         Venue_photo: true,
                         Menu: {
@@ -56,7 +56,7 @@ export const getAllReservationByStatus = async (
                         },
                     },
                 },
-                User: {
+                user: {
                     select: {
                         userId: true,
                         username: true,
@@ -100,8 +100,8 @@ export const getReservationById = async (req: Request, res: Response) => {
                 reservationId: parseInt(req.params.reservationId),
             },
             include: {
-                User: true,
-                Deposit: {
+                user: true,
+                deposit: {
                     select: {
                         deposit_amount: true,
                         status: true,
