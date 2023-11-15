@@ -3,6 +3,7 @@ import { Response, Request } from "express";
 import { PaymentMethodController } from "./feature1/PaymentMethodController";
 import { TosController } from "./feature1/TosController";
 import { PrivacyPolicyController } from "./feature1/PrivacyPolicyController";
+import { AboutController } from "./feature1/AboutController";
 
 export const getfeature1 = async (req: Request, res: Response) => {
   return res.json({});
@@ -14,7 +15,19 @@ export const bioFetchHandler = async (req: Request, res: Response) => {};
 
 export const helpHandler = async (req: Request, res: Response) => {};
 
-export const aboutHandler = async (req: Request, res: Response) => {};
+export const aboutHandler = async (req: Request, res: Response) => {
+  switch (req.method) {
+    case "POST":
+      return new AboutController().store(req, res);
+    case "PUT":
+      return new AboutController().update(req, res);
+    case "DELETE":
+      return new AboutController().destroy(req, res);
+    case "GET":
+    default:
+      return new AboutController().show(req, res);
+  }
+};
 
 export const paymentMethodHandler = async (req: Request, res: Response) => {
   switch (req.method) {

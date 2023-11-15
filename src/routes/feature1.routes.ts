@@ -19,8 +19,12 @@ feature1Router.get("/", getfeature1);
 feature1Router.all("/account", accountHandler);
 
 feature1Router.all("/help", helpHandler);
-feature1Router.all("/about", aboutHandler);
 feature1Router.get("/bio", bioFetchHandler);
+
+feature1Router.get("/about", aboutHandler);
+feature1Router.post("/about", aboutHandler);
+feature1Router.put("/about", aboutHandler);
+feature1Router.delete("/about", aboutHandler);
 
 feature1Router.get("/term-of-services", tosHandler);
 feature1Router.post("/term-of-services", tosHandler);
