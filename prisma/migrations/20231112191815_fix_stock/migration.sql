@@ -259,7 +259,7 @@ CREATE TABLE `Voucher` (
     `description` VARCHAR(191) NOT NULL,
     `point_use` INTEGER NULL,
     `venueId` INTEGER NOT NULL,
-    `isApprove` BOOLEAN NOT NULL DEFAULT false,
+    `isApprove` ENUM('Rejected', 'In_progress', 'Completed') NOT NULL,
     `voucherId` INTEGER NOT NULL AUTO_INCREMENT,
 
     INDEX `Voucher_venueId_fkey`(`venueId`),
@@ -443,11 +443,21 @@ CREATE TABLE `Menu` (
     `venueId` INTEGER NOT NULL,
     `menu_no` INTEGER NOT NULL,
     `image` VARCHAR(191) NULL,
-    `isAvailiable` BOOLEAN NOT NULL DEFAULT false,
     `menuId` INTEGER NOT NULL AUTO_INCREMENT,
 
     INDEX `Menu_venueId_fkey`(`venueId`),
     PRIMARY KEY (`menuId`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `Stocks` (
+    `stockId` INTEGER NOT NULL AUTO_INCREMENT,
+    `menuId` INTEGER NOT NULL,
+    `venueId` INTEGER NOT NULL,
+    `branchId` INTEGER NOT NULL,
+    `availability` BOOLEAN NOT NULL DEFAULT true,
+
+    PRIMARY KEY (`stockId`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
@@ -482,11 +492,11 @@ CREATE TABLE `Sets` (
 
 -- CreateTable
 CREATE TABLE `Set_items` (
+    `setItemId` INTEGER NOT NULL AUTO_INCREMENT,
     `setId` INTEGER NOT NULL,
     `menuId` INTEGER NOT NULL,
 
-    UNIQUE INDEX `Set_items_menuId_key`(`menuId`),
-    PRIMARY KEY (`setId`, `menuId`)
+    PRIMARY KEY (`setItemId`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
@@ -721,6 +731,7 @@ CREATE TABLE `Reservation` (
     `isReview` BOOLEAN NOT NULL DEFAULT false,
     `reservationId` INTEGER NOT NULL AUTO_INCREMENT,
     `depositId` INTEGER NOT NULL,
+    `isPaidDeposit` ENUM('Pending', 'Completed') NOT NULL,
 
     UNIQUE INDEX `Reservation_depositId_key`(`depositId`),
     INDEX `Reservation_userId_fkey`(`userId`),
@@ -763,7 +774,6 @@ CREATE TABLE `Notes` (
 -- CreateTable
 CREATE TABLE `Deposit` (
     `deposit_amount` DECIMAL(10, 2) NOT NULL,
-    `status` ENUM('Pending', 'Completed') NOT NULL,
     `depositId` INTEGER NOT NULL AUTO_INCREMENT,
     `venueId` INTEGER NOT NULL,
 
@@ -843,7 +853,7 @@ CREATE TABLE `Ad_business` (
     `start_date` DATETIME(3) NOT NULL,
     `end_date` DATETIME(3) NOT NULL,
     `cost` DOUBLE NOT NULL,
-    `isApprove` BOOLEAN NOT NULL DEFAULT false,
+    `isApprove` ENUM('Rejected', 'In_progress', 'Completed') NOT NULL,
     `customer_type` ENUM('All', 'Member') NOT NULL,
     `target_group` ENUM('Teen', 'Young_adult', 'Adult', 'Elder') NOT NULL,
     `businessId` INTEGER NOT NULL,
@@ -1235,6 +1245,7 @@ CREATE TABLE `Films` (
     `filmId` INTEGER NOT NULL AUTO_INCREMENT,
     `name` VARCHAR(191) NOT NULL,
     `genre` ENUM('Action', 'Adventure', 'Animation', 'Comedy', 'Crime', 'Drama', 'Fantasy', 'Horror', 'Mystery', 'Romance', 'Sci_Fi', 'Thriller', 'War', 'Western', 'Documentary', 'Musical', 'Historical', 'Superhero', 'Family') NOT NULL,
+    `language` VARCHAR(191) NOT NULL,
     `synopsis` TEXT NOT NULL,
     `release_date` DATE NOT NULL,
     `duration` DECIMAL(10, 2) NOT NULL,
@@ -1479,6 +1490,15 @@ ALTER TABLE `Order_detail` ADD CONSTRAINT `Order_detail_setId_fkey` FOREIGN KEY 
 
 -- AddForeignKey
 ALTER TABLE `Menu` ADD CONSTRAINT `Menu_venueId_fkey` FOREIGN KEY (`venueId`) REFERENCES `Venue`(`venueId`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `Stocks` ADD CONSTRAINT `Stocks_menuId_fkey` FOREIGN KEY (`menuId`) REFERENCES `Menu`(`menuId`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `Stocks` ADD CONSTRAINT `Stocks_venueId_fkey` FOREIGN KEY (`venueId`) REFERENCES `Venue`(`venueId`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `Stocks` ADD CONSTRAINT `Stocks_branchId_fkey` FOREIGN KEY (`branchId`) REFERENCES `Venue_branch`(`branchId`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `Menu_category` ADD CONSTRAINT `Menu_category_categoryId_fkey` FOREIGN KEY (`categoryId`) REFERENCES `Menu_category_list`(`menuCategoryListId`) ON DELETE RESTRICT ON UPDATE CASCADE;
