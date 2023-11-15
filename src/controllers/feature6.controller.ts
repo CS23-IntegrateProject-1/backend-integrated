@@ -197,6 +197,9 @@ export const getVenueAndReservationsById = async (
 //     }
 // };
 
+// ! new
+let availabilityResponse: any;
+
 // function ที่หา reservation ในเวลาเดียวกับที่จะจองเพิ่ม
 export const checkAvailability = async (req: Request, res: Response) => {
     try {
@@ -206,7 +209,6 @@ export const checkAvailability = async (req: Request, res: Response) => {
             new Date(reservedTimeStart),
             5
         );
-        // const DatereservedTimeStart = new Date(reservedTimeStart);
 
         // Extract the date part
         const DateTimeStart: Date = addHours(new Date(reservedTimeStart), 7);
@@ -215,9 +217,7 @@ export const checkAvailability = async (req: Request, res: Response) => {
         const TodayDate = new Date(dateOnly)
         console.log("Date --> " + dateOnly);
         // console.log("Date --> " + Date(DateTimeSater))
-        // console.log("original+7-2: ", PrepareReservedTimeStart);
         const reservedTimeEnd = addHours(new Date(reservedTimeStart), 10); // Assuming a reservation lasts for 3 hours
-        // console.log("+7 && add 3 hours",reservedTimeEnd)
         // Convert dates to ISO-8601 format
         const isoStartTime = new Date(PrepareReservedTimeStart).toISOString();
         const isoEndTime = reservedTimeEnd.toISOString();
@@ -228,14 +228,12 @@ export const checkAvailability = async (req: Request, res: Response) => {
 
         // Get the day of the week (0-6)
         const [year, month, d] = reservedTimeStart.split(/[- :]/);
-        // const gregorianYear = parseInt(year, 10);
 
         
         const DateString = `${year}-${month}-${d}`;
 
         const myDate = new Date(DateString);
         const day = myDate.getDay();
-        // console.log("day2", day);
 
         const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
         // Get the day name
@@ -249,10 +247,6 @@ export const checkAvailability = async (req: Request, res: Response) => {
                 day: dayName as Day,
             },
         });
-
-        // console.log("opening array --> " + opening[0].venueId)
-        // console.log("opening length --> " + opening.length)
-        // console.log(opening);
         
         var notOpen = false;
         const dayBefore = daysOfWeek[day - 1];
@@ -290,17 +284,6 @@ export const checkAvailability = async (req: Request, res: Response) => {
             open = opening[0].opening_hours; 
             close = opening[0].closing_hours;
         }
-        // const openString = open.toISOString().split("T")[1].split(".")[1];
-        // console.log("open var --> " + open)
-        // const [hours, minutes, seconds] = open.split(':').map(Number);
-        // const openDate = TodayDate.setHours(hours, minutes, seconds);
-        // const close = opening[0].closing_hours;
-
-        // console.log("close from db --> " + opening[0].closing_hours)
-
-        // หาวิธ๊เปรียบเทียบ เฉพาะเวลา ว่าอยู่หลัง opening และก่อน close(2 ชม) รึเปล่า
-        // const open1 = `${open.getUTCHours()}:${open.getUTCMinutes()}:${open.getUTCSeconds()}`;
-        // const close1 = `${close.getUTCHours()}:${close.getUTCMinutes()}:${close.getUTCSeconds()}`;
 
         const RealReservedTimeStart = addHours(new Date(reservedTimeStart), 7);
         const RealisoStartTime = new Date(RealReservedTimeStart).toISOString();
@@ -329,9 +312,6 @@ export const checkAvailability = async (req: Request, res: Response) => {
         console.log("closeDate", closeDate)
 
         const twoHoursBeforeClose = addHours(closeDate, -2);
-        // console.log("OpeningString", openString);
-        // console.log("ClosingString", closeString);
-        // console.log("isoStartTimeTimePart", RealReservedTimeStart);
         // Check if the reservation time is within the opening and closing hours
 
         console.log("two hour before close", twoHoursBeforeClose);
@@ -362,6 +342,9 @@ export const checkAvailability = async (req: Request, res: Response) => {
                 },
             });
         console.log(overlappingReservations);
+        // ! new
+        availabilityResponse = overlappingReservations;
+
         res.status(200).json({ overlappingReservations });
     } catch (e) {
         console.error("Error checking availability:", e);
@@ -389,19 +372,19 @@ export const getAvailableTables = async (req: Request, res: Response) => {
         // const reservedTimeEnd = reservedTimeStart.add({ hours: 3 }); // Assuming a reservation lasts for 3 hours
 
         // Use the checkAvailability function to get reserved tables during the specified time
-        const checkAvailabilityResponse = checkAvailability(req, res);
-        console.log("HEREEEEEE", checkAvailabilityResponse);
+        checkAvailability(req, res);
+        console.log("HEREEEEEE", availabilityResponse[0]);
 
         const overlappingReservations: OverlapReservation[] = Array.isArray(
-            checkAvailabilityResponse
+            availabilityResponse
         )
-            ? checkAvailabilityResponse
+            ? availabilityResponse
             : [];
         console.log("Overlap => ", overlappingReservations);
         // Check if overlappingReservations is defined before mapping
         // let Reservations: OverlapReservation[] = [];
         // const overlappingReservations =
-        //     (checkAvailabilityResponse ? Reservations = checkAvailability : Reservations);
+        //     (availabilityResponse ? Reservations = checkAvailability : Reservations);
         // Query all tables and filter out the reserved tables
         const allTables = await feature6Client.tables.findMany({
             where: {
