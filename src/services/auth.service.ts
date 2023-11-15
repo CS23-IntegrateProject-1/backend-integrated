@@ -12,7 +12,6 @@ class AuthService {
 
 	hashPassword(password: string): string {
 		const salt = Number(process.env.salt) || 5;
-		console.log(salt);
 		if (!salt) throw new Error("Check your .env file for salt.");
 		const hashedPassword = bcrypt.hashSync(password, salt);
 		return hashedPassword;
@@ -37,8 +36,8 @@ class AuthService {
 	createUser(data: UserType) {
 		return this.prisma.user.create({
 			data: {
-				fname: data.fname,
 				lname: data.lname,
+				fname: data.fname,
 				username: data.username,
 				phone: data.phone,
 				email: data.email,
