@@ -64,7 +64,6 @@ export class PaymentMethodController implements IPaymentMethodController {
 
         return res.json(webResponse);
       } catch (e) {
-        console.log(e);
         if (e instanceof PrismaClientValidationError) {
           return res.status(400).send();
         } else if (e instanceof PrismaClientKnownRequestError) {
