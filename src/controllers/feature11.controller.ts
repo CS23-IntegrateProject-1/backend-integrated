@@ -371,11 +371,16 @@ export const getArticleDetail = async (req: Request, res: Response) => {
     const likeCount = await prisma.like.count({
       where: { articleId: parseInt(articleId) },
     });
+
+    const commentCount = await prisma.comments.count({
+      where: { articleId: parseInt(articleId) }
+    })
   
     // Add the like count to the article object
     const articleWithLikeCount = {
       ...article,
       Like: likeCount,
+      CommentCount: commentCount
     };
   
     res.json(articleWithLikeCount);
