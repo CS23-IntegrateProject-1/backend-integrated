@@ -123,7 +123,7 @@ model Friendship {
   firstUserId   Int
   sencondUserId Int
   status        Friend_status
-  since         DateTime
+  since         DateTime      @default(now())
   user          User          @relation("user", fields: [firstUserId], references: [userId])
   friend        User          @relation("friend", fields: [sencondUserId], references: [userId])
 
@@ -426,13 +426,11 @@ model Orders {
   driverId     Int?
   isDelivery   Boolean        @default(false)
   orderId      Int            @id @default(autoincrement())
-  reservedId   Int?           @unique
   status       Order_status
   Order_detail Order_detail[]
   address      Saved_address? @relation(fields: [addressId], references: [addressId])
   branch       Venue_branch   @relation(fields: [branchId], references: [branchId])
   driver       Driver_list?   @relation(fields: [driverId], references: [driverId])
-  reserve      Reservation?   @relation(fields: [reservedId], references: [reservationId])
   user         User?          @relation(fields: [userId], references: [userId])
   venue        Venue          @relation(fields: [venueId], references: [venueId])
 
@@ -764,11 +762,10 @@ model Reservation {
   entry_time        DateTime
   isReview          Boolean             @default(false)
   reservationId     Int                 @id @default(autoincrement())
-  depositId         Int
   isPaidDeposit     Deposit_status
+  depositId         Int
   Check_in_log      Check_in_log?
   Notes             Notes?
-  Orders            Orders?
   deposit           Deposit             @relation(fields: [depositId], references: [depositId])
   user              User                @relation(fields: [userId], references: [userId])
   venue             Venue               @relation(fields: [venueId], references: [venueId])
@@ -777,6 +774,7 @@ model Reservation {
 
   @@index([userId], map: "Reservation_userId_fkey")
   @@index([venueId], map: "Reservation_venueId_fkey")
+  @@index([depositId], map: "Reservation_depositId_fkey")
 }
 
 model Reservation_table {
@@ -816,10 +814,10 @@ model Deposit {
 
 model Tables {
   venueId           Int
-  table_no          Int
   information       String              @db.Text
   tableId           Int                 @id @default(autoincrement())
   tableTypeDetailId Int
+  table_no          Int
   Reservation_table Reservation_table[]
   table_type        Table_type_detail   @relation(fields: [tableTypeDetailId], references: [tableTypeDetailId])
   venue             Venue               @relation(fields: [venueId], references: [venueId])
@@ -832,9 +830,9 @@ model Table_type_detail {
   capacity          Int
   detail            String
   name              String
-  image_url         String?
   tableTypeDetailId Int      @id @default(autoincrement())
   venueId           Int
+  image_url         String?
   venue             Venue    @relation(fields: [venueId], references: [venueId])
   Tables            Tables[]
 
@@ -1229,12 +1227,12 @@ model Films {
   filmId       Int      @id @default(autoincrement())
   name         String
   genre        Genre
+  language     String
   synopsis     String   @db.Text
   release_date DateTime @db.Date
   duration     Decimal  @db.Decimal(10, 2)
   poster_img   String
   rate         Int
-  language     String
   Shows        Shows[]
 }
 
