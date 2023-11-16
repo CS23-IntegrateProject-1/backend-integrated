@@ -1,11 +1,22 @@
-import { PrismaClient } from "@prisma/client";
-import { Response, Request } from "express";
-// import { addMinutes } from 'date-fns';
+// import { PrismaClient } from "@prisma/client";
+// import { Response, Request } from "express";
+// // import { addMinutes } from 'date-fns';
 
-const feature6Client = new PrismaClient();
+// const feature6Client = new PrismaClient();
 
-// export const getfeature6 = async (req: Request, res: Response) => {
+// // export const getfeature6 = async (req: Request, res: Response) => {
 
+// // };
+
+// //GET METHOD
+// export const getAllTable = async (req: Request, res: Response) => {
+//     try {
+//         const tables = await feature6Client.tables.findMany();
+//         return res.json(tables);
+//     } catch (e) {
+//         console.log(e);
+//         return res.status(500).json(e);
+//     }
 // };
 
 //GET METHOD

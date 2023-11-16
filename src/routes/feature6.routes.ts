@@ -12,8 +12,8 @@ import { Router } from "express";
 
 const feature6Router = Router();
 
-// here define your routes
-// feature6Router.get("/", getfeature6);
+// // here define your routes
+// // feature6Router.get("/", getfeature6);
 
 //GET METHOD
 //feature6Router.get("/allTable", getAllTable);
@@ -22,7 +22,7 @@ const feature6Router = Router();
 //feature6Router.get("/venue/:venueId", getVenueById);
 //feature6Router.get("/MyReservation/:reservationId", getReservationById);
 
-//POST METHOD
-// feature6Router.post("/createReservation", createReservation);
-// feature6Router.post("/createTable", createTable);
+// //POST METHOD
+// // feature6Router.post("/createReservation", createReservation);
+// // feature6Router.post("/createTable", createTable);
 export default feature6Router;
