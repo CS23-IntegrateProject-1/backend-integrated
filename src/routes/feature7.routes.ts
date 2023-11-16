@@ -15,6 +15,8 @@ import {
     addCartToOrderDetailsOfDineIn,
     showMenuDetailFromCart,
     showSetDetailFromCart,
+    showOnGoingOrderDetails,
+    showCompletedOrderDetails,
     
 } from "../controllers/feature7.controller";
 import { customVerifyCookie } from "../middlewares/verifyCookies";
@@ -47,6 +49,10 @@ feature7Router.get("/showMenuDetailFromCart/:menuId",showMenuDetailFromCart);
 //Show set detail from cart
 feature7Router.get("/showSetDetailFromCart/:setId",showSetDetailFromCart);
 //add cart to order details
-feature7Router.post("/addCartToOrderDetailsOfDineIn/:venueId/:branchId/:reservationId",addCartToOrderDetailsOfDineIn);
+feature7Router.post("/addCartToOrderDetailsOfDineIn/:venueId/",addCartToOrderDetailsOfDineIn);
+//show Ongoing Order details
+feature7Router.get("/showOngoingOrderDetails/:venueId",showOnGoingOrderDetails);
+//show Completed Order details
+feature7Router.get("/showCompletedOrderDetails/:venueId",showCompletedOrderDetails);
 
 export default feature7Router;
