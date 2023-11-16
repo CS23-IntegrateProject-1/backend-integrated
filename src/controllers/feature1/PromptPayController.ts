@@ -10,6 +10,7 @@ import PromptPayService, {
 import { makePromptPayUpdateWebResponse } from "./models/promptpay.model";
 
 interface IPromptPayController {
+  show(req: Request, res: Response): unknown;
   update(req: Request, res: Response): unknown;
 }
 
@@ -17,6 +18,46 @@ export class PromptPayController implements IPromptPayController {
   private service: IPromptPayService = new PromptPayService(
     new PromptPayRepository(),
   );
+
+  async show(req: Request, res: Response) {
+    let token: string;
+
+    try {
+      token = extractToken(req);
+    } catch (e) {
+      return res.status(401).json(makeErrorResponse("Unauthorized"));
+    }
+
+    try {
+      const decoded = jwt.verify(
+        token as string,
+        process.env.JWT_SECRET as string,
+      );
+
+      const userId = (decoded as jwt.JwtPayload).userId;
+
+      try {
+        const response = await this.service.showPromptPayOfUser(userId);
+
+        const webResponse = makePromptPayUpdateWebResponse(response);
+
+        return res.json(webResponse);
+      } catch (e) {
+        if (e instanceof PrismaClientValidationError) {
+          return res
+            .status(400)
+            .json(makeErrorResponse("Invalid request"))
+            .send();
+        } else {
+          return res.status(404).json(makeErrorResponse("User not found"));
+        }
+      }
+    } catch (e) {
+      if (e instanceof JsonWebTokenError) {
+        return res.status(401).json(makeErrorResponse("Invalid token"));
+      }
+    }
+  }
 
   async update(req: Request, res: Response) {
     let token: string;

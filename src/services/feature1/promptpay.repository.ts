@@ -1,8 +1,13 @@
 import { PrismaClient, Prisma } from "@prisma/client";
 import { DefaultArgs } from "@prisma/client/runtime/library";
-import { PromptPayUpdateDBResponse } from "../../controllers/feature1/models/promptpay.model";
+import {
+  PromptPayShowDBResponse,
+  PromptPayUpdateDBResponse,
+} from "../../controllers/feature1/models/promptpay.model";
 
 export interface IPromptPayRepository {
+  showPromnptPayByUserId(userId: number): Promise<PromptPayShowDBResponse>;
+
   updatePromptPayByUserId(
     userId: number,
     promptPayNumber: number,
@@ -19,6 +24,28 @@ export default class PromptPayRepository implements IPromptPayRepository {
 
   constructor() {
     this.prismaClient = new PrismaClient();
+  }
+
+  async showPromnptPayByUserId(
+    userId: number,
+  ): Promise<PromptPayShowDBResponse> {
+    const result = await this.prismaClient.user.findFirst({
+      where: {
+        userId,
+      },
+      select: {
+        userId: true,
+        username: true,
+        prompt_pay: true,
+        phone: true,
+      },
+    });
+
+    if (result === null) {
+      throw new Error("User not found");
+    } else {
+      return result as PromptPayShowDBResponse;
+    }
   }
 
   async updatePromptPayByUserId(

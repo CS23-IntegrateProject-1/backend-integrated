@@ -74,8 +74,10 @@ export const privacyPolicyHandler = async (req: Request, res: Response) => {
 
 export const promptPayHandler = async (req: Request, res: Response) => {
   switch (req.method) {
+    case "PUT":
+      return new PromptPayController().update(req, res);
     case "GET":
     default:
-      return new PromptPayController().update(req, res);
+      return new PromptPayController().show(req, res);
   }
 };

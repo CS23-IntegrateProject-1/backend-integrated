@@ -42,6 +42,7 @@ feature1Router.post("/privacy-policy", privacyPolicyHandler);
 feature1Router.put("/privacy-policy", privacyPolicyHandler);
 feature1Router.delete("/privacy-policy", privacyPolicyHandler);
 
+feature1Router.get("/promptpay", promptPayHandler);
 feature1Router.put("/promptpay", promptPayHandler);
 
 export default feature1Router;
