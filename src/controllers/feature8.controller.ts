@@ -206,6 +206,7 @@ export const addCreditCard = async (req: Request, res: Response) => {
         res.status(500).json({ error: 'Failed to create credit card' });
     }
 }
+
 export const addVenueCreditCard = async (req: Request, res: Response) => {
     const { card_no, name,country,bank, exp, cvc } = req.body;
 
@@ -278,6 +279,29 @@ export const createTransactionDetail = async (req: Request, res: Response) => {
     }
 };
 
+export const updateCreditCard = async (req: Request, res: Response) => {
+    const creditCardId = parseInt(req.params.creditCardId, 10);
+    const { card_no, name,country,bank, exp, cvc } = req.body;
+
+    try {
+        const updatedCreditCard = await feature8Client.credit_card.update({
+            where: { creditCardId },
+            data: {
+                card_no,
+                name,
+                country,
+                bank,
+                cvc,
+                exp,
+            },
+        });
+
+        res.status(200).json(updatedCreditCard);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Failed to update credit card' });
+    }
+}
 
 // example of controller createAuthor
 // export const createAuthor = async (req: Request, res: Response) => {
