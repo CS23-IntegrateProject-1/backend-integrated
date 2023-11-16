@@ -33,8 +33,8 @@ feature8Router.get("/transaction_details", getAllTransactionDetails);
 feature8Router.get("/transaction_details/:transactionId", getTransactionDetailById); 
 feature8Router.get("/creditcard/:userId", getCreditCardByUserId);
 feature8Router.get("/creditcard/:creditCardId", getCreditCardById);
-feature8Router.get("/creditcard/venue", getVenueCreditCardByVenueId);
-feature8Router.get("/promptpay/venue", getVenuePromptpayByVenueId);
+feature8Router.get("/venuecreditcard/:venueId", getVenueCreditCardByVenueId);
+feature8Router.get("/venuepromptpay/:venueId", getVenuePromptpayByVenueId);
 
 // post method
 feature8Router.post("/create_transaction_detail", createTransactionDetail);
