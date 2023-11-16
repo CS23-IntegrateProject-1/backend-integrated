@@ -16,22 +16,13 @@ import {
   PrismaClientValidationError,
 } from "@prisma/client/runtime/library";
 import { Prisma } from "@prisma/client";
+import { extractToken } from "./utils";
 
 interface IPaymentMethodController {
   store: (req: Request, res: Response) => unknown;
   show: (req: Request, res: Response) => unknown;
   update: (req: Request, res: Response) => unknown;
   destroy: (req: Request, res: Response) => unknown;
-}
-
-function extractToken({ headers }: Request): string {
-  let { cookie: token } = headers;
-
-  if (!token) {
-    throw new Error("Invalid token");
-  }
-
-  return token.replace("authToken=", "");
 }
 
 export class PaymentMethodController implements IPaymentMethodController {

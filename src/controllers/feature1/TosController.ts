@@ -22,16 +22,6 @@ interface ITosController {
   destroy: (req: Request, res: Response) => unknown;
 }
 
-function extractToken({ headers }: Request): string {
-  let { cookie: token } = headers;
-
-  if (!token) {
-    throw new Error("Invalid token");
-  }
-
-  return token.replace("authToken=", "");
-}
-
 export class TosController implements ITosController {
   private service: ITosService = new TosService(new TosRepository());
 
