@@ -125,17 +125,20 @@ export const getCreditCardByUserId = async (req: Request, res: Response) => {
     const userId = parseInt(req.params.userId, 10);
 
     try {
-        const creditCard = await feature8Client.credit_card.findUnique({
-            where: { creditCardId: userId }, 
+        const user = await feature8Client.user.findUnique({
+            where: { userId },
+            include: {
+                Credit_card: true, 
+            },
         });
 
-        if (!creditCard) {
+        if (!user || !user.Credit_card) {
             return res.status(404).json({ error: 'Credit card not found' });
         }
 
-        res.status(200).json(creditCard);
+        res.status(200).json(user.Credit_card);
     } catch (error) {
-        console.error(error);
+        console.error('Error retrieving credit card:', error);
         res.status(500).json({ error: 'Failed to retrieve credit card' });
     }
 };
