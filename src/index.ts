@@ -1,5 +1,3 @@
-// index.ts
-
 import express, { Request, Response, request } from "express";
 import cors from "cors";
 import configureCors from "./configs/corsConfig";
@@ -7,7 +5,7 @@ import loadEnv from "./configs/dotenvConfig";
 import cookieParser from "cookie-parser";
 import { errorHandler } from "./middlewares/errorHandler";
 import addressTracker from "./middlewares/addressTracker";
-import { Auth{ httpServer, io } } from "./routes/auth.routes";
+import { AuthRoutes } from "./routes/auth.routes";
 import Feature1Routes from "./routes/feature1.routes";
 import Feature3Routes from "./routes/feature3.routes";
 import Feature4Routes from "./routes/feature4.routes";
@@ -20,23 +18,27 @@ import Feature10Routes from "./routes/feature10.routes";
 import Feature11Routes from "./routes/feature11.routes";
 import Feature12Routes from "./routes/feature12.routes";
 import Feature13Routes from "./routes/feature13.routes";
-import Feature14Routes from "./routes/feature14.socketio"; // Import the exported io and httpServer
+import Feature14Routes from "./routes/feature14.routes";
+
+import { httpServer } from "./socketio";
 
 loadEnv();
 
 const app = express();
 
+// Error handling middleware (should be placed after your routes)
 app.use(errorHandler);
 app.use(cors(configureCors()));
 app.use(express.json());
 app.use(cookieParser());
+app.use(addressTracker);
 
-const routes = new Routes(app);
+// const routes = new Routes(app);
 
 const port = process.env.PORT || 3000;
 
 app.get("/", (req: Request, res: Response) => {
-    res.send("Hello, Express with TypeScript!");
+  res.send("Hello, Express with TypeScript!");
 });
 
 app.use("/auth", AuthRoutes);
@@ -53,9 +55,6 @@ app.use("/feature11", Feature11Routes);
 app.use("/feature12", Feature12Routes);
 app.use("/feature13", Feature13Routes);
 app.use("/feature14", Feature14Routes);
-
-
-// Use your routes as needed
 
 httpServer.listen(port, () => {
   console.log(`Server is running on port ${port}`);
