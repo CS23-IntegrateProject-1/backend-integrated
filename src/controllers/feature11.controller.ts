@@ -2,7 +2,7 @@ import { PrismaClient } from "@prisma/client";
 import { Response, Request } from "express";
 import jwt, { JwtPayload, Secret } from 'jsonwebtoken';
 
-const feature11Client = new PrismaClient();
+//const feature11Client = new PrismaClient();
 const prisma = new PrismaClient();
 
 // * TODO : 
