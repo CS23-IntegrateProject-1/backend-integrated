@@ -7,13 +7,6 @@ export const getfeature8 = async (req: Request, res: Response) => {
     res.status(200).json({ message: 'This is Feature8' });
 };
 
-interface TransactionDetail {
-    detail: string;
-    timestamp: Date;
-    status: string;
-    total_amount: number;
-}
-
 export const getAllUser = async (req: Request, res: Response) => {
     try {
         const allUsers = await feature8Client.user.findMany();
@@ -110,9 +103,156 @@ export const getTransactionDetailById = async (req: Request, res: Response) => {
         res.status(500).json({ error: 'Failed to retrieve transaction detail' });
     }
 };
+export const getCreditCardById = async (req: Request, res: Response) => {
+    const creditCardId = parseInt(req.params.creditCardId, 10);
 
+    try {
+        const creditCard = await feature8Client.credit_card.findUnique({
+            where: { creditCardId },
+        });
+
+        if (!creditCard) {
+            return res.status(404).json({ error: 'Credit card not found' });
+        }
+
+        res.status(200).json(creditCard);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Failed to retrieve credit card' });
+    }
+}
+
+export const getCreditCardByUserId = async (req: Request, res: Response) => {
+    const userId = parseInt(req.params.userId, 10);
+
+    try {
+        const creditCard = await feature8Client.credit_card.findUnique({
+            where: { creditCardId: userId },
+        });
+
+        if (!creditCard) {
+            return res.status(404).json({ error: 'Credit card not found' });
+        }
+
+        res.status(200).json(creditCard);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Failed to retrieve credit card' });
+    }
+}
+
+export const getVenueCreditCardByVenueId = async (req: Request, res: Response) => {
+    const venueId = parseInt(req.params.venueId, 10);
+
+    try {
+        const creditCard = await feature8Client.venue_credit_card.findUnique({
+            where: { creditCardId: venueId },
+        });
+
+        if (!creditCard) {
+            return res.status(404).json({ error: 'Credit card not found' });
+        }
+
+        res.status(200).json(creditCard);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Failed to retrieve credit card' });
+    }
+}
+
+export const getVenuePromptpayByVenueId = async (req: Request, res: Response) => {
+    const venueId = parseInt(req.params.venueId, 10);
+
+    try {
+        const promptpay = await feature8Client.venue_promptpay.findUnique({
+            where: { promptpayId: venueId },
+        });
+
+        if (!promptpay) {
+            return res.status(404).json({ error: 'Promptpay not found' });
+        }
+
+        res.status(200).json(promptpay);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Failed to retrieve promptpay' });
+    }
+}
+export const addCreditCard = async (req: Request, res: Response) => {
+    const { card_no, name,country,bank, exp, cvc } = req.body;
+
+    try {
+        const newCreditCard = await feature8Client.credit_card.create({
+            data: {
+                card_no,
+                name,
+                country,
+                bank,
+                cvc,
+                exp,
+                user: {
+                    connect: {
+                        userId: req.body.userId,
+                    },
+                },
+            },
+        });
+
+        res.status(201).json(newCreditCard);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Failed to create credit card' });
+    }
+}
+export const addVenueCreditCard = async (req: Request, res: Response) => {
+    const { card_no, name,country,bank, exp, cvc } = req.body;
+
+    try {
+        const newCreditCard = await feature8Client.venue_credit_card.create({
+            data: {
+                card_no,
+                name,
+                country,
+                bank,
+                cvc,
+                exp,
+                venue: {
+                    connect: {
+                        venueId: req.body.venueId,
+                    },
+                },
+            },
+        });
+
+        res.status(201).json(newCreditCard);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Failed to create credit card' });
+    }
+}
+export const addVenuePromptpay = async (req: Request, res: Response) => {
+    const { promptpay_no } = req.body;
+
+    try {
+        const newPromptpay = await feature8Client.venue_promptpay.create({
+            data: {
+                promptpay_no,
+                venue: {
+                    connect: {
+                        venueId: req.body.venueId,
+                    },
+                },
+            },
+        });
+
+        res.status(201).json(newPromptpay);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Failed to create promptpay' });
+    }
+}
 export const createTransactionDetail = async (req: Request, res: Response) => {
-    const { detail, timestamp, status, total_amount } = req.body as TransactionDetail;
+    const { detail, timestamp, status, total_amount } = req.body;
 
     try {
         const newTransactionDetail = await feature8Client.transaction_detail.create({
