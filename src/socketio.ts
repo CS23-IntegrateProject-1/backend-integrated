@@ -11,7 +11,7 @@ export interface ClientToServerEvents {
   clientMsg: (data: { msg: string; room: string }) => void;
 }
 
-const app = express();
+const app = express(); 
 const httpServer = createServer(app);
 const io = new Server<ClientToServerEvents, ServerToClientEvents>(httpServer, {
   cors: {

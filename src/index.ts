@@ -36,7 +36,7 @@ app.use(addressTracker);
 // const routes = new Routes(app);
 
 const port = process.env.PORT || 3000;
-
+const port1 = 8000;
 app.get("/", (req: Request, res: Response) => {
   res.send("Hello, Express with TypeScript!");
 });
@@ -56,6 +56,9 @@ app.use("/feature12", Feature12Routes);
 app.use("/feature13", Feature13Routes);
 app.use("/feature14", Feature14Routes);
 
-httpServer.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
+app.listen(port, () => {
+  console.log(`App is running on port ${port}`);
+});
+httpServer.listen(port1, () => {
+  console.log(`Server is running on port ${port1}`);
 });

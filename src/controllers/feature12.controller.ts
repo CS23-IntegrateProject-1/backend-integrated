@@ -4,8 +4,6 @@ const feature12Client = new PrismaClient();
 
 const prisma = new PrismaClient();
 
-
-
   // const existingChatRoom = await feature12Client.chat_room.findUnique({
   //   where: {
   //     //convert data.room to number
