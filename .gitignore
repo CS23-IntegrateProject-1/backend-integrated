@@ -1,5 +1,3 @@
 node_modules
 .env.local
 # Keep environment variables out of version control
-src/controllers/feature6.controller.ts
-src/routes/feature6.routes.ts
