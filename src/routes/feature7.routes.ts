@@ -39,9 +39,9 @@ feature7Router.get("/checkSetAvailability/:setId/:venueId/:branchId",checkSetAva
 //add menu to cart
 feature7Router.post("/addMenuToCookie/:menuId", addMenuToCookie);
 //add set to cart
-feature7Router.post("/addSetToCookie/:setId", customVerifyCookie, addSetToCookie);
+feature7Router.post("/addSetToCookie/:setId", addSetToCookie);
 //show cart of user
-feature7Router.get("/showCart/:userId",showCart);
+feature7Router.get("/showCart",showCart);
 //Show menu detail from cart
 feature7Router.get("/showMenuDetailFromCart/:userId/:menuId",showMenuDetailFromCart);
 //Show set detail from cart

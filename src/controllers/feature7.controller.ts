@@ -173,9 +173,9 @@ export const addMenuToCookie = async (req: Request, res: Response) => {
     console.log(error);
   }
 }
-export const addSetToCookie = async (req: any, res: Response) => {
+export const addSetToCookie = async (req: Request, res: Response) => {
     try{
-        const userId = req.userId;
+        const userId = "4";
         const quantity = req.body.quantity;
         const setId = req.params.setId;
         const set = await feature7Client.sets.findUnique(
@@ -228,7 +228,7 @@ export const addSetToCookie = async (req: any, res: Response) => {
 }
 export const showCart = async (req: Request, res: Response) => {
     try {
-        const userId =parseInt(req.params.userId) ;
+        const userId =4 ;
         const cartString = req.cookies.cart || '[]';
         const cart = JSON.parse(cartString);
         const userCart = cart.filter((item: any) => item.userId === userId);
