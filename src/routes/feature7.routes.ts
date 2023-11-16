@@ -17,9 +17,11 @@ import {
     showSetDetailFromCart,
     
 } from "../controllers/feature7.controller";
+import { customVerifyCookie } from "../middlewares/verifyCookies";
 
 const feature7Router = Router();
 
+// feature7Router.use("/addMenuToCookie/:userId/:menuId", customVerifyCookie );
 // here define your routes
 feature7Router.get("/", getfeature7);
 //get all menus
@@ -35,9 +37,9 @@ feature7Router.get("/checkMenuAvailability/:menuId/:venueId/:branchId",checkMenu
 //check set availability
 feature7Router.get("/checkSetAvailability/:setId/:venueId/:branchId",checkSetAvailability);
 //add menu to cart
-feature7Router.post("/addMenuToCookie/:userId/:menuId",addMenuToCookie);
+feature7Router.post("/addMenuToCookie/:menuId", addMenuToCookie);
 //add set to cart
-feature7Router.post("/addSetToCookie/:userId/:setId",addSetToCookie);
+feature7Router.post("/addSetToCookie/:setId", customVerifyCookie, addSetToCookie);
 //show cart of user
 feature7Router.get("/showCart/:userId",showCart);
 //Show menu detail from cart

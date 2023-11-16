@@ -4,6 +4,7 @@ import { set } from "date-fns";
 import { tr } from "date-fns/locale";
 import { Response, Request } from "express";
 import { parse } from "path";
+import { customVerifyCookie } from "../middlewares/verifyCookies";
 
 
 const feature7Client = new PrismaClient();
@@ -121,7 +122,7 @@ export const checkSetAvailability = async (req: Request, res: Response) => {
 
 export const addMenuToCookie = async (req: Request, res: Response) => {
     try{
-        const userId = req.params.userId;
+        const userId = "4";
         const quantity = req.body.quantity;
         const menuId = req.params.menuId;
         const menu = await feature7Client.menu.findUnique(
@@ -172,9 +173,9 @@ export const addMenuToCookie = async (req: Request, res: Response) => {
     console.log(error);
   }
 }
-export const addSetToCookie = async (req: Request, res: Response) => {
+export const addSetToCookie = async (req: any, res: Response) => {
     try{
-        const userId = req.params.userId;
+        const userId = req.userId;
         const quantity = req.body.quantity;
         const setId = req.params.setId;
         const set = await feature7Client.sets.findUnique(
