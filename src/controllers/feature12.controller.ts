@@ -101,6 +101,12 @@ export const displayAllQuestionsWrtName = async (
       select: {
         question: true,
         venueQuestionId: true,
+        venueId: true,
+        venue: { // Include the Venue relation
+          select: {
+            name: true // Select the name field from the Venue table
+          }
+        }
       },
     });
     res.json(questions);
