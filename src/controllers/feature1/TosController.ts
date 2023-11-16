@@ -14,6 +14,7 @@ import {
 } from "@prisma/client/runtime/library";
 import { Prisma } from "@prisma/client";
 import { makeErrorResponse } from "./models/payment_method.model";
+import { extractToken } from "./utils";
 
 interface ITosController {
   store: (req: Request, res: Response) => unknown;

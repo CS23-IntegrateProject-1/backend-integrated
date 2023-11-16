@@ -16,6 +16,7 @@ import {
   PrismaClientValidationError,
 } from "@prisma/client/runtime/library";
 import { Prisma } from "@prisma/client";
+import { extractToken } from "./utils";
 
 interface IAboutController {
   store: (req: Request, res: Response) => unknown;
