@@ -126,7 +126,7 @@ export const getCreditCardByUserId = async (req: Request, res: Response) => {
 
     try {
         const creditCard = await feature8Client.credit_card.findUnique({
-            where: { creditCardId: userId },
+            where: { creditCardId: userId }, 
         });
 
         if (!creditCard) {
@@ -138,7 +138,7 @@ export const getCreditCardByUserId = async (req: Request, res: Response) => {
         console.error(error);
         res.status(500).json({ error: 'Failed to retrieve credit card' });
     }
-}
+};
 
 export const getVenueCreditCardByVenueId = async (req: Request, res: Response) => {
     const venueId = parseInt(req.params.venueId, 10);

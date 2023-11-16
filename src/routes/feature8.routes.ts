@@ -31,7 +31,7 @@ feature8Router.get("/advertisements/:advertisementId", getAdvertisementById);
 feature8Router.get("/notifications", getAllNotification);
 feature8Router.get("/transaction_details", getAllTransactionDetails); 
 feature8Router.get("/transaction_details/:transactionId", getTransactionDetailById); 
-feature8Router.get("/creditcard/:userId", getCreditCardByUserId);
+feature8Router.get("/creditcardU/:userId", getCreditCardByUserId);
 feature8Router.get("/creditcard/:creditCardId", getCreditCardById);
 feature8Router.get("/venuecreditcard/:venueId", getVenueCreditCardByVenueId);
 feature8Router.get("/venuepromptpay/:venueId", getVenuePromptpayByVenueId);
