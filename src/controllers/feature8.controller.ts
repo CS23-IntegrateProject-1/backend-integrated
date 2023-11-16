@@ -105,7 +105,6 @@ export const getTransactionDetailById = async (req: Request, res: Response) => {
 };
 export const getCreditCardById = async (req: Request, res: Response) => {
     const creditCardId = parseInt(req.params.creditCardId, 10);
-
     try {
         const creditCard = await feature8Client.credit_card.findUnique({
             where: { creditCardId },
