@@ -43,10 +43,10 @@ feature7Router.post("/addSetToCookie/:setId", addSetToCookie);
 //show cart of user
 feature7Router.get("/showCart",showCart);
 //Show menu detail from cart
-feature7Router.get("/showMenuDetailFromCart/:userId/:menuId",showMenuDetailFromCart);
+feature7Router.get("/showMenuDetailFromCart/:menuId",showMenuDetailFromCart);
 //Show set detail from cart
-feature7Router.get("/showSetDetailFromCart/:userId/:setId",showSetDetailFromCart);
+feature7Router.get("/showSetDetailFromCart/:setId",showSetDetailFromCart);
 //add cart to order details
-feature7Router.post("/addCartToOrderDetailsOfDineIn/:userId/:venueId/:branchId/:reservationId",addCartToOrderDetailsOfDineIn);
+feature7Router.post("/addCartToOrderDetailsOfDineIn/:venueId/:branchId/:reservationId",addCartToOrderDetailsOfDineIn);
 
 export default feature7Router;

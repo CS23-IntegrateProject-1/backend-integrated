@@ -241,7 +241,7 @@ export const showCart = async (req: Request, res: Response) => {
 //Show detail of specific menu from cart
 export const showMenuDetailFromCart = async (req: Request, res: Response) => {
     try {
-        const userId =parseInt(req.params.userId) ;
+        const userId =4 ;
         const mneuId=parseInt(req.params.menuId);
         const cartString = req.cookies.cart || '[]';
         const cart = JSON.parse(cartString);
@@ -255,7 +255,7 @@ export const showMenuDetailFromCart = async (req: Request, res: Response) => {
 //for sets
 export const showSetDetailFromCart = async (req: Request, res: Response) => {
     try {
-        const userId =parseInt(req.params.userId) ;
+        const userId =4;
         const setId=parseInt(req.params.setId);
         const cartString = req.cookies.cart || '[]';
         const cart = JSON.parse(cartString);
@@ -268,17 +268,28 @@ export const showSetDetailFromCart = async (req: Request, res: Response) => {
 }
 export const addCartToOrderDetailsOfDineIn = async (req: Request, res: Response) => {
     try{
-        const userId = req.params.userId;
+        
         const branchId = req.params.branchId;
         const venueId = req.params.venueId;
         const reservedId = req.params.reservationId;
-
+        const userId = req.params.userId;
+        // const user = await feature7Client.reservation.findUnique({
+        //     where: {
+        //       reservationId: parseInt(reservedId),
+        //     },
+        //   });
         //get latest order id
         const latestOrder = await feature7Client.orders.findFirst({
             orderBy: {
               orderId: 'desc',
             },
           });
+        //   const latestOrder = await feature7Client.orders.findUnique({
+        //     where: {
+        //         reservedId: parseInt(reservedId),
+        //     },
+        //   });
+        
         const orderId = latestOrder?.orderId || 0;
         //create new orderId
         const newOrderId = orderId + 1;
@@ -287,6 +298,7 @@ export const addCartToOrderDetailsOfDineIn = async (req: Request, res: Response)
             data: {
               orderId: newOrderId,
                 userId: parseInt(userId),
+                // userId: user?.userId,
                 branchId: parseInt(branchId),
                 reservedId: parseInt(reservedId),
                 venueId: parseInt(venueId),
@@ -297,12 +309,12 @@ export const addCartToOrderDetailsOfDineIn = async (req: Request, res: Response)
           });
         const cartString = req.cookies.cart || '[]';
         const cart = JSON.parse(cartString);
-        const userCart = cart.filter((item: any) => item.userId === parseInt(userId));
+        const userCart = cart.filter((item: any) => item.userId === userId);
+        // const userCart = cart.filter((item: any) => item.userId === user?.userId);
         //For menu
         const menuIds = userCart
         .filter((item) => item.menuId !== null) // Filter out null values
         .map((item) => parseInt(item.menuId));
-        // console.log(menuIds);
         const menu = await feature7Client.menu.findMany({
             where: {
                 menuId: {
@@ -364,7 +376,7 @@ export const addCartToOrderDetailsOfDineIn = async (req: Request, res: Response)
                 orderId: newOrderId,
             },
             data: {
-                total_amount: totalAmount,
+                total_amount:totalAmount,
             },
         });
         //clear cart
