@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE `About_app` MODIFY `aboutAppId` INTEGER NOT NULL AUTO_INCREMENT;
