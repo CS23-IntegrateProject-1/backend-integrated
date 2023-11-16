@@ -10,6 +10,7 @@ import {
   paymentMethodHandler,
   tosHandler,
   privacyPolicyHandler,
+  promptPayHandler,
 } from "../controllers/feature1.controller";
 
 const feature1Router = Router();
@@ -40,5 +41,7 @@ feature1Router.get("/privacy-policy", privacyPolicyHandler);
 feature1Router.post("/privacy-policy", privacyPolicyHandler);
 feature1Router.put("/privacy-policy", privacyPolicyHandler);
 feature1Router.delete("/privacy-policy", privacyPolicyHandler);
+
+feature1Router.put("/promptpay", promptPayHandler);
 
 export default feature1Router;

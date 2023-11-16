@@ -4,6 +4,7 @@ import { PaymentMethodController } from "./feature1/PaymentMethodController";
 import { TosController } from "./feature1/TosController";
 import { PrivacyPolicyController } from "./feature1/PrivacyPolicyController";
 import { AboutController } from "./feature1/AboutController";
+import { PromptPayController } from "./feature1/PromptPayController";
 
 export const getfeature1 = async (req: Request, res: Response) => {
   return res.json({});
@@ -68,5 +69,13 @@ export const privacyPolicyHandler = async (req: Request, res: Response) => {
     case "GET":
     default:
       return new PrivacyPolicyController().show(req, res);
+  }
+};
+
+export const promptPayHandler = async (req: Request, res: Response) => {
+  switch (req.method) {
+    case "GET":
+    default:
+      return new PromptPayController().update(req, res);
   }
 };
