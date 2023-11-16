@@ -35,19 +35,28 @@ export class PromptPayController implements IPromptPayController {
 
       const userId = (decoded as jwt.JwtPayload).userId;
 
-      const { promptpay_number } = req.body;
+      const { promptpay_number, phone_number } = req.body;
       const promptPayNum = Number(promptpay_number);
 
-      if (!promptpay_number || isNaN(promptPayNum)) {
+      if (
+        !promptpay_number ||
+        isNaN(promptPayNum) ||
+        typeof phone_number !== "string"
+      ) {
         res
           .status(400)
-          .json(makeErrorResponse("Promptpay number not present or invalid"));
+          .json(
+            makeErrorResponse(
+              "Promptpay number or Phone number not present or invalid",
+            ),
+          );
       }
 
       try {
         const response = await this.service.updatePromptPayOfUser(
           userId,
           promptpay_number,
+          phone_number,
         );
 
         const webResponse = makePromptPayUpdateWebResponse(response);
@@ -60,9 +69,7 @@ export class PromptPayController implements IPromptPayController {
             .json(makeErrorResponse("Invalid request"))
             .send();
         } else {
-          return res
-            .status(404)
-            .json(makeErrorResponse("User or payment method not found"));
+          return res.status(404).json(makeErrorResponse("User not found"));
         }
       }
     } catch (e) {

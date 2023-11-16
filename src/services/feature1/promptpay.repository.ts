@@ -6,6 +6,7 @@ export interface IPromptPayRepository {
   updatePromptPayByUserId(
     userId: number,
     promptPayNumber: number,
+    phoneNumber: string,
   ): Promise<PromptPayUpdateDBResponse>;
 }
 
@@ -23,6 +24,7 @@ export default class PromptPayRepository implements IPromptPayRepository {
   async updatePromptPayByUserId(
     userId: number,
     promptPayNumber: number,
+    phoneNumber: string,
   ): Promise<PromptPayUpdateDBResponse> {
     const result = await this.prismaClient.user.update({
       where: {
@@ -30,15 +32,15 @@ export default class PromptPayRepository implements IPromptPayRepository {
       },
       data: {
         prompt_pay: promptPayNumber,
+        phone: phoneNumber,
       },
       select: {
         userId: true,
         username: true,
         prompt_pay: true,
+        phone: true,
       },
     });
-
-    console.log(result);
 
     if (result === null) {
       throw new Error("User not found");

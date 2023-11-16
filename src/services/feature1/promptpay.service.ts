@@ -5,6 +5,7 @@ export interface IPromptPayService {
   updatePromptPayOfUser(
     userId: number,
     promptPayNumber: number,
+    phoneNumber: string,
   ): Promise<PromptPayUpdateDBResponse>;
 }
 
@@ -14,7 +15,12 @@ export default class PromptPayService implements IPromptPayService {
   async updatePromptPayOfUser(
     userId: number,
     promptPayNumber: number,
+    phoneNumber: string,
   ): Promise<PromptPayUpdateDBResponse> {
-    return this.repository.updatePromptPayByUserId(userId, promptPayNumber);
+    return this.repository.updatePromptPayByUserId(
+      userId,
+      promptPayNumber,
+      phoneNumber,
+    );
   }
 }
