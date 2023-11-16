@@ -9,7 +9,8 @@ export const customVerifyCookie = (req: any, res: Response, next: NextFunction) 
 
   if (!token) {
     // Handle when no token is found
-    return res.status(401).json({ message: "Authentication token not provided." });
+    req.userId = userId; // Attach the userId to the request
+    next(); 
   }
 
   try {
