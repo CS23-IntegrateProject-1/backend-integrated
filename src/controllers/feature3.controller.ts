@@ -51,6 +51,23 @@ export const getVenueBranch = async (req: Request, res: Response) => {
     }
 };
 
+export const getAllMenusByVenueId = async (req: Request, res: Response) => {
+    const { venueId } = req.params;
+
+    try {
+        const menus = await feature3Client.menu.findMany({
+            where: {
+                venueId: parseInt(venueId),
+            },
+        });
+
+        return res.json(menus);
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ error: "Internal Server Error" });
+    }
+};
+
 export const getVenueContacts = async (req: Request, res: Response) => {
     const { venueId } = req.params;
 
@@ -245,6 +262,27 @@ export const deleteVenueReview = async (req: Request, res: Response) => {
         });
 
         return res.json({ message: "Review deleted successfully" });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ error: "Internal Server Error" });
+    }
+};
+
+export const getAllDiscountVouchers = async (req: Request, res: Response) => {
+    try {
+        const discountVouchers =
+            await feature3Client.discount_voucher.findMany();
+        return res.json(discountVouchers);
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ error: "Internal Server Error" });
+    }
+};
+
+export const getAllFoodVouchers = async (req: Request, res: Response) => {
+    try {
+        const foodVouchers = await feature3Client.food_voucher.findMany();
+        return res.json(foodVouchers);
     } catch (error) {
         console.error(error);
         return res.status(500).json({ error: "Internal Server Error" });
