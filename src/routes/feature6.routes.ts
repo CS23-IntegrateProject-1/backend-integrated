@@ -5,7 +5,7 @@ import { getAllReservationByStatus } from "../controllers/feature6.controller";
 import { getVenueById } from "../controllers/feature6.controller";
 import { getVenueAndReservationsById } from "../controllers/feature6.controller";
 import { getReservationById } from "../controllers/feature6.controller";
-// import { createReservation } from "../controllers/feature6.controller";
+import { createReservation } from "../controllers/feature6.controller";
 import { checkAvailability } from "../controllers/feature6.controller";
 import { getAvailableTables } from "../controllers/feature6.controller";
 import { findSuitableTable } from "../controllers/feature6.controller";
@@ -41,7 +41,7 @@ feature6Router.get("/findSuitableTable", findSuitableTable);
 // feature6Router.get("/MyTable/:tableId", getTableByTableId);
 
 //POST METHOD
-// feature6Router.post("/createReservation", createReservation);
+feature6Router.post("/createReservation", createReservation);
 // feature6Router.post("/createTable", createTable);
 // feature6Router.post("/createTableType", createTableType)
 export default feature6Router;

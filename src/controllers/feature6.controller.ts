@@ -2,43 +2,31 @@ import { Day, PrismaClient } from "@prisma/client";
 import { Response, Request } from "express";
 import { addMinutes, addHours, add } from "date-fns";
 
-
 const feature6Client = new PrismaClient();
 
-// // export const getfeature6 = async (req: Request, res: Response) => {
+// export const getfeature6 = async (req: Request, res: Response) => {
 
-// // };
-
-// //GET METHOD
-// export const getAllTable = async (req: Request, res: Response) => {
-//     try {
-//         const tables = await feature6Client.tables.findMany();
-//         return res.json(tables);
-//     } catch (e) {
-//         console.log(e);
-//         return res.status(500).json(e);
-//     }
 // };
 
 //GET METHOD
 export const getAllTable = async (req: Request, res: Response) => {
-   try {
-       const tables = await feature6Client.tables.findMany();
-       return res.json(tables);
-   } catch (e) {
-       console.log(e);
-       return res.status(500).json(e);
-   }
+    try {
+        const tables = await feature6Client.tables.findMany();
+        return res.json(tables);
+    } catch (e) {
+        console.log(e);
+        return res.status(500).json(e);
+    }
 };
 
 export const getAllReservation = async (req: Request, res: Response) => {
-   try {
-       const reservations = await feature6Client.reservation.findMany();
-       return res.json(reservations);
-   } catch (e) {
-       console.log(e);
-       return res.status(500).json(e);
-   }
+    try {
+        const reservations = await feature6Client.reservation.findMany();
+        return res.json(reservations);
+    } catch (e) {
+        console.log(e);
+        return res.status(500).json(e);
+    }
 };
 
 export const getVenueById = async (req: Request, res: Response) => {
@@ -110,11 +98,11 @@ export const getAllReservationByStatus = async (
             },
         });
 
-       return res.json(Reservation);
-   } catch (e) {
-       console.error(e);
-       return res.status(500).json(e);
-   }
+        return res.json(Reservation);
+    } catch (e) {
+        console.error(e);
+        return res.status(500).json(e);
+    }
 };
 
 //My Reservation Detail Page
@@ -154,8 +142,8 @@ export const getVenueAndReservationsById = async (
                 user: {
                     include: {
                         User_bio: true,
+                    },
                 },
-            },
                 deposit: true,
             },
         });
@@ -169,57 +157,79 @@ export const getVenueAndReservationsById = async (
 //POST METHOD
 
 // Not finish yet
-// export const createReservation = async (req: Request, res: Response) => {
-//     try {
-        // const { venueId, userId, guest_amount, reserved_time } = req.body;
+export const createReservation = async (req: Request, res: Response) => {
+    try {
+        const { venueId, userId, guest_amount, reserved_time } = req.body;
         // Use the previous functions to check availability and find a suitable table
         // const reservedTimeStart = reserved_time;
         // const reservedTimeEnd = reservedTimeStart.add({ hours: 3 }); // Assuming a reservation lasts for 3 hours
-        // const entry_time = addMinutes(new Date(reserved_time), -30);
-
-        // const availableTables = await getAvailableTables(reservedTimeStart, reservedTimeEnd);
-        // const selectedTable = findSuitableTable(availableTables, guest_amount);
-
-        // if (!selectedTable) {
-        //   throw new Error('No suitable tables available.');
-        //         venueId,
-        //         guest_amount: guest_amount,
-        //         reserved_time: reservedTimeStart,
-        //         entry_time: entry_time,
-        //         status: "Pending",
-        //         isPaidDeposit: "Pending",
-        //         isReview: false,
-        //         depositId: depositId,
-        //     },
-        // });
-
-        // Create the reservation table entries for multiple tables
-        // const reservationTableEntries = await Promise.all(
-        //     selectedTables.map(async (table) => {
-        //       return feature6Client.reservation_table.create({
-        //         data: {
-        //           reserveId: newReservation.reservationId,
-        //           tableId: table.tableId,
-        //         },
-        //       });
-        //     })
-        //   );
-
+        const entry_time = addMinutes(new Date(reserved_time), -30);
+        const availableTables = await getAvailableTables(req, res); // ได้ getAvailableResponse
+        const selectedTable = await findSuitableTable(
+            getAvailableTablesResponse,
+            res
+        );
+        if (
+            !selectedTable ||
+            selectedTable === null ||
+            selectedTable === undefined ||
+            selectedTable.length === 0
+        ) {
+            throw new Error("No suitable tables available.");
+        }
+        const depositId = await feature6Client.deposit.findMany({
+            where: {
+                venueId: venueId,
+            },
+            select: {
+                depositId: true,
+            },
+        });
+        // Create the reservation
+        // console.log(depositId);
+        const newReservation = await feature6Client.reservation.create({
+            data: {
+                venueId,
+                userId,
+                guest_amount,
+                reserved_time: new Date(reserved_time),
+                entry_time,
+                status: "Pending",
+                isPaidDeposit: "Pending",
+                isReview: false,
+                depositId: depositId[0].depositId,
+            },
+        });
+        // Create the reservation table entry for the selected table
+        const reservationTableEntry =
+            await feature6Client.reservation_table.create({
+                data: {
+                    reserveId: newReservation.reservationId,
+                    tableId: selectedTable[0].tableId,
+                },
+            });
+        res.status(200).json({
+            // newReservation,
+            reservationTableEntry,
+        });
         // res.status(200).json(newReservation);
-//     } catch (e) {
-//         console.log(e);
-//         return res.status(500).json(e);
-//     }
-// };
+    } catch (e) {
+        console.log(e);
+        return res.status(500).json(e);
+    }
+};
 
 // ! new
 let availabilityResponse: any;
+let getAvailableTablesResponse: any;
+let getSuitableTableResponse: any;
 
 // function ที่หา reservation ในเวลาเดียวกับที่จะจองเพิ่ม
 export const checkAvailability = async (req: Request, res: Response) => {
     try {
-        const { venueId, reservedTimeStart } = req.body;
-        // console.log("original: ", reservedTimeStart);
+        const { venueId, reserved_time } = req.body;
+        const reservedTimeStart = reserved_time;
+
         const PrepareReservedTimeStart = addHours(
             new Date(reservedTimeStart),
             5
@@ -227,24 +237,20 @@ export const checkAvailability = async (req: Request, res: Response) => {
 
         // Extract the date part
         const DateTimeStart: Date = addHours(new Date(reservedTimeStart), 7);
-        console.log("DateTimeStart", DateTimeStart);
-        const dateOnly = DateTimeStart.toISOString().split('T')[0];
-        const TodayDate = new Date(dateOnly)
-        console.log("Date --> " + dateOnly);
-        // console.log("Date --> " + Date(DateTimeSater))
+        const dateOnly = DateTimeStart.toISOString().split("T")[0];
+        const TodayDate = new Date(dateOnly);
         const reservedTimeEnd = addHours(new Date(reservedTimeStart), 10); // Assuming a reservation lasts for 3 hours
         // Convert dates to ISO-8601 format
         const isoStartTime = new Date(PrepareReservedTimeStart).toISOString();
         const isoEndTime = reservedTimeEnd.toISOString();
 
-        console.log("ISO Time");
-        console.log("start", isoStartTime);
-        console.log("stop", isoEndTime);
+        // console.log("ISO Time");
+        // console.log("start", isoStartTime);
+        // console.log("stop", isoEndTime);
 
         // Get the day of the week (0-6)
         const [year, month, d] = reservedTimeStart.split(/[- :]/);
 
-        
         const DateString = `${year}-${month}-${d}`;
 
         const myDate = new Date(DateString);
@@ -254,7 +260,6 @@ export const checkAvailability = async (req: Request, res: Response) => {
         // Get the day name
         const dayName = daysOfWeek[day];
 
-        console.log("day3", dayName);
         // Query the database to find reservations within the specified time range
         const opening = await feature6Client.opening_day.findMany({
             where: {
@@ -262,7 +267,7 @@ export const checkAvailability = async (req: Request, res: Response) => {
                 day: dayName as Day,
             },
         });
-        
+
         var notOpen = false;
         const dayBefore = daysOfWeek[day - 1];
         if (opening.length === 0) {
@@ -270,15 +275,17 @@ export const checkAvailability = async (req: Request, res: Response) => {
                 where: {
                     venueId,
                     day: dayBefore as Day,
-                }
-            })
+                },
+            });
             const closeBefore = openBefore[0].closing_hours;
-            const closeBeforeString = closeBefore.toISOString().split("T")[1].split(".")[0];
+            const closeBeforeString = closeBefore
+                .toISOString()
+                .split("T")[1]
+                .split(".")[0];
 
             if (closeBeforeString <= "02:00:00") {
                 return res.status(400).json({ error: "Today venue is closed" });
-            }
-            else {
+            } else {
                 notOpen = true;
             }
         }
@@ -289,14 +296,13 @@ export const checkAvailability = async (req: Request, res: Response) => {
                 where: {
                     venueId,
                     day: dayBefore as Day,
-                }
-            })
+                },
+            });
             open = openBefore[0].opening_hours;
             close = openBefore[0].closing_hours;
             TodayDate.setDate(TodayDate.getDate() - 1);
-        }
-        else { 
-            open = opening[0].opening_hours; 
+        } else {
+            open = opening[0].opening_hours;
             close = opening[0].closing_hours;
         }
 
@@ -306,30 +312,36 @@ export const checkAvailability = async (req: Request, res: Response) => {
 
         // Convert open, close, and two hours before close to string for comparison
         const openString = open.toISOString().split("T")[1].split(".")[0];
-        const [hours, minutes, seconds] = openString.split(':').map(Number);
+        const [hours, minutes, seconds] = openString.split(":").map(Number);
         // console.log("h m i", hours, minutes, seconds)
         const openMS = TodayDate.setHours(hours, minutes, seconds);
         const openDate = addHours(new Date(openMS), 7);
-        console.log("openDate", openDate);
+        // console.log("openDate", openDate);
 
         const closeString = close.toISOString().split("T")[1].split(".")[0];
-        const [closehours, closeminutes, closeseconds] = closeString.split(':').map(Number);
+        const [closehours, closeminutes, closeseconds] = closeString
+            .split(":")
+            .map(Number);
         // console.log("h m i", hours, minutes, seconds)
-        console.log("openString", openString)
-        console.log("closeString", closeString)
+        // console.log("openString", openString);
+        // console.log("closeString", closeString);
         if (closeString < openString) {
             // console.log("Hello")
             TodayDate.setDate(TodayDate.getDate() + 1);
         }
-        console.log("TodayDate", TodayDate)
-        const closeMS = TodayDate.setHours(closehours, closeminutes, closeseconds);
+        // console.log("TodayDate", TodayDate);
+        const closeMS = TodayDate.setHours(
+            closehours,
+            closeminutes,
+            closeseconds
+        );
         const closeDate = addHours(new Date(closeMS), 7);
-        console.log("closeDate", closeDate)
+        // console.log("closeDate", closeDate);
 
         const twoHoursBeforeClose = addHours(closeDate, -2);
         // Check if the reservation time is within the opening and closing hours
 
-        console.log("two hour before close", twoHoursBeforeClose);
+        // console.log("two hour before close", twoHoursBeforeClose);
         if (
             RealReservedTimeStart < openDate ||
             RealReservedTimeStart > twoHoursBeforeClose
@@ -340,8 +352,8 @@ export const checkAvailability = async (req: Request, res: Response) => {
         }
         // sat,sun ปิดร้าน 22:00 ปิดรับจองถึง 20:00:00 01ไม่รับ
         // วันธรรมดา ปิดร้าน 21:00 ปิดรับจองถึง 19:00:00 01 ไม่รับ
-        console.log("isoStartTime", isoStartTime)
-        console.log("isoEndTime", isoEndTime)
+        // console.log("isoStartTime", isoStartTime);
+        // console.log("isoEndTime", isoEndTime);
 
         const overlappingReservations =
             await feature6Client.reservation.findMany({
@@ -356,12 +368,12 @@ export const checkAvailability = async (req: Request, res: Response) => {
                     },
                 },
             });
-        console.log(overlappingReservations);
+        // console.log(overlappingReservations);
         // ! new
         availabilityResponse = overlappingReservations;
 
         // ! dont send response when we need to call this in checkTable endpoint because 2 response will cause error
-        //res.status(200).json({ overlappingReservations });
+        // res.status(200).json({ overlappingReservations });
     } catch (e) {
         console.error("Error checking availability:", e);
         return res.status(500).json(e);
@@ -382,22 +394,31 @@ interface OverlapReservation {
 
 export const getAvailableTables = async (req: Request, res: Response) => {
     try {
-        const { venueId, reservedTimeStart } = req.body;
+        const { venueId, reserved_time } = req.body;
         // Calculate the preparation time start (3 hours before the reservation)
         // const preparationTimeStart = addHours(new Date(reservedTimeStart), -3);
         // const reservedTimeEnd = reservedTimeStart.add({ hours: 3 }); // Assuming a reservation lasts for 3 hours
 
         // Use the checkAvailability function to get reserved tables during the specified time
         // ! new
+        // console.log("venvuenveuvneuv", venueId)
+
+        // console.log("resererererevrev", reservedTimeStart)
+        // console.log("apppppppppp     ", req.body)
         await checkAvailability(req, res);
-        console.log("HEREEEEEE", availabilityResponse);
+        // console.log("HEREEEEEE", availabilityResponse);
 
         // Query all tables and filter out the reserved tables
         const allTables = await feature6Client.tables.findMany({
             where: {
                 venueId: venueId,
+                tableTypeDetailId: venueId.tableTypeDetailId,
+            },
+            include: {
+                table_type: true,
             },
         });
+        // console.log("HEREEEEEEEEEE----->", allTables[0]);
 
         // Filter tables based on availability during preparation time
         // ! new
@@ -410,31 +431,71 @@ export const getAvailableTables = async (req: Request, res: Response) => {
                 return tables.map((table) => table.tableId);
             })
         ).then((nestedArrays) => nestedArrays.flat());
-        console.log("TableIds", reservedTableIds);
-         const availableTables = allTables.filter((table) => !reservedTableIds.includes(table.tableId));
+        // console.log("TableIds", reservedTableIds);
+        //Old version
+        // const availableTables = allTables.filter(
+        //     (table) => !reservedTableIds.includes(table.tableId)
+        // );
 
-         res.status(200).json({ availableTables });
+        const availableTables = allTables
+            .filter((table) => !reservedTableIds.includes(table.tableId))
+            .map((table) => ({
+                tableId: table.tableId,
+                capacity: table.table_type.capacity,
+            }));
+
+            const availableTables2 = {
+                availableTables: availableTables,
+                guestAmount: req.body.guest_amount
+            }
+        // availableTables.guestAmount = req.body.guest_amount;
+                // console.log("Availables Table Result ----> ",  availableTables2 );
+
+
+        // {
+        //     availableTables: [
+        //         { tableId: 15, capacity: 2 },
+        //         { tableId: 16, capacity: 2 },
+        //         { tableId: 17, capacity: 4 },
+        //         { tableId: 18, capacity: 8 },
+        //     ];
+        // }
+
+        // {
+        //     "availableTables": [
+        //       { "tableId": 1, "capacity": 4  },
+        //        { "tableId": 3, "capacity": 8 },
+        //       { "tableId": 2, "capacity": 6  }
+        //     ],
+        //     "guestAmount": 12
+        //   }
+
+        getAvailableTablesResponse = availableTables2;
+        // res.status(200).json({ availableTables });
     } catch (e) {
         return res.status(500).json(e);
     }
 };
 
 //Almost Finish
-export const findSuitableTable = async (req: Request, res: Response) => {
+export const findSuitableTable = async ( getAvailableTablesResponse, res: Response) => {
     try {
-        const { availableTables, guestAmount } = req.body;
-        console.log("Received request with guest amount:", guestAmount);
+     
+        const { availableTables, guestAmount } = getAvailableTablesResponse;
+     
+        // console.log("Received request with guest amount:", guestAmount);
 
-        const totalCapacity = availableTables.reduce(
-            (total, table) => total + table.capacity,
-            0
-        );
-        if (guestAmount > totalCapacity) {
-            // If guest amount exceeds total capacity, handle this case (e.g., return an error)
-            return res
-                .status(400)
-                .json({ error: "Guest amount exceeds total capacity." });
-        }
+        // const totalCapacity = availableTables.reduce(
+        //     (total, table) => total + table.capacity,
+        //     0
+        // );
+        // console.log("totalCapacity", totalCapacity);
+        // if (guestAmount > totalCapacity) {
+        //     // If guest amount exceeds total capacity, handle this case (e.g., return an error)
+        //     return res
+        //         .status(400)
+        //         .json({ error: "Guest amount exceeds total capacity." });
+        // }
 
         const tableWithMaxCapacity = availableTables.reduce(
             (maxTable, currentTable) => {
@@ -444,13 +505,14 @@ export const findSuitableTable = async (req: Request, res: Response) => {
             },
             availableTables[0]
         );
-        console.log("max", tableWithMaxCapacity);
+
+        // console.log("max", tableWithMaxCapacity);
 
         if (guestAmount <= tableWithMaxCapacity.capacity) {
             const suitableTables = availableTables.filter(
                 (table) => table.capacity >= guestAmount
             );
-            console.log(suitableTables);
+            // console.log(suitableTables);
             // console.log(
             //     "Filtered tables based on guest capacity. Number of suitable tables:",
             //     suitableTables.length
@@ -460,36 +522,45 @@ export const findSuitableTable = async (req: Request, res: Response) => {
                 const diff2 = Math.abs(table2.capacity - guestAmount);
                 return diff1 - diff2;
             });
+            console.log("suitableTables", suitableTables)
 
-            console.log("alone table", suitableTables);
-
-            return res.status(200).json(suitableTables[0]);
+            // console.log("Alone table Result ---->", suitableTables[0]);
+            getSuitableTableResponse = suitableTables;
+            return suitableTables;
+            // return res.status(200).json(suitableTables[0]);
         } else {
             //HEREEE
-            const sortedTables = [...availableTables].sort(
-                (a, b) => a.capacity - b.capacity
-            );
+            // const sortedTables = [...availableTables].sort(
+            //     (a, b) => a.capacity - b.capacity
+            // );
 
-            let reservedTables: any[] = [];
-            let remainingGuests = guestAmount;
+            // let reservedTables: any[] = [];
+            // let remainingGuests = guestAmount;
 
-            // Iterate through sorted tables and try to use as few tables as possible
-            for (const table of sortedTables) {
-                if (remainingGuests > 0) {
-                    const guestsToAssign = Math.min(
-                        remainingGuests,
-                        table.capacity
-                    );
-                    reservedTables.push({
-                        tableId: table.tableId,
-                    });
-                    remainingGuests -= guestsToAssign;
-                } else {
-                    break; // No need to check further if all guests are assigned
-                }
-            }
-            console.log("more than1 ", reservedTables);
-            res.status(200).json(reservedTables);
+            // // Iterate through sorted tables and try to use as few tables as possible
+            // for (const table of sortedTables) {
+            //     if (remainingGuests > 0) {
+            //         const guestsToAssign = Math.min(
+            //             remainingGuests,
+            //             table.capacity
+            //         );
+            //         reservedTables.push({
+            //             tableId: table.tableId,
+            //         });
+            //         remainingGuests -= guestsToAssign;
+            //     } else {
+            //         break; // No need to check further if all guests are assigned
+            //     }
+            // }
+            // // console.log("More than1 Result---->", reservedTables);
+            // getSuitableTableResponse = reservedTables;
+            // console.log("suitableTables", reser)
+
+            // console.log("hi")
+            // console.log(getSuitableTableResponse)
+            // return res.status(200).json(reservedTables);
+            return [];
+
         }
 
         // Filter tables based on guest capacity
@@ -502,6 +573,7 @@ export const findSuitableTable = async (req: Request, res: Response) => {
         //     (table) => table.capacity >= guestAmount
         // );
         // console.log("Selected table:", selectedTable);
+        // return res.status(200).json({ message: "Success" });
 
         // return res.status(200).json({ selectedTable: selectedTable || null });
     } catch (e) {
@@ -534,23 +606,23 @@ export const findSuitableTable = async (req: Request, res: Response) => {
 //     }
 // };
 
-//Still Error
-// export const getTableByTableId = async (req: Request, res: Response) => {
-//     try {
-//         const { tableId } = req.params;
-//         const venueId = req.body.venueId;
-//         const table = await feature6Client.tables.findUnique({
-//             where: {
-//                 tableId: parseInt(tableId),
-//                 venueId: parseInt(venueId),
-//                 tableTypeDetailId: venueId.tableTypeDetailId,
-//             },
-//         });
-//         return res.status(200).json(table);
-//     } catch (e) {
-//         return res.status(500).json(e);
-//     }
-// };
+// Still Error
+export const getTableByTableId = async (req: Request, res: Response) => {
+    try {
+        const { tableId } = req.params;
+        const venueId = req.body.venueId;
+        const table = await feature6Client.tables.findUnique({
+            where: {
+                tableId: parseInt(tableId),
+                venueId: parseInt(venueId),
+                tableTypeDetailId: venueId.tableTypeDetailId,
+            },
+        });
+        return res.status(200).json(table);
+    } catch (e) {
+        return res.status(500).json(e);
+    }
+};
 
 //POST METHOD
 // export const createTable = async (req: Request, res: Response) => {
