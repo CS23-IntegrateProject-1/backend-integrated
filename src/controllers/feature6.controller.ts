@@ -1,7 +1,7 @@
 import { Day, PrismaClient } from "@prisma/client";
 import { Response, Request } from "express";
 import { addMinutes, addHours, add } from "date-fns";
-
+    
 const feature6Client = new PrismaClient();
 
 // export const getfeature6 = async (req: Request, res: Response) => {

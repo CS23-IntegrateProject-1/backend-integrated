@@ -25,7 +25,7 @@ feature6Router.get("/venue/:venueId", getVenueById);
 feature6Router.get("/MyReservation/:reservationId", getReservationById);
 
 //Finished, Wait for Integration
-feature6Router.get("/MyReservation", getAllReservationByStatus);
+feature6Router.post("/MyReservation", getAllReservationByStatus);
 feature6Router.get("/MyReservation/:venueId/:reservationId", getVenueAndReservationsById);
 
 //Not Finished
