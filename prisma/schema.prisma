@@ -17,7 +17,6 @@ model User {
   addId                  String?                  @unique
   phone                  String                   @db.VarChar(10)
   tierId                 Int?
-  prompt_pay             Int?
   userId                 Int                      @id @default(autoincrement())
   prompt_pay             Int?
   Article                Article[]
@@ -451,9 +450,6 @@ model Orders {
 
 model Order_detail {
   orderDetailId  Int          @id @default(autoincrement())
-
-  status         Order_status @default(On_going)
-
   unit_price     Decimal      @db.Decimal(10, 2)
   order_time     DateTime     @default(now()) @db.Timestamp(0)
   additional_req String?
