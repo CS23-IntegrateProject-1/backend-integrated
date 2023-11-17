@@ -250,12 +250,12 @@ export const showMenuDetailFromCart = async (req: Request, res: Response) => {
         const cart = JSON.parse(cartString);
         const userCart = cart.filter((item: any) => item.userId === userId && item.menuId===mneuId);
         if (userCart.length === 1) {
-            const dataObject = userCart[0].data;
+            const dataObject = userCart[0];
             res.status(200).json(dataObject);
         } else {
             res.status(404).json({ error: "Menu not found in the user's cart." });
         }
-        res.status(200).json(userCart);
+        // res.status(200).json(userCart);
     }
     catch (e) {
         console.log(e);
@@ -270,12 +270,12 @@ export const showSetDetailFromCart = async (req: Request, res: Response) => {
         const cart = JSON.parse(cartString);
         const userCart = cart.filter((item: any) => item.userId === userId && item.setId===setId);
         if (userCart.length === 1) {
-            const dataObject = userCart[0].data;
+            const dataObject = userCart[0];
             res.status(200).json(dataObject);
         } else {
             res.status(404).json({ error: "Set not found in the user's cart." });
         }
-        res.status(200).json(userCart);
+        // res.status(200).json(userCart);
     }
     catch (e) {
         console.log(e);
