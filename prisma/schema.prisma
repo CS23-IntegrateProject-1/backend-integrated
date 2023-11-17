@@ -141,7 +141,7 @@ model Venue {
   locationId        Int                 @unique
   score             Decimal
   venueId           Int                 @id @default(autoincrement())
-  website_url       String
+  website_url       String              @db.Text
   App_transaction   App_transaction[]
   Article_venue     Article_venue[]
   Business_finance  Business_finance[]
@@ -234,7 +234,7 @@ model Opening_day {
 
 model Venue_photo {
   venueId    Int      @id
-  image_url  String?
+  image_url  String?  @db.Text
   date_added DateTime @default(now())
   venue      Venue    @relation(fields: [venueId], references: [venueId])
 }
@@ -513,7 +513,7 @@ model Sets {
   name         String
   price        Decimal        @db.Decimal(5, 2)
   description  String?
-  image_url    String?
+  image_url    String?        @db.Text
   venueId      Int
   setId        Int            @id @default(autoincrement())
   Order_detail Order_detail[]
@@ -690,7 +690,7 @@ model Article_venue {
 }
 
 model Images {
-  url         String
+  url         String  @db.Text
   description String?
   articleId   Int
   imageId     Int     @id @default(autoincrement())
@@ -827,7 +827,7 @@ model Table_type_detail {
   capacity          Int
   detail            String
   name              String
-  image_url         String?
+  image_url         String?  @db.Text
   tableTypeDetailId Int      @id @default(autoincrement())
   venueId           Int
   venue             Venue    @relation(fields: [venueId], references: [venueId])
@@ -858,7 +858,7 @@ model Promotion {
   promotionId    Int      @id @default(autoincrement())
   name           String
   description    String?
-  image_url      String?
+  image_url      String?  @db.Text
   start_date     DateTime
   end_date       DateTime
   discount_price Float
@@ -876,7 +876,7 @@ model Ad_business {
   advertisementId   Int                @id @default(autoincrement())
   name              String
   description       String?
-  image_url         String?
+  image_url         String?            @db.Text
   start_date        DateTime
   end_date          DateTime
   cost              Float
@@ -917,7 +917,7 @@ model Ad_outside {
   advertisementId Int      @id
   name            String
   description     String?
-  image_url       String?
+  image_url       String?  @db.Text
   start_date      DateTime
   end_date        DateTime
   cost            Float
@@ -928,7 +928,7 @@ model Ad_influencer {
   advertisementId Int        @id
   name            String
   description     String?
-  image_url       String?
+  image_url       String?    @db.Text
   Ad_influ        Ad_influ[]
 }
 
@@ -1236,7 +1236,7 @@ model Films {
   synopsis     String   @db.Text
   release_date DateTime @db.Date
   duration     Decimal  @db.Decimal(10, 2)
-  poster_img   String
+  poster_img   String   @db.Text
   rate         Int
   Shows        Shows[]
 }
