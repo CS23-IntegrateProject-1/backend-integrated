@@ -558,7 +558,41 @@ export const showOnGoingOrderDetails = async (req: Request, res: Response) => {
                 status: "On_going",
             },
         });
-        res.status(200).json(orderDetails);
+        if (orderDetails.length !== 0) {
+            const menuDetails = await feature7Client.menu.findMany({
+                where: {
+                    menuId: {
+                        in: orderDetails
+                            .map((orderDetail) => orderDetail.menuId)
+                            .filter((menuId) => menuId !== null) as number[],
+                    },
+                },
+            });
+            const setDetails = await feature7Client.sets.findMany({
+                where: {
+                    setId: {
+                        in: orderDetails
+                            .map((orderDetail) => orderDetail.setId)
+                            .filter((setId) => setId !== null) as number[],
+                    },
+                },
+            });
+            const orderDetailsWithDetails = orderDetails.map((orderDetail) => {
+                const menu = menuDetails.find((menu) => menu.menuId === orderDetail.menuId);
+                const set = setDetails.find((set) => set.setId === orderDetail.setId);
+
+                return {
+                    ...orderDetail,
+                    menu: menu,
+                    set: set,
+                };
+            });
+            return res.status(200).json(orderDetailsWithDetails);
+        }
+        else{
+            res.status(404).json({ error: "No ongoing order found." });
+        }
+        // res.status(200).json(orderDetails);
     }
     catch (e) {
         console.log(e);
@@ -581,7 +615,41 @@ export const showCompletedOrderDetails = async (req: Request, res: Response) => 
                 status: "Completed",
             },
         });
-        res.status(200).json(orderDetails);
+        if (orderDetails.length !== 0) {
+            const menuDetails = await feature7Client.menu.findMany({
+                where: {
+                    menuId: {
+                        in: orderDetails
+                            .map((orderDetail) => orderDetail.menuId)
+                            .filter((menuId) => menuId !== null) as number[],
+                    },
+                },
+            });
+            const setDetails = await feature7Client.sets.findMany({
+                where: {
+                    setId: {
+                        in: orderDetails
+                            .map((orderDetail) => orderDetail.setId)
+                            .filter((setId) => setId !== null) as number[],
+                    },
+                },
+            });
+            const orderDetailsWithDetails = orderDetails.map((orderDetail) => {
+                const menu = menuDetails.find((menu) => menu.menuId === orderDetail.menuId);
+                const set = setDetails.find((set) => set.setId === orderDetail.setId);
+
+                return {
+                    ...orderDetail,
+                    menu: menu,
+                    set: set,
+                };
+            });
+            return res.status(200).json(orderDetailsWithDetails);
+        }
+        else{
+            res.status(404).json({ error: "No ongoing order found." });
+        }
+        // res.status(200).json(orderDetails);
     }
     catch (e) {
         console.log(e);
