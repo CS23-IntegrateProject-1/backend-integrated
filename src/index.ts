@@ -20,6 +20,8 @@ import Feature12Routes from "./routes/feature12.routes";
 import Feature13Routes from "./routes/feature13.routes";
 import Feature14Routes from "./routes/feature14.routes";
 
+import { httpServer } from "./socketio";
+
 loadEnv();
 
 const app = express();
@@ -34,9 +36,9 @@ app.use(addressTracker);
 // const routes = new Routes(app);
 
 const port = process.env.PORT || 3000;
-
+const port1 = 8000;
 app.get("/", (req: Request, res: Response) => {
-	res.send("Hello, Express with TypeScript!");
+  res.send("Hello, Express with TypeScript!");
 });
 
 app.use("/auth", AuthRoutes);
@@ -54,7 +56,9 @@ app.use("/feature12", Feature12Routes);
 app.use("/feature13", Feature13Routes);
 app.use("/feature14", Feature14Routes);
 
-
 app.listen(port, () => {
-	console.log(`Server is running on port ${port}`);
+  console.log(`App is running on port ${port}`);
+});
+httpServer.listen(port1, () => {
+  console.log(`Server is running on port ${port1}`);
 });
