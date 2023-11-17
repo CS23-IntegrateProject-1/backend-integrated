@@ -200,6 +200,25 @@ export const getOrderdetailByOrderId = async (req: Request, res: Response) => {
     }
 }
 
+export const getMenuByMenuId = async (req: Request, res: Response) => {
+    const menuId = parseInt(req.params.menuId, 10);
+
+    try {
+        const menu = await feature8Client.menu.findUnique({
+            where: { menuId },
+        });
+
+        if (!menu) {
+            return res.status(404).json({ error: 'Menu not found' });
+        }
+
+        res.status(200).json(menu);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Failed to retrieve menu' });
+    }
+}
+
 export const addCreditCard = async (req: Request, res: Response) => {
     const { card_no, name,country,bank, exp, cvc } = req.body;
 

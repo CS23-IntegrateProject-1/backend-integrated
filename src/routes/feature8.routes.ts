@@ -14,6 +14,7 @@ import {
     getVenueCreditCardByVenueId,
     getVenuePromptpayByVenueId,
     getOrderdetailByOrderId,
+    getMenuByMenuId,
     createTransactionDetail,
     addCreditCard,
     addVenueCreditCard,
@@ -37,6 +38,7 @@ feature8Router.get("/creditcard/:creditCardId", getCreditCardById);
 feature8Router.get("/venuecreditcard/:venueId", getVenueCreditCardByVenueId);
 feature8Router.get("/venuepromptpay/:venueId", getVenuePromptpayByVenueId);
 feature8Router.get("/orderdetail/:orderId", getOrderdetailByOrderId);
+feature8Router.get("/menu/:menuId", getMenuByMenuId);
 
 // post method
 feature8Router.post("/create_transaction_detail", createTransactionDetail);
