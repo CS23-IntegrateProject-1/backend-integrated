@@ -25,6 +25,23 @@ export const getVenues = async (req: Request, res: Response) => {
     }
 };
 
+export const getVenuesByCategory = async (req: Request, res: Response) => {
+    try {
+        const { category } = req.params;
+
+        const venues = await feature3Client.venue.findMany({
+            where: {
+                category: category,
+            },
+        });
+
+        return res.json(venues);
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json(error);
+    }
+};
+
 export const getVenueBranch = async (req: Request, res: Response) => {
     const { branchId } = req.params;
 
