@@ -1,6 +1,7 @@
 import { Day, PrismaClient } from "@prisma/client";
 import { Response, Request } from "express";
 import { addMinutes, addHours } from "date-fns";
+import authService from "../services/auth.service";
 
 const feature6Client = new PrismaClient();
 
@@ -112,6 +113,12 @@ export const getVenueAndReservationsById = async (
     res: Response
 ) => {
     try {
+        const token = req.cookies.authToken;
+        if (!token) {
+            return res.status(401).json({ error: "No auth token" });
+        }
+        const decodedToken = authService.decodeToken(token);
+        const {userId} = decodedToken;
         const { venueId, reservationId } = req.params;
         const venue = await feature6Client.venue.findUnique({
             where: {
@@ -134,7 +141,7 @@ export const getVenueAndReservationsById = async (
 
         const reservations = await feature6Client.reservation.findMany({
             where: {
-                userId: parseInt(req.body.userId),
+                userId: userId,
                 venueId: parseInt(venueId),
                 reservationId: parseInt(reservationId),
             },
