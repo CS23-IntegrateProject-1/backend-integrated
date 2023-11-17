@@ -1,7 +1,7 @@
 import { Day, PrismaClient } from "@prisma/client";
 import { Response, Request } from "express";
-import { addMinutes, addHours, add } from "date-fns";
-    
+import { addMinutes, addHours } from "date-fns";
+
 const feature6Client = new PrismaClient();
 
 // export const getfeature6 = async (req: Request, res: Response) => {
@@ -105,8 +105,8 @@ export const getAllReservationByStatus = async (
     }
 };
 
-//My Reservation Detail Page
-//Finished only get, can't Create
+//get My Reservation Detail Page
+//Finished
 export const getVenueAndReservationsById = async (
     req: Request,
     res: Response
@@ -156,7 +156,8 @@ export const getVenueAndReservationsById = async (
 
 //POST METHOD
 
-// Not finish yet
+// create Reservation
+// Finished 
 export const createReservation = async (req: Request, res: Response) => {
     try {
         const { venueId, userId, guest_amount, reserved_time } = req.body;
@@ -219,12 +220,11 @@ export const createReservation = async (req: Request, res: Response) => {
     }
 };
 
-// ! new
 let availabilityResponse: any;
 let getAvailableTablesResponse: any;
 let getSuitableTableResponse: any;
 
-// function ที่หา reservation ในเวลาเดียวกับที่จะจองเพิ่ม
+// Function for find reservation that is in the same time
 export const checkAvailability = async (req: Request, res: Response) => {
     try {
         const { venueId, reserved_time } = req.body;
@@ -235,7 +235,6 @@ export const checkAvailability = async (req: Request, res: Response) => {
             5
         );
 
-        // Extract the date part
         const DateTimeStart: Date = addHours(new Date(reservedTimeStart), 7);
         const dateOnly = DateTimeStart.toISOString().split("T")[0];
         const TodayDate = new Date(dateOnly);
@@ -369,10 +368,8 @@ export const checkAvailability = async (req: Request, res: Response) => {
                 },
             });
         // console.log(overlappingReservations);
-        // ! new
         availabilityResponse = overlappingReservations;
 
-        // ! dont send response when we need to call this in checkTable endpoint because 2 response will cause error
         // res.status(200).json({ overlappingReservations });
     } catch (e) {
         console.error("Error checking availability:", e);
@@ -394,7 +391,7 @@ interface OverlapReservation {
 
 export const getAvailableTables = async (req: Request, res: Response) => {
     try {
-        const { venueId, reserved_time } = req.body;
+        const { venueId } = req.body;
         // Calculate the preparation time start (3 hours before the reservation)
         // const preparationTimeStart = addHours(new Date(reservedTimeStart), -3);
         // const reservedTimeEnd = reservedTimeStart.add({ hours: 3 }); // Assuming a reservation lasts for 3 hours
@@ -421,7 +418,6 @@ export const getAvailableTables = async (req: Request, res: Response) => {
         // console.log("HEREEEEEEEEEE----->", allTables[0]);
 
         // Filter tables based on availability during preparation time
-        // ! new
         const reservedTableIds: number[] = await Promise.all(
             availabilityResponse.map(async (reservation) => {
                 const tables = await feature6Client.reservation_table.findMany({
@@ -477,7 +473,7 @@ export const getAvailableTables = async (req: Request, res: Response) => {
     }
 };
 
-//Almost Finish
+//Finished
 export const findSuitableTable = async ( getAvailableTablesResponse, res: Response) => {
     try {
      
@@ -606,23 +602,23 @@ export const findSuitableTable = async ( getAvailableTablesResponse, res: Respon
 //     }
 // };
 
-// Still Error
-export const getTableByTableId = async (req: Request, res: Response) => {
-    try {
-        const { tableId } = req.params;
-        const venueId = req.body.venueId;
-        const table = await feature6Client.tables.findUnique({
-            where: {
-                tableId: parseInt(tableId),
-                venueId: parseInt(venueId),
-                tableTypeDetailId: venueId.tableTypeDetailId,
-            },
-        });
-        return res.status(200).json(table);
-    } catch (e) {
-        return res.status(500).json(e);
-    }
-};
+// In-progress
+// export const getTableByTableId = async (req: Request, res: Response) => {
+//     try {
+//         const { tableId } = req.params;
+//         const venueId = req.body.venueId;
+//         const table = await feature6Client.tables.findUnique({
+//             where: {
+//                 tableId: parseInt(tableId),
+//                 venueId: parseInt(venueId),
+//                 tableTypeDetailId: venueId.tableTypeDetailId,
+//             },
+//         });
+//         return res.status(200).json(table);
+//     } catch (e) {
+//         return res.status(500).json(e);
+//     }
+// };
 
 //POST METHOD
 // export const createTable = async (req: Request, res: Response) => {
