@@ -100,6 +100,21 @@ export const getVenueReviews = async (req: Request, res: Response) => {
     }
 };
 
+export const getVenuesRatings = async (req: Request, res: Response) => {
+    try {
+        const ratings = await feature3Client.$queryRaw`
+            SELECT venuId, AVG(rating) as rating
+            FROM Venue_reviews
+            GROUP BY venuId
+        `;
+
+        return res.json(ratings);
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json(error);
+    }
+};
+
 export const getVenueKeywords = async (req: Request, res: Response) => {
     const { venueId } = req.params;
 
