@@ -181,6 +181,25 @@ export const getVenuePromptpayByVenueId = async (req: Request, res: Response) =>
     }
 }
 
+export const getOrderbyId = async (req: Request, res: Response) => {
+    const orderId = parseInt(req.params.orderId, 10);
+
+    try {
+        const order = await feature8Client.orders.findUnique({
+            where: { orderId },
+        });
+
+        if (!order) {
+            return res.status(404).json({ error: 'Order not found' });
+        }
+
+        res.status(200).json(order);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Failed to retrieve order' });
+    }
+}
+
 export const getOrderdetailByOrderId = async (req: Request, res: Response) => {
     const orderId = parseInt(req.params.orderId, 10);
 
