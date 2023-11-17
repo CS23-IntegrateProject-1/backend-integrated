@@ -180,6 +180,26 @@ export const getVenuePromptpayByVenueId = async (req: Request, res: Response) =>
         res.status(500).json({ error: 'Failed to retrieve promptpay' });
     }
 }
+
+export const getOrderdetailByOrderId = async (req: Request, res: Response) => {
+    const orderId = parseInt(req.params.orderId, 10);
+
+    try {
+        const orderdetail = await feature8Client.order_detail.findUnique({
+            where: { orderId },
+        });
+
+        if (!orderdetail) {
+            return res.status(404).json({ error: 'Order detail not found' });
+        }
+
+        res.status(200).json(orderdetail);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Failed to retrieve order detail' });
+    }
+}
+
 export const addCreditCard = async (req: Request, res: Response) => {
     const { card_no, name,country,bank, exp, cvc } = req.body;
 
