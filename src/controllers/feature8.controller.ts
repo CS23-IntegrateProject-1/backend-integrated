@@ -1,6 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 import { Response, Request } from "express";
 
+const crypto = require('crypto');
 const feature8Client = new PrismaClient();
 
 export const getfeature8 = async (req: Request, res: Response) => {
@@ -238,32 +239,6 @@ export const getMenuByMenuId = async (req: Request, res: Response) => {
     }
 }
 
-export const addCreditCard = async (req: Request, res: Response) => {
-    const { card_no, name,country,bank, exp, cvc } = req.body;
-
-    try {
-        const newCreditCard = await feature8Client.credit_card.create({
-            data: {
-                card_no,
-                name,
-                country,
-                bank,
-                cvc,
-                exp,
-                user: {
-                    connect: {
-                        userId: req.body.userId,
-                    },
-                },
-            },
-        });
-
-        res.status(201).json(newCreditCard);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Failed to create credit card' });
-    }
-}
 
 export const addVenueCreditCard = async (req: Request, res: Response) => {
     const { card_no, name,country,bank, exp, cvc } = req.body;
@@ -337,15 +312,68 @@ export const createTransactionDetail = async (req: Request, res: Response) => {
     }
 };
 
+// credit card encryption function
+
+function encryptData(data, secretKey) {
+    const cipher = crypto.createCipher('aes-256-cbc', secretKey);
+    let encryptedData = cipher.update(data, 'utf-8', 'hex');
+    encryptedData += cipher.final('hex');
+    return encryptedData;
+}
+
+// function decryptData(encryptedData, secretKey) {
+//     const decipher = crypto.createDecipher('aes-256-cbc', secretKey);
+//     let decryptedData = decipher.update(encryptedData, 'hex', 'utf-8');
+//     decryptedData += decipher.final('utf-8');
+//     return decryptedData;
+// }
+
+// credit card with encryption
+
+export const addCreditCard = async (req: Request, res: Response) => {
+    const { card_no, name, country, bank, exp, cvc, userId } = req.body;
+
+    const secretKey = 'your-secret-key'; 
+
+    const encryptedCardNo = encryptData(card_no, secretKey);
+
+    try {
+        const newCreditCard = await feature8Client.credit_card.create({
+            data: {
+                card_no: encryptedCardNo,
+                name,
+                country,
+                bank,
+                cvc,
+                exp,
+                user: {
+                    connect: {
+                        userId,
+                    },
+                },
+            },
+        });
+
+        res.status(201).json(newCreditCard);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Failed to create credit card' });
+    }
+}
+
 export const updateCreditCard = async (req: Request, res: Response) => {
     const creditCardId = parseInt(req.params.creditCardId, 10);
-    const { card_no, name,country,bank, exp, cvc } = req.body;
+    const { card_no, name, country, bank, exp, cvc } = req.body;
+
+    const secretKey = 'your-secret-key';
+
+    const encryptedCardNo = encryptData(card_no, secretKey);
 
     try {
         const updatedCreditCard = await feature8Client.credit_card.update({
             where: { creditCardId },
             data: {
-                card_no,
+                card_no: encryptedCardNo,
                 name,
                 country,
                 bank,
@@ -360,7 +388,6 @@ export const updateCreditCard = async (req: Request, res: Response) => {
         res.status(500).json({ error: 'Failed to update credit card' });
     }
 }
-
 
 
 // example of controller createAuthor
