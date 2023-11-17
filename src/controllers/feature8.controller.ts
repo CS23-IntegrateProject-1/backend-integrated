@@ -186,7 +186,7 @@ export const getOrderdetailByOrderId = async (req: Request, res: Response) => {
 
     try {
         const orderdetail = await feature8Client.order_detail.findUnique({
-            where: { orderId },
+            where: { orderDetailId: orderId },
         });
 
         if (!orderdetail) {
