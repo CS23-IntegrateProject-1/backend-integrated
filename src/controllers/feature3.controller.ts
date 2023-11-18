@@ -25,6 +25,23 @@ export const getVenues = async (req: Request, res: Response) => {
     }
 };
 
+export const getVenuesByCategory = async (req: Request, res: Response) => {
+    try {
+        const { category } = req.params;
+
+        const venues = await feature3Client.venue.findMany({
+            where: {
+                category: category,
+            },
+        });
+
+        return res.json(venues);
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json(error);
+    }
+};
+
 export const getVenueBranch = async (req: Request, res: Response) => {
     const { branchId } = req.params;
 
@@ -94,6 +111,21 @@ export const getVenueReviews = async (req: Request, res: Response) => {
             },
         });
         return res.json(reviews);
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json(error);
+    }
+};
+
+export const getVenuesRatings = async (req: Request, res: Response) => {
+    try {
+        const ratings = await feature3Client.$queryRaw`
+            SELECT venuId, AVG(rating) as rating
+            FROM Venue_reviews
+            GROUP BY venuId
+        `;
+
+        return res.json(ratings);
     } catch (error) {
         console.error(error);
         return res.status(500).json(error);
