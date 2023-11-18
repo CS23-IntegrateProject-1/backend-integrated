@@ -3,16 +3,232 @@ import { Response, Request } from "express";
 
 const feature4Client = new PrismaClient();
 
-export const getfeature4 = async (req: Request, res: Response) => {
-    
+//store location data in the database
+export const mapsLocation = async (req: Request, res: Response) => {
+  try {
+    const { name, latitude, longtitude, address } = req.body;
+
+    const savedLocation = await feature4Client.location.create({
+      data: {
+        name,
+        latitude,
+        longtitude,
+        address,
+      },
+    });
+
+    res.status(201).json({
+      message: "Location data saved successfully",
+      location: savedLocation,
+    });
+  } catch (error) {
+    console.error("Error saving location data:", error);
+    res.status(500).json({ error: "An error occurred while saving location data" });
+  }
+};
+
+export const GetAllMapsLocation = async (req: Request, res: Response) => {
+  try {
+    const savedLocation = await feature4Client.location.findMany();
+
+    res.status(201).json({
+      message: "fetch data successfully",
+      location: savedLocation,
+    });
+  } catch (error) {
+    console.error("Error fetching location data:", error);
+    res.status(500).json({ error: "An error occurred while fetch location data" });
+  }
+};
+
+export const deleteLocation = async (req: Request, res: Response) => {
+  try {
+    const { locationId } = req.params;
+
+    // Delete the Location record
+    await feature4Client.location.delete({
+      where: {
+        locationId: parseInt(locationId),
+      },
+    });
+
+    res.status(200).json({
+      message: "Location deleted successfully",
+    });
+  } catch (error) {
+    console.error("Error deleting location:", error);
+    res.status(500).json({ error: "An error occurred while deleting location" });
+  }
 };
 
 
-// example of controller getAllAuthors
-// export const getAllAuthors = async (req: Request, res: Response) => {
-//   try {
-//     const allAuthors = await feature1Client.modelName.findMany({
-//   } catch (e) {
-//     console.log(e);
-//   }
-// };
+
+
+//store user saved location
+export const saveUserLocation = async (req: Request, res: Response) => {
+  try {
+    const { locationId, userId, name, latitude, longitude, address, province, district, subdistrict, postcode } = req.body;
+
+    // Concatenate the address components into a single string
+    const fullAddress = `${address} ${province} ${district} ${subdistrict} ${postcode}`;
+
+    const savedLocation = await feature4Client.saved_location.create({
+      data: {
+        name: name,
+        latitude: latitude,
+        longtitude: longitude,
+        address: fullAddress,
+        createdAt: new Date(), 
+        location: { connect: { locationId: locationId  } }, 
+        user: { connect: { userId: userId } }, 
+      },
+    });
+
+    res.status(201).json({
+      message: "User's saved location data saved successfully",
+      location: savedLocation,
+    });
+  } catch (error) {
+    console.error("Error saving user's location data:", error);
+    res.status(500).json({ error: "An error occurred while saving user's location data" });
+  }
+};
+
+export const GetAllsaveUserLocation = async (req: Request, res: Response) => {
+  try {
+
+    const savedLocation = await feature4Client.saved_location.findMany();
+
+    res.status(201).json({
+      message: "User's saved location data fetch successfully",
+      location: savedLocation,
+    });
+  } catch (error) {
+    console.error("Error fetching user's location data:", error);
+    res.status(500).json({ error: "An error occurred while fetching user's location data" });
+  }
+};
+
+export const updateSavedLocation = async (req: Request, res: Response) => {
+  try {
+    const { locationId, userId, name, latitude, longitude, address, province, district, subdistrict, postcode } = req.body;
+
+    const fullAddress = `${address} ${province} ${district} ${subdistrict} ${postcode}`;
+
+    const updatedLocation = await feature4Client.saved_location.update({
+      where: {
+        locationId_userId: {
+          locationId: locationId,
+          userId: userId,
+        },
+      },
+      data: {
+        name: name,
+        latitude: latitude,
+        longtitude: longitude,
+        address: fullAddress,
+      },
+    });
+
+    res.status(200).json({
+      message: "User's saved location data updated successfully",
+      location: updatedLocation,
+    });
+  } catch (error) {
+    console.error("Error updating user's location data:", error);
+    res.status(500).json({
+      error: "An error occurred while updating user's location data",
+    });
+  }
+};
+
+
+export const deleteSavedLocation = async (req: Request, res: Response) => {
+  try {
+    const { locationId, userId } = req.params;
+
+    await feature4Client.saved_location.delete({
+      where: {
+        locationId_userId: {
+          locationId: parseInt(locationId),
+          userId: parseInt(userId),
+        },
+      },
+    });
+
+    res.status(200).json({
+      message: "User's saved location data deleted successfully",
+    });
+  } catch (error) {
+    console.error("Error deleting user's location data:", error);
+    res.status(500).json({
+      error: "An error occurred while deleting user's location data",
+    });
+  }
+};
+
+//get all restaurant
+
+export const getAllRestaurant = async (req: Request, res: Response) => {
+  try {
+
+    const restaurants = await feature4Client.venue.findMany({
+      where: {
+        category: {
+          in: ["restaurant", "Restaurant","Restaurants","restaurants"]
+        }
+      }
+    });
+    
+
+    res.status(201).json({
+      message: "restaurant data fetch successfully",
+      restaurant: restaurants,
+    });
+  } catch (error) {
+    console.error("Error fetching restaurant data:", error);
+    res.status(500).json({ error: "An error occurred while fetching restaurant data" });
+  }
+};
+
+//get all bars
+export const getAllBars = async (req: Request, res: Response) => {
+  try {
+
+    const bars = await feature4Client.venue.findMany({
+      where: {
+        category: {
+          in: ["bar", "Bar","Bars","bars"]
+        }
+      }
+    });
+    
+
+    res.status(201).json({
+      message: "bar data fetch successfully",
+      bars: bars,
+    });
+  } catch (error) {
+    console.error("Error fetching bar data:", error);
+    res.status(500).json({ error: "An error occurred while fetching bar data" });
+  }
+};
+
+
+
+//get all cinemas
+export const getAllCinema = async (req: Request, res: Response) => {
+  try {
+
+    const cinemas = await feature4Client.theaters.findMany();
+    
+
+    res.status(201).json({
+      message: "cinemas data fetch successfully",
+      cinemas: cinemas,
+    });
+  } catch (error) {
+    console.error("Error fetching cinemas data:", error);
+    res.status(500).json({ error: "An error occurred while fetching cinemas data" });
+  }
+};
