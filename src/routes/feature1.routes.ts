@@ -8,6 +8,7 @@ import {
   getfeature1,
   helpHandler,
   paymentMethodHandler,
+  searchHandler,
   tosHandler,
   privacyPolicyHandler,
   promptPayHandler,
@@ -44,5 +45,7 @@ feature1Router.delete("/privacy-policy", privacyPolicyHandler);
 
 feature1Router.get("/promptpay", promptPayHandler);
 feature1Router.put("/promptpay", promptPayHandler);
+
+feature1Router.get("/search/friends", searchHandler);
 
 export default feature1Router;
