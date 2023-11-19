@@ -56,12 +56,16 @@ async function createChatRooms() {
 createChatRooms();
 */
 
+
 //Extract all the user from the user table
 export const getAllUsers = async (req: Request, res: Response) => {
   try {
     const users = await feature12Client.user.findMany({
       select: {
         username: true,
+        userId: true,
+        fname: true,
+        lname: true,
       },
     });
     return res.status(200).json(users);
