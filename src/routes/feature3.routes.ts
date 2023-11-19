@@ -17,6 +17,8 @@ import {
     getAllFoodVouchers,
     getAllDiscountVouchers,
     getAllMenusByVenueId,
+    getVenuesRatings,
+    getVenuesByCategory,
 } from "../controllers/feature3.controller";
 
 const feature3Router = Router();
@@ -24,10 +26,12 @@ const feature3Router = Router();
 // // here define your routes
 feature3Router.get("/advertisements", getAdvertisements);
 feature3Router.get("/venues", getVenues);
+feature3Router.get("/venues/:category", getVenuesByCategory);
 feature3Router.get("/venue-branch/:branchId", getVenueBranch);
 feature3Router.get("/menus/:venueId", getAllMenusByVenueId);
 feature3Router.get("/venue-contacts/:venueId", getVenueContacts);
 feature3Router.get("/venue-reviews/:id", getVenueReviews);
+feature3Router.get("/venue-ratings", getVenuesRatings);
 feature3Router.get("/venue-keywords/:venueId", getVenueKeywords);
 feature3Router.get("/venue-photos/:venueId", getVenuePhotos);
 feature3Router.get("/opening-day/:venueId/:openingDayId", getOpeningDay);
