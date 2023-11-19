@@ -427,7 +427,6 @@ model Orders {
   driverId     Int?
   isDelivery   Boolean        @default(false)
   orderId      Int            @id @default(autoincrement())
-
   status       Order_status   @default(On_going)
   reservedId   Int?           @unique
 
