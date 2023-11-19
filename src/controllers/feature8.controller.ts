@@ -76,6 +76,36 @@ export const getAllNotification = async (req: Request, res: Response) => {
     }
 };
 
+//transaction and transaction detail
+export const getAllTransaction = async (req: Request, res: Response) => {
+    try {
+        const transactions = await feature8Client.transaction.findMany();
+        res.json(transactions);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Failed to retrieve transactions' });
+    }
+}
+
+export const getTransactionById = async (req: Request, res: Response) => {
+    const transactionId = parseInt(req.params.transactionId, 10);
+
+    try {
+        const transaction = await feature8Client.transaction.findUnique({
+            where: { transactionId },
+        });
+
+        if (!transaction) {
+            return res.status(404).json({ error: 'Transaction not found' });
+        }
+
+        res.status(200).json(transaction);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Failed to retrieve transaction' });
+    }
+}
+
 export const getAllTransactionDetails = async (req: Request, res: Response) => {
     try {
         const transactionDetails = await feature8Client.transaction_detail.findMany();
@@ -104,6 +134,123 @@ export const getTransactionDetailById = async (req: Request, res: Response) => {
         res.status(500).json({ error: 'Failed to retrieve transaction detail' });
     }
 };
+
+export const getAllApptransaction = async (req: Request, res: Response) => {
+    try {
+        const apptransactions = await feature8Client.app_transaction.findMany();
+        res.json(apptransactions);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Failed to retrieve app transactions' });
+    }
+}
+
+export const getApptransactionById = async (req: Request, res: Response) => {
+    const appTransactionId = parseInt(req.params.appTransactionId, 10);
+
+    try {
+        const apptransaction = await feature8Client.app_transaction.findUnique({
+            where: { appTransactionId },
+        });
+
+        if (!apptransaction) {
+            return res.status(404).json({ error: 'App transaction not found' });
+        }
+
+        res.status(200).json(apptransaction);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Failed to retrieve app transaction' });
+    }
+}
+
+export const getAllAppTransactiondetail = async (req: Request, res: Response) => {
+    try {
+        const apptransactiondetail = await feature8Client.app_transaction_detail.findMany();
+        res.json(apptransactiondetail);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Failed to retrieve app transaction details' });
+    }
+}
+
+export const getAppTransactiondetailById = async (req: Request, res: Response) => {
+    const appTransactionDetailId = parseInt(req.params.appTransactionDetailId, 10);
+
+    try {
+        const apptransactiondetail = await feature8Client.app_transaction_detail.findUnique({
+            where: { appTransactionDetailId },
+        });
+
+        if (!apptransactiondetail) {
+            return res.status(404).json({ error: 'App transaction detail not found' });
+        }
+
+        res.status(200).json(apptransactiondetail);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Failed to retrieve app transaction detail' });
+    }
+}
+
+export const getVenuetransaction = async (req: Request, res: Response) => {
+    try {
+        const venuetransactions = await feature8Client.venue_transaction.findMany();
+        res.json(venuetransactions);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Failed to retrieve venue transactions' });
+    }
+}
+
+export const getVenuetransactionById = async (req: Request, res: Response) => {
+    const venueTransactionId = parseInt(req.params.venueTransactionId, 10);
+
+    try {
+        const venuetransaction = await feature8Client.venue_transaction.findUnique({
+            where: { venueTransactionId },
+        });
+
+        if (!venuetransaction) {
+            return res.status(404).json({ error: 'Venue transaction not found' });
+        }
+
+        res.status(200).json(venuetransaction);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Failed to retrieve venue transaction' });
+    }
+}
+
+export const getVenuetransactiondetail = async (req: Request, res: Response) => {
+    try {
+        const venuetransactiondetails = await feature8Client.venue_transaction_detail.findMany();
+        res.json(venuetransactiondetails);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Failed to retrieve venue transaction details' });
+    }
+}
+
+export const getVenuetransactiondetailById = async (req: Request, res: Response) => {
+    const venueTransactionDetailId = parseInt(req.params.venueTransactionDetailId, 10);
+
+    try {
+        const venuetransactiondetail = await feature8Client.venue_transaction_detail.findUnique({
+            where: { venueTransactionDetailId },
+        });
+
+        if (!venuetransactiondetail) {
+            return res.status(404).json({ error: 'Venue transaction detail not found' });
+        }
+
+        res.status(200).json(venuetransactiondetail);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Failed to retrieve venue transaction detail' });
+    }
+}
+
 export const getCreditCardById = async (req: Request, res: Response) => {
     const creditCardId = parseInt(req.params.creditCardId, 10);
     try {
@@ -389,7 +536,7 @@ export const updateCreditCard = async (req: Request, res: Response) => {
     }
 }
 
-
+  
 
 // example of controller createAuthor
 // export const createAuthor = async (req: Request, res: Response) => {

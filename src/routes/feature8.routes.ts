@@ -7,8 +7,18 @@ import {
     getAllAdvertisements,
     getAdvertisementById,
     getAllNotification,
+    getAllTransaction,
+    getTransactionById,
+    getAllApptransaction,
+    getApptransactionById,
+    getAllAppTransactiondetail,
+    getAppTransactiondetailById,
     getAllTransactionDetails, 
     getTransactionDetailById ,
+    getVenuetransaction,
+    getVenuetransactionById,
+    getVenuetransactiondetail,
+    getVenuetransactiondetailById,
     getCreditCardById,
     getCreditCardByUserId,
     getVenueCreditCardByVenueId,
@@ -32,8 +42,7 @@ feature8Router.get("/users", getAllUser);
 feature8Router.get("/advertisements", getAllAdvertisements); 
 feature8Router.get("/advertisements/:advertisementId", getAdvertisementById);
 feature8Router.get("/notifications", getAllNotification);
-feature8Router.get("/transaction_details", getAllTransactionDetails); 
-feature8Router.get("/transaction_details/:transactionId", getTransactionDetailById); 
+ 
 feature8Router.get("/creditcardU/:userId", getCreditCardByUserId);
 feature8Router.get("/creditcard/:creditCardId", getCreditCardById);
 feature8Router.get("/venuecreditcard/:venueId", getVenueCreditCardByVenueId);
@@ -41,6 +50,20 @@ feature8Router.get("/venuepromptpay/:venueId", getVenuePromptpayByVenueId);
 feature8Router.get("/order/:orderId", getOrderbyId);
 feature8Router.get("/orderdetail/:orderId", getOrderdetailByOrderId);
 feature8Router.get("/menu/:menuId", getMenuByMenuId);
+
+feature8Router.get("/transactions", getAllTransaction);
+feature8Router.get("/transactions/:transactionId", getTransactionById);
+feature8Router.get("/transaction_details", getAllTransactionDetails); 
+feature8Router.get("/transaction_details/:transactionId", getTransactionDetailById);
+feature8Router.get("/apptransactions", getAllApptransaction);
+feature8Router.get("/apptransactions/:apptransactionId", getApptransactionById);
+feature8Router.get("/apptransaction_details", getAllAppTransactiondetail);
+feature8Router.get("/apptransaction_details/:apptransactionId", getAppTransactiondetailById);
+feature8Router.get("/venuetransactions", getVenuetransaction);
+feature8Router.get("/venuetransactions/:venuetransactionId", getVenuetransactionById);
+feature8Router.get("/venuetransaction_details", getVenuetransactiondetail);
+feature8Router.get("/venuetransaction_details/:venuetransactionId", getVenuetransactiondetailById);
+
 
 // post method
 feature8Router.post("/create_transaction_detail", createTransactionDetail);
