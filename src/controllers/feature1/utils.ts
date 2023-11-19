@@ -1,5 +1,4 @@
-import { Request } from 'express';
-
+import { Request } from "express";
 
 export function extractToken({ headers }: Request): string {
   let { cookie: token } = headers;
