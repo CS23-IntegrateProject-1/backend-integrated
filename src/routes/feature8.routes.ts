@@ -3,6 +3,7 @@ import { Router } from "express";
 // here import your controllers(function)
 import {
     getAllUser,
+    getUserById,
     getfeature8,
     getAllAdvertisements,
     getAdvertisementById,
@@ -39,6 +40,7 @@ const feature8Router = Router();
 // get method
 feature8Router.get("/", getfeature8);
 feature8Router.get("/users", getAllUser); 
+feature8Router.get("/users/:userId", getUserById);
 feature8Router.get("/advertisements", getAllAdvertisements); 
 feature8Router.get("/advertisements/:advertisementId", getAdvertisementById);
 feature8Router.get("/notifications", getAllNotification);
