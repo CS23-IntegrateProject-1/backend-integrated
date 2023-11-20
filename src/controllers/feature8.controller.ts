@@ -11,6 +11,13 @@ export const getfeature8 = async (req: Request, res: Response) => {
 };
 
 export const getAllUser = async (req: Request, res: Response) => {
+    // const token = req.cookies.authToken; // token stored in authToken
+
+    // if (!token) {
+    //     return res.status(404).json({ error: 'not verify' });
+    // }
+    // const decodetoken = authService.decodeToken(token);
+    // const user = decodetoken.userId;
     try {
         const allUsers = await feature8Client.user.findMany();
         res.status(200).json(allUsers);
