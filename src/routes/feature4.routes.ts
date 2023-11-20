@@ -12,6 +12,11 @@ import {
     getAllRestaurant,
     getAllBars,
     getAllCinema,
+
+    getMenuById,
+    getMenusByVenueId,
+    getSetById,
+    getSetsByVenueId
 } from "../controllers/feature4.controller";
 
 const feature4Router = Router();
@@ -29,5 +34,10 @@ feature4Router.delete("/saved-location/:locationId/:userId", deleteSavedLocation
 feature4Router.get("/restaurants",getAllRestaurant );
 feature4Router.get("/bars",getAllBars );
 feature4Router.get("/cinemas",getAllCinema );
+
+feature4Router.get("/menu/:id", getMenuById);
+feature4Router.get("/menus/:venueId", getMenusByVenueId);
+feature4Router.get("/set/:id", getSetById);
+feature4Router.get("/sets/:venueId", getSetsByVenueId);
 
 export default feature4Router;

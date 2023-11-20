@@ -232,3 +232,81 @@ export const getAllCinema = async (req: Request, res: Response) => {
     res.status(500).json({ error: "An error occurred while fetching cinemas data" });
   }
 };
+
+
+
+
+
+
+
+//Online Orders
+
+export const getMenusByVenueId = async (req: Request, res: Response) => {
+  try {
+      const venueId= req.params.id;
+      const allMenus = await feature4Client.menu.findMany(
+          {
+              where: {
+                  venueId: parseInt(venueId)
+              }
+          }
+      );
+      
+      res.status(200).json(allMenus);
+  }
+  catch (e) {
+      console.log(e);
+  }
+}
+
+export const getSetsByVenueId = async (req: Request, res: Response) => {
+  try {
+      const venueId= req.params.id;
+      const allSets = await feature4Client.sets.findMany(
+          {
+              where: {
+                  venueId: parseInt(venueId)
+              }
+          }
+      );
+      
+      res.status(200).json(allSets);
+  }
+  catch (e) {
+      console.log(e);
+  }
+}
+
+export const getMenuById = async (req: Request, res: Response) => {
+  try {
+      const menuId= req.params.id;
+      const menu = await feature4Client.menu.findUnique(
+          {
+              where: {
+                  menuId: parseInt(menuId)
+              }
+          }
+      );
+      return res.status(200).json(menu);
+  }
+  catch (e) {
+      console.log(e);
+  }
+};
+
+export const getSetById = async (req: Request, res: Response) => {
+  try {
+      const setId= req.params.id;
+      const set = await feature4Client.sets.findUnique(
+          {
+              where: {
+                  setId: parseInt(setId)
+              }
+          }
+      );
+      return res.status(200).json(set);
+  }
+  catch (e) {
+      console.log(e);
+  }
+}
