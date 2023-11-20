@@ -20,7 +20,13 @@ import {
     getVenuesRatings,
     getVenuesByCategory,
     getPhotos,
+    getRecommendedVenues,
+    addFoodReview,
+    editFoodReview,
+    deleteFoodReview,
+    getFoodReviews,
 } from "../controllers/feature3.controller";
+import { get } from "http";
 
 const feature3Router = Router();
 
@@ -31,7 +37,7 @@ feature3Router.get("/venues/:category", getVenuesByCategory);
 feature3Router.get("/venue-branch/:branchId", getVenueBranch);
 feature3Router.get("/menus/:venueId", getAllMenusByVenueId);
 feature3Router.get("/venue-contacts/:venueId", getVenueContacts);
-feature3Router.get("/venue-reviews/:id", getVenueReviews);
+feature3Router.get("/recommended-venues", getRecommendedVenues);
 feature3Router.get("/venue-ratings", getVenuesRatings);
 feature3Router.get("/venue-keywords/:venueId", getVenueKeywords);
 feature3Router.get("/venue-keywords", getPhotos);
@@ -41,8 +47,14 @@ feature3Router.get("/search-history/:user_id", getSearchHistory);
 feature3Router.get("/food-vouchers", getAllFoodVouchers);
 feature3Router.get("/discount-vouchers", getAllDiscountVouchers);
 
+feature3Router.get("/venue-reviews/:id", getVenueReviews);
 feature3Router.post("/venue-reviews", addVenueReview);
 feature3Router.patch("/venue-reviews/:venueReviewId", editVenueReview);
 feature3Router.delete("/venue-reviews/:venueReviewId", deleteVenueReview);
+
+feature3Router.get("/food-reviews/:id", getFoodReviews);
+feature3Router.post("/food-reviews", addFoodReview);
+feature3Router.patch("/food-reviews/:foodReviewId", editFoodReview);
+feature3Router.delete("/food-reviews/:foodReviewId", deleteFoodReview);
 
 export default feature3Router;
