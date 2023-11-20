@@ -1,24 +1,9 @@
 import { PrismaClient } from "@prisma/client";
-import express, { Response, Request } from "express";
-import { Secret } from "jsonwebtoken";
-import jwt from 'jsonwebtoken';
-import cookieParser from 'cookie-parser';
+import { Response, Request } from "express";
+import jwt, { Secret } from 'jsonwebtoken';
 
 const crypto = require('crypto');
 const feature8Client = new PrismaClient();
-
-const app = express();
-app.use(cookieParser());
-app.get('/your-protected-route', yourRouteHandler);
-
-const PORT = 3000;
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-});
-
-interface CustomJwtPayload {
-    userId: string;
-}
 
 
 export const getfeature8 = async (req: Request, res: Response) => {
@@ -371,8 +356,8 @@ export const getOrderdetailByOrderId = async (req: Request, res: Response) => {
     const orderId = parseInt(req.params.orderId, 10);
 
     try {
-        const orderdetail = await feature8Client.order_detail.findUnique({
-            where: { orderDetailId: orderId },
+        const orderdetail = await feature8Client.orders.findUnique({
+            where: { orderId },
         });
 
         if (!orderdetail) {
@@ -609,30 +594,49 @@ export const updateVenueCreditCard = async (req: Request, res: Response) => {
 
 
 //token function
-function yourRouteHandler(req: Request, res: Response) {
+interface CustomJwtPayload {
+    userId: number;
+}
+
+export const yourRouteHandler = (req: Request, res: Response) => {
     const secret: Secret = 'your_secret_key' || "";
+
     const token = req.cookies.authToken;
-  
+
     if (!token) {
-      return res.json({ error: 'Unauthorized' });
+        return res.json({ error: 'Unauthorized' });
     }
-  
+
     try {
-      const decoded = jwt.verify(token, secret) as CustomJwtPayload;
-      const { userId } = decoded;
-  
-      const userData = {
-        userId: decoded.userId,
-        username: 'john_doe',
-      };
-  
-      return res.json({ success: true, data: userData });
+        const decoded = jwt.verify(token, secret) as CustomJwtPayload;
+        const { userId } = decoded;
+
+        const userData = {
+            userId: decoded.userId,
+            username: 'john_doe',
+        };
+
+        return res.json({ success: true, data: userData });
     } catch (error) {
-      console.error('JWT verification error:', error);
-      return res.status(401).json({ error: 'Unauthorized' });
+        console.error('JWT verification error:', error);
+        return res.status(401).json({ error: 'Unauthorized' });
     }
-  }
-  
+};
+
+
+import express from 'express';
+import cookieParser from 'cookie-parser';
+
+const app = express();
+
+app.use(cookieParser());
+
+app.get('/your-protected-route', yourRouteHandler);
+
+const PORT = 3000;
+app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+});
 
 // example of controller createAuthor
 // export const createAuthor = async (req: Request, res: Response) => {
