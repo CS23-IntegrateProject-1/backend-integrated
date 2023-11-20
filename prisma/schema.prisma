@@ -17,8 +17,8 @@ model User {
   addId                  String?                  @unique
   phone                  String                   @db.VarChar(10)
   tierId                 Int?
-  userId                 Int                      @id @default(autoincrement())
   prompt_pay             Int?
+  userId                 Int                      @id @default(autoincrement())
   Article                Article[]
   Chat_Room_Logs         Chat_Room_Logs[]
   Comments               Comments[]
@@ -174,12 +174,14 @@ model Venue {
 }
 
 model Venue_branch {
-  branchId    Int      @id @default(autoincrement())
+  branchId    Int           @id @default(autoincrement())
   venueId     Int
   branch_name String
   Orders      Orders[]
-  venue       Venue    @relation(fields: [venueId], references: [venueId])
+  venue       Venue         @relation(fields: [venueId], references: [venueId])
   Stocks      Stocks[]
+  Tables      Tables[]
+  Reservation Reservation[]
 
   @@index([venueId], map: "Venue_branch_venueId_fkey")
 }
@@ -427,17 +429,13 @@ model Orders {
   driverId     Int?
   isDelivery   Boolean        @default(false)
   orderId      Int            @id @default(autoincrement())
-
-  status       Order_status   @default(On_going)
   reservedId   Int?           @unique
-
+  status       Order_status   @default(On_going)
   Order_detail Order_detail[]
   address      Saved_address? @relation(fields: [addressId], references: [addressId])
   branch       Venue_branch   @relation(fields: [branchId], references: [branchId])
   driver       Driver_list?   @relation(fields: [driverId], references: [driverId])
-
-  Reservation  Reservation?   @relation(fields: [reservedId], references: [reservationId])
-
+  reserve      Reservation?   @relation(fields: [reservedId], references: [reservationId])
   user         User?          @relation(fields: [userId], references: [userId])
   venue        Venue          @relation(fields: [venueId], references: [venueId])
 
@@ -450,6 +448,7 @@ model Orders {
 
 model Order_detail {
   orderDetailId  Int          @id @default(autoincrement())
+  status         Order_status @default(On_going)
   unit_price     Decimal      @db.Decimal(10, 2)
   order_time     DateTime     @default(now()) @db.Timestamp(0)
   additional_req String?
@@ -457,7 +456,6 @@ model Order_detail {
   menuId         Int?
   quantity       Int
   setId          Int?
-  status         Order_status @default(On_going)
   menu           Menu?        @relation(fields: [menuId], references: [menuId])
   order          Orders       @relation(fields: [orderId], references: [orderId])
   set            Sets?        @relation(fields: [setId], references: [setId])
@@ -557,7 +555,7 @@ model Food_reviews {
   userId       Int
   rating       Float
   review       String?
-  date_added   DateTime
+  date_added   DateTime @default(now())
   menu         Menu     @relation(fields: [menuId], references: [menuId])
   user         User     @relation(fields: [userId], references: [userId])
 
@@ -755,6 +753,7 @@ model Like {
 
 model Reservation {
   venueId           Int
+  branchId          Int
   guest_amount      Int
   reserved_time     DateTime            @default(now())
   status            Status
@@ -767,6 +766,7 @@ model Reservation {
   Check_in_log      Check_in_log?
   Notes             Notes?
   Orders            Orders?
+  branch            Venue_branch        @relation(fields: [branchId], references: [branchId])
   deposit           Deposit             @relation(fields: [depositId], references: [depositId])
   user              User                @relation(fields: [userId], references: [userId])
   venue             Venue               @relation(fields: [venueId], references: [venueId])
@@ -815,16 +815,24 @@ model Deposit {
 
 model Tables {
   venueId           Int
+  branchId          Int
   table_no          Int
+  status            Table_status
   information       String              @db.Text
   tableId           Int                 @id @default(autoincrement())
   tableTypeDetailId Int
   Reservation_table Reservation_table[]
+  branch            Venue_branch        @relation(fields: [branchId], references: [branchId])
   table_type        Table_type_detail   @relation(fields: [tableTypeDetailId], references: [tableTypeDetailId])
   venue             Venue               @relation(fields: [venueId], references: [venueId])
 
   @@index([tableTypeDetailId], map: "Tables_tableTypeDetailId_fkey")
   @@index([venueId], map: "Tables_venueId_fkey")
+}
+
+enum Table_status {
+  Available
+  Unavailable
 }
 
 model Table_type_detail {
@@ -1120,8 +1128,8 @@ model Transaction {
   userId             Int
   venueId            Int
   reserveId          Int                 @unique
-  App_transaction    App_transaction?
   reserve            Reservation         @relation(fields: [reserveId], references: [reservationId])
+  App_transaction    App_transaction?
   user               User                @relation(fields: [userId], references: [userId])
   venue              Venue               @relation(fields: [venueId], references: [venueId])
   Transaction_detail Transaction_detail?

@@ -1,8 +1,11 @@
 // socketio.ts
-
 import { Server, Socket } from "socket.io";
 import { createServer, Server as HttpServer } from "http";
 import express from "express";
+import loadEnv from "./configs/dotenvConfig";
+
+loadEnv();
+
 export interface ServerToClientEvents {
   serverMsg: (data: { msg: string; room: string }) => void;
 }
@@ -15,7 +18,7 @@ const app = express();
 const httpServer = createServer(app);
 const io = new Server<ClientToServerEvents, ServerToClientEvents>(httpServer, {
   cors: {
-    origin: ["http://localhost:4000"],
+    origin: [process.env.SOCKET_URL || "http://localhost:4000"],
   },
 });
 

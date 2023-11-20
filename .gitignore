@@ -1,3 +1,4 @@
 node_modules
+src/uploads/*
 .env.local
-# Keep environment variables out of version control
+.env
