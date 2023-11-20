@@ -365,6 +365,9 @@ export const getFoodReviews = async (req: Request, res: Response) => {
 export const addFoodReview = async (req: Request, res: Response) => {
     const { menuId, userId, rating, review } = req.body;
 
+    // Get time now
+    const date_added = new Date();
+
     try {
         // Check if the user and venue exist (you may need additional validations)
         const userExists = await feature3Client.user.findUnique({
@@ -386,6 +389,7 @@ export const addFoodReview = async (req: Request, res: Response) => {
                 userId,
                 rating,
                 review,
+                date_added,
             } as any,
         });
 
