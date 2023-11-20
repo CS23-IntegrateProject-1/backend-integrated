@@ -9,5 +9,6 @@ router.post("/signup", authController.signup);
 router.post("/login", authController.login);
 router.post("/logout", authController.logout);
 router.post("/verify", authController.verify);
+router.get("/getUser", authController.getUser);
 
 export { router as AuthRoutes };
