@@ -1,6 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import { Response, Request } from "express";
-import jwt, { Secret } from 'jsonwebtoken';
+import authService from "../services/auth.service";
 
 const crypto = require('crypto');
 const feature8Client = new PrismaClient();
@@ -21,7 +21,14 @@ export const getAllUser = async (req: Request, res: Response) => {
 };
 
 export const getUserById = async (req: Request, res: Response) => {
-    const userId = parseInt(req.params.userId, 10);
+    // const userId = parseInt(req.params.userId, 10);
+    const token = req.cookies.authToken; // token stored in authToken
+
+    if (!token) {
+        return res.status(404).json({ error: 'not verify' });
+    }
+    const decodetoken = authService.decodeToken(token);
+    const userId = decodetoken.userId;
 
     try {
         const user = await feature8Client.user.findUnique({
@@ -594,49 +601,51 @@ export const updateVenueCreditCard = async (req: Request, res: Response) => {
 
 
 //token function
-interface CustomJwtPayload {
-    userId: number;
-}
+// import jwt, { Secret } from 'jsonwebtoken';
+// interface CustomJwtPayload {
+//     userId: number;
+// }
 
-export const yourRouteHandler = (req: Request, res: Response) => {
-    const secret: Secret = 'your_secret_key' || "";
+// export const yourRouteHandler = (req: Request, res: Response) => {
+//     const secret: Secret = 'your_secret_key' || "";
 
-    const token = req.cookies.authToken;
+//     const token = req.cookies.authToken;
 
-    if (!token) {
-        return res.json({ error: 'Unauthorized' });
-    }
+//     if (!token) {
+//         return res.json({ error: 'Unauthorized' });
+//     }
 
-    try {
-        const decoded = jwt.verify(token, secret) as CustomJwtPayload;
-        const { userId } = decoded;
+//     try {
+//         const decoded = jwt.verify(token, secret) as CustomJwtPayload;
+//         const { userId } = decoded;
 
-        const userData = {
-            userId: decoded.userId,
-            username: 'john_doe',
-        };
+//         const userData = {
+//             userId: decoded.userId,
+//             username: 'john_doe',
+//         };
 
-        return res.json({ success: true, data: userData });
-    } catch (error) {
-        console.error('JWT verification error:', error);
-        return res.status(401).json({ error: 'Unauthorized' });
-    }
-};
+//         return res.json({ success: true, data: userData });
+//     } catch (error) {
+//         console.error('JWT verification error:', error);
+//         return res.status(401).json({ error: 'Unauthorized' });
+//     }
+// };
 
+// import express from 'express';
+// import cookieParser from 'cookie-parser';
+// import { yourRouteHandler } from './controllers/authController';
+// import { authenticate } from './middlewares/authMiddleware';
 
-import express from 'express';
-import cookieParser from 'cookie-parser';
+// const app = express();
 
-const app = express();
+// app.use(cookieParser());
 
-app.use(cookieParser());
+// app.get('/your-protected-route', yourRouteHandler);
 
-app.get('/your-protected-route', yourRouteHandler);
-
-const PORT = 3000;
-app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
-});
+// const PORT = 3000;
+// app.listen(PORT, () => {
+//     console.log(`Server is running on port ${PORT}`);
+// });
 
 // example of controller createAuthor
 // export const createAuthor = async (req: Request, res: Response) => {
