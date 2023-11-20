@@ -356,7 +356,7 @@ export const getOrderdetailByOrderId = async (req: Request, res: Response) => {
     const orderId = parseInt(req.params.orderId, 10);
 
     try {
-        const orderdetail = await feature8Client.orders.findUnique({
+        const orderdetail = await feature8Client.order_detail.findMany({
             where: { orderId },
         });
 
