@@ -47,11 +47,13 @@ feature3Router.get("/search-history/:user_id", getSearchHistory);
 feature3Router.get("/food-vouchers", getAllFoodVouchers);
 feature3Router.get("/discount-vouchers", getAllDiscountVouchers);
 
+// Venue reviews
 feature3Router.get("/venue-reviews/:id", getVenueReviews);
 feature3Router.post("/venue-reviews", addVenueReview);
 feature3Router.patch("/venue-reviews/:venueReviewId", editVenueReview);
 feature3Router.delete("/venue-reviews/:venueReviewId", deleteVenueReview);
 
+// Food reviews
 feature3Router.get("/food-reviews/:id", getFoodReviews);
 feature3Router.post("/food-reviews", addFoodReview);
 feature3Router.patch("/food-reviews/:foodReviewId", editFoodReview);
