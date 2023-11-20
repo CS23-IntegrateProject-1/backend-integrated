@@ -30,7 +30,7 @@ import { get } from "http";
 
 const feature3Router = Router();
 
-// // here define your routes
+// Routes
 feature3Router.get("/advertisements", getAdvertisements);
 feature3Router.get("/venues", getVenues);
 feature3Router.get("/venues/:category", getVenuesByCategory);
