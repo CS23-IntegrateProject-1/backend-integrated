@@ -9,6 +9,7 @@ import {
   displayAllQuestionsWrtName,
   displayAnswerWrtVenueID,
   getAllUsers,
+  getFriendList,
 } from "../controllers/feature12.controller";
 
 const feature12Router = Router();
@@ -32,4 +33,7 @@ feature12Router.get("/displayQuestion/:id", displayAllQuestionsWrtName);
 feature12Router.get("/displayAnswer/:id", displayAnswerWrtVenueID);
 //Get all user
 feature12Router.get("/displayUser", getAllUsers);
+//Get Friend List
+feature12Router.get("/displayFriendList/:firstUserId", getFriendList);
+
 export default feature12Router;

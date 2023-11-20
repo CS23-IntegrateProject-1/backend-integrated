@@ -4,19 +4,19 @@ const feature12Client = new PrismaClient();
 
 const prisma = new PrismaClient();
 
-  // const existingChatRoom = await feature12Client.chat_room.findUnique({
-  //   where: {
-  //     //convert data.room to number
-  //     chatRoomId: parseInt(data.room),
-  //   },
-  // });
+// const existingChatRoom = await feature12Client.chat_room.findUnique({
+//   where: {
+//     //convert data.room to number
+//     chatRoomId: parseInt(data.room),
+//   },
+// });
 
-  // if (existingChatRoom) {
-  //   socket.join(data.room);
-  //   console.log(`user joined room: ${data.room}`);
+// if (existingChatRoom) {
+//   socket.join(data.room);
+//   console.log(`user joined room: ${data.room}`);
 
-  //   io.to(data.room).emit("serverMsg", data);
-  // }
+//   io.to(data.room).emit("serverMsg", data);
+// }
 
 /*
 // Function to create chat rooms on the server and insert data back to the Chat_room DB
@@ -55,7 +55,41 @@ async function createChatRooms() {
 // Run the function to create chat rooms when the server starts
 createChatRooms();
 */
+// import authService from "../services/auth.service";
 
+// export const getId = async (req: Request, res: Response) => {
+//   const token = req.cookies.authToken;
+//   const decodedToken = authService.decodeToken(token);
+//   const { userId } = decodedToken;
+//   return res.status(200).json({ userId });
+// };
+
+//Get the secondUserID from friendship table of specific user who has login
+export const getFriendList = async (req: Request, res: Response) => {
+  const { firstUserId } = req.params;
+
+  try {
+    const friendship = await feature12Client.friendship.findMany({
+      where: {
+        firstUserId: parseInt(firstUserId),
+      },
+      include: {
+        user: {
+          select: {
+            fname: true,
+            lname: true,
+            userId: true,
+          },
+        },
+      },
+    });
+
+    // const secondId: 
+    return res.status(200).json(friendship);
+  } catch (error) {
+    return res.status(500).json({ error });
+  }
+};
 
 //Extract all the user from the user table
 export const getAllUsers = async (req: Request, res: Response) => {
@@ -106,11 +140,12 @@ export const displayAllQuestionsWrtName = async (
         question: true,
         venueQuestionId: true,
         venueId: true,
-        venue: { // Include the Venue relation
+        venue: {
+          // Include the Venue relation
           select: {
-            name: true // Select the name field from the Venue table
-          }
-        }
+            name: true, // Select the name field from the Venue table
+          },
+        },
       },
     });
     res.json(questions);

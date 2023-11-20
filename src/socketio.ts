@@ -18,7 +18,7 @@ const app = express();
 const httpServer = createServer(app);
 const io = new Server<ClientToServerEvents, ServerToClientEvents>(httpServer, {
   cors: {
-    origin: [process.env.SOCKET_URL || "http://localhost:4000"],
+    origin: [process.env.SOCKET_URL || "http://localhost:3000"],
   },
 });
 
