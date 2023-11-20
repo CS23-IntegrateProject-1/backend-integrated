@@ -32,8 +32,12 @@ import {
     addVenueCreditCard,
     addVenuePromptpay,
     updateCreditCard,
-    updateVenueCreditCard
+    updateVenueCreditCard,
+    getReservationByVenueId,
+    getTableIdsByVenueId,
+    getTableNosByVenueId,
 } from "../controllers/feature8.controller";
+
 
 const feature8Router = Router();
 
@@ -53,6 +57,10 @@ feature8Router.get("/venuepromptpay/:venueId", getVenuePromptpayByVenueId);
 feature8Router.get("/order/:orderId", getOrderbyId);
 feature8Router.get("/orderdetail/:orderId", getOrderdetailByOrderId);
 feature8Router.get("/menu/:menuId", getMenuByMenuId);
+feature8Router.get("/reservation/:venueId",getReservationByVenueId);
+feature8Router.get("/reservation/:venueId/findtableid", getTableIdsByVenueId);
+feature8Router.get("/reservation/:venueId/findtableno", getTableNosByVenueId)
+
 
 feature8Router.get("/transactions", getAllTransaction);
 feature8Router.get("/transactions/:transactionId", getTransactionById);
@@ -66,7 +74,6 @@ feature8Router.get("/venuetransactions", getVenuetransaction);
 feature8Router.get("/venuetransactions/:venuetransactionId", getVenuetransactionById);
 feature8Router.get("/venuetransaction_details", getVenuetransactiondetail);
 feature8Router.get("/venuetransaction_details/:venuetransactionId", getVenuetransactiondetailById);
-
 
 // post method
 feature8Router.post("/create_transaction_detail", createTransactionDetail);

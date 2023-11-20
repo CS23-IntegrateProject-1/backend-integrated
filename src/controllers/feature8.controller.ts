@@ -53,6 +53,113 @@ export const getUserById = async (req: Request, res: Response) => {
     }
 };
 
+
+export const getReservationByVenueId = async (req: Request, res: Response) => {
+    const venueId = parseInt(req.params.venueId, 10);
+
+    try {
+        const reservations = await feature8Client.reservation.findMany({
+            where: { venueId },
+        });
+
+        if (!reservations || reservations.length === 0) {
+            return res.status(404).json({ error: 'No reservations found for the specified venue' });
+        }
+
+        res.status(200).json(reservations);
+    } catch (error) {
+        console.error('Error fetching reservations:', error);
+        res.status(500).json({ error: 'Failed to retrieve reservations' });
+    }
+};
+
+
+export const getTableIdsByVenueId = async (req: Request, res: Response) => {
+    const venueId = parseInt(req.params.venueId, 10);
+
+    try {
+        const tablesResponse = await feature8Client.tables.findMany({
+            where: { venueId },
+            select: { tableId: true },
+        });
+
+        if (tablesResponse.length === 0) {
+            return res.status(404).json({ error: 'No tables found for the specified venue' });
+        }
+
+        const tableIds = tablesResponse.map((table) => table.tableId);
+
+        return { tableIds };
+    } catch (error) {
+        console.error('Error fetching tableIds:', error);
+        return res.status(500).json({ error: 'Failed to retrieve tableIds' });
+    }
+};
+
+export const getTableNosByVenueId = async (req: Request, res: Response) => {
+    const venueId = parseInt(req.params.venueId, 10);
+
+    try {
+        const response = await getTableIdsByVenueId(req, res);
+
+        if (!('tableIds' in response) || response.tableIds.length === 0) {
+            return res.status(404).json({ error: 'No tableIds found for the specified venue' });
+        }
+
+        const tables = await feature8Client.tables.findMany({
+            where: { tableId: { in: response.tableIds } },
+            select: {
+                tableId: true,
+                table_no: true
+            },
+        });
+
+        if (tables.length === 0) {
+            return res.status(404).json({ error: 'No tables found for the specified tableIds' });
+        }
+
+        const tableNos = tables.map((table) => table.table_no);
+
+        res.status(200).json({ tableNos });
+    } catch (error) {
+        console.error('Error fetching tableNos:', error);
+        res.status(500).json({ error: 'Failed to retrieve tableNos' });
+    }
+};
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 export const getAllAdvertisements = async (req: Request, res: Response) => {
     try {
         const advertisements = await feature8Client.ad_business.findMany();
