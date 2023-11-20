@@ -1,5 +1,5 @@
 node_modules
+src/uploads/*
 .env.local
 .env
-
 # Keep environment variables out of version control
