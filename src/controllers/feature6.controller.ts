@@ -167,7 +167,7 @@ export const getVenueAndReservationsById = async (
 // Finished 
 export const createReservation = async (req: Request, res: Response) => {
     try {
-        const { venueId, userId, guest_amount, reserved_time } = req.body;
+        const { venueId, userId, guest_amount, reserved_time, branchId } = req.body;
         // Use the previous functions to check availability and find a suitable table
         // const reservedTimeStart = reserved_time;
         // const reservedTimeEnd = reservedTimeStart.add({ hours: 3 }); // Assuming a reservation lasts for 3 hours
@@ -206,6 +206,7 @@ export const createReservation = async (req: Request, res: Response) => {
                 isPaidDeposit: "Pending",
                 isReview: false,
                 depositId: depositId[0].depositId,
+                branchId: branchId
             },
         });
         // Create the reservation table entry for the selected table

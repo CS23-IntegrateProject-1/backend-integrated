@@ -243,7 +243,7 @@ export const getAllCinema = async (req: Request, res: Response) => {
 
 export const getMenusByVenueId = async (req: Request, res: Response) => {
   try {
-      const venueId= req.params.id;
+      const venueId= req.params.venueId;
       const allMenus = await feature4Client.menu.findMany(
           {
               where: {
@@ -261,7 +261,7 @@ export const getMenusByVenueId = async (req: Request, res: Response) => {
 
 export const getSetsByVenueId = async (req: Request, res: Response) => {
   try {
-      const venueId= req.params.id;
+      const venueId= req.params.venueId;
       const allSets = await feature4Client.sets.findMany(
           {
               where: {
