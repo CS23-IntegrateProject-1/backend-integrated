@@ -31,7 +31,8 @@ import {
     addCreditCard,
     addVenueCreditCard,
     addVenuePromptpay,
-    updateCreditCard
+    updateCreditCard,
+    updateVenueCreditCard
 } from "../controllers/feature8.controller";
 
 const feature8Router = Router();
@@ -75,6 +76,5 @@ feature8Router.post("/add_venue_promptpay", addVenuePromptpay);
 
 // patch method
 feature8Router.patch("/update_creditcard/:creditCardId", updateCreditCard);
-
-
+feature8Router.patch("/update_venue_creditcard/:venueId", updateVenueCreditCard);
 export default feature8Router;

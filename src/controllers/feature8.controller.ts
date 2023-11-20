@@ -1,8 +1,25 @@
 import { PrismaClient } from "@prisma/client";
-import { Response, Request } from "express";
+import express, { Response, Request } from "express";
+import { Secret } from "jsonwebtoken";
+import jwt from 'jsonwebtoken';
+import cookieParser from 'cookie-parser';
 
 const crypto = require('crypto');
 const feature8Client = new PrismaClient();
+
+const app = express();
+app.use(cookieParser());
+app.get('/your-protected-route', yourRouteHandler);
+
+const PORT = 3000;
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
+});
+
+interface CustomJwtPayload {
+    userId: string;
+}
+
 
 export const getfeature8 = async (req: Request, res: Response) => {
     res.status(200).json({ message: 'This is Feature8' });
@@ -251,6 +268,7 @@ export const getVenuetransactiondetailById = async (req: Request, res: Response)
     }
 }
 
+// get credit card
 export const getCreditCardById = async (req: Request, res: Response) => {
     const creditCardId = parseInt(req.params.creditCardId, 10);
     try {
@@ -295,20 +313,20 @@ export const getVenueCreditCardByVenueId = async (req: Request, res: Response) =
     const venueId = parseInt(req.params.venueId, 10);
 
     try {
-        const creditCard = await feature8Client.venue_credit_card.findUnique({
-            where: { creditCardId: venueId },
+        const venueCreditCard = await feature8Client.venue_credit_card.findMany({
+            where: { venueId },
         });
 
-        if (!creditCard) {
-            return res.status(404).json({ error: 'Credit card not found' });
+        if (!venueCreditCard) {
+            return res.status(404).json({ error: 'Venue credit card not found' });
         }
 
-        res.status(200).json(creditCard);
+        res.status(200).json(venueCreditCard);
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Failed to retrieve credit card' });
+        console.error('Error retrieving venue credit card:', error);
+        res.status(500).json({ error: 'Failed to retrieve venue credit card' });
     }
-}
+};
 
 export const getVenuePromptpayByVenueId = async (req: Request, res: Response) => {
     const venueId = parseInt(req.params.venueId, 10);
@@ -329,6 +347,7 @@ export const getVenuePromptpayByVenueId = async (req: Request, res: Response) =>
     }
 }
 
+// get order,menu
 export const getOrderbyId = async (req: Request, res: Response) => {
     const orderId = parseInt(req.params.orderId, 10);
 
@@ -386,33 +405,7 @@ export const getMenuByMenuId = async (req: Request, res: Response) => {
     }
 }
 
-
-export const addVenueCreditCard = async (req: Request, res: Response) => {
-    const { card_no, name,country,bank, exp, cvc } = req.body;
-
-    try {
-        const newCreditCard = await feature8Client.venue_credit_card.create({
-            data: {
-                card_no,
-                name,
-                country,
-                bank,
-                cvc,
-                exp,
-                venue: {
-                    connect: {
-                        venueId: req.body.venueId,
-                    },
-                },
-            },
-        });
-
-        res.status(201).json(newCreditCard);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Failed to create credit card' });
-    }
-}
+// add , create
 export const addVenuePromptpay = async (req: Request, res: Response) => {
     const { promptpay_no } = req.body;
 
@@ -459,6 +452,8 @@ export const createTransactionDetail = async (req: Request, res: Response) => {
     }
 };
 
+
+
 // credit card encryption function
 
 function encryptData(data, secretKey) {
@@ -474,6 +469,7 @@ function encryptData(data, secretKey) {
 //     decryptedData += decipher.final('utf-8');
 //     return decryptedData;
 // }
+
 
 // credit card with encryption
 
@@ -536,6 +532,106 @@ export const updateCreditCard = async (req: Request, res: Response) => {
     }
 }
 
+export const addVenueCreditCard = async (req: Request, res: Response) => {
+    const { card_no, name, country, bank, exp, cvc } = req.body;
+    const secretKey = 'your-secret-key';
+    const encryptedCardNo = encryptData(card_no, secretKey);
+
+    try {
+        const newCreditCard = await feature8Client.venue_credit_card.create({
+            data: {
+                card_no: encryptedCardNo,
+                name,
+                country,
+                bank,
+                cvc,
+                exp,
+                venue: {
+                    connect: {
+                        venueId: req.body.venueId,
+                    },
+                },
+            },
+        });
+
+        res.status(201).json(newCreditCard);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Failed to create credit card' });
+    }
+};
+
+export const updateVenueCreditCard = async (req: Request, res: Response) => {
+    const venueId = parseInt(req.params.venueId, 10);
+    
+    const { card_no, name, country, bank, exp, cvc } = req.body;
+
+    const secretKey = 'your-secret-key';
+
+    if (!card_no || !name || !country || !bank || !exp || !cvc) {
+        return res.status(400).json({ error: 'All fields are required for the update' });
+    }
+
+    const encryptedCardNo = encryptData(card_no, secretKey);
+
+    try {
+        const existingCreditCards = await feature8Client.venue_credit_card.findMany({
+            where: { venueId },
+        });
+
+        if (!existingCreditCards || existingCreditCards.length === 0) {
+            return res.status(404).json({ error: 'No credit cards found for the specified venue' });
+        }
+
+        // Update all credit cards associated with the venue
+        const updatedCreditCards = await Promise.all(existingCreditCards.map(async (creditCard) => {
+            const updatedCreditCard = await feature8Client.venue_credit_card.update({
+                where: { creditCardId: creditCard.creditCardId },
+                data: {
+                    card_no: encryptedCardNo,
+                    name,
+                    country,
+                    bank,
+                    cvc,
+                    exp,
+                },
+            });
+
+            return updatedCreditCard;
+        }));
+
+        res.status(200).json(updatedCreditCards);
+    } catch (error) {
+        console.error('Error updating venue credit cards:', error);
+        res.status(500).json({ error: 'Failed to update venue credit cards' });
+    }
+};
+
+
+//token function
+function yourRouteHandler(req: Request, res: Response) {
+    const secret: Secret = 'your_secret_key' || "";
+    const token = req.cookies.authToken;
+  
+    if (!token) {
+      return res.json({ error: 'Unauthorized' });
+    }
+  
+    try {
+      const decoded = jwt.verify(token, secret) as CustomJwtPayload;
+      const { userId } = decoded;
+  
+      const userData = {
+        userId: decoded.userId,
+        username: 'john_doe',
+      };
+  
+      return res.json({ success: true, data: userData });
+    } catch (error) {
+      console.error('JWT verification error:', error);
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+  }
   
 
 // example of controller createAuthor
