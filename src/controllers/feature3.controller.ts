@@ -152,6 +152,16 @@ export const getVenueKeywords = async (req: Request, res: Response) => {
     }
 };
 
+export const getPhotos = async (req: Request, res: Response) => {
+    try {
+        const photos = await feature3Client.venue_photo.findMany();
+        return res.json(photos);
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json(error);
+    }
+};
+
 export const getVenuePhotos = async (req: Request, res: Response) => {
     const { venueId } = req.params;
 

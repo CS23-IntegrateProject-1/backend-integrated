@@ -19,6 +19,7 @@ import {
     getAllMenusByVenueId,
     getVenuesRatings,
     getVenuesByCategory,
+    getPhotos,
 } from "../controllers/feature3.controller";
 
 const feature3Router = Router();
@@ -33,6 +34,7 @@ feature3Router.get("/venue-contacts/:venueId", getVenueContacts);
 feature3Router.get("/venue-reviews/:id", getVenueReviews);
 feature3Router.get("/venue-ratings", getVenuesRatings);
 feature3Router.get("/venue-keywords/:venueId", getVenueKeywords);
+feature3Router.get("/venue-keywords", getPhotos);
 feature3Router.get("/venue-photos/:venueId", getVenuePhotos);
 feature3Router.get("/opening-day/:venueId/:openingDayId", getOpeningDay);
 feature3Router.get("/search-history/:user_id", getSearchHistory);
