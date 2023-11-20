@@ -69,23 +69,32 @@ export const getFriendList = async (req: Request, res: Response) => {
   const { firstUserId } = req.params;
 
   try {
-    const friendship = await feature12Client.friendship.findMany({
+    const friendships = await feature12Client.friendship.findMany({
       where: {
         firstUserId: parseInt(firstUserId),
       },
-      include: {
-        user: {
+      select: {
+        sencondUserId: true,
+      },
+    });
+
+    // Get the second user's details from the user table
+    const secondUserDetails = await Promise.all(
+      friendships.map(async (friendship) => {
+        return await feature12Client.user.findUnique({
+          where: {
+            userId: friendship.sencondUserId,
+          },
           select: {
             fname: true,
             lname: true,
             userId: true,
           },
-        },
-      },
-    });
-
-    // const secondId: 
-    return res.status(200).json(friendship);
+        });
+      })
+    );
+    
+    return res.status(200).json(secondUserDetails);
   } catch (error) {
     return res.status(500).json({ error });
   }
