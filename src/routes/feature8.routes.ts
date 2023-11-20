@@ -36,6 +36,7 @@ import {
     getReservationByVenueId,
     getTableIdsByVenueId,
     getTableNosByVenueId,
+    getTableNoByReservationId,
 } from "../controllers/feature8.controller";
 
 
@@ -60,7 +61,7 @@ feature8Router.get("/menu/:menuId", getMenuByMenuId);
 feature8Router.get("/reservation/:venueId",getReservationByVenueId);
 feature8Router.get("/reservation/:venueId/findtableid", getTableIdsByVenueId);
 feature8Router.get("/reservation/:venueId/findtableno", getTableNosByVenueId)
-
+feature8Router.get("/reservation/:venueId/:reservationId", getTableNoByReservationId)
 
 feature8Router.get("/transactions", getAllTransaction);
 feature8Router.get("/transactions/:transactionId", getTransactionById);

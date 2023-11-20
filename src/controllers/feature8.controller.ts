@@ -128,6 +128,45 @@ export const getTableNosByVenueId = async (req: Request, res: Response) => {
 };
 
 
+export const getTableNoByReservationId = async (req: Request, res: Response) => {
+    const { reservationId } = req.params;
+  
+    try {
+      const reservation = await feature8Client.reservation.findUnique({
+        where: { reservationId: parseInt(reservationId, 10) },
+        include: {
+          Reservation_table: {
+            include: {
+              reserve_table: {
+                select: {
+                  table_no: true,
+                },
+              },
+            },
+          },
+        },
+      });
+  
+      if (!reservation) {
+        return res.status(404).json({ error: 'Reservation not found' });
+      }
+  
+      const tableNo = reservation.Reservation_table[0]?.reserve_table.table_no;
+  
+      if (!tableNo) {
+        return res.status(404).json({ error: 'Table not found for the reservation' });
+      }
+  
+      res.status(200).json({ tableNo });
+    } catch (error) {
+      console.error('Error fetching table number by reservation ID:', error);
+      res.status(500).json({ error: 'Failed to retrieve table number' });
+    }
+  };
+
+
+
+
 
 
 
