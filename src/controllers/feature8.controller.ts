@@ -1,6 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import { Response, Request } from "express";
-import authService from "../services/auth.service";
+import authService from "../services/auth/auth.service";
 
 const crypto = require('crypto');
 const feature8Client = new PrismaClient();

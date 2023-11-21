@@ -26,12 +26,9 @@ import jwt, { JwtPayload } from "jsonwebtoken";
 //   }
 // };
 
-<<<<<<< HEAD
 import { Response, NextFunction, response } from "express";
-import authService from "../services/auth.service";
-=======
-import { Response, NextFunction } from "express";
->>>>>>> Beta
+import authService from "../services/auth/auth.service";
+
 // import jwt, { JwtPayload } from "jsonwebtoken";
 
 const secretKey = process.env.JWT_SECRET as string;
