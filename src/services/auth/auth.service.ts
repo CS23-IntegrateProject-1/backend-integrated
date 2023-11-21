@@ -19,9 +19,9 @@ class AuthService implements IAuthService {
 		return hashedPassword;
 	}
 
-	generateToken(data: any, userType: string): string {
+	generateToken(userId: number, userType: string): string {
 		const secretKey = process.env.JWT_SECRET as string;
-		const token = jwt.sign({ data, userType }, secretKey, {
+		const token = jwt.sign({ userId, userType }, secretKey, {
 			expiresIn: "7d"
 		});
 		return token;
