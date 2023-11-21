@@ -16,130 +16,6 @@ export const getAllFilms = async (req: Request, res: Response) => {
     }
 };
 
-// export const getFilmsById = async (req: Request, res: Response) => {
-//     try {
-//         const id = Number(req.params.id);
-//         const film = await prisma.films.findUnique({
-//             where: {filmId: id}
-//         });
-//         res.json(film);
-
-//     } catch (err) {
-//         const error = err as Error;
-//         res.status(500).json({error: error.message});
-//     }
-// };
-
-// export const getImaxFilms = async (req: Request, res: Response) => {
-//     try {
-//         const imaxFilms = await prisma.films.findMany({
-//             distinct: ["filmId"],
-//             where: {
-//                 Shows: {
-//                     some: {
-//                         screen: {
-//                             screen_type: "IMAX"
-//                         }
-//                     }
-//                 }
-//             }
-//         });
-//         res.json(imaxFilms);
-
-//     } catch (err) {
-//         const error = err as Error;
-//         res.status(500).json({error: error.message});
-//     }
-// };
-
-// export const get3DFilms = async (req: Request, res: Response) => {
-//     try {
-//         const imaxFilms = await prisma.films.findMany({
-//             distinct: ["filmId"],
-//             where: {
-//                 Shows: {
-//                     some: {
-//                         screen: {
-//                             screen_type: "X3D"
-//                         }
-//                     }
-//                 }
-//             }
-//         });
-//         res.json(imaxFilms);
-
-//     } catch (err) {
-//         const error = err as Error;
-//         res.status(500).json({error: error.message});
-//     }
-// };
-
-// export const get4DFilms = async (req: Request, res: Response) => {
-//     try {
-//         const imaxFilms = await prisma.films.findMany({
-//             distinct: ["filmId"],
-//             where: {
-//                 Shows: {
-//                     some: {
-//                         screen: {
-//                             screen_type: "X4D"
-//                         }
-//                     }
-//                 }
-//             }
-//         });
-//         res.json(imaxFilms);
-
-//     } catch (err) {
-//         const error = err as Error;
-//         res.status(500).json({error: error.message});
-//     }
-// };
-
-// export const getKidFilms = async (req: Request, res: Response) => {
-//     try {
-//         const imaxFilms = await prisma.films.findMany({
-//             distinct: ["filmId"],
-//             where: {
-//                 Shows: {
-//                     some: {
-//                         screen: {
-//                             screen_type: "Kids"
-//                         }
-//                     }
-//                 }
-//             }
-//         });
-//         res.json(imaxFilms);
-
-//     } catch (err) {
-//         const error = err as Error;
-//         res.status(500).json({error: error.message});
-//     }
-// };
-
-// export const getStandardFilms = async (req: Request, res: Response) => {
-//     try {
-//         const imaxFilms = await prisma.films.findMany({
-//             distinct: ["filmId"],
-//             where: {
-//                 Shows: {
-//                     some: {
-//                         screen: {
-//                             screen_type: "Standard"
-//                         }
-//                     }
-//                 }
-//             }
-//         });
-//         res.json(imaxFilms);
-
-//     } catch (err) {
-//         const error = err as Error;
-//         res.status(500).json({error: error.message});
-//     }
-// };
-
 export const getShowingFilms = async (req: Request, res: Response) => {
     const params = req.query;
     let data: any[];
@@ -160,20 +36,6 @@ export const getShowingFilms = async (req: Request, res: Response) => {
     }
     res.status(200).send(data);
 };
-
-// export const getFilmsById = async (req: Request, res: Response) => {
-//     try {
-//         const id = Number(req.params.id);
-//         const film = await prisma.films.findUnique({
-//             where: {filmId: id}
-//         });
-//         res.json(film);
-
-//     } catch (err) {
-//         const error = err as Error;
-//         res.status(500).json({error: error.message});
-//     }
-// }
 
 export const getFilmsById = async (req: Request, res: Response) => {
     try {
@@ -257,11 +119,13 @@ export const getUpcomingFilms = async (req: Request, res: Response) => {
 
 export const getShowsByFilmsId = async (req: Request, res: Response) => {
     try {
-        const id = Number(req.params.id);
+        // const id = Number(req.params.id);
+        const {date, id} = req.params
         // const currentDate = new Date().toISOString().split('T')[0];
         const shows = await prisma.shows.findMany({
             where: {
-                filmId: id,
+                filmId: parseInt(id),
+                date: new Date(date),
                 // date: {
                 //     gte: currentDate,
                 // },
@@ -272,9 +136,10 @@ export const getShowsByFilmsId = async (req: Request, res: Response) => {
             include: {
                 screen: {
                     include: {
-                        theater: true,
-                    },
+                        theater: true
+                    }
                 },
+                film: true
             },
         });
         res.json(shows);
@@ -283,3 +148,39 @@ export const getShowsByFilmsId = async (req: Request, res: Response) => {
         res.status(500).json({ error: error.message });
     }
 };
+
+//make it distinct????????????????????????????????????????????????
+export const getSeatsTypeByScreenId = async (req: Request, res: Response) => {
+    try {
+        // const id = Number(req.params.id);
+        const seat_types = await prisma.seat_types.findMany({ 
+        });
+        res.json(seat_types);
+
+    } catch (err) {
+        const error = err as Error;
+        res.status(500).json({error: error.message});
+    }
+    
+}
+
+export const getFilmsInfoPage3 = async (req: Request, res: Response) => {
+    try {
+        const id = Number(req.params.id);
+        const films = await prisma.films.findMany({
+            where: {
+                filmId: id,
+            },
+            
+                
+            
+        });
+        console.log("hello");
+        res.json(films);
+
+    } catch (err) {
+        const error = err as Error;
+        res.status(500).json({error: error.message});
+    }
+    
+}
