@@ -61,7 +61,7 @@ feature7Router.get("/showCompletedOrderDetails/:venueId",showCompletedOrderDetai
 //show availability of menu of all branches
 feature7Router.get("/checkMenuAvailabilityOfAllBranches/:menuId/:venueId",checkMenuAvailabilityOfAllBranches);
 //Change menu availability
-feature7Router.post("/changeMenuAvailability/:menuId/:venueId",changeMenuAvailability);
+feature7Router.post("/changeMenuAvailability/:menuId/:venueId/:branchId",changeMenuAvailability);
 //edit menu
 feature7Router.post("/editMenu/:menuId",editMenu);
 //add menu

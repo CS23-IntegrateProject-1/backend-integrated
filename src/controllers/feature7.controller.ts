@@ -666,8 +666,36 @@ export const checkMenuAvailabilityOfAllBranches = async (req: Request, res: Resp
               menuId : parseInt(menuId),
             },
           });
+          // Extract branch IDs from stock records
+        const branchIds = stockRecord.map((record) => record.branchId);
+
+        // Query the venue_branch table to get branch names
+        const branchNames = await feature7Client.venue_branch.findMany({
+            where: {
+                venueId: parseInt(venueId),
+                branchId: { in: branchIds },
+            },
+            select: {
+                branchId: true,
+                branch_name: true,
+            },
+        });
+
+        // Create a mapping of branchId to branchName
+        const branchIdToNameMap: Record<number, string> = {};
+        branchNames.forEach((branch) => {
+            branchIdToNameMap[branch.branchId] = branch.branch_name;
+        });
+
+        // Combine stock records with branch names
+        const result = stockRecord.map((record) => ({
+            branchName: branchIdToNameMap[record.branchId] || 'Unknown Branch',
+            availability: record.availability || 0, // Assuming availability is a field in the stocks table
+            // Add other fields from stock record if needed
+            // For example: menuId: record.menuId, quantity: record.quantity, etc.
+        }));
       
-          return res.status(200).json(stockRecord);
+          return res.status(200).json(result);
     }
     catch (e) {
         console.error('Error checking stock availability:', e);
@@ -678,12 +706,12 @@ export const changeMenuAvailability = async (req: Request, res: Response) => {
     try {
         const menuId= req.params.menuId;
         const venueId= req.params.venueId;
-        const branchId= parseInt(req.body.branchId);
+        const branchId= req.params.branchId;
         console.log(branchId);
         const availability = await feature7Client.stocks.findFirst({
             where: {
               venueId : parseInt(venueId),
-              branchId : branchId,
+              branchId : parseInt(branchId),
               menuId : parseInt(menuId),
             },
             });
