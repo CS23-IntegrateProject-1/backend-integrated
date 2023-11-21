@@ -21,9 +21,13 @@ import {
     changeMenuAvailability,
     editMenu,
     addMenu,
-    
+    addMenuItemsToSetsInCookies,
+    showMenuItemsInCookies,
+    addSetWithMenuItems,
+    clearSetItemsInCookies
 } from "../controllers/feature7.controller";
 import { customVerifyCookie } from "../middlewares/verifyCookies";
+import { clear } from "console";
 
 const feature7Router = Router();
 
@@ -66,4 +70,12 @@ feature7Router.post("/changeMenuAvailability/:menuId/:venueId/:branchId",changeM
 feature7Router.post("/editMenu/:menuId",editMenu);
 //add menu
  feature7Router.post("/addMenu/:venueId",addMenu);
+ //add menu to set (cookies)
+feature7Router.post("/addMenuItemsToSetsInCookies/:venueId",addMenuItemsToSetsInCookies);
+//show all set items in cookies
+feature7Router.get("/showMenuItemsInCookies/:venueId",showMenuItemsInCookies);
+//add set
+feature7Router.post("/addSetWithMenuItems/:venueId",addSetWithMenuItems);
+//clear set items in cookies by venueid
+feature7Router.post("/clearSetItemsInCookies/:venueId",clearSetItemsInCookies);
 export default feature7Router;

@@ -5,6 +5,7 @@ import { tr } from "date-fns/locale";
 import { Response, Request } from "express";
 import { parse } from "path";
 import { customVerifyCookie } from "../middlewares/verifyCookies";
+import { json } from "stream/consumers";
 
 
 const feature7Client = new PrismaClient();
@@ -784,4 +785,127 @@ export const addMenu = async (req: Request, res: Response) => {
         console.error('Error changing stock availability:', e);
     }
 }
-//add set menus
+//add menu to set (cookies)
+export const addMenuItemsToSetsInCookies = async(req: Request, res :Response) => {
+    try{
+        const venueId = req.params.venueId;
+        const menuId = req.body.menuId;
+        const menu = await feature7Client.menu.findUnique(
+            {
+                where: {
+                    menuId: parseInt(menuId)
+                }
+            }
+        );
+        if (!menu) {
+            return res.status(404).json({ error: 'Menu item not found' });
+          }
+        
+        const existingItemsString = req.cookies.setItems || '[]';
+         const existingItems = JSON.parse(existingItemsString);
+         // Check if the item is already in the array
+        const itemExists = existingItems.some(item => (
+            item.venueId === parseInt(venueId) && item.menuId === parseInt(menuId)
+        ));
+
+          // If the item doesn't exist, add it to the array
+          if (!itemExists) {
+            existingItems.push({
+                venueId: parseInt(venueId),
+                menuId: parseInt(menuId),
+            });
+
+            // Set the updated array as the value for the cookie
+            res.cookie('setItems', JSON.stringify(existingItems));
+        }
+
+        console.log('existingItems:', existingItems);
+
+        // Clear the cookie if the array is empty
+        if (existingItems.length === 0) {
+            res.clearCookie('setItems');
+        } 
+        res.cookie('setItems', JSON.stringify(existingItems));
+        res.status(200).json({ success: true, message: 'Added items to set' });
+    }
+    catch (e) {
+        console.error('Error adding menu items to set:', e);
+    }
+  };
+//show all set items in cookies
+export const showMenuItemsInCookies = async (req: Request, res: Response) => {
+    try {
+        const venueId = parseInt(req.params.venueId);
+        const menuItemsString = req.cookies.setItems || '[]';
+        console.log(menuItemsString);
+        const menuItems = JSON.parse(menuItemsString);
+        const specific = menuItems.filter((item: any) => item.venueId === venueId);
+        console.log(menuItems);
+        res.status(200).json(menuItems);
+    }
+    catch (e) {
+        console.log(e);
+    }
+};
+//add set
+export const addSetWithMenuItems = async (req: Request, res: Response) => {
+    try {
+      const { name, price, description } = req.body;
+      const venueId= req.params.venueId;
+      // Get selected menu items from cookies
+      const selectedMenuItem = req.cookies.setItems || [];
+      const selectedMenuItems=JSON.parse(selectedMenuItem);
+      console.log(selectedMenuItems);
+    //   if (!Array.isArray(selectedMenuItems)) {
+    //     // Handle the case where selectedMenuItems is not an array (it could be undefined or something else)
+    //     throw new Error('Selected menu items is not an array');
+    //   }
+      // Extract menuId values from the array of objects
+        const menuIds = selectedMenuItems.map((item) => item.menuId);
+        console.log(menuIds);
+      // Create a new set in the Sets table
+      const createdSet = await feature7Client.sets.create({
+        data: {
+          name,
+          price,
+          description,
+        //   image_url ="dish.jpg",
+          venueId: parseInt(venueId),
+        },
+      });
+  
+      // Create set items in the SetItems table for the extracted menuId values
+    const setItems = await Promise.all(
+        menuIds.map(async (menuItemId) => {
+          const createdSetItem = await feature7Client.set_items.create({
+            data: {
+              menuId: menuItemId,
+              setId: createdSet.setId,
+            },
+          });
+          return createdSetItem;
+        })
+      );
+      const updated = selectedMenuItems.filter(item => item.venueId !== parseInt(venueId));
+     res.cookie('setItems', JSON.stringify(updated));
+      res.json({ createdSet, setItems });
+  } catch (error) {
+    console.error('Error adding set with menu items:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+//clear set items in cookies by venueid
+export const clearSetItemsInCookies = async (req: Request, res: Response) => {
+    try {
+        const venueId= req.params.venueId;
+        const selectedMenuItem = req.cookies.setItems || [];
+        console.log(selectedMenuItem);
+      const selectedMenuItems=JSON.parse(selectedMenuItem);
+      const updated = selectedMenuItems.filter(item => item.venueId !== parseInt(venueId));
+      res.cookie('setItems', JSON.stringify(updated));
+        res.status(200).json({ success: true, message: 'Cleared' });
+    }
+    catch (e) {
+        console.log(e);
+    }
+}
