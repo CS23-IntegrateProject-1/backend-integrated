@@ -74,7 +74,7 @@ export const saveUserLocation = async (req: Request, res: Response) => {
 
     const savedLocation = await feature4Client.userSaved_location.create({
       data: {
-        userId: userId,
+        userId: parseInt(userId),
         name: name,
         address: fullAddress,
         createdAt: new Date(), 
