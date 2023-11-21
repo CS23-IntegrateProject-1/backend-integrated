@@ -18,4 +18,9 @@ router.post("/adminLogin", authController.adminLogin);
 router.post("/adminVerify", authController.adminVerify);
 router.get("/adminGetUser", authController.adminGetUser);
 
+router.post("/adminSignup", authController.adminSignup);
+router.post("/adminLogin", authController.adminLogin);
+router.post("/adminVerify", authController.adminVerify);
+router.get("/adminGetUser", authController.adminGetUser);
+
 export { router as AuthRoutes };
