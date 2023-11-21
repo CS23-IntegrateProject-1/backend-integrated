@@ -4,9 +4,9 @@ import { Response, Request } from "express";
 
 const feature5Client = new PrismaClient();
 
-// export const getfeature5 = async (req: Request, res: Response) => {
-//     res.status(200).json({message: 'This is Feature5'});
-// };
+export const getfeature5 = async (req: Request, res: Response) => {
+    res.status(200).json({message: 'This is Feature5'});
+};
 
 enum isApprove {
     Rejected = "Rejected",
@@ -84,6 +84,7 @@ export const AdBusiness = async (req: Request, res: Response) => {
 
         res.json(newAdvertisement);
     } catch(err) {
+        console.log(err);
         const error = err as Error;
         res.status(500).json({ error: error.message});
     }
@@ -236,33 +237,59 @@ export const Voucher = async (req: Request, res: Response) => {
     }
 }
 
+// export const GetMock = async (req: Request, res: Response) => {
+//     try {
+//         const { id } = req.body; 
+
+//         const discountVoucher = await feature5Client.discount_voucher.findUnique({
+//             where: { voucherId: parseInt(id) }
+            
+//         });
+//         res.json(discountVoucher);
+//         const foodVoucher = await feature5Client.food_voucher.findUnique({
+//             where: { voucherId: parseInt(id) }
+//         });
+//         res.json(foodVoucher);
+//     } catch (err) {
+//         const error = err as Error;
+//         res.status(500).json({ error: error.message});
+//     }
+// }
+
 export const DeleteVoucher = async (req: Request, res: Response) => {
     try {
-        // const {id} = req.params;
-        const {Vouchertype,id} = req.body;
+        const { id } = req.params; 
 
-        if(Vouchertype == "discount"){
+        const discountVoucher = await feature5Client.discount_voucher.findUnique({
+            where: { voucherId: parseInt(id) }
+        });
+
+        const foodVoucher = await feature5Client.food_voucher.findUnique({
+            where: { voucherId: parseInt(id) }
+        });
+
+        if (discountVoucher) {
             await feature5Client.discount_voucher.delete({
-                where: {voucherId: parseInt(id)}
-            })
+                where: { voucherId: parseInt(id) }
+            });
         }
 
-        if(Vouchertype == "food"){
+        if (foodVoucher) {
             await feature5Client.food_voucher.delete({
-                where: {voucherId: parseInt(id)}
-            })
+                where: { voucherId: parseInt(id) }
+            });
         }
-        
+
         const DeleteAd = await feature5Client.voucher.delete({
-            where: {voucherId: parseInt(id)}
-            
-       })
-        res.json(DeleteAd)
+            where: { voucherId: parseInt(id) }
+        });
+
+        res.json(DeleteAd);
     } catch (err) {
         const error = err as Error;
-        res.status(500).json({ error: error.message});
+        res.status(500).json({ error: error.message });
     }
-}
+};
 
 export const VoucherApprove = async (req: Request, res: Response) => {
     try {
@@ -287,6 +314,41 @@ export const GetallVenue = async (req: Request, res: Response) => {
             include: {venue: true}
         })
         res.json(getvenue)
+
+    } catch (err) {
+        const error = err as Error;
+        res.status(500).json({ error: error.message});
+    }
+}
+
+
+export const GetCompleteVoucher = async (req: Request, res: Response) => {
+
+    try {
+        const GetCompleteVoucher = await feature5Client.voucher.findMany({
+            where: {isApprove: "Completed"}
+   
+        })
+        res.json(GetCompleteVoucher)
+
+    } catch (err) {
+        const error = err as Error;
+        res.status(500).json({ error: error.message});
+    }
+}
+
+export const GetNotCompleteVoucher = async (req: Request, res: Response) => {
+    try {
+        const GetNotCompleteVoucher = await feature5Client.voucher.findMany({
+            where: {
+                OR: [
+                    { isApprove: "In_progress" },
+                    { isApprove: "Rejected" }
+                ]
+            }
+   
+        })
+        res.json(GetNotCompleteVoucher)
 
     } catch (err) {
         const error = err as Error;

@@ -10,11 +10,12 @@ import {
     GetAllCompleteAdvertisement,
     GetAllTags,
     Voucher,
-    // GetallVenue,
-    // DeleteVoucher,
-    // VoucherApprove,
-    // GetCompleteVoucher,
-    // GetNotCompleteVoucher
+    GetallVenue,
+    DeleteVoucher,
+    VoucherApprove,
+    GetCompleteVoucher,
+    GetNotCompleteVoucher,
+    // GetMock
     // getUser
 } from "../controllers/feature5.controller";
 
@@ -29,11 +30,12 @@ feature5Router.get("/AllAdBSN", GetAllAdvertisement);
 feature5Router.get("/AllCompleteAdBSN", GetAllCompleteAdvertisement);
 feature5Router.get("/AllTag", GetAllTags);
 feature5Router.post("/Voucher", Voucher);
-// feature5Router.get("/AllVenue/:id", GetallVenue);
-// feature5Router.delete("/DeleteVoucher/:id", DeleteVoucher) ;
-// feature5Router.patch("/VoucherApprove/:id", VoucherApprove);
-// feature5Router.get("/AllCompleteVch", GetCompleteVoucher);
-// feature5Router.get("/AllNotCompleteVch", GetNotCompleteVoucher);
+feature5Router.get("/AllVenue/:id", GetallVenue);
+feature5Router.delete("/DeleteVoucher/:id", DeleteVoucher) ;
+feature5Router.patch("/VoucherApprove/:id", VoucherApprove);
+feature5Router.get("/AllCompleteVch", GetCompleteVoucher);
+feature5Router.get("/AllNotCompleteVch", GetNotCompleteVoucher);
+// feature5Router.get("/GetMock/:id", GetMock);
 
 
 export default feature5Router;
