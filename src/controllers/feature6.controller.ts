@@ -1,7 +1,7 @@
 import { Day, PrismaClient } from "@prisma/client";
 import { Response, Request } from "express";
 import { addMinutes, addHours } from "date-fns";
-import authService from "../services/auth.service";
+import authService from "../services/auth/auth.service";
 
 const feature6Client = new PrismaClient();
 
@@ -70,12 +70,18 @@ export const getReservationById = async (req: Request, res: Response) => {
 //Start from here
 //My Reservation Page (4 status)
 //Finished
-export const getAllReservationByStatus = async (
+export const getMyReservationByStatus = async (
     req: Request,
     res: Response
 ) => {
     try {
-        const { status, userId } = req.body;
+        const token = req.cookies.authToken;
+        if (!token) {
+            return res.status(401).json({ error: "No auth token" });
+        }
+        const decodedToken = authService.decodeToken(token);
+        const { userId } = decodedToken;
+        const { status } = req.body;
         const Reservation = await feature6Client.reservation.findMany({
             where: {
                 status: status,
@@ -118,7 +124,7 @@ export const getVenueAndReservationsById = async (
             return res.status(401).json({ error: "No auth token" });
         }
         const decodedToken = authService.decodeToken(token);
-        const {userId} = decodedToken;
+        const { userId } = decodedToken;
         const { venueId, reservationId } = req.params;
         const venue = await feature6Client.venue.findUnique({
             where: {
@@ -141,7 +147,7 @@ export const getVenueAndReservationsById = async (
 
         const reservations = await feature6Client.reservation.findMany({
             where: {
-                userId: userId,
+                userId: parseInt(userId),
                 venueId: parseInt(venueId),
                 reservationId: parseInt(reservationId),
             },
@@ -167,7 +173,13 @@ export const getVenueAndReservationsById = async (
 // Finished 
 export const createReservation = async (req: Request, res: Response) => {
     try {
-        const { venueId, userId, guest_amount, reserved_time, branchId } = req.body;
+        const token = req.cookies.authToken;
+        if (!token) {
+            return res.status(401).json({ error: "No auth token" });
+        }
+        const decodedToken = authService.decodeToken(token);
+        const { userId } = decodedToken;
+        const { venueId, guest_amount, reserved_time, branchId } = req.body;
         // Use the previous functions to check availability and find a suitable table
         // const reservedTimeStart = reserved_time;
         // const reservedTimeEnd = reservedTimeStart.add({ hours: 3 }); // Assuming a reservation lasts for 3 hours
@@ -198,7 +210,7 @@ export const createReservation = async (req: Request, res: Response) => {
         const newReservation = await feature6Client.reservation.create({
             data: {
                 venueId,
-                userId,
+                userId: userId,
                 guest_amount,
                 reserved_time: new Date(reserved_time),
                 entry_time,
@@ -206,7 +218,7 @@ export const createReservation = async (req: Request, res: Response) => {
                 isPaidDeposit: "Pending",
                 isReview: false,
                 depositId: depositId[0].depositId,
-                branchId: branchId
+                branchId: branchId,
             },
         });
         // Create the reservation table entry for the selected table
@@ -586,8 +598,10 @@ export const findSuitableTable = async ( getAvailableTablesResponse, res: Respon
 };
 
 // BUSINESS SIDE PART
+// GET METHOD
 
-//GET METHOD
+// In-progress
+// Stil error userId
 // export const getAllTableTypeByVenueId = async (req: Request, res: Response) => {
 //     try {
 //         const { venueId } = req.params;
@@ -611,55 +625,61 @@ export const findSuitableTable = async ( getAvailableTablesResponse, res: Respon
 // };
 
 // In-progress
-// export const getTableByTableId = async (req: Request, res: Response) => {
-//     try {
-//         const { tableId } = req.params;
-//         const venueId = req.body.venueId;
-//         const table = await feature6Client.tables.findUnique({
-//             where: {
-//                 tableId: parseInt(tableId),
-//                 venueId: parseInt(venueId),
-//                 tableTypeDetailId: venueId.tableTypeDetailId,
-//             },
-//         });
-//         return res.status(200).json(table);
-//     } catch (e) {
-//         return res.status(500).json(e);
-//     }
-// };
+export const getTableByTableId = async (req: Request, res: Response) => {
+    try {
+        const { tableId } = req.params;
+        const venueId = req.body.venueId;
+        const table = await feature6Client.tables.findUnique({
+            where: {
+                tableId: parseInt(tableId),
+                venueId: parseInt(venueId),
+                tableTypeDetailId: venueId.tableTypeDetailId,
+            },
+        });
+
+        return res.status(200).json(table);
+    } catch (e) {
+        return res.status(500).json(e);
+    }
+};
 
 //POST METHOD
-// export const createTable = async (req: Request, res: Response) => {
-//     try {
-//         const { venueId, information, tableTypeDetailId } = req.body;
-//         const newTable = await feature6Client.tables.create({
-//             data: {
-//                 venueId: venueId,
-//                 information: information,
-//                 tableTypeDetailId: tableTypeDetailId,
-//             },
-//         });
+// In-progress
+export const createTable = async (req: Request, res: Response) => {
+    try {
+        const { venueId, information, tableTypeDetailId, tableNo, branchId } = req.body;
+        const newTable = await feature6Client.tables.create({
+            data: {
+                venueId: venueId,
+                information: information,
+                tableTypeDetailId: tableTypeDetailId,
+                table_no: tableNo,
+                branchId: branchId,
+                status: "Available",
+            },
+        });
 
-//         return res.json(newTable);
-//     } catch (e) {
-//         return res.status(500).json(e);
-//     }
-// };
+        return res.json(newTable);
+    } catch (e) {
+        return res.status(500).json(e);
+    }
+};
 
-// export const createTableType = async (req: Request, res: Response) => {
-//     try {
-//         const { capacity, detail, name, venueId } = req.body;
-//         const newTableType = await feature6Client.table_type_detail.create({
-//             data: {
-//                 capacity: capacity,
-//                 detail: detail,
-//                 name: name,
-//                 venueId: venueId,
-//             },
-//         });
+export const createTableType = async (req: Request, res: Response) => {
+    try {
+        const { capacity, detail, name, venueId, image_url } = req.body;
+        const newTableType = await feature6Client.table_type_detail.create({
+            data: {
+                capacity: capacity,
+                detail: detail,
+                name: name,
+                venueId: venueId,
+                image_url: image_url
+            },
+        });
 
-//         return res.json(newTableType);
-//     } catch (e) {
-//         return res.status(500).json(e);
-//     }
-// };
+        return res.json(newTableType);
+    } catch (e) {
+        return res.status(500).json(e);
+    }
+};
