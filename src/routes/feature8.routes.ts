@@ -38,6 +38,7 @@ import {
     updateCreditCard,
     updateVenueCreditCard,
     ShowUpdateOrder,
+    getAllApptransactionByVenueId,
     
 } from "../controllers/feature8.controller";
 
@@ -64,16 +65,18 @@ feature8Router.get("/reservation/:venueId",getReservationByVenueId);
 feature8Router.get("/reservation/:venueId/findtableid", getTableIdsByVenueId);
 feature8Router.get("/reservation/:venueId/findtableno", getTableNosByVenueId)
 feature8Router.get("/reservation/:venueId/:reservationId", getTableNoByReservationId)
-
-// get Transaction
+    //customer -> admin?
 feature8Router.get("/transactions", getAllTransaction);
 feature8Router.get("/transactions/:transactionId", getTransactionById);
 feature8Router.get("/transaction_details", getAllTransactionDetails); 
 feature8Router.get("/transaction_details/:transactionId", getTransactionDetailById);
+    //admin
 feature8Router.get("/apptransactions", getAllApptransaction);
-feature8Router.get("/apptransactions/:apptransactionId", getApptransactionById);
+feature8Router.get("/apptransactions/:venueId", getAllApptransactionByVenueId);
+feature8Router.get("/apptransactions/:apptransactionId", getApptransactionById); //doesn't work
 feature8Router.get("/apptransaction_details", getAllAppTransactiondetail);
-feature8Router.get("/apptransaction_details/:apptransactionId", getAppTransactiondetailById);
+feature8Router.get("/apptransaction_details/:apptransactionId", getAppTransactiondetailById); //doesn't work
+    //business
 feature8Router.get("/venuetransactions", getVenuetransaction);
 feature8Router.get("/venuetransactions/:venuetransactionId", getVenuetransactionById);
 feature8Router.get("/venuetransaction_details", getVenuetransactiondetail);

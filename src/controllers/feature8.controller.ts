@@ -158,6 +158,24 @@ export const getTableNoByReservationId = async (req: Request, res: Response) => 
   };
 
 
+  export const getAllApptransactionByVenueId = async (req: Request, res: Response) => {
+    const venueId = parseInt(req.params.venueId, 10);
+
+    try {
+        const apptransactions = await feature8Client.app_transaction.findMany({
+            where: { venueId },
+        });
+
+        if (!apptransactions || apptransactions.length === 0) {
+            return res.status(404).json({ error: 'No app transactions found for the specified venue' });
+        }
+
+        res.status(200).json(apptransactions);
+    } catch (error) {
+        console.error('Error fetching app transactions by venue ID:', error);
+        res.status(500).json({ error: 'Failed to retrieve app transactions' });
+    }
+};
 
 
 
