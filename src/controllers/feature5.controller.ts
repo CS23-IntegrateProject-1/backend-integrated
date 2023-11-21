@@ -1,4 +1,4 @@
-import { Approve_status, Customer_type, Prisma, PrismaClient, Target_group } from "@prisma/client";
+import { Customer_type, Prisma, PrismaClient, Target_group } from "@prisma/client";
 import { Response, Request } from "express";
 
 
@@ -29,6 +29,7 @@ interface adinfo {
 }
 
 interface voucherinfo{
+
     voucher_name: string;
     voucher_image: string;
     start_date: Date;
