@@ -5,10 +5,16 @@ import authController from "../controllers/auth.controller";
 const router = Router();
 
 // here define your routes
+router.post("/logout", authController.logout);
+
 router.post("/signup", authController.signup);
 router.post("/login", authController.login);
-router.post("/logout", authController.logout);
 router.post("/verify", authController.verify);
 router.get("/getUser", authController.getUser);
+
+router.post("/adminSignup", authController.adminSignup);
+router.post("/adminLogin", authController.adminLogin);
+router.post("/adminVerify", authController.adminVerify);
+router.get("/adminGetUser", authController.adminGetUser);
 
 export { router as AuthRoutes };
