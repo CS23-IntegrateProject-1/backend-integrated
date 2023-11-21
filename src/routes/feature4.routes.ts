@@ -31,7 +31,7 @@ feature4Router.delete("/map-data/:locationId", deleteLocation);
 feature4Router.post("/saved-location", saveUserLocation);
 feature4Router.get("/saved-location", GetAllsaveUserLocation);
 feature4Router.put("/saved-location", updateSavedLocation);
-feature4Router.delete("/saved-location/:locationId/:userId", deleteSavedLocation);
+feature4Router.delete("/saved-location/:savedLocId/:userId", deleteSavedLocation);
 
 feature4Router.get("/restaurants",getAllRestaurant );
 feature4Router.get("/bars",getAllBars );
