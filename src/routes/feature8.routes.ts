@@ -37,10 +37,11 @@ import {
     addVenuePromptpay,
     updateCreditCard,
     updateVenueCreditCard,
-    ShowUpdateOrder,
     getAllApptransactionByVenueId,
     getApptransactiondetailByTransactionId,
-    
+    getAllNotificationReservation,
+    getAllNotificationOrder,
+    getAllNotificationAdBusiness,
 } from "../controllers/feature8.controller";
 
 
@@ -66,6 +67,9 @@ feature8Router.get("/reservation/:venueId",getReservationByVenueId);
 feature8Router.get("/reservation/:venueId/findtableid", getTableIdsByVenueId);
 feature8Router.get("/reservation/:venueId/findtableno", getTableNosByVenueId)
 feature8Router.get("/reservation/:venueId/:reservationId", getTableNoByReservationId)
+feature8Router.get("/notifications/reservation", getAllNotificationReservation);
+feature8Router.get("/notifications/order", getAllNotificationOrder);
+feature8Router.get("/notifications/advertisement", getAllNotificationAdBusiness);
     //customer -> admin?
 feature8Router.get("/transactions", getAllTransaction);
 feature8Router.get("/transactions/:transactionId", getTransactionById);
@@ -83,8 +87,8 @@ feature8Router.get("/venuetransactions", getVenuetransaction);
 feature8Router.get("/venuetransactions/:venuetransactionId", getVenuetransactionById);
 feature8Router.get("/venuetransaction_details", getVenuetransactiondetail);
 feature8Router.get("/venuetransaction_details/:venuetransactionId", getVenuetransactiondetailById);
-feature8Router.get("/updateorder", ShowUpdateOrder);
-// post method
+// feature8Router.get("/updateorder", ShowUpdateOrder);
+    // post method
 feature8Router.post("/create_transaction_detail", createTransactionDetail);
 feature8Router.post("/add_creditcard", addCreditCard);
 feature8Router.post("/add_venue_creditcard", addVenueCreditCard);

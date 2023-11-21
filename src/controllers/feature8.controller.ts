@@ -592,58 +592,59 @@ export const getMenuByMenuId = async (req: Request, res: Response) => {
     }
 }
 
-// export const getAllNotificationReservation = async (req: Request, res: Response) => {
-//     try {
-//         const notifications = await feature8Client.notification_reservation.findMany();
-//         res.json(notifications);
-//     } catch (error) {
-//         console.error(error);
-//         res.status(500).json({ error: 'Failed to retrieve notifications' });
-//     }
-// }
-
-// export const getAllNotificationOrder = async (req: Request, res: Response) => {
-//     try {
-//         const notifications = await feature8Client.notification_order.findMany();
-//         res.json(notifications);
-//     } catch (error) {
-//         console.error(error);
-//         res.status(500).json({ error: 'Failed to retrieve notifications' });
-//     }
-// }
-
-// export const getAllNotificationAdBusiness = async (req: Request, res: Response) => {
-//     try {
-//         const notifications = await feature8Client.notification_ad_business.findMany();
-//         res.json(notifications);
-//     } catch (error) {
-//         console.error(error);
-//         res.status(500).json({ error: 'Failed to retrieve notifications' });
-//     }
-// }
-export const ShowUpdateOrder = async (req: Request, res: Response) => {
-    const token = req.cookies.authToken; // token stored in authToken
-    // wait to change the userId to businessId(not finish yet) businessId->venueId->orderUpdate
-    if (!token) {
-        return res.status(404).json({ error: 'not verify' });
-    }
-    const decodetoken = authService.decodeToken(token);
-    const userId = decodetoken.userId;
+export const getAllNotificationReservation = async (req: Request, res: Response) => {
     try {
-        const order = await feature8Client.orders.findMany({
-            where: { userId : userId },
-        });
-
-        if (!order) {
-            return res.status(404).json({ error: 'Order not found' });
-        }
-
-        res.status(200).json(order);
+        const notifications = await feature8Client.notification_reservation.findMany();
+        res.json(notifications);
     } catch (error) {
         console.error(error);
-        res.status(500).json({ error: 'Failed to retrieve order' });
+        res.status(500).json({ error: 'Failed to retrieve notifications' });
     }
 }
+
+export const getAllNotificationOrder = async (req: Request, res: Response) => {
+    try {
+        const notifications = await feature8Client.notification_order.findMany();
+        res.json(notifications);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Failed to retrieve notifications' });
+    }
+}
+
+export const getAllNotificationAdBusiness = async (req: Request, res: Response) => {
+    try {
+        const notifications = await feature8Client.notfication_ad_business.findMany();
+        res.json(notifications);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Failed to retrieve notifications' });
+    }
+}
+// export const ShowUpdateOrder = async (req: Request, res: Response) => {
+//     const token = req.cookies.authToken; // token stored in authToken
+//     // wait to change the userId to businessId(not finish yet) businessId->venueId->orderUpdate
+//     if (!token) {
+//         return res.status(404).json({ error: 'not verify' });
+//     }
+//     const decodetoken = authService.decodeToken(token);
+//     const userId = decodetoken.userId;
+//     try {
+//         const orders = await feature8Client.orders.findMany({
+//             where: { userId : userId },
+//         });
+
+//         if (!orders) {
+//             return res.status(404).json({ error: 'Order not found' });
+//         }
+
+//         res.status(200).json(orders);
+//     } catch (error) {
+//         console.error(error);
+//         res.status(500).json({ error: 'Failed to retrieve order' });
+//     }
+// }
+
 // add , create
 export const addVenuePromptpay = async (req: Request, res: Response) => {
     const { promptpay_no } = req.body;
