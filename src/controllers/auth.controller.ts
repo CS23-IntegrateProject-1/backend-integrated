@@ -99,6 +99,21 @@ class AuthController implements IAuthController {
             return res.status(500).send({ message: "Internal server error." });
         }
     }
+    async getUser(req: Request, res: Response) {
+        try {
+          const token = req.cookies.authToken;
+          if (!token) {
+            return res.json({ error: "No auth token" });
+          }
+          const decodedToken = authService.decodeToken(token);
+          const userId = decodedToken.userId;
+    
+          res.json({ userId: userId });
+        } catch (e) {
+          console.error(e);
+          res.json({ error: "error getting user" });
+        }
+      }
 }
 
 export default new AuthController();
