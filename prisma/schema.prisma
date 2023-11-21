@@ -50,6 +50,7 @@ model User {
   User_bio               User_bio?
   User_voucher           User_voucher[]
   Venue_reviews          Venue_reviews[]
+  userSaved_location     userSaved_location[]
 
   @@index([tierId], map: "User_tierId_fkey")
 }
@@ -1332,6 +1333,15 @@ model Payments {
   payment_method Movie_payment
   payment_status Payment_status
   reserved_log   Reservation_logs @relation(fields: [reservationId], references: [reservationId])
+}
+
+model userSaved_location {
+  savedLocId Int      @id @default(autoincrement())
+  userId     Int
+  name       String
+  address    String   @db.Text
+  createdAt  DateTime @default(now()) @db.Timestamp(0)
+  user       User     @relation(fields: [userId], references: [userId])
 }
 
 enum Gender {
