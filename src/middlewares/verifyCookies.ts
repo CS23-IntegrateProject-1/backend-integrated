@@ -1,5 +1,5 @@
 // import { Request, Response, NextFunction } from "express";
-// import jwt, { JwtPayload } from "jsonwebtoken";
+import jwt, { JwtPayload } from "jsonwebtoken";
 
 // const secretKey = process.env.JWT_SECRET as string;
 // const FRONTEND_URL = process.env.FRONTEND_URL || "";
@@ -10,7 +10,7 @@
 //   if (!token) {
 //     // Handle when no token is found
 //     req.userId = userId; // Attach the userId to the request
-//     next(); 
+//     next();
 //   }
 
 //   try {
@@ -18,7 +18,7 @@
 //     const decoded = jwt.verify(token, secretKey) as JwtPayload;
 //     const { userId } = decoded;
 //     req.userId = userId; // Attach the userId to the request
-//     next(); 
+//     next();
 //   } catch (error) {
 //     // Handle when token verification fails
 //     res.clearCookie("authToken", { domain: FRONTEND_URL }); // Clear the cookie
@@ -26,14 +26,18 @@
 //   }
 // };
 
-import { Request, Response, NextFunction, response } from "express";
+import { Response, NextFunction, response } from "express";
 import authService from "../services/auth.service";
 // import jwt, { JwtPayload } from "jsonwebtoken";
 
 const secretKey = process.env.JWT_SECRET as string;
 const FRONTEND_URL = process.env.FRONTEND_URL || "";
 
-export const customVerifyCookie = (req: any, res: Response, next: NextFunction) => {
+export const customVerifyCookie = (
+  req: any,
+  res: Response,
+  next: NextFunction
+) => {
   const token = req.cookies.authToken; // token stored in authToken
 
   if (!token) {
@@ -44,10 +48,10 @@ export const customVerifyCookie = (req: any, res: Response, next: NextFunction) 
 
   try {
     // Verify using the jwt.verify
-    // const decoded = jwt.verify(token, secretKey) as JwtPayload;
-    // const { userId } = decoded;
+    const decoded = jwt.verify(token, secretKey) as JwtPayload;
+    const { userId } = decoded;
     // For demo purposes, you can directly set a demo userId
-    req.userId = "demoUserId"; // Pass a demo userId
+    req.userId = userId; // Pass a demo userId
     next();
   } catch (error) {
     // Handle when token verification fails
@@ -55,4 +59,3 @@ export const customVerifyCookie = (req: any, res: Response, next: NextFunction) 
     return res.status(401).json({ message: "Invalid authentication token." });
   }
 };
-

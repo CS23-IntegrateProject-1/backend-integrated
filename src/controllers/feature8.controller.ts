@@ -592,6 +592,35 @@ export const getMenuByMenuId = async (req: Request, res: Response) => {
     }
 }
 
+// export const getAllNotificationReservation = async (req: Request, res: Response) => {
+//     try {
+//         const notifications = await feature8Client.notification_reservation.findMany();
+//         res.json(notifications);
+//     } catch (error) {
+//         console.error(error);
+//         res.status(500).json({ error: 'Failed to retrieve notifications' });
+//     }
+// }
+
+// export const getAllNotificationOrder = async (req: Request, res: Response) => {
+//     try {
+//         const notifications = await feature8Client.notification_order.findMany();
+//         res.json(notifications);
+//     } catch (error) {
+//         console.error(error);
+//         res.status(500).json({ error: 'Failed to retrieve notifications' });
+//     }
+// }
+
+// export const getAllNotificationAdBusiness = async (req: Request, res: Response) => {
+//     try {
+//         const notifications = await feature8Client.notification_ad_business.findMany();
+//         res.json(notifications);
+//     } catch (error) {
+//         console.error(error);
+//         res.status(500).json({ error: 'Failed to retrieve notifications' });
+//     }
+// }
 export const ShowUpdateOrder = async (req: Request, res: Response) => {
     const token = req.cookies.authToken; // token stored in authToken
     // wait to change the userId to businessId(not finish yet) businessId->venueId->orderUpdate
