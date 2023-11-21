@@ -17,6 +17,10 @@ import {
     showSetDetailFromCart,
     showOnGoingOrderDetails,
     showCompletedOrderDetails,
+    checkMenuAvailabilityOfAllBranches,
+    changeMenuAvailability,
+    editMenu,
+    addMenu,
     
 } from "../controllers/feature7.controller";
 import { customVerifyCookie } from "../middlewares/verifyCookies";
@@ -54,5 +58,12 @@ feature7Router.post("/addCartToOrderDetailsOfDineIn/:venueId/",addCartToOrderDet
 feature7Router.get("/showOngoingOrderDetails/:venueId",showOnGoingOrderDetails);
 //show Completed Order details
 feature7Router.get("/showCompletedOrderDetails/:venueId",showCompletedOrderDetails);
-
+//show availability of menu of all branches
+feature7Router.get("/checkMenuAvailabilityOfAllBranches/:menuId/:venueId",checkMenuAvailabilityOfAllBranches);
+//Change menu availability
+feature7Router.post("/changeMenuAvailability/:menuId/:venueId",changeMenuAvailability);
+//edit menu
+feature7Router.post("/editMenu/:menuId",editMenu);
+//add menu
+ feature7Router.post("/addMenu/:venueId",addMenu);
 export default feature7Router;

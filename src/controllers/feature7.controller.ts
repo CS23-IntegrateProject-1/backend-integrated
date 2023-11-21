@@ -655,5 +655,104 @@ export const showCompletedOrderDetails = async (req: Request, res: Response) => 
         console.log(e);
     }
 }
-export const addCartToOrderDetailsOfTakeAway = async (req: Request, res: Response) => {
+//show availability of menu of all branches
+export const checkMenuAvailabilityOfAllBranches = async (req: Request, res: Response) => {
+    try {
+        const menuId= req.params.menuId;
+        const venueId= req.params.venueId;
+        const stockRecord = await feature7Client.stocks.findMany({
+            where: {
+              venueId : parseInt(venueId),
+              menuId : parseInt(menuId),
+            },
+          });
+      
+          return res.status(200).json(stockRecord);
+    }
+    catch (e) {
+        console.error('Error checking stock availability:', e);
+    }
 }
+//Change menu availability
+export const changeMenuAvailability = async (req: Request, res: Response) => {
+    try {
+        const menuId= req.params.menuId;
+        const venueId= req.params.venueId;
+        const branchId= parseInt(req.body.branchId);
+        console.log(branchId);
+        const availability = await feature7Client.stocks.findFirst({
+            where: {
+              venueId : parseInt(venueId),
+              branchId : branchId,
+              menuId : parseInt(menuId),
+            },
+            });
+        const stockRecord = await feature7Client.stocks.update({
+            where: {
+              stockId: availability?.stockId,
+            },
+            data:{
+                availability: !(availability?.availability),
+            }
+          });
+      
+          return res.status(200).json(stockRecord);
+    }
+    catch (e) {
+        console.error('Error changing stock availability:', e);
+    }
+}
+//edit menu
+export const editMenu = async (req: Request, res: Response) => {
+    try {
+        const menuId= req.params.menuId;
+        const name = req.body.name;
+        const price = req.body.price;
+        const description = req.body.description;
+        // const image = req.body.image;
+        const menu = await feature7Client.menu.update({
+            where: {
+              menuId: parseInt(menuId),
+            },
+            data:{
+                name: name,
+                price: price,
+                description: description,
+                // image: image,
+            }
+          });
+      
+          return res.status(200).json(menu);
+    }
+    catch (e) {
+        console.error('Error changing stock availability:', e);
+    }
+}
+//add menu
+export const addMenu = async (req: Request, res: Response) => {
+    try {
+        const venueId= req.params.venueId;
+        const name = req.body.name;
+        const price = req.body.price;
+        const description = req.body.description;
+        const image = "menuImage.jpg";
+        // const menuNo= req.menuNo;
+        const menu = await feature7Client.menu.create({
+            data:{
+                name: name,
+                price: price,
+                description: description,
+                image: image,
+                venueId: parseInt(venueId),
+                // meno_no: menuNo?  ||0 
+                menu_no:0
+            }
+          });
+      
+          return res.status(200).json(menu);
+    }
+    catch (e) {
+        console.error('Error changing stock availability:', e);
+    }
+}
+//add set menus
