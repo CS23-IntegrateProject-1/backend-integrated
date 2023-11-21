@@ -7,6 +7,7 @@ import { Response, Request } from "express";
 import { customVerifyCookie } from "../middlewares/verifyCookies";
 // import { json } from "stream/consumers";
 import multerConfig from "../multerConfig";
+import { parse } from "path";
 
 
 const feature7Client = new PrismaClient();
@@ -122,9 +123,9 @@ export const checkSetAvailability = async (req: Request, res: Response) => {
     }
 }
 
-export const addMenuToCookie = async (req: Request, res: Response) => {
+export const addMenuToCookie = async (req: any, res: Response) => {
     try {
-        const userId = "4";
+        const userId = req.userId;
         const quantity = req.body.quantity;
         const menuId = req.params.menuId;
         const menu = await feature7Client.menu.findUnique(
@@ -175,9 +176,9 @@ export const addMenuToCookie = async (req: Request, res: Response) => {
         console.log(error);
     }
 }
-export const addSetToCookie = async (req: Request, res: Response) => {
+export const addSetToCookie = async (req: any, res: Response) => {
     try {
-        const userId = "4";
+        const userId = req.userId;
         const quantity = req.body.quantity;
         const setId = req.params.setId;
         const set = await feature7Client.sets.findUnique(
@@ -228,9 +229,9 @@ export const addSetToCookie = async (req: Request, res: Response) => {
         console.log(error);
     }
 }
-export const showCart = async (req: Request, res: Response) => {
+export const showCart = async (req: any, res: Response) => {
     try {
-        const userId = 4;
+        const userId = parseInt(req.userId);
         const cartString = req.cookies.cart || '[]';
         // console.log(cartString);
         const cart = JSON.parse(cartString);
@@ -244,9 +245,9 @@ export const showCart = async (req: Request, res: Response) => {
     }
 }
 //Show detail of specific menu from cart
-export const showMenuDetailFromCart = async (req: Request, res: Response) => {
+export const showMenuDetailFromCart = async (req: any, res: Response) => {
     try {
-        const userId = 4;
+        const userId = parseInt(req.userId);
         const mneuId = parseInt(req.params.menuId);
         const cartString = req.cookies.cart || '[]';
         const cart = JSON.parse(cartString);
@@ -264,9 +265,9 @@ export const showMenuDetailFromCart = async (req: Request, res: Response) => {
     }
 }
 //for sets
-export const showSetDetailFromCart = async (req: Request, res: Response) => {
+export const showSetDetailFromCart = async (req: any, res: Response) => {
     try {
-        const userId = 4;
+        const userId = parseInt(req.userId);
         const setId = parseInt(req.params.setId);
         const cartString = req.cookies.cart || '[]';
         const cart = JSON.parse(cartString);
@@ -409,11 +410,11 @@ export const showSetDetailFromCart = async (req: Request, res: Response) => {
 //         console.log(e);
 //     }
 // }
-export const addCartToOrderDetailsOfDineIn = async (req: Request, res: Response) => {
+export const addCartToOrderDetailsOfDineIn = async (req: any, res: Response) => {
     try {
         const branchId = req.body.branchId;
         const venueId = req.params.venueId;
-        const userId = 4;
+        const userId = parseInt(req.userId);
 
         // Check if the user already has an active order for the given venue
         const existingOrder = await feature7Client.orders.findFirst({
@@ -543,9 +544,9 @@ export const addCartToOrderDetailsOfDineIn = async (req: Request, res: Response)
         res.status(500).json({ error: 'Internal Server Error' });
     }
 };
-export const showOnGoingOrderDetails = async (req: Request, res: Response) => {
+export const showOnGoingOrderDetails = async (req: any, res: Response) => {
     try {
-        const userId = 4;
+        const userId = parseInt(req.userId);
         const venueId = parseInt(req.params.venueId);
         const orderId = await feature7Client.orders.findFirst({
             where: {
@@ -600,9 +601,9 @@ export const showOnGoingOrderDetails = async (req: Request, res: Response) => {
         console.log(e);
     }
 }
-export const showCompletedOrderDetails = async (req: Request, res: Response) => {
+export const showCompletedOrderDetails = async (req: any, res: Response) => {
     try {
-        const userId = 4;
+        const userId = parseInt(req.userId);
         const venueId = parseInt(req.params.venueId);
         const orderId = await feature7Client.orders.findFirst({
             where: {

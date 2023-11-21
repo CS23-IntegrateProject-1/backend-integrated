@@ -26,7 +26,7 @@ import {
     addSetWithMenuItems,
     clearSetItemsInCookies,
     deleteMenu,
-    deleteSet
+    deleteSet,
 } from "../controllers/feature7.controller";
 import { customVerifyCookie } from "../middlewares/verifyCookies";
 import { clear } from "console";
@@ -49,21 +49,21 @@ feature7Router.get("/checkMenuAvailability/:menuId/:venueId/:branchId",checkMenu
 //check set availability
 feature7Router.get("/checkSetAvailability/:setId/:venueId/:branchId",checkSetAvailability);
 //add menu to cart
-feature7Router.post("/addMenuToCookie/:menuId", addMenuToCookie);
+feature7Router.post("/addMenuToCookie/:menuId", customVerifyCookie,addMenuToCookie);
 //add set to cart
-feature7Router.post("/addSetToCookie/:setId", addSetToCookie);
+feature7Router.post("/addSetToCookie/:setId", customVerifyCookie,addSetToCookie);
 //show cart of user
-feature7Router.get("/showCart",showCart);
+feature7Router.get("/showCart",customVerifyCookie,showCart);
 //Show menu detail from cart
-feature7Router.get("/showMenuDetailFromCart/:menuId",showMenuDetailFromCart);
+feature7Router.get("/showMenuDetailFromCart/:menuId",customVerifyCookie,showMenuDetailFromCart);
 //Show set detail from cart
-feature7Router.get("/showSetDetailFromCart/:setId",showSetDetailFromCart);
+feature7Router.get("/showSetDetailFromCart/:setId",customVerifyCookie,showSetDetailFromCart);
 //add cart to order details
-feature7Router.post("/addCartToOrderDetailsOfDineIn/:venueId/",addCartToOrderDetailsOfDineIn);
+feature7Router.post("/addCartToOrderDetailsOfDineIn/:venueId/",customVerifyCookie,addCartToOrderDetailsOfDineIn);
 //show Ongoing Order details
-feature7Router.get("/showOngoingOrderDetails/:venueId",showOnGoingOrderDetails);
+feature7Router.get("/showOngoingOrderDetails/:venueId",customVerifyCookie,showOnGoingOrderDetails);
 //show Completed Order details
-feature7Router.get("/showCompletedOrderDetails/:venueId",showCompletedOrderDetails);
+feature7Router.get("/showCompletedOrderDetails/:venueId",customVerifyCookie,showCompletedOrderDetails);
 //show availability of menu of all branches
 feature7Router.get("/checkMenuAvailabilityOfAllBranches/:menuId/:venueId",checkMenuAvailabilityOfAllBranches);
 //Change menu availability
@@ -84,4 +84,5 @@ feature7Router.post("/clearSetItemsInCookies/:venueId",clearSetItemsInCookies);
 feature7Router.delete("/deleteMenu/:menuId",deleteMenu);
 //delete set
 feature7Router.delete("/deleteSet/:setId",deleteSet);
+
 export default feature7Router;
