@@ -689,6 +689,7 @@ export const checkMenuAvailabilityOfAllBranches = async (req: Request, res: Resp
 
         // Combine stock records with branch names
         const result = stockRecord.map((record) => ({
+            branchId: record.branchId,
             branchName: branchIdToNameMap[record.branchId] || 'Unknown Branch',
             availability: record.availability || 0, // Assuming availability is a field in the stocks table
             // Add other fields from stock record if needed
