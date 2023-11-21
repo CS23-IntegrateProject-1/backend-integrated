@@ -6,6 +6,7 @@ import {
     // getfeature5,
     AdminApprove,
     DeleteAdvertisement,
+    GetInprogressAdvertisement,
     GetAllAdvertisement,
     GetAllCompleteAdvertisement,
     GetAllTags,
@@ -25,8 +26,9 @@ const feature5Router = Router();
 feature5Router.post("/AdBSN/:id", AdBusiness);
 feature5Router.patch("/AdminApprove/:id", AdminApprove);
 feature5Router.delete("/DeleteAdBSN/:id", DeleteAdvertisement) ;
-feature5Router.get("/AllAdBSN", GetAllAdvertisement);
+feature5Router.get("/AllInprogressAdBSN", GetInprogressAdvertisement);
 feature5Router.get("/AllCompleteAdBSN", GetAllCompleteAdvertisement);
+feature5Router.get("/AllAdBSN/:id", GetAllAdvertisement);
 feature5Router.get("/AllTag", GetAllTags);
 feature5Router.post("/Voucher", Voucher);
 feature5Router.get("/AllVenue/:id", GetallVenue);

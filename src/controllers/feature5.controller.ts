@@ -9,37 +9,6 @@ export const getfeature5 = async (req: Request, res: Response) => {
     res.status(200).json({message: 'This is Feature5'});
 };
 
-// enum isApprove {
-//     Rejected = "Rejected",
-//     In_progress = "In_progress",
-//     Completed = "Completed"
-// }
-
-// interface adinfo {
-//     name: string;
-//     description: string;    
-//     image_url: string;
-//     start_date: Date;
-//     end_date: Date;
-//     cost: number;
-//     isApprove: isApprove;
-//     customer_type: Customer_type;
-//     target_group: Target_group;
-//     businessId: number;
-    
-// }
-
-// interface voucherinfo{
-
-//     voucher_name: string;
-//     voucher_image: string;
-//     start_date: Date;
-//     end_date: Date;
-//     description: string;
-//     point_use: number;
-//     venueId: number;
-//     isApprove: isApprove;
-// }
 
 export const AdBusiness = async (req: Request, res: Response) => {
     try {
@@ -128,12 +97,26 @@ export const AdminApprove = async (req: Request, res: Response) => {
 }
 
 export const GetAllAdvertisement = async (req: Request, res: Response) => {
+    const {id} = req.params;
     try {
-        const GetallAd = await feature5Client.ad_business.findMany({
+        const GetAllAd = await feature5Client.ad_business.findMany({
+            where: {businessId: parseInt(id)},
+            
+        })
+        res.json(GetAllAd)
+    } catch (err) {
+        const error = err as Error;
+        res.status(500).json({ error: error.message});
+    }
+}
+
+export const GetInprogressAdvertisement = async (req: Request, res: Response) => {
+    try {
+        const GetInprogressAd = await feature5Client.ad_business.findMany({
             where: {isApprove: "In_progress"},
             
         })
-        res.json(GetallAd)
+        res.json(GetInprogressAd)
     } catch (err) {
         const error = err as Error;
         res.status(500).json({ error: error.message});
