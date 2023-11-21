@@ -15,7 +15,6 @@ import {
     VoucherApprove,
     GetCompleteVoucher,
     GetNotCompleteVoucher,
-    // GetMock
     // getUser
 } from "../controllers/feature5.controller";
 
@@ -35,7 +34,6 @@ feature5Router.delete("/DeleteVoucher/:id", DeleteVoucher) ;
 feature5Router.patch("/VoucherApprove/:id", VoucherApprove);
 feature5Router.get("/AllCompleteVch", GetCompleteVoucher);
 feature5Router.get("/AllNotCompleteVch", GetNotCompleteVoucher);
-// feature5Router.get("/GetMock/:id", GetMock);
 
 
 export default feature5Router;

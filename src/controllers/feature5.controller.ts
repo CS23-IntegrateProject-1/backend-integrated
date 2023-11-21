@@ -1,6 +1,7 @@
-import { Customer_type, Prisma, PrismaClient, Target_group } from "@prisma/client";
+import {PrismaClient} from "@prisma/client";
 import { Response, Request } from "express";
-
+import { adinfo } from "../interface/Auth/Advertisement";
+import { voucherinfo } from "../interface/Auth/Voucher";
 
 const feature5Client = new PrismaClient();
 
@@ -8,37 +9,37 @@ export const getfeature5 = async (req: Request, res: Response) => {
     res.status(200).json({message: 'This is Feature5'});
 };
 
-enum isApprove {
-    Rejected = "Rejected",
-    In_progress = "In_progress",
-    Completed = "Completed"
-}
+// enum isApprove {
+//     Rejected = "Rejected",
+//     In_progress = "In_progress",
+//     Completed = "Completed"
+// }
 
-interface adinfo {
-    name: string;
-    description: string;    
-    image_url: string;
-    start_date: Date;
-    end_date: Date;
-    cost: number;
-    isApprove: isApprove;
-    customer_type: Customer_type;
-    target_group: Target_group;
-    businessId: number;
+// interface adinfo {
+//     name: string;
+//     description: string;    
+//     image_url: string;
+//     start_date: Date;
+//     end_date: Date;
+//     cost: number;
+//     isApprove: isApprove;
+//     customer_type: Customer_type;
+//     target_group: Target_group;
+//     businessId: number;
     
-}
+// }
 
-interface voucherinfo{
+// interface voucherinfo{
 
-    voucher_name: string;
-    voucher_image: string;
-    start_date: Date;
-    end_date: Date;
-    description: string;
-    point_use: number;
-    venueId: number;
-    isApprove: isApprove;
-}
+//     voucher_name: string;
+//     voucher_image: string;
+//     start_date: Date;
+//     end_date: Date;
+//     description: string;
+//     point_use: number;
+//     venueId: number;
+//     isApprove: isApprove;
+// }
 
 export const AdBusiness = async (req: Request, res: Response) => {
     try {
