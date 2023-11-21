@@ -1,7 +1,8 @@
 import { PrismaClient } from "@prisma/client";
 import { Response, Request } from "express";
 import jwt, { JwtPayload, Secret } from 'jsonwebtoken';
-
+import authService from "../services/auth.service";
+//import { startOfDay, endOfDay } from 'date-fns';
 //const feature11Client = new PrismaClient();
 const prisma = new PrismaClient();
 
@@ -107,15 +108,12 @@ export const addArticle = async (req: Request, res: Response) => {
     const tags: string[] = req.body.tags;
     const imageDetails: ImageInput[] = req.body.images;
 
-    //const Id = req.params.Id;
-    const userId = 3;
-    //const secret: Secret = 'fwjjpjegjwpjgwej' || "";
-    //const token = req.cookies.token;
-    //if (!token)
-    //  return res.json({ error: 'Unauthorized' });
-
-    //const decoded = jwt.verify(token, secret) as CustomJwtPayload;
-    //const userId = decoded.userId;
+    const token = req.cookies.authToken;
+    if (!token) {
+      return res.json({ error: "No auth token" })
+    }
+    const decodedToken = authService.decodeToken(token)
+    const userId = decodedToken.userId;
 
     const newArticle = await prisma.article.create({
       data: {
@@ -322,14 +320,12 @@ export const addComment = async (req: Request, res: Response) => {
   try {
     const comment: CommentCreateInput = req.body;
     const { content, articleId } = comment;
-    //const secret: Secret = 'fwjjpjegjwpjgwej' || "";
-    //const token = req.cookies.token;
-    //if (!token)
-    //  return res.json({ error: 'Unauthorized' });
-
-    //const decoded = jwt.verify(token, secret) as CustomJwtPayload;
-    //const userId = decoded.userId;
-    const userId = 3;
+    const token = req.cookies.authToken;
+    if (!token) {
+      return res.json({ error: "No auth token" })
+    }
+    const decodedToken = authService.decodeToken(token)
+    const userId = decodedToken.userId;
 
     const newComment = await prisma.comments.create({
       data: {
@@ -381,14 +377,12 @@ export const editComment = async (req: Request, res: Response) => {
 
 export const getArticleDetail = async (req: Request, res: Response) => {
   const { articleId } = req.params;
-  const userId = 3;
-  //const secret: Secret = 'fwjjpjegjwpjgwej' || "";
-  //const token = req.cookies.token;
-  //if (!token)
-  //  return res.json({ error: 'Unauthorized' });
-
-  //const decoded = jwt.verify(token, secret) as CustomJwtPayload;
-  //const userId = decoded.userId;
+  const token = req.cookies.authToken;
+  if (!token) {
+    return res.json({ error: "No auth token" })
+  }
+  const decodedToken = authService.decodeToken(token)
+  const userId = decodedToken.userId;
 
   try {
     const article = await prisma.article.findUnique({
@@ -472,14 +466,12 @@ export const getArticleComment = async (req: Request, res: Response) => {
 };
 
 export const getAllArticle = async (req: Request, res: Response) => {
-  const userId = 3;
-  //const secret: Secret = 'fwjjpjegjwpjgwej' || "";
-  //const token = req.cookies.token;
-  //if (!token)
-  //  return res.json({ error: 'Unauthorized' });
-
-  //const decoded = jwt.verify(token, secret) as CustomJwtPayload;
-  //const userId = decoded.userId;
+  const token = req.cookies.authToken;
+  if (!token) {
+    return res.json({ error: "No auth token" })
+  }
+  const decodedToken = authService.decodeToken(token)
+  const userId = decodedToken.userId;
 
   try {
     const articles = await prisma.article.findMany({
@@ -540,14 +532,12 @@ export const getAllArticle = async (req: Request, res: Response) => {
 };
 
 export const addLike = async (req: Request, res: Response) => {
-  //const secret: Secret = 'fwjjpjegjwpjgwej' || "";
-  //const token = req.cookies.token;
-  //if (!token)
-  //  return res.json({ error: 'Unauthorized' });
-
-  //const decoded = jwt.verify(token, secret) as CustomJwtPayload;
-  //const userId = decoded.userId;
-  const userId = 3;
+  const token = req.cookies.authToken;
+  if (!token) {
+    return res.json({ error: "No auth token" })
+  }
+  const decodedToken = authService.decodeToken(token)
+  const userId = decodedToken.userId;
   
   const like: LikeCreateInput = req.body;
   const { articleId } = like;
@@ -572,14 +562,12 @@ export const deleteLike = async (req: Request, res: Response) => {
   const like: LikeCreateInput = req.body;
   const { articleId } = like;
   
-  //const secret: Secret = 'fwjjpjegjwpjgwej' || "";
-  //const token = req.cookies.token;
-  //if (!token)
-  //  return res.json({ error: 'Unauthorized' });
-
-  //const decoded = jwt.verify(token, secret) as CustomJwtPayload;
-  //const userId = decoded.userId;
-  const userId = 1;
+  const token = req.cookies.authToken;
+  if (!token) {
+    return res.json({ error: "No auth token" })
+  }
+  const decodedToken = authService.decodeToken(token)
+  const userId = decodedToken.userId;
 
   try {
     const deletedLike = await prisma.like.delete({
@@ -626,3 +614,42 @@ export const getAllVenueName = async (req: Request, res: Response) => {
 //     console.log(e);
 //   }
 // };
+
+//export const getCountPerDay = async (req: Request, res: Response) => {
+//  try {
+//      const { venueId } = req.params;
+//      const today = new Date();
+//      const startOfToday = startOfDay(today); // Gets the start of the current day
+//      const endOfToday = endOfDay(today); // Gets the end of the current day
+
+//      console.log(today)
+//      console.log(startOfDay)
+//      console.log(endOfDay)
+
+//      const reservationsToday = await prisma.reservation.findMany({
+//        where: {
+//          AND: [
+//            {
+//              reserved_time: {
+//                gte: startOfToday,
+//                lte: endOfToday,
+//              },
+//              venueId: parseInt(venueId)
+//            },
+//          ],
+//        },
+//        include: {
+//          Reservation_table: true,
+//        },
+//      });
+
+//      let count = 0;
+//      reservationsToday.forEach((reservation) => {
+//        count += reservation.Reservation_table.length;
+//      });
+
+//      res.json(count)
+//  } catch (e) {
+//      return res.status(500).json(e);
+//  }
+//};
