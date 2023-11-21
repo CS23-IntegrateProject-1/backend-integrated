@@ -39,6 +39,7 @@ import {
     updateVenueCreditCard,
     ShowUpdateOrder,
     getAllApptransactionByVenueId,
+    getApptransactiondetailByTransactionId,
     
 } from "../controllers/feature8.controller";
 
@@ -76,6 +77,7 @@ feature8Router.get("/apptransactions/:venueId", getAllApptransactionByVenueId);
 feature8Router.get("/apptransactions/:apptransactionId", getApptransactionById); //doesn't work
 feature8Router.get("/apptransaction_details", getAllAppTransactiondetail);
 feature8Router.get("/apptransaction_details/:apptransactionId", getAppTransactiondetailById); //doesn't work
+feature8Router.get("/apptransaction_details/bytransactionId/:transactionId", getApptransactiondetailByTransactionId); 
     //business
 feature8Router.get("/venuetransactions", getVenuetransaction);
 feature8Router.get("/venuetransactions/:venuetransactionId", getVenuetransactionById);

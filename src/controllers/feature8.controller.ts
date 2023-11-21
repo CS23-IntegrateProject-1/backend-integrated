@@ -347,24 +347,55 @@ export const getAllAppTransactiondetail = async (req: Request, res: Response) =>
     }
 }
 
+export const getApptransactiondetailByTransactionId = async (req: Request, res: Response) => {
+    try {
+        const transactionId = parseInt(req.params.transactionId, 10);
+
+        if (isNaN(transactionId)) {
+            console.error('Invalid transactionId:', req.params.transactionId);
+            return res.status(400).json({ error: 'Invalid transactionId' });
+        }
+
+        const appTransactionDetail = await feature8Client.app_transaction_detail.findUnique({
+            where: { appTransactionId: transactionId },
+        });
+
+        if (!appTransactionDetail) {
+            console.error('AppTransactionDetail not found for transactionId:', transactionId);
+            return res.status(404).json({ error: 'AppTransactionDetail not found' });
+        }
+
+        res.status(200).json(appTransactionDetail);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Failed to retrieve AppTransactionDetail' });
+    }
+};
+
+
 export const getAppTransactiondetailById = async (req: Request, res: Response) => {
     const appTransactionDetailId = parseInt(req.params.appTransactionDetailId, 10);
-
     try {
         const apptransactiondetail = await feature8Client.app_transaction_detail.findUnique({
             where: { appTransactionDetailId },
         });
-
         if (!apptransactiondetail) {
             return res.status(404).json({ error: 'App transaction detail not found' });
         }
-
         res.status(200).json(apptransactiondetail);
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Failed to retrieve app transaction detail' });
     }
 }
+
+
+
+
+
+
+
+
 
 export const getVenuetransaction = async (req: Request, res: Response) => {
     try {
