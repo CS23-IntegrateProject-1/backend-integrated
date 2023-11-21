@@ -24,7 +24,9 @@ import {
     addMenuItemsToSetsInCookies,
     showMenuItemsInCookies,
     addSetWithMenuItems,
-    clearSetItemsInCookies
+    clearSetItemsInCookies,
+    deleteMenu,
+    deleteSet
 } from "../controllers/feature7.controller";
 import { customVerifyCookie } from "../middlewares/verifyCookies";
 import { clear } from "console";
@@ -78,4 +80,8 @@ feature7Router.get("/showMenuItemsInCookies/:venueId",showMenuItemsInCookies);
 feature7Router.post("/addSetWithMenuItems/:venueId",addSetWithMenuItems);
 //clear set items in cookies by venueid
 feature7Router.post("/clearSetItemsInCookies/:venueId",clearSetItemsInCookies);
+//delete menu
+feature7Router.delete("/deleteMenu/:menuId",deleteMenu);
+//delete set
+feature7Router.delete("/deleteSet/:setId",deleteSet);
 export default feature7Router;

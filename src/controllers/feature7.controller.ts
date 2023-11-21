@@ -946,3 +946,38 @@ export const clearSetItemsInCookies = async (req: Request, res: Response) => {
         console.log(e);
     }
 }
+//delete menu
+export const deleteMenu = async (req: Request, res: Response) => {  
+    try {
+        const menuId = req.params.menuId;
+        const menu = await feature7Client.menu.delete({
+            where: {
+                menuId: parseInt(menuId),
+            },
+        });
+        return res.status(200).json(menu);
+    } catch (e) {
+        console.error('Error deleting menu:', e);
+        return res.status(500).json({ error: 'Internal Server Error' });
+    }
+}
+//delete set
+export const deleteSet = async (req: Request, res: Response) => {  
+    try {
+        const setId = req.params.setId;
+        const setItems= await feature7Client.set_items.deleteMany({
+            where: {
+                setId: parseInt(setId),
+            },
+        });
+        const set = await feature7Client.sets.delete({
+            where: {
+                setId: parseInt(setId),
+            },
+        });
+        return res.status(200).json(set);
+    } catch (e) {
+        console.error('Error deleting set:', e);
+        return res.status(500).json({ error: 'Internal Server Error' });
+    }
+}
