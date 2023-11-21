@@ -50,6 +50,7 @@ model User {
   User_bio               User_bio?
   User_voucher           User_voucher[]
   Venue_reviews          Venue_reviews[]
+  userSaved_location     userSaved_location[]
 
   @@index([tierId], map: "User_tierId_fkey")
 }
@@ -753,7 +754,7 @@ model Like {
 
 model Reservation {
   venueId           Int
-  branchId          Int
+  branchId          Int?
   guest_amount      Int
   reserved_time     DateTime            @default(now())
   status            Status
@@ -766,7 +767,7 @@ model Reservation {
   Check_in_log      Check_in_log?
   Notes             Notes?
   Orders            Orders?
-  branch            Venue_branch        @relation(fields: [branchId], references: [branchId])
+  branch            Venue_branch?        @relation(fields: [branchId], references: [branchId])
   deposit           Deposit             @relation(fields: [depositId], references: [depositId])
   user              User                @relation(fields: [userId], references: [userId])
   venue             Venue               @relation(fields: [venueId], references: [venueId])
@@ -815,14 +816,14 @@ model Deposit {
 
 model Tables {
   venueId           Int
-  branchId          Int
+  branchId          Int?
   table_no          Int
   status            Table_status
   information       String              @db.Text
   tableId           Int                 @id @default(autoincrement())
   tableTypeDetailId Int
   Reservation_table Reservation_table[]
-  branch            Venue_branch        @relation(fields: [branchId], references: [branchId])
+  branch            Venue_branch?        @relation(fields: [branchId], references: [branchId])
   table_type        Table_type_detail   @relation(fields: [tableTypeDetailId], references: [tableTypeDetailId])
   venue             Venue               @relation(fields: [venueId], references: [venueId])
 
@@ -1332,6 +1333,15 @@ model Payments {
   payment_method Movie_payment
   payment_status Payment_status
   reserved_log   Reservation_logs @relation(fields: [reservationId], references: [reservationId])
+}
+
+model userSaved_location {
+  savedLocId Int      @id @default(autoincrement())
+  userId     Int
+  name       String
+  address    String   @db.Text
+  createdAt  DateTime @default(now()) @db.Timestamp(0)
+  user       User     @relation(fields: [userId], references: [userId])
 }
 
 enum Gender {
