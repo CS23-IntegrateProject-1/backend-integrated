@@ -11,13 +11,6 @@ export const getfeature8 = async (req: Request, res: Response) => {
 };
 
 export const getAllUser = async (req: Request, res: Response) => {
-    // const token = req.cookies.authToken; // token stored in authToken
-
-    // if (!token) {
-    //     return res.status(404).json({ error: 'not verify' });
-    // }
-    // const decodetoken = authService.decodeToken(token);
-    // const user = decodetoken.userId;
     try {
         const allUsers = await feature8Client.user.findMany();
         res.status(200).json(allUsers);
@@ -550,6 +543,29 @@ export const getMenuByMenuId = async (req: Request, res: Response) => {
     }
 }
 
+export const ShowUpdateOrder = async (req: Request, res: Response) => {
+    const token = req.cookies.authToken; // token stored in authToken
+    // wait to change the userId to businessId(not finish yet) businessId->venueId->orderUpdate
+    if (!token) {
+        return res.status(404).json({ error: 'not verify' });
+    }
+    const decodetoken = authService.decodeToken(token);
+    const userId = decodetoken.userId;
+    try {
+        const order = await feature8Client.orders.findMany({
+            where: { userId : userId },
+        });
+
+        if (!order) {
+            return res.status(404).json({ error: 'Order not found' });
+        }
+
+        res.status(200).json(order);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Failed to retrieve order' });
+    }
+}
 // add , create
 export const addVenuePromptpay = async (req: Request, res: Response) => {
     const { promptpay_no } = req.body;

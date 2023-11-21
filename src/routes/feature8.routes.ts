@@ -27,16 +27,18 @@ import {
     getOrderbyId,
     getOrderdetailByOrderId,
     getMenuByMenuId,
+    getReservationByVenueId,
+    getTableIdsByVenueId,
+    getTableNosByVenueId,
+    getTableNoByReservationId,
     createTransactionDetail,
     addCreditCard,
     addVenueCreditCard,
     addVenuePromptpay,
     updateCreditCard,
     updateVenueCreditCard,
-    getReservationByVenueId,
-    getTableIdsByVenueId,
-    getTableNosByVenueId,
-    getTableNoByReservationId,
+    ShowUpdateOrder,
+    
 } from "../controllers/feature8.controller";
 
 
@@ -55,7 +57,7 @@ feature8Router.get("/creditcardU/:userId", getCreditCardByUserId);
 feature8Router.get("/creditcard/:creditCardId", getCreditCardById);
 feature8Router.get("/venuecreditcard/:venueId", getVenueCreditCardByVenueId);
 feature8Router.get("/venuepromptpay/:venueId", getVenuePromptpayByVenueId);
-feature8Router.get("/order/:orderId", getOrderbyId);
+feature8Router.get("/orders/:orderId", getOrderbyId);
 feature8Router.get("/orderdetail/:orderId", getOrderdetailByOrderId);
 feature8Router.get("/menu/:menuId", getMenuByMenuId);
 feature8Router.get("/reservation/:venueId",getReservationByVenueId);
@@ -63,6 +65,7 @@ feature8Router.get("/reservation/:venueId/findtableid", getTableIdsByVenueId);
 feature8Router.get("/reservation/:venueId/findtableno", getTableNosByVenueId)
 feature8Router.get("/reservation/:venueId/:reservationId", getTableNoByReservationId)
 
+// get Transaction
 feature8Router.get("/transactions", getAllTransaction);
 feature8Router.get("/transactions/:transactionId", getTransactionById);
 feature8Router.get("/transaction_details", getAllTransactionDetails); 
@@ -75,7 +78,7 @@ feature8Router.get("/venuetransactions", getVenuetransaction);
 feature8Router.get("/venuetransactions/:venuetransactionId", getVenuetransactionById);
 feature8Router.get("/venuetransaction_details", getVenuetransactiondetail);
 feature8Router.get("/venuetransaction_details/:venuetransactionId", getVenuetransactiondetailById);
-
+feature8Router.get("/updateorder", ShowUpdateOrder);
 // post method
 feature8Router.post("/create_transaction_detail", createTransactionDetail);
 feature8Router.post("/add_creditcard", addCreditCard);
@@ -85,4 +88,5 @@ feature8Router.post("/add_venue_promptpay", addVenuePromptpay);
 // patch method
 feature8Router.patch("/update_creditcard/:creditCardId", updateCreditCard);
 feature8Router.patch("/update_venue_creditcard/:venueId", updateVenueCreditCard);
+
 export default feature8Router;
