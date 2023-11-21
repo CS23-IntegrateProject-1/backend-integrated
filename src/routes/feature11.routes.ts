@@ -16,7 +16,8 @@ import {
     editComment,
     deleteImage,
     deleteVenue,
-    deleteTag
+    deleteTag,
+    getArticleHistory
 } from "../controllers/feature11.controller";
 
 const feature11Router = Router();
@@ -44,6 +45,7 @@ feature11Router.patch("/editComment", editComment);
 // * READ
 feature11Router.get("/fetchAllArticle", getAllArticle);
 feature11Router.get("/fetchAllVenueName", getAllVenueName);
+feature11Router.get("/fetchArticleHistory", getArticleHistory)
 
 // parameter = article id
 feature11Router.get("/fetchArticleDetail/:articleId", getArticleDetail);

@@ -606,6 +606,73 @@ export const getAllVenueName = async (req: Request, res: Response) => {
   }
 };
 
+export const getArticleHistory = async (req: Request, res: Response) => {
+  const token = req.cookies.authToken;
+  if (!token) {
+    return res.json({ error: "No auth token" })
+  }
+  const decodedToken = authService.decodeToken(token)
+  const userId = decodedToken.userId;
+  
+  try {
+    const articles = await prisma.article.findMany({
+      where: { userId },
+      include: {
+        Image: true,
+        Article_tags: {
+          include: {
+            tag: true,
+          },
+        },
+        Article_venue: {
+          include: {
+            venue: true,
+          },
+        },
+        user: {
+          include: {
+            user: true,
+          }
+        }
+      },
+    });
+  
+    if (articles.length === 0) {
+      res.status(404).json({ error: "Article not found" });
+      return;
+    }
+  
+    const articlesWithLikeCount = await Promise.all(
+      articles.map(async (article) => {
+        const likeCount = await prisma.like.count({
+          where: { articleId: article.articleId },
+        });
+
+        const commentCount = await prisma.comments.count({
+          where: { articleId: article.articleId }
+        })
+
+        const isLike = await prisma.like.findUnique({
+          where: { articleId_userId: { articleId: article.articleId, userId } },
+        });
+  
+        // Add the like count to each article object
+        return {
+          ...article,
+          Like: likeCount,
+          Comment: commentCount,
+          isLike: Boolean(isLike)
+        };
+      })
+    );
+  
+    res.json(articlesWithLikeCount);
+  } catch (error) {
+    console.error(error);
+    res.json({ error: "Internal server error" });
+  }
+};
+
 // example of controller getAllAuthors
 // export const getAllAuthors = async (req: Request, res: Response) => {
 //   try {
