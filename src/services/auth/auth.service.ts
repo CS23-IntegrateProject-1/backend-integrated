@@ -1,9 +1,11 @@
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcrypt";
 import jwt, { JwtPayload } from "jsonwebtoken";
-import UserType from "../interface/User.interface";
+import { SentUser } from "../../interface/Auth/User.interface";
+import { SentAdminUser } from "../../interface/Auth/AdminUser.interface";
+import IAuthService from "../../interface/Auth/IAuthService.interface";
 
-class AuthService {
+class AuthService implements IAuthService {
 	prisma = new PrismaClient();
 
 	verifyPassword(password: string, hashedPassword: string): Promise<boolean> {
@@ -17,9 +19,11 @@ class AuthService {
 		return hashedPassword;
 	}
 
-	generateToken(userId: number): string {
+	generateToken(data: any, userType: string): string {
 		const secretKey = process.env.JWT_SECRET as string;
-		const token = jwt.sign({ userId }, secretKey, { expiresIn: "7d" });
+		const token = jwt.sign({ data, userType }, secretKey, {
+			expiresIn: "7d"
+		});
 		return token;
 	}
 
@@ -39,6 +43,16 @@ class AuthService {
 		return user;
 	}
 
+	getAdminUserByUsername(username: string) {
+		const user = this.prisma.admin_user.findFirst({
+			where: {
+				username: username
+			}
+		});
+		if (!user) throw new Error("Admin not found.");
+		return user;
+	}
+
 	getUserById(userId: number) {
 		const user = this.prisma.user.findUnique({
 			where: {
@@ -49,7 +63,17 @@ class AuthService {
 		return user;
 	}
 
-	createUser(data: UserType) {
+	getAdminUserById(adminId: number) {
+		const user = this.prisma.admin_user.findFirst({
+			where: {
+				adminId: adminId
+			}
+		});
+		if (!user) throw new Error("Admin not found.");
+		return user;
+	}
+
+	createUser(data: SentUser) {
 		return this.prisma.user.create({
 			data: {
 				lname: data.lname,
@@ -58,6 +82,14 @@ class AuthService {
 				phone: data.phone,
 				email: data.email,
 				hashed_password: data.password
+			}
+		});
+	}
+	createAdminUser(data: SentAdminUser) {
+		return this.prisma.admin_user.create({
+			data: {
+				username: data.username,
+				hashed_password: data.hashed_password
 			}
 		});
 	}
