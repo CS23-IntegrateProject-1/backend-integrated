@@ -175,7 +175,7 @@ export const getAllRestaurant = async (req: Request, res: Response) => {
     const restaurants = await feature4Client.venue.findMany({
       where: {
         category: {
-          in: ["restaurant", "Restaurant","Restaurants","restaurants"]
+          in: ["restaurant", "Restaurant","Restaurants","restaurants","A LaCarte","a la carte","A la carte","a La Carte"]
         }
       }
     });
@@ -198,7 +198,7 @@ export const getAllBars = async (req: Request, res: Response) => {
     const bars = await feature4Client.venue.findMany({
       where: {
         category: {
-          in: ["bar", "Bar","Bars","bars"]
+          in: ["bar", "Bar","Bars","bars","Club","club","Clubs","clubs"]
         }
       }
     });
