@@ -25,6 +25,7 @@ import {
     editFoodReview,
     deleteFoodReview,
     getFoodReviews,
+    getSentimentAnalysis,
 } from "../controllers/feature3.controller";
 import { get } from "http";
 
@@ -46,6 +47,9 @@ feature3Router.get("/opening-day/:venueId/:openingDayId", getOpeningDay);
 feature3Router.get("/search-history/:user_id", getSearchHistory);
 feature3Router.get("/food-vouchers", getAllFoodVouchers);
 feature3Router.get("/discount-vouchers", getAllDiscountVouchers);
+
+// Sentiment analysis
+feature3Router.get("/sentiment-analysis/:id", getSentimentAnalysis);
 
 // Venue reviews
 feature3Router.get("/venue-reviews/:id", getVenueReviews);

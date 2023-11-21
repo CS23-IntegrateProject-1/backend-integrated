@@ -1,9 +1,90 @@
 import { PrismaClient } from "@prisma/client";
 import { Response, Request } from "express";
+import * as fs from "fs";
+import { type } from "os";
+import * as path from "path";
 
 const feature3Client = new PrismaClient();
 
 export const getfeature3 = async (req: Request, res: Response) => {};
+
+const executePythonFile = async (pythonScriptPath: string, arg: string) => {
+    return new Promise((resolve, reject) => {
+        const { exec } = require("child_process");
+        console.log(pythonScriptPath);
+        exec(
+            `python ${"../backend-integrated/src/services/sentimentAnalysis/func.py"} --review "${arg}"`,
+            (error, stdout, stderr) => {
+                if (error) {
+                    console.error(
+                        `Error executing Python script: ${error.message}`
+                    );
+                    reject(error);
+                } else {
+                    try {
+                        const resultObject = JSON.parse(stdout);
+                        resolve(resultObject);
+                    } catch (parseError) {
+                        console.error(`Error parsing JSON: ${parseError}`);
+                        reject(parseError);
+                    }
+                }
+            }
+        );
+    });
+};
+
+export const getSentimentAnalysis = async (req: Request, res: Response) => {
+    const { id } = req.params;
+
+    try {
+        const review = await feature3Client.venue_reviews.findMany({
+            where: {
+                venueReviewId: parseInt(id),
+            } as any,
+        });
+
+        if (review && review.length > 0) {
+            const review_txt = review[0].review;
+
+            // Check if review_txt is not null before proceeding
+            if (review_txt !== null) {
+                const pythonPath = "../services/sentimentAnalysis/func.py";
+
+                if (fs.existsSync(path.resolve(__dirname, pythonPath))) {
+                    try {
+                        const sentiment_analysis = await executePythonFile(
+                            pythonPath,
+                            review_txt
+                        );
+                        return res.json(sentiment_analysis);
+                    } catch (error) {
+                        console.error("Error in executePythonFile:", error);
+                        return res
+                            .status(500)
+                            .json({ error: "Error executing Python file" });
+                    }
+                } else {
+                    console.error(
+                        `Python file not found at path: ${pythonPath}`
+                    );
+                    return res
+                        .status(500)
+                        .json({ error: "Python file not found" });
+                }
+            } else {
+                console.error(`Review is null for venueReviewId: ${id}`);
+                return res.status(404).json({ error: "Review is null" });
+            }
+        } else {
+            console.error(`Review not found for venueReviewId: ${id}`);
+            return res.status(404).json({ error: "Review not found" });
+        }
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json(error);
+    }
+};
 
 export const getAdvertisements = async (req: Request, res: Response) => {
     try {
