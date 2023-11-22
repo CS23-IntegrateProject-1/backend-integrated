@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { getAllTable } from "../controllers/feature6.controller";
+import { getAllTable, getCountPerDay } from "../controllers/feature6.controller";
 import { getAllReservation } from "../controllers/feature6.controller";
 import { getMyReservationByStatus } from "../controllers/feature6.controller";
 import { getVenueById } from "../controllers/feature6.controller";
@@ -11,11 +11,12 @@ import { getAvailableTables } from "../controllers/feature6.controller";
 import { findSuitableTable } from "../controllers/feature6.controller";
 
 //IMPORT FOR BUSINESS SIDE
-// import { getAllTableTypeByVenueId } from "../controllers/feature6.controller";
+import { getAllTableTypeByVenueId } from "../controllers/feature6.controller";
 import { getTableByTableId } from "../controllers/feature6.controller";
 import { createTable } from "../controllers/feature6.controller";
 import { createTableType } from "../controllers/feature6.controller";
-
+import { deleteTable } from "../controllers/feature6.controller";
+import { getAllTableByVenueId } from "../controllers/feature6.controller";
 const feature6Router = Router();
 
 //GET METHOD
@@ -37,11 +38,16 @@ feature6Router.get("/findSuitableTable", findSuitableTable);
 //Business Side Part
 
 //GET METHOD
-// feature6Router.get("/AllTableType/:venueId",getAllTableTypeByVenueId);
+feature6Router.get("/allTableType/:venueId",getAllTableTypeByVenueId);
+feature6Router.get("/allTable/:venueId", getAllTableByVenueId);
 feature6Router.get("/MyTable/:tableId", getTableByTableId);
+feature6Router.get("/Dashboard/:venueId", getCountPerDay);
 
 //POST METHOD
 feature6Router.post("/createReservation", createReservation);
 feature6Router.post("/createTable", createTable);
 feature6Router.post("/createTableType", createTableType);
 export default feature6Router;
+
+//DELETE METHOD
+feature6Router.delete("/deleteTable/:tableId", deleteTable);
