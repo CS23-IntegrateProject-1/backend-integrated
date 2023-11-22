@@ -26,33 +26,6 @@ feature10Router.get("/getShowsByFilmsId/:id/:date", getShowsByFilmsId);
 feature10Router.get("/getSeatsTypeByScreenId/:id", getSeatsTypeByScreenId);
 feature10Router.get("/getFilmsInfoPage3/:id", getFilmsInfoPage3);
 feature10Router.get("/getShowsByTheaterId/:id/:date", getShowsByTheaterId);
-//feature10Router.get("/getShowsByTheaterId/:id", getShowsByTheaterId);
 
 export default feature10Router;
 
-// export const getShowsByFilmsId = async (req: Request, res: Response) => {
-//     try {
-//         
-//         const {date, id} = req.params
-//         
-//         const shows = await prisma.shows.findMany({
-//             where: {
-//                 filmId: parseInt(id),
-//                 date: new Date(date),
-//                
-//             },
-//             include: {
-//                 screen: {
-//                     include: {
-//                         theater: true
-//                     }
-//                 },
-//                 film: true
-//             },
-//         });
-//         res.json(shows);
-//     } catch (err) {
-//         const error = err as Error;
-//         res.status(500).json({ error: error.message });
-//     }
-// };
