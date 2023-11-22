@@ -222,24 +222,6 @@ export const Voucher = async (req: Request, res: Response) => {
     }
 }
 
-// export const GetMock = async (req: Request, res: Response) => {
-//     try {
-//         const { id } = req.body; 
-
-//         const discountVoucher = await feature5Client.discount_voucher.findUnique({
-//             where: { voucherId: parseInt(id) }
-            
-//         });
-//         res.json(discountVoucher);
-//         const foodVoucher = await feature5Client.food_voucher.findUnique({
-//             where: { voucherId: parseInt(id) }
-//         });
-//         res.json(foodVoucher);
-//     } catch (err) {
-//         const error = err as Error;
-//         res.status(500).json({ error: error.message});
-//     }
-// }
 
 export const DeleteVoucher = async (req: Request, res: Response) => {
     try {
