@@ -1,8 +1,7 @@
 import { Day, PrismaClient } from "@prisma/client";
 import { Response, Request } from "express";
 import { addMinutes, addHours, startOfDay, endOfDay } from "date-fns";
-import authService from "../services/auth.service";
-import { error } from "console";
+import authService from "../services/auth/auth.service";
 
 const feature6Client = new PrismaClient();
 
@@ -607,7 +606,6 @@ export const createTable = async (req: Request, res: Response) => {
 
         return res.json(newTable);
     } catch (e) {
-        error(e);
         return res.status(500).json(e);
     }
 };
@@ -726,7 +724,6 @@ export const deleteTable = async (req: Request, res: Response) => {
             deletedTable,
         });
     } catch (e) {
-        error(e);
         return res.status(500).json(e);
     }
 };
