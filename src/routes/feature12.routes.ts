@@ -10,6 +10,7 @@ import {
   displayAnswerWrtVenueID,
   getAllUsers,
   getFriendList,
+  forDialogflow,
 } from "../controllers/feature12.controller";
 
 const feature12Router = Router();
@@ -36,4 +37,6 @@ feature12Router.get("/displayUser", getAllUsers);
 //Get Friend List
 feature12Router.get("/displayFriendList/:firstUserId", getFriendList);
 
+//dialogflow route
+feature12Router.post("/dialogflow", forDialogflow);
 export default feature12Router;

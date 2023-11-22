@@ -4,6 +4,84 @@ const feature12Client = new PrismaClient();
 
 const prisma = new PrismaClient();
 
+//for dialogflow integration-1
+import dialogflow from '@google-cloud/dialogflow';
+
+//Getting CREDENTIALS from .env file for dialogflow
+import loadEnv from "../configs/dotenvConfig";
+loadEnv();
+// Your credentials
+const CREDENTIALS = JSON.parse(process.env.CREDENTIALS || '');
+
+// Other way to read the credentials
+// import fs from 'fs';
+// const CREDENTIALS = JSON.parse(fs.readFileSync(''));
+
+// Your google dialogflow project-id
+const PROJECID = CREDENTIALS.project_id;
+
+// Configuration for the client
+const CONFIGURATION = {
+  credentials: {
+    private_key: CREDENTIALS['private_key'],
+    client_email: CREDENTIALS['client_email']
+  }
+}
+
+//for dialogflow integration-2
+// Create a new session
+const sessionClient = new dialogflow.SessionsClient(CONFIGURATION);
+
+// Detect intent function
+const detectIntent = async (languageCode, queryText, sessionId) => {
+
+    let sessionPath = sessionClient.projectAgentSessionPath(PROJECID, sessionId);
+
+    // The text query request.
+    let request = {
+        session: sessionPath,
+        queryInput: {
+            text: {
+                // The query to send to the dialogflow agent
+                text: queryText,
+                // The language used by the client (en-US)
+                languageCode: languageCode,
+            },
+        },
+    };
+
+    // Send request and log result
+    const responses = await sessionClient.detectIntent(request);
+    console.log(responses);
+    const result = responses[0].queryResult;
+    console.log(result);
+
+    if (result) {
+    // Now you can safely access properties or methods on 'result'
+        console.log(result);
+        return {
+            response: result.fulfillmentText
+        };
+    } else {
+    console.log('Result is null or undefined');
+    }
+}
+
+//Post request for dialogflow with body parameters
+export const forDialogflow = async (req: Request, res: Response) => {
+  let languageCode = req.body.languageCode;
+    let queryText = req.body.queryText;
+    let sessionId = req.body.sessionId;
+
+    let responseData = await detectIntent(languageCode, queryText, sessionId);
+
+    if (responseData) {
+    res.send(responseData.response);
+  } else {
+    res.send('No response data');
+  }
+};
+
 // const existingChatRoom = await feature12Client.chat_room.findUnique({
 //   where: {
 //     //convert data.room to number
