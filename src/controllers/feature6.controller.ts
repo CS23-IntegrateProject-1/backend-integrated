@@ -1,7 +1,7 @@
 import { Day, PrismaClient } from "@prisma/client";
 import { Response, Request } from "express";
 import { addMinutes, addHours } from "date-fns";
-import authService from "../services/auth.service";
+import authService from "../services/auth/auth.service";
 
 const feature6Client = new PrismaClient();
 
