@@ -2,6 +2,7 @@ import { Day, PrismaClient } from "@prisma/client";
 import { Response, Request } from "express";
 import { addMinutes, addHours, startOfDay, endOfDay } from "date-fns";
 import authService from "../services/auth/auth.service";
+import { Decimal } from "@prisma/client/runtime/library";
 
 const feature6Client = new PrismaClient();
 
@@ -181,8 +182,11 @@ export const createReservation = async (req: Request, res: Response) => {
         }
         const decodedToken = authService.decodeToken(token);
         const { userId } = decodedToken;
-        const { venueId, guest_amount, reserved_time, branchId } = req.body;
+        const { venueId, guest_amount, reserve_date, time, branchId } =
+            req.body;
 
+        const concatDatetime = `${reserve_date} ${time}`;
+        const reserved_time = new Date(concatDatetime);
         // Use the previous functions to check availability and find a suitable table
         const newreserveTime = addHours(new Date(reserved_time), 7);
         // const entry_time = addMinutes(new Date(reserved_time), -30);
@@ -197,7 +201,9 @@ export const createReservation = async (req: Request, res: Response) => {
             selectedTable === undefined ||
             selectedTable.length === 0
         ) {
-            throw new Error("No suitable tables available.");
+            return res
+                .status(400)
+                .json({ error: "No suitable tables available." });
         }
         const depositId = await feature6Client.deposit.findMany({
             where: {
@@ -249,13 +255,26 @@ let getSuitableTableResponse: any;
 // Function for find reservation that is in the same time
 export const checkAvailability = async (req: Request, res: Response) => {
     try {
-        const { venueId, reserved_time } = req.body;
-        const reservedTimeStart = reserved_time;
+        // const { venueId, reserved_time } = req.body;
+        const { venueId, reserve_date, time } = req.body;
+        // console.log("body date --> ", reserve_date);
+        const concatDatetime = `${reserve_date} ${time}`;
+        // console.log("concat --> ", concatDatetime);
+        // const reserved_time = new Date(concatDatetime);]
+        const reservedTimeStart = new Date(concatDatetime);
+
+        // const reservedTimeStart: Date = reserved_time;
         const PrepareReservedTimeStart = addHours(
             new Date(reservedTimeStart),
             5
         );
-
+        const tables = await feature6Client.tables.findMany({
+            where: { venueId },
+        });
+        if (tables.length === 0) {
+            return res.status(400).json({ error: "No table in this venue" });
+        }
+        // console.log(reservedTimeStart);
         const DateTimeStart: Date = addHours(new Date(reservedTimeStart), 7);
 
         const dateOnly = DateTimeStart.toISOString().split("T")[0];
@@ -265,19 +284,59 @@ export const checkAvailability = async (req: Request, res: Response) => {
         const isoStartTime = new Date(PrepareReservedTimeStart).toISOString();
         const isoEndTime = reservedTimeEnd.toISOString();
 
-        console.log("ISO Time");
-        console.log("start", isoStartTime);
-        console.log("stop", isoEndTime);
+        // console.log("ISO Time");
+        // console.log("start", isoStartTime);
+        // console.log("stop", isoEndTime);
 
         // Get the day of the week (0-6)
-        const [year, month, d] = reservedTimeStart.split(/[- :]/);
+        const [year, month, d] = reserve_date.split(/[- :]/);
 
         const DateString = `${year}-${month}-${d}`;
 
         const myDate = new Date(DateString);
         const day = myDate.getDay();
 
+        // const reservedTableIds: number[] = await Promise.all(
+        //     availabilityResponse.map(async (reservation) => {
+        //         const tables = await feature6Client.reservation_table.findMany({
+        //             where: { reserveId: reservation.reservationId },
+        //         });
+
+        //         return tables.map((table) => table.tableId);
+        //     })
+        // ).then((nestedArrays) => nestedArrays.flat());
+
         const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+        const isopen = await feature6Client.opening_day.findMany({
+            where: { venueId },
+            select: {
+                day: true,
+            },
+        });
+        const openday: string[] = await Promise.all(
+            isopen.map(async (open) => {
+                return open.day;
+            })
+        ).then((nestedArrays) => nestedArrays.flat());
+
+        // console.log("day array --> ", openday);
+
+        var pos;
+        for (let index = 0; index < daysOfWeek.length; index++) {
+            if (openday[openday.length - 1] == daysOfWeek[index]) pos = index;
+        }
+        openday.push(daysOfWeek[pos + 1]);
+
+        // console.log("day --> ", day)
+        var canreserve = 0;
+        for (let index = 0; index < openday.length; index++) {
+            if (daysOfWeek[day] == openday[index]) canreserve++;
+        }
+        // console.log("day array final --> ", openday);
+        // console.log("can? --> ", canreserve);
+        if (canreserve === 0) {
+            return res.status(400).json({ error: "Today venue is closed" });
+        }
         const dayName = daysOfWeek[day];
         const opening = await feature6Client.opening_day.findMany({
             where: {
@@ -286,7 +345,9 @@ export const checkAvailability = async (req: Request, res: Response) => {
             },
         });
 
-        console.log("dayName", dayName);
+        // console.log("open array --> ", openday)
+
+        // console.log("dayName", dayName);
 
         var notOpen = false;
         const dayBefore = daysOfWeek[day - 1];
@@ -302,14 +363,12 @@ export const checkAvailability = async (req: Request, res: Response) => {
                 .toISOString()
                 .split("T")[1]
                 .split(".")[0];
-
             if (closeBeforeString <= "02:00:00") {
                 return res.status(400).json({ error: "Today venue is closed" });
             } else {
                 notOpen = true;
             }
         }
-
         var open, close;
         if (notOpen) {
             const openBefore = await feature6Client.opening_day.findMany({
@@ -325,8 +384,6 @@ export const checkAvailability = async (req: Request, res: Response) => {
             open = opening[0].opening_hours;
             close = opening[0].closing_hours;
         }
-
-        // Extract the time part from isoStartTime
 
         // Convert open, close, and two hours before close to string for comparison
         const openString = open.toISOString().split("T")[1].split(".")[0];
@@ -357,13 +414,13 @@ export const checkAvailability = async (req: Request, res: Response) => {
 
         const twoHoursBeforeClose = addHours(closeDate, -2);
         // Check if the reservation time is within the opening and closing hours
-
         // console.log("two hour before close", twoHoursBeforeClose);
         if (DateTimeStart < openDate || DateTimeStart > twoHoursBeforeClose) {
             return res
                 .status(400)
                 .json({ error: "Reservation time is not within valid hours." });
         }
+
         // sat,sun ปิดร้าน 22:00 ปิดรับจองถึง 20:00:00 01ไม่รับ
         // วันธรรมดา ปิดร้าน 21:00 ปิดรับจองถึง 19:00:00 01 ไม่รับ
         // console.log("isoStartTime", isoStartTime);
@@ -383,9 +440,9 @@ export const checkAvailability = async (req: Request, res: Response) => {
                 },
             });
         // console.log(overlappingReservations);
-        // availabilityResponse = overlappingReservations;
+        availabilityResponse = overlappingReservations;
 
-        res.status(200).json({ overlappingReservations });
+        // res.status(200).json({ overlappingReservations });
     } catch (e) {
         console.error("Error checking availability:", e);
         return res.status(500).json(e);
@@ -435,6 +492,16 @@ export const getAvailableTables = async (req: Request, res: Response) => {
                 tableId: table.tableId,
                 capacity: table.table_type.capacity,
             }));
+
+// ! new
+        if (
+            availableTables.length === 0 ||
+            !availableTables ||
+            availableTables === null ||
+            availableTables === undefined
+        ) {
+            return res.status(400).json({ error: "No more Available Table" });
+        }
 
         const availableTables2 = {
             availableTables: availableTables,
@@ -633,7 +700,7 @@ export const createTableType = async (req: Request, res: Response) => {
 export const getCountPerDay = async (req: Request, res: Response) => {
     try {
         const { venueId } = req.params;
-        const today = addHours(new Date(), 7);
+        const today = new Date();
         // const startOfToday = addHours(startOfDay(today), 7);
         // const endOfToday = addHours(endOfDay(today), 7);
 
@@ -647,9 +714,9 @@ export const getCountPerDay = async (req: Request, res: Response) => {
         // // Convert dates to ISO-8601 format
         // const isoStartTime = new Date(PrepareReservedTimeStart).toISOString();
 
-        console.log(today);
-        console.log(startOfToday);
-        console.log(endOfToday);
+        // console.log(today);
+        // console.log(startOfToday);
+        // console.log(endOfToday);
 
         const transactionsToday = await feature6Client.transaction.findMany({
             where: {
@@ -670,13 +737,18 @@ export const getCountPerDay = async (req: Request, res: Response) => {
             },
         });
 
-        console.log(transactionsToday);
-
-        // const totalRevenue = await feature6Client.transaction.aggregate({
-        //     _sum: {
-        //       total_amount: true,
-        //     },
-        //   });
+        // console.log(transactionsToday);
+        let sumRevenue: Decimal = new Decimal(0.0);
+        transactionsToday.forEach((reservation) => {
+            if (
+                reservation.Transaction_detail &&
+                reservation.Transaction_detail.total_amount
+            ) {
+                sumRevenue = sumRevenue.add(
+                    new Decimal(reservation.Transaction_detail.total_amount)
+                );
+            }
+        });
 
         const reservationsToday = await feature6Client.reservation.findMany({
             where: {
@@ -695,7 +767,6 @@ export const getCountPerDay = async (req: Request, res: Response) => {
             },
         });
 
-
         let ReservationCount = 0;
         reservationsToday.forEach((reservation) => {
             ReservationCount += reservation.Reservation_table.length;
@@ -705,7 +776,7 @@ export const getCountPerDay = async (req: Request, res: Response) => {
             CustomerCount += reservation.guest_amount;
         });
 
-        res.json({ ReservationCount, CustomerCount });
+        res.json({ sumRevenue, ReservationCount, CustomerCount });
     } catch (e) {
         return res.status(500).json(e);
     }
