@@ -621,6 +621,28 @@ export const getAllNotificationAdBusiness = async (req: Request, res: Response) 
         res.status(500).json({ error: 'Failed to retrieve notifications' });
     }
 }
+
+
+export const getNotiReservationByReserveId = async (req: Request, res: Response) => {
+    const { reserveId } = req.params;
+
+    try {
+        // Assuming there's a proper relationship between notifications and reservations
+        const notifications = await feature8Client.notification_reservation.findMany({
+            where: { reserveId: parseInt(reserveId, 10) },
+        });
+
+        if (!notifications || notifications.length === 0) {
+            return res.status(404).json({ error: 'No notifications found for the specified reservation' });
+        }
+
+        res.status(200).json(notifications);
+    } catch (error) {
+        console.error('Error fetching notifications by reservation ID:', error);
+        res.status(500).json({ error: 'Failed to retrieve notifications' });
+    }
+};
+
 // export const ShowUpdateOrder = async (req: Request, res: Response) => {
 //     const token = req.cookies.authToken; // token stored in authToken
 //     // wait to change the userId to businessId(not finish yet) businessId->venueId->orderUpdate

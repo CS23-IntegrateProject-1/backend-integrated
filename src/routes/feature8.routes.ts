@@ -42,6 +42,7 @@ import {
     getAllNotificationReservation,
     getAllNotificationOrder,
     getAllNotificationAdBusiness,
+    getNotiReservationByReserveId,
 } from "../controllers/feature8.controller";
 
 
@@ -70,6 +71,7 @@ feature8Router.get("/reservation/:venueId/:reservationId", getTableNoByReservati
 feature8Router.get("/notifications/reservation", getAllNotificationReservation);
 feature8Router.get("/notifications/order", getAllNotificationOrder);
 feature8Router.get("/notifications/advertisement", getAllNotificationAdBusiness);
+feature8Router.get("/notifications/reservation/:reserveId",getNotiReservationByReserveId)
     //customer -> admin?
 feature8Router.get("/transactions", getAllTransaction);
 feature8Router.get("/transactions/:transactionId", getTransactionById);
