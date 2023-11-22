@@ -54,13 +54,18 @@ class AuthService implements IAuthService {
 	}
 
 	getUserById(userId: number) {
-		const user = this.prisma.user.findUnique({
-			where: {
-				userId: userId
-			}
-		});
-		if (!user) throw new Error("User not found.");
-		return user;
+		try {
+			const user = this.prisma.user.findUnique({
+				where: {
+					userId: userId
+				}
+			});
+			if (!user) throw new Error("User not found.");
+			return user;
+		} catch (e) {
+			console.log(e);
+			return null;
+		}
 	}
 
 	getAdminUserById(adminId: number) {
