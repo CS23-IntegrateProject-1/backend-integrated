@@ -802,6 +802,26 @@ export const addMenu = async (req: any, res: Response) => {
                         menu_no: 0,
                     },
                 });
+                const branchIds = await feature7Client.venue_branch.findMany({
+                    where: {
+                        venueId: parseInt(venueId),
+                    },
+                    select: {
+                        branchId: true,
+                    },
+                });
+                const stocks = await Promise.all(
+                    branchIds.map(async (branchId) => {
+                        const createdStock = await feature7Client.stocks.create({
+                            data: {
+                                menuId: menu.menuId,
+                                venueId: parseInt(venueId),
+                                branchId: branchId.branchId,
+                            },
+                        });
+                        return createdStock;
+                    })
+                );
 
                 return res.status(200).json(menu);
             } catch (e) {
@@ -950,12 +970,38 @@ export const clearSetItemsInCookies = async (req: Request, res: Response) => {
 export const deleteMenu = async (req: Request, res: Response) => {  
     try {
         const menuId = req.params.menuId;
+        const stockRecords = await feature7Client.stocks.deleteMany({
+            where: {
+                menuId: parseInt(menuId),
+            },
+        });
+        const setId = await feature7Client.set_items.findMany({
+            where: {
+                menuId: parseInt(menuId),
+            },
+        });
+        console.log(setId);
+        const setItems= await feature7Client.set_items.deleteMany({
+            where: {
+                setId:{
+                    in: setId.map((id) => id.setId)
+                    
+                }
+            },
+        });
+        const deleteSet = await feature7Client.sets.deleteMany({
+            where: {
+                setId:{
+                    in: setId.map((id) => id.setId)
+                }
+            },
+        });
         const menu = await feature7Client.menu.delete({
             where: {
                 menuId: parseInt(menuId),
             },
         });
-        return res.status(200).json(menu);
+        return res.status(200).json(deleteSet);
     } catch (e) {
         console.error('Error deleting menu:', e);
         return res.status(500).json({ error: 'Internal Server Error' });
