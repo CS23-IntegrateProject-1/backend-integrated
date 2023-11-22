@@ -643,6 +643,23 @@ export const getNotiReservationByReserveId = async (req: Request, res: Response)
     }
 };
 
+export const getBusinessIdByVenueId = async (req: Request, res: Response) => {
+    try {
+        // Fetch the property using the provided venueId
+        const property = await feature8Client.property.findMany();
+
+        if (!property) {
+            return res.status(404).json({ error: 'Property not found for the specified venueId' });
+        }
+
+        // Respond with the businessId associated with the venueId
+        res.status(200).json({ property });
+    } catch (error) {
+        console.error('Error fetching businessId by venueId:', error);
+        res.status(500).json({ error: 'Failed to retrieve businessId' });
+    }
+};
+
 // export const ShowUpdateOrder = async (req: Request, res: Response) => {
 //     const token = req.cookies.authToken; // token stored in authToken
 //     // wait to change the userId to businessId(not finish yet) businessId->venueId->orderUpdate
