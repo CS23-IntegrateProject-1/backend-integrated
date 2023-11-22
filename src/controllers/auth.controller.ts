@@ -124,10 +124,21 @@ class AuthController implements IAuthController {
 			if (!token) {
 				return res.json({ error: "No auth token" });
 			}
+
 			const decodedToken = authService.decodeToken(token);
 			const userId = decodedToken.userId;
 
-			res.json({ userId: userId });
+			const user = await authService.getUserById(userId);
+
+			res.json({
+				username: user?.username,
+				fname: user?.fname,
+				lname: user?.lname,
+				email: user?.email,
+				phone: user?.phone,
+				profile_picture: user?.profile_picture,
+				addId: user?.addId
+			});
 		} catch (e) {
 			console.error(e);
 			res.json({ error: "error getting user" });
@@ -204,8 +215,9 @@ class AuthController implements IAuthController {
 			}
 			const decodedToken = authService.decodeToken(token);
 			const adminId = decodedToken.adminId;
+			const user = await authService.getAdminUserById(adminId);
 
-			res.json({ adminId: adminId });
+			res.json({ username: user?.username });
 		} catch (e) {
 			console.error(e);
 			res.json({ error: "error getting admin" });

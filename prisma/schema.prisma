@@ -15,7 +15,7 @@ model User {
   email                  String                   @unique @db.VarChar(125)
   profile_picture        String?
   addId                  String?                  @unique
-  phone                  String                   @db.VarChar(10)
+  phone                  String                   @unique @db.VarChar(10)
   tierId                 Int?
   prompt_pay             Int?
   userId                 Int                      @id @default(autoincrement())
@@ -197,6 +197,8 @@ model Venue_contacts {
 model Venue_reviews {
   venuId        Int
   userId        Int
+  magnitude     Float?   @db.Double
+  score         Float?   @db.Double
   rating        Int
   review        String?
   date_added    DateTime @default(now())
@@ -421,24 +423,25 @@ model Message {
 }
 
 model Orders {
-  userId       Int?
-  venueId      Int
-  order_date   DateTime
-  total_amount Decimal        @db.Decimal(10, 2)
-  addressId    Int?
-  branchId     Int
-  driverId     Int?
-  isDelivery   Boolean        @default(false)
-  orderId      Int            @id @default(autoincrement())
-  reservedId   Int?           @unique
-  status       Order_status   @default(On_going)
-  Order_detail Order_detail[]
-  address      Saved_address? @relation(fields: [addressId], references: [addressId])
-  branch       Venue_branch   @relation(fields: [branchId], references: [branchId])
-  driver       Driver_list?   @relation(fields: [driverId], references: [driverId])
-  reserve      Reservation?   @relation(fields: [reservedId], references: [reservationId])
-  user         User?          @relation(fields: [userId], references: [userId])
-  venue        Venue          @relation(fields: [venueId], references: [venueId])
+  userId             Int?
+  venueId            Int
+  order_date         DateTime
+  total_amount       Decimal              @db.Decimal(10, 2)
+  addressId          Int?
+  branchId           Int
+  driverId           Int?
+  isDelivery         Boolean              @default(false)
+  orderId            Int                  @id @default(autoincrement())
+  reservedId         Int?                 @unique
+  status             Order_status         @default(On_going)
+  Order_detail       Order_detail[]
+  address            Saved_address?       @relation(fields: [addressId], references: [addressId])
+  branch             Venue_branch         @relation(fields: [branchId], references: [branchId])
+  driver             Driver_list?         @relation(fields: [driverId], references: [driverId])
+  reserve            Reservation?         @relation(fields: [reservedId], references: [reservationId])
+  user               User?                @relation(fields: [userId], references: [userId])
+  venue              Venue                @relation(fields: [venueId], references: [venueId])
+  Notification_order Notification_order[]
 
   @@index([addressId], map: "Orders_addressId_fkey")
   @@index([branchId], map: "Orders_branchId_fkey")
@@ -554,6 +557,8 @@ model Food_reviews {
   foodReviewId Int      @id @default(autoincrement())
   menuId       Int
   userId       Int
+  magnitude    Float?   @db.Double
+  score        Float?   @db.Double
   rating       Float
   review       String?
   date_added   DateTime @default(now())
@@ -753,27 +758,28 @@ model Like {
 }
 
 model Reservation {
-  venueId           Int
-  branchId          Int?
-  guest_amount      Int
-  reserved_time     DateTime            @default(now())
-  status            Status
-  userId            Int
-  entry_time        DateTime
-  isReview          Boolean             @default(false)
-  reservationId     Int                 @id @default(autoincrement())
-  depositId         Int
-  isPaidDeposit     Deposit_status
-  Check_in_log      Check_in_log?
-  Notes             Notes?
-  Orders            Orders?
-  branch            Venue_branch?        @relation(fields: [branchId], references: [branchId])
-  deposit           Deposit             @relation(fields: [depositId], references: [depositId])
-  user              User                @relation(fields: [userId], references: [userId])
-  venue             Venue               @relation(fields: [venueId], references: [venueId])
-  Reservation_table Reservation_table[]
-  Share_reserve     Share_reserve?
-  Transaction       Transaction?
+  venueId                  Int
+  branchId                 Int?
+  guest_amount             Int
+  reserved_time            DateTime                   @default(now())
+  status                   Status
+  userId                   Int
+  entry_time               DateTime
+  isReview                 Boolean                    @default(false)
+  reservationId            Int                        @id @default(autoincrement())
+  depositId                Int
+  isPaidDeposit            Deposit_status
+  Check_in_log             Check_in_log?
+  Notes                    Notes?
+  Orders                   Orders?
+  branch                   Venue_branch?              @relation(fields: [branchId], references: [branchId])
+  deposit                  Deposit                    @relation(fields: [depositId], references: [depositId])
+  user                     User                       @relation(fields: [userId], references: [userId])
+  venue                    Venue                      @relation(fields: [venueId], references: [venueId])
+  Reservation_table        Reservation_table[]
+  Share_reserve            Share_reserve?
+  Transaction              Transaction?
+  Notification_reservation Notification_reservation[]
 
   @@index([userId], map: "Reservation_userId_fkey")
   @@index([venueId], map: "Reservation_venueId_fkey")
@@ -823,7 +829,7 @@ model Tables {
   tableId           Int                 @id @default(autoincrement())
   tableTypeDetailId Int
   Reservation_table Reservation_table[]
-  branch            Venue_branch?        @relation(fields: [branchId], references: [branchId])
+  branch            Venue_branch?       @relation(fields: [branchId], references: [branchId])
   table_type        Table_type_detail   @relation(fields: [tableTypeDetailId], references: [tableTypeDetailId])
   venue             Venue               @relation(fields: [venueId], references: [venueId])
 
@@ -886,20 +892,21 @@ model Promotion {
 }
 
 model Ad_business {
-  advertisementId   Int                @id @default(autoincrement())
-  name              String
-  description       String?
-  image_url         String?            @db.Text
-  start_date        DateTime
-  end_date          DateTime
-  cost              Float
-  isApprove         Approve_status
-  customer_type     Customer_type
-  target_group      Target_group
-  businessId        Int
-  business_user     Business_user      @relation(fields: [businessId], references: [businessId])
-  Ad_tag            Ad_tag[]
-  Venue_transaction Venue_transaction?
+  advertisementId         Int                       @id @default(autoincrement())
+  name                    String
+  description             String?
+  image_url               String?                   @db.Text
+  start_date              DateTime
+  end_date                DateTime
+  cost                    Float
+  isApprove               Approve_status
+  customer_type           Customer_type
+  target_group            Target_group
+  businessId              Int
+  business_user           Business_user             @relation(fields: [businessId], references: [businessId])
+  Ad_tag                  Ad_tag[]
+  Venue_transaction       Venue_transaction?
+  Notfication_ad_business Notfication_ad_business[]
 
   @@index([businessId], map: "Ad_business_businessId_fkey")
 }
@@ -908,6 +915,15 @@ enum Approve_status {
   Rejected
   In_progress
   Completed
+}
+
+model Notfication_ad_business {
+  notiAdBusinessId Int         @id @default(autoincrement())
+  title            String
+  message          String
+  isApprove        Boolean     @default(false)
+  advertisementId  Int
+  ad               Ad_business @relation(fields: [advertisementId], references: [advertisementId])
 }
 
 model Ad_tag {
@@ -970,6 +986,12 @@ model Business_user {
   businessId      Int           @id @default(autoincrement())
   username        String
   hashed_password String
+  fname           String?
+  lname           String?
+  phone_num       String?        @unique @db.VarChar(10)
+  email           String?        @unique @db.VarChar(125)
+  profile_picture String?
+  prompt_pay      Int?
   ad_business     Ad_business[]
   Property        Property[]
 }
@@ -1204,6 +1226,24 @@ model Notification {
 
   @@index([appTransactionId], map: "Notification_appTransactionId_fkey")
   @@index([venueTransactionId], map: "Notification_venueTransactionId_fkey")
+}
+
+model Notification_reservation {
+  notiReserveId Int         @id @default(autoincrement())
+  title         String
+  message       String
+  status        Status
+  reserveId     Int
+  reserve       Reservation @relation(fields: [reserveId], references: [reservationId])
+}
+
+model Notification_order {
+  notificationOrderId Int          @id @default(autoincrement())
+  title               String
+  message             String
+  status              Order_status
+  orderId             Int
+  order               Orders       @relation(fields: [orderId], references: [orderId])
 }
 
 model Credit_card {
