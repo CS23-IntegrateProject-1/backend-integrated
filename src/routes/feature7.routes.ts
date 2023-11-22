@@ -27,9 +27,13 @@ import {
     clearSetItemsInCookies,
     deleteMenu,
     deleteSet,
+    deleteMenuItemFromSet,
+    editSet,
+    getMenuByVenueNotInSet,
 } from "../controllers/feature7.controller";
 import { customVerifyCookie } from "../middlewares/verifyCookies";
 import { clear } from "console";
+import { get } from "http";
 
 const feature7Router = Router();
 
@@ -73,16 +77,27 @@ feature7Router.post("/editMenu/:menuId",editMenu);
 //add menu
  feature7Router.post("/addMenu/:venueId",addMenu);
  //add menu to set (cookies)
-feature7Router.post("/addMenuItemsToSetsInCookies/:venueId",addMenuItemsToSetsInCookies);
+feature7Router.post("/addMenuItemsToSetsInCookies",addMenuItemsToSetsInCookies);
+//add menu to set (cookies) (route for edit set)
+feature7Router.post("/addMenuItemsToSetsInCookies/:setId",addMenuItemsToSetsInCookies);
 //show all set items in cookies
-feature7Router.get("/showMenuItemsInCookies/:venueId",showMenuItemsInCookies);
+feature7Router.get("/showMenuItemsInCookies",showMenuItemsInCookies);
+//show all set items in cookies (route for edit set)
+feature7Router.get("/showMenuItemsInCookies/:setId",showMenuItemsInCookies);
 //add set
 feature7Router.post("/addSetWithMenuItems/:venueId",addSetWithMenuItems);
 //clear set items in cookies by venueid
-feature7Router.post("/clearSetItemsInCookies/:venueId",clearSetItemsInCookies);
+feature7Router.post("/clearSetItemsInCookies",clearSetItemsInCookies);
+//clear set items in cookies by venueid (route for edit set)
+feature7Router.post("/clearSetItemsInCookies/:setId",clearSetItemsInCookies);
 //delete menu
 feature7Router.delete("/deleteMenu/:menuId",deleteMenu);
 //delete set
 feature7Router.delete("/deleteSet/:setId",deleteSet);
-
+//delete menu item from set
+feature7Router.delete("/deleteMenuItemFromSet/:setId/:menuId",deleteMenuItemFromSet);
+//edit set
+feature7Router.post("/editSet/:setId",editSet);
+//get menu by venue which are not included in specific set
+feature7Router.get("/getMenuByVenueIdNotInSet/:venueId/:setId",getMenuByVenueNotInSet);
 export default feature7Router;
