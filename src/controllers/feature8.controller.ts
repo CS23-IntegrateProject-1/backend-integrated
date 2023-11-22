@@ -660,6 +660,32 @@ export const getBusinessIdByVenueId = async (req: Request, res: Response) => {
     }
 };
 
+export const getBusinessIdByVenueIdForReal = async (req: Request, res: Response) => {
+    const { venueId } = req.params;
+  
+    try {
+      const property = await feature8Client.property.findFirst({
+        where: {
+          venueId: parseInt(venueId),
+        },
+        select: {
+          businessId: true,
+        },
+      });
+  
+      if (!property) {
+        return res.status(404).json({ error: 'Property not found for the given venueId' });
+      }
+  
+      res.json({ businessId: property.businessId });
+    } catch (error) {
+      console.error('Error retrieving businessId:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  };
+
+
+
 // export const ShowUpdateOrder = async (req: Request, res: Response) => {
 //     const token = req.cookies.authToken; // token stored in authToken
 //     // wait to change the userId to businessId(not finish yet) businessId->venueId->orderUpdate
