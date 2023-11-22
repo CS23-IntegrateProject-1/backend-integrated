@@ -759,7 +759,7 @@ export const editMenu = async (req: any, res: Response) => {
                         name: name,
                         price: price,
                         description: description,
-                        // image: image,
+                        image: image,
                     }
                 });
                 return res.status(200).json(menu);
