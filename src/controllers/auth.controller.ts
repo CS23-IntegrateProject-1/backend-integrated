@@ -98,9 +98,7 @@ class AuthController implements IAuthController {
 								.status(404)
 								.send({ message: "User not found." });
 						} else {
-							return res
-								.status(200)
-								.send({ message: "User verified." });
+							return res.status(200).send(userType);
 						}
 					}
 					case "admin": {
@@ -110,9 +108,7 @@ class AuthController implements IAuthController {
 								.status(404)
 								.send({ message: "Admin not found." });
 						} else {
-							return res
-								.status(200)
-								.send({ message: "Admin verified." });
+							return res.status(200).send(userType);
 						}
 					}
 				}
@@ -200,7 +196,7 @@ class AuthController implements IAuthController {
 		}
 	}
 
-	async adminGetUser(req: Request, res: Response) {
+	async getAdminUser(req: Request, res: Response) {
 		try {
 			const token = req.cookies.authToken;
 			if (!token) {
