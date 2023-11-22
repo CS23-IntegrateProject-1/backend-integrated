@@ -164,6 +164,7 @@ export const getSeatsTypeByScreenId = async (req: Request, res: Response) => {
     
 }
 
+
 export const getFilmsInfoPage3 = async (req: Request, res: Response) => {
     try {
         const id = Number(req.params.id);
@@ -175,7 +176,6 @@ export const getFilmsInfoPage3 = async (req: Request, res: Response) => {
                 
             
         });
-        console.log("hello");
         res.json(films);
 
     } catch (err) {
@@ -184,3 +184,103 @@ export const getFilmsInfoPage3 = async (req: Request, res: Response) => {
     }
     
 }
+
+
+
+
+
+//page4
+//
+//
+//
+//
+
+// export const getShowsByTheaterId = async (req: Request, res: Response) => {
+//     try {
+//         const id = Number(req.params.id);
+        
+//         const films = await prisma.shows.findMany({
+//             where: {
+//                 screen: {
+//                     theaterId: id,
+//                 },
+               
+//             },
+//             include: {
+//                 film: true,
+//             },
+//         });
+//         res.json(films);
+//     } catch (err) {
+//         const error = err as Error;
+//         res.status(500).json({error: error.message});
+//     }
+    
+// }
+
+export const getShowsByTheaterId = async (req: Request, res: Response) => {
+    try {
+        // const {date,id} = req.params
+        const id = Number(req.params.id);
+        const date = req.params.date;
+        
+        const films = await prisma.shows.findMany({
+            where: {
+                screen: {
+                    // theaterId: parseInt(id),
+                    theaterId: id,
+                },
+                date: new Date(date),
+                // date: date,
+            },
+            include: {
+                screen: {
+                    include: {
+                        theater: true
+                    }
+                },
+                film: true
+            },
+        });
+        console.log(id);
+        console.log(date);
+        res.json(films);
+    } catch (err) {
+        console.error(err);
+        const error = err as Error;
+        res.status(500).json({error: error.message});
+    }   
+}
+
+// export const getShowsByTheaterId = async (req: Request, res: Response) => {
+//     try {
+        
+//         const {date, id} = req.params
+        
+//         const shows = await prisma.shows.findMany({
+//             where: {
+//                 filmId: parseInt(id),
+//                 date: new Date(date),
+               
+//             },
+//             include: {
+//                 screen: {
+//                     include: {
+//                         theater: true
+//                     }
+//                 },
+//                 film: true
+//             },
+//         });
+//         console.log(id);
+//         console.log(date);
+//         res.json(shows);
+//     } catch (err) {
+//         const error = err as Error;
+//         res.status(500).json({ error: error.message });
+//     }
+// };
+
+
+
+
