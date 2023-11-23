@@ -2,6 +2,7 @@ import {PrismaClient} from "@prisma/client";
 import { Response, Request } from "express";
 import { adinfo } from "../interface/Auth/Advertisement";
 import { voucherinfo } from "../interface/Auth/Voucher";
+import authService from "../services/auth/auth.service";
 
 const feature5Client = new PrismaClient();
 
@@ -12,7 +13,7 @@ export const getfeature5 = async (req: Request, res: Response) => {
 
 export const AdBusiness = async (req: Request, res: Response) => {
     try {
-        
+        const { businessId } = authService.decodeToken(req.cookies.authToken);
         const Tags: number[] = req.body.Tags;
         const isApprove = "In_progress"
 
@@ -27,8 +28,7 @@ export const AdBusiness = async (req: Request, res: Response) => {
             target_group,
         } = newAd;
 
-        const {id} = req.params;
-
+        // const {id} = req.params;
         const newAdvertisement = await feature5Client.ad_business.create({
             data: {
                 name,
@@ -39,7 +39,7 @@ export const AdBusiness = async (req: Request, res: Response) => {
                 cost,
                 customer_type,
                 target_group,
-                businessId: parseInt(id),
+                businessId,
                 isApprove
             }
         })
@@ -292,32 +292,6 @@ export const GetallVenue = async (req: Request, res: Response) => {
     }
 }
 
-//Not success
-
-// export const GetAllCompleteVoucher = async (req: Request, res: Response) => {
-
-//     const{id} = req.params
-//     try {
-//         const GetAllCompleteVoucher = await feature5Client.property.findMany({
-//             where: {businessId: parseInt(id)},
-//             select: {
-//                 venue:{
-//                     select:{
-//                         Voucher: true
-                        
-//                     }
-//                 }
-//             }
-   
-//         })
-//         res.json(GetAllCompleteVoucher)
-
-//     } catch (err) {
-//         const error = err as Error;
-//         res.status(500).json({ error: error.message});
-//     }
-    
-// }
 
 export const GetAllVoucher = async (req: Request, res: Response) => {
     const{id} = req.params
@@ -341,30 +315,130 @@ export const GetAllVoucher = async (req: Request, res: Response) => {
     }
 }
 
-// export const GetTodayPrivillage = async (req: Request, res: Response) => {
-//     const{id} = req.params
-//     try {
-//         const GetTodayPrivillage = await feature5Client.user_voucher.findMany({
-//             where: {
-//                 userId: parseInt(id),
-//             },
-//             // select: {
-//             //     voucherId: true,
-//             //     voucher: {
-//             //         select: {
-//             //             isapprove: true // Select the 'isapprove' field from the voucher entity
-//             //         }
-//             //     }
-//             // }
+export const GetInfomationOfVoucher = async (req: Request, res: Response) => {
+    const{id} = req.params
+    try {
+        const GetInfoVoucher = await feature5Client.voucher.findMany({
+            where: {voucherId: parseInt(id)},
    
-//         })
-//         res.json(GetTodayPrivillage)
+        })
+        res.json(GetInfoVoucher)
 
-//     } catch (err) {
-//         const error = err as Error;
-//         res.status(500).json({ error: error.message});
-//     }
-// }
+    } catch (err) {
+        const error = err as Error;
+        res.status(500).json({ error: error.message});
+    }
+}
+
+export const GettierName = async (req: Request, res: Response) => {
+    const { userId } = authService.decodeToken(req.cookies.authToken);
+  try {
+    const gettierName = await feature5Client.user.findUnique({
+      where: { userId: userId },
+      select: {
+        tier: {
+          select: {
+            tier_name: true,
+            // tier_benefit: true,
+          },
+        },
+      },
+    });
+    res.json(gettierName);
+  } catch (err) {
+    const error = err as Error;
+    res.status(500).json({ error: error.message });
+  }
+};
+
+export const GetInfoMembertier = async (req: Request, res: Response) => {
+    const { userId } = authService.decodeToken(req.cookies.authToken);
+  try {
+    const GetInfoMembertier = await feature5Client.user.findUnique({
+      where: { userId: userId },
+      select: {
+        tier: {
+          select: {
+            tier_name: true,
+            tier_benefit: true,
+          },
+        },
+      },
+    });
+    res.json(GetInfoMembertier);
+  } catch (err) {
+    const error = err as Error;
+    res.status(500).json({ error: error.message });
+  }
+};
+
+
+export const GetMyReward = async (req: Request, res: Response) => {
+    const { userId } = authService.decodeToken(req.cookies.authToken);
+    const { id }= req.body;
+    console.log(userId)
+    try {
+      const GetMyReward = await feature5Client.user_voucher.create({
+        data: {
+            userId: userId, 
+            voucherId: id 
+        }
+      });
+      res.json(GetMyReward);
+    } catch (err) {
+      const error = err as Error;
+      res.status(500).json({ error: error.message });
+    }
+};
+
+
+export const GetTodayPrivillage = async (req: Request, res: Response) => {
+  const { userId } = authService.decodeToken(req.cookies.authToken);
+
+  try {
+    const GetTodayPrivillage = await feature5Client.voucher.findMany({
+      where: {
+        User_voucher: {
+          every: {
+            userId: userId,
+          },
+        },
+        start_date: {
+          lte: new Date(),
+        },
+        end_date: {
+          gte: new Date(),
+        },
+      },
+    });
+    res.json(GetTodayPrivillage);
+  } catch (err) {
+    const error = err as Error;
+    res.status(500).json({ error: error.message });
+  }
+};
+
+export const Getpointused = async (req: Request, res: Response) => {
+    const { userId } = authService.decodeToken(req.cookies.authToken);
+  
+    try {
+      const Getpointused = await feature5Client.point.findUnique({
+        where: {
+           pointId: userId,
+        },
+        select:{
+            amount_used: true
+        }
+      });
+      res.json(Getpointused);
+    } catch (err) {
+      const error = err as Error;
+      res.status(500).json({ error: error.message });
+    }
+  };
+
+
+
 
 
 
