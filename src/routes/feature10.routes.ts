@@ -8,9 +8,8 @@ import {
     getShowingFilms,
     getFilmsById,
     getAllFilms,
-    getShowsByFilmsId,
+    getShowsByFilmId,
     getSeatsTypeByScreenId,
-    getFilmsInfoPage3,
     getShowsByTheaterId
 } from "../controllers/feature10.controller";
 
@@ -22,9 +21,8 @@ feature10Router.get("/getUpcomingFilms", getUpcomingFilms);
 feature10Router.get("/getShowingFilms", getShowingFilms);
 feature10Router.get("/getFilmsById/:id", getFilmsById);
 feature10Router.get("/getAllFilms", getAllFilms);
-feature10Router.get("/getShowsByFilmsId/:id/:date", getShowsByFilmsId);
+feature10Router.get("/getShowsByFilmId/:id/:date", getShowsByFilmId);
 feature10Router.get("/getSeatsTypeByScreenId/:id", getSeatsTypeByScreenId);
-feature10Router.get("/getFilmsInfoPage3/:id", getFilmsInfoPage3);
 feature10Router.get("/getShowsByTheaterId/:id/:date", getShowsByTheaterId);
 
 export default feature10Router;

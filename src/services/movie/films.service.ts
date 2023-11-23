@@ -1,19 +1,19 @@
 import { PrismaClient } from "@prisma/client";
 
 class filmService{
-	getShowingFilms(): Promise<any[]> {
+	getAllFilms(): Promise<any[]> {
 		const prisma = new PrismaClient();
 		const data = prisma.films.findMany();
 		return data;
 	}
 
-	// getFilmsById(id: number): Promise<any[]> {
-	// 	const prisma = new PrismaClient();
-	// 	const data = prisma.films.findUnique({
-	// 		where: {filmId: id}
-	// 	});
-	// 	return data;
-	// }
+	getFilmsById(id: number): Promise<any> {
+		const prisma = new PrismaClient();
+		const data = prisma.films.findUnique({
+			where: {filmId: id}
+		});
+		return data;
+	}
 
 	getShowingImaxFilms(): Promise<any[]> {
 		const prisma = new PrismaClient();
@@ -100,17 +100,31 @@ class filmService{
 		return data;
 	}
 
-	// getNowShowing(): Promise<any[]> {
-	// 	const prisma = new PrismaClient();
-	// 	const data = prisma.films.findMany({
-	// 		where: {
-	// 				release_date: {
-	// 					lte: new Date()
-	// 				}
-	// 		}
-	// 	});
-	// 	return data;
-	// }
+	getNowShowingFilms(): Promise<any[]> {
+		const prisma = new PrismaClient();
+		const data = prisma.films.findMany({
+			where: {
+				release_date: {
+					lte: new Date(),
+				},
+			},
+		});
+		return data;
+	}
+
+	getUpcomingFilms(): Promise<any[]> {
+		const prisma = new PrismaClient();
+		const data = prisma.films.findMany({
+			where: {
+				release_date: {
+					gt: new Date(),
+				},
+			},
+		});
+		return data;
+	}
+
+	
 }
 
 export default new filmService();
