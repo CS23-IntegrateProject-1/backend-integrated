@@ -535,3 +535,60 @@ export const deleteFoodReview = async (req: Request, res: Response) => {
         return res.status(500).json({ error: "Internal Server Error" });
     }
 };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/////////////////////////////////////////////////////////////////////////////
+export const getVen = async (req: Request, res: Response) => {
+    try {
+        const Ven = await feature3Client.$queryRaw`
+            SELECT venueId, name, description, category, capacity, 
+            chatRoomId, locationId, website_url
+            FROM Venue
+            Order by venueId
+        `;
+
+        return res.json(Ven);
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json(error);
+    }
+};
+
+export const getBranch = async (req: Request, res: Response) => {
+    try {
+        const Ven = await feature3Client.$queryRaw`
+            SELECT venueId, branchId, branch_name
+            FROM Venue_branch
+            Order by branchId
+        `;
+
+        return res.json(Ven);
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json(error);
+    }
+};
