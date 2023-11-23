@@ -861,6 +861,7 @@ export const addMenuItemsToSetsInCookies = async (req: Request, res: Response) =
                 // venueId: parseInt(venueId),
                 menuId: parseInt(menuId),
                 setId: parseInt(setId),
+                menuName: menu.name
             });
 
             // Set the updated array as the value for the cookie
