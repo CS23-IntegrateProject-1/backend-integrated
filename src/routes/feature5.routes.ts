@@ -14,8 +14,8 @@ import {
     GetallVenue,
     DeleteVoucher,
     VoucherApprove,
-    GetCompleteVoucher,
-    GetNotCompleteVoucher,
+    GetAllVoucher,
+    // GetAllCompleteVoucher,
     // getUser
 } from "../controllers/feature5.controller";
 
@@ -34,8 +34,8 @@ feature5Router.post("/Voucher", Voucher);
 feature5Router.get("/AllVenue/:id", GetallVenue);
 feature5Router.delete("/DeleteVoucher/:id", DeleteVoucher) ;
 feature5Router.patch("/VoucherApprove/:id", VoucherApprove);
-feature5Router.get("/AllCompleteVch", GetCompleteVoucher);
-feature5Router.get("/AllNotCompleteVch", GetNotCompleteVoucher);
+feature5Router.get("/AllVoucher/:id", GetAllVoucher);
+// feature5Router.get("/AllCompleteVoucher/:id", GetAllCompleteVoucher);
 
 
 export default feature5Router;

@@ -209,6 +209,10 @@ export const Voucher = async (req: Request, res: Response) => {
                     voucherId: newVoucher.voucherId
                 }
             })
+
+            // await feature5Client.user_voucher.create({
+
+            // })
         }
 
         res.json(newVoucher)
@@ -288,38 +292,79 @@ export const GetallVenue = async (req: Request, res: Response) => {
     }
 }
 
+//Not success
 
-export const GetCompleteVoucher = async (req: Request, res: Response) => {
+// export const GetAllCompleteVoucher = async (req: Request, res: Response) => {
 
-    try {
-        const GetCompleteVoucher = await feature5Client.voucher.findMany({
-            where: {isApprove: "Completed"}
+//     const{id} = req.params
+//     try {
+//         const GetAllCompleteVoucher = await feature5Client.property.findMany({
+//             where: {businessId: parseInt(id)},
+//             select: {
+//                 venue:{
+//                     select:{
+//                         Voucher: true
+                        
+//                     }
+//                 }
+//             }
    
-        })
-        res.json(GetCompleteVoucher)
+//         })
+//         res.json(GetAllCompleteVoucher)
 
-    } catch (err) {
-        const error = err as Error;
-        res.status(500).json({ error: error.message});
-    }
-}
+//     } catch (err) {
+//         const error = err as Error;
+//         res.status(500).json({ error: error.message});
+//     }
+    
+// }
 
-export const GetNotCompleteVoucher = async (req: Request, res: Response) => {
+export const GetAllVoucher = async (req: Request, res: Response) => {
+    const{id} = req.params
     try {
-        const GetNotCompleteVoucher = await feature5Client.voucher.findMany({
-            where: {
-                OR: [
-                    { isApprove: "In_progress" },
-                    { isApprove: "Rejected" }
-                ]
+        const GetAllVoucher = await feature5Client.property.findMany({
+            where: {businessId: parseInt(id)},
+            select: {
+                venue:{
+                    select:{
+                        Voucher: true
+                    }
+                }
             }
    
         })
-        res.json(GetNotCompleteVoucher)
+        res.json(GetAllVoucher)
 
     } catch (err) {
         const error = err as Error;
         res.status(500).json({ error: error.message});
     }
 }
+
+// export const GetTodayPrivillage = async (req: Request, res: Response) => {
+//     const{id} = req.params
+//     try {
+//         const GetTodayPrivillage = await feature5Client.user_voucher.findMany({
+//             where: {
+//                 userId: parseInt(id),
+//             },
+//             // select: {
+//             //     voucherId: true,
+//             //     voucher: {
+//             //         select: {
+//             //             isapprove: true // Select the 'isapprove' field from the voucher entity
+//             //         }
+//             //     }
+//             // }
+   
+//         })
+//         res.json(GetTodayPrivillage)
+
+//     } catch (err) {
+//         const error = err as Error;
+//         res.status(500).json({ error: error.message});
+//     }
+// }
+
+
 
