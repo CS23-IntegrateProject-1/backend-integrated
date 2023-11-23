@@ -854,6 +854,13 @@ export const getArticleHistory = async (req: Request, res: Response) => {
 };
 
 export const getUserArticle = async (req: Request, res: Response) => {
+  const token = req.cookies.authToken;
+  if (!token) {
+    return res.json({ error: "No auth token" })
+  }
+  const decodedToken = authService.decodeToken(token)
+  const thisUserId = decodedToken.userId;
+
   try {
     const { userId } = req.body;
     const articles = await prisma.article.findMany({
@@ -908,7 +915,7 @@ export const getUserArticle = async (req: Request, res: Response) => {
         })
 
         const isLike = await prisma.like.findUnique({
-          where: { articleId_userId: { articleId: article.articleId, userId } },
+          where: { articleId_userId: { articleId: article.articleId, userId: thisUserId } },
         })
   
         // Add the like count to each article object
