@@ -15,10 +15,15 @@ router.post("/login", authController.login);
 router.post("/adminSignup", authController.adminSignup);
 router.post("/adminLogin", authController.adminLogin);
 
+router.post("/business/Signup", authController.businessSignup);
+router.post("/business/Login", authController.businessLogin);
+
 router.get("/getUser", customVerifyCookie, authController.getUser);
 router.get("/getUser/admin", customVerifyCookie, authController.getAdminUser);
-router.get("/getUser/business", (req, res) => {
-	res.send({ businessId: "1234", businessName: "Demo Business" });
-});
+router.get(
+	"/getUser/business",
+	customVerifyCookie,
+	authController.getBusinessUser
+);
 
 export { router as AuthRoutes };
