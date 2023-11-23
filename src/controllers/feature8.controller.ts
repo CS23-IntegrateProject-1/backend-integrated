@@ -684,25 +684,22 @@ export const getBusinessIdByVenueIdForReal = async (req: Request, res: Response)
     }
   };
 
-export const getAdBusinessbyAdvertisementIdAndBusinessId = async (req: Request, res: Response) => {
-    const { advertisementId, businessId } = req.params;
+export const getAllNotificationAdBusinessByBusinessId = async (req: Request, res: Response) => {
+    const { advertisementId } = req.params;
 
     try {
-        const adBusiness = await feature8Client.ad_business.findUnique({
-            where: {
-                advertisementId: parseInt(advertisementId, 10),
-                businessId: parseInt(businessId, 10),
-            },
+        const notifications = await feature8Client.notfication_ad_business.findMany({
+            where: { advertisementId: parseInt(advertisementId, 10) },
         });
 
-        if (!adBusiness) {
-            return res.status(404).json({ error: 'AdBusiness not found' });
+        if (!notifications || notifications.length === 0) {
+            return res.status(404).json({ error: 'No notifications found for the specified business' });
         }
 
-        res.status(200).json(adBusiness);
+        res.status(200).json(notifications);
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Failed to retrieve adBusiness' });
+        console.error('Error fetching notifications by business ID:', error);
+        res.status(500).json({ error: 'Failed to retrieve notifications' });
     }
 }
 
