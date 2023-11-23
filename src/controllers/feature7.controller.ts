@@ -1136,3 +1136,43 @@ export const getMenuByVenueNotInSet = async (req: Request, res: Response) => {
         console.log(e);
     }
 }
+//delete menu item before adding to set
+export const deleteMenuItemBeforeAddingToSet = async (req: Request, res: Response) => {
+    try {
+        const menuId = req.body.menuId;
+        const setId="0";
+        const selectedMenuItem = req.cookies.setItems || [];
+        console.log(selectedMenuItem);
+        const selectedMenuItems = JSON.parse(selectedMenuItem);
+        const updated = selectedMenuItems.filter(item => item.menuId !== parseInt(menuId) || item.setId !== parseInt(setId));
+        res.cookie('setItems', JSON.stringify(updated));
+        res.status(200).json({ success: true, message: 'Deleted' });
+    }
+    catch (e) {
+        console.log(e);
+    }
+}
+//show menu items in set
+export const showMenuItemsInSet = async (req: Request, res: Response) => {
+    try {
+        const setId = req.params.setId;
+        const menuItems = await feature7Client.set_items.findMany({
+            where: {
+                setId: parseInt(setId),
+            },
+        });
+        const menuIds = menuItems.map((item) => item.menuId);
+        const menu = await feature7Client.menu.findMany({
+            where: {
+                menuId: {
+                    in: menuIds,
+                },
+            },
+        });
+        const menuName=menu.map((item)=>item.name);
+        return res.status(200).json(menuName);
+    }
+    catch (e) {
+        console.log(e);
+    }
+}

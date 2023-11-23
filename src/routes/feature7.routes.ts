@@ -30,6 +30,8 @@ import {
     deleteMenuItemFromSet,
     editSet,
     getMenuByVenueNotInSet,
+    deleteMenuItemBeforeAddingToSet,
+    showMenuItemsInSet,
 } from "../controllers/feature7.controller";
 import { customVerifyCookie } from "../middlewares/verifyCookies";
 import { clear } from "console";
@@ -100,4 +102,8 @@ feature7Router.delete("/deleteMenuItemFromSet/:setId/:menuId",deleteMenuItemFrom
 feature7Router.post("/editSet/:setId",editSet);
 //get menu by venue which are not included in specific set
 feature7Router.get("/getMenuByVenueIdNotInSet/:venueId/:setId",getMenuByVenueNotInSet);
+//delete menu item before adding to set
+feature7Router.post("/deleteMenuItemBeforeAddingToSet",deleteMenuItemBeforeAddingToSet);
+//show menu items in set
+feature7Router.get("/showMenuItemsInSet/:setId",showMenuItemsInSet);
 export default feature7Router;
