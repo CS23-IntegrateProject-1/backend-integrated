@@ -11,8 +11,7 @@ const prisma = new PrismaClient();
 // * change keyword to link, 
 // * get comment like by creator
 // * add comment like by creator
-// * delete tag for article                                                  |  -->   maybe do both of this at the same time
-// * delete a tag in tag table when there is no article left pointing to it  |
+// * upload image with req.file
 
 enum Category {
     Review = "Review",
@@ -613,7 +612,7 @@ export const getArticleHistory = async (req: Request, res: Response) => {
   }
   const decodedToken = authService.decodeToken(token)
   const userId = decodedToken.userId;
-  
+
   try {
     const articles = await prisma.article.findMany({
       where: { userId },
