@@ -1,4 +1,4 @@
-import express, { Request, Response, request } from "express";
+import express, { Request, Response } from "express";
 import cors from "cors";
 import configureCors from "./configs/corsConfig";
 import loadEnv from "./configs/dotenvConfig";
@@ -20,6 +20,9 @@ import Feature12Routes from "./routes/feature12.routes";
 import Feature13Routes from "./routes/feature13.routes";
 import Feature14Routes from "./routes/feature14.routes";
 
+import { httpServer as socketIoServer } from "./socketio";
+import path from "path";
+
 loadEnv();
 
 const app = express();
@@ -33,7 +36,8 @@ app.use(addressTracker);
 
 // const routes = new Routes(app);
 
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 8080;
+const socketIoPort = process.env.SOCKET_IO_PORT || 8000;
 
 app.get("/", (req: Request, res: Response) => {
 	res.send("Hello, Express with TypeScript!");
@@ -53,8 +57,11 @@ app.use("/feature11", Feature11Routes);
 app.use("/feature12", Feature12Routes);
 app.use("/feature13", Feature13Routes);
 app.use("/feature14", Feature14Routes);
-
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 app.listen(port, () => {
-	console.log(`Server is running on port ${port}`);
+	console.log(`AppServer \tis running on port ${port}`);
+});
+socketIoServer.listen(socketIoPort, () => {
+	console.log(`SocketIOServer \tis running on port ${socketIoPort}`);
 });
