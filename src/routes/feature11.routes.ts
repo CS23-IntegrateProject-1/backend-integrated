@@ -56,7 +56,7 @@ feature11Router.get("/fetchAllArticle", getAllArticle);
 feature11Router.get("/fetchAllArticle_nologin", public_getAllArticle);
 feature11Router.get("/fetchAllVenueName", getAllVenueName);
 feature11Router.get("/fetchArticleHistory", getArticleHistory)
-feature11Router.get("/fetchUserArticle", getUserArticle)
+feature11Router.post("/fetchUserArticle", getUserArticle)
 feature11Router.get("/fetchCommentHistory", getCommentHistory)
 
 // parameter = article id
