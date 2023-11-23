@@ -67,20 +67,17 @@ export const deleteLocation = async (req: Request, res: Response) => {
 //store user saved location
 export const saveUserLocation = async (req: Request, res: Response) => {
   try {
-    const { locationId, userId, name, latitude, longitude, address, province, district, subdistrict, postcode } = req.body;
+    const {userId, name, address, province, district, subdistrict, postcode } = req.body;
 
     // Concatenate the address components into a single string
     const fullAddress = `${address} ${province} ${district} ${subdistrict} ${postcode}`;
 
-    const savedLocation = await feature4Client.saved_location.create({
+    const savedLocation = await feature4Client.userSaved_location.create({
       data: {
+        userId: parseInt(userId),
         name: name,
-        latitude: latitude,
-        longtitude: longitude,
         address: fullAddress,
         createdAt: new Date(), 
-        location: { connect: { locationId: locationId  } }, 
-        user: { connect: { userId: userId } }, 
       },
     });
 
@@ -97,7 +94,7 @@ export const saveUserLocation = async (req: Request, res: Response) => {
 export const GetAllsaveUserLocation = async (req: Request, res: Response) => {
   try {
 
-    const savedLocation = await feature4Client.saved_location.findMany();
+    const savedLocation = await feature4Client.userSaved_location.findMany();
 
     res.status(201).json({
       message: "User's saved location data fetch successfully",
@@ -111,21 +108,17 @@ export const GetAllsaveUserLocation = async (req: Request, res: Response) => {
 
 export const updateSavedLocation = async (req: Request, res: Response) => {
   try {
-    const { locationId, userId, name, latitude, longitude, address, province, district, subdistrict, postcode } = req.body;
+    const { savedLocId, userId, name, address, province, district, subdistrict, postcode } = req.body;
 
     const fullAddress = `${address} ${province} ${district} ${subdistrict} ${postcode}`;
 
-    const updatedLocation = await feature4Client.saved_location.update({
+    const updatedLocation = await feature4Client.userSaved_location.update({
       where: {
-        locationId_userId: {
-          locationId: locationId,
-          userId: userId,
-        },
+        savedLocId: parseInt(savedLocId),
+        userId: parseInt(userId),
       },
       data: {
         name: name,
-        latitude: latitude,
-        longtitude: longitude,
         address: fullAddress,
       },
     });
@@ -145,14 +138,12 @@ export const updateSavedLocation = async (req: Request, res: Response) => {
 
 export const deleteSavedLocation = async (req: Request, res: Response) => {
   try {
-    const { locationId, userId } = req.params;
+    const { savedLocId, userId } = req.params;
 
-    await feature4Client.saved_location.delete({
+    await feature4Client.userSaved_location.delete({
       where: {
-        locationId_userId: {
-          locationId: parseInt(locationId),
-          userId: parseInt(userId),
-        },
+        savedLocId: parseInt(savedLocId),
+        userId: parseInt(userId),
       },
     });
 
@@ -166,7 +157,6 @@ export const deleteSavedLocation = async (req: Request, res: Response) => {
     });
   }
 };
-
 //get all restaurant
 
 export const getAllRestaurant = async (req: Request, res: Response) => {
@@ -232,3 +222,81 @@ export const getAllCinema = async (req: Request, res: Response) => {
     res.status(500).json({ error: "An error occurred while fetching cinemas data" });
   }
 };
+
+
+
+
+
+
+
+//Online Orders
+
+export const getMenusByVenueId = async (req: Request, res: Response) => {
+  try {
+      const venueId= req.params.venueId;
+      const allMenus = await feature4Client.menu.findMany(
+          {
+              where: {
+                  venueId: parseInt(venueId)
+              }
+          }
+      );
+      
+      res.status(200).json(allMenus);
+  }
+  catch (e) {
+      console.log(e);
+  }
+}
+
+export const getSetsByVenueId = async (req: Request, res: Response) => {
+  try {
+      const venueId= req.params.venueId;
+      const allSets = await feature4Client.sets.findMany(
+          {
+              where: {
+                  venueId: parseInt(venueId)
+              }
+          }
+      );
+      
+      res.status(200).json(allSets);
+  }
+  catch (e) {
+      console.log(e);
+  }
+}
+
+export const getMenuById = async (req: Request, res: Response) => {
+  try {
+      const menuId= req.params.id;
+      const menu = await feature4Client.menu.findUnique(
+          {
+              where: {
+                  menuId: parseInt(menuId)
+              }
+          }
+      );
+      return res.status(200).json(menu);
+  }
+  catch (e) {
+      console.log(e);
+  }
+};
+
+export const getSetById = async (req: Request, res: Response) => {
+  try {
+      const setId= req.params.id;
+      const set = await feature4Client.sets.findUnique(
+          {
+              where: {
+                  setId: parseInt(setId)
+              }
+          }
+      );
+      return res.status(200).json(set);
+  }
+  catch (e) {
+      console.log(e);
+  }
+}

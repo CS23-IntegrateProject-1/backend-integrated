@@ -1530,3 +1530,26 @@ enum Payment_status {
   Success
   Canceled
 }
+
+enum Notification_reservation_status {
+  Pending
+  Check_in
+  Check_out
+  Cancel
+}
+
+enum Notification_order_status {
+  On_going
+  Completed
+}
+
+enum Notfication_ad_business_isApprove {
+  Rejected
+  In_progress
+  Completed
+}
+
+enum Tables_status {
+  Available
+  Unavailable
+}
