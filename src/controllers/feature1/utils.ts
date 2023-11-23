@@ -1,7 +1,7 @@
 import { Request } from "express";
 
 export function extractToken({ headers }: Request): string {
-  let { cookie: token } = headers;
+  const { cookie: token } = headers;
 
   if (!token) {
     throw new Error("Invalid token");
