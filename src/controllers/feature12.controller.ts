@@ -52,15 +52,16 @@ const detectIntent = async (languageCode, queryText, sessionId) => {
 
     // Send request and log result
     const responses = await sessionClient.detectIntent(request);
-    console.log(responses);
+    // console.log(responses);
     const result = responses[0].queryResult;
     console.log(result);
 
     if (result) {
     // Now you can safely access properties or methods on 'result'
-        console.log(result);
+        // console.log(result);
         return {
-            response: result.fulfillmentText
+            fulfillmentText: result.fulfillmentText,
+            intentDisplayName: result.intent?.displayName,
         };
     } else {
     console.log('Result is null or undefined');
@@ -76,7 +77,23 @@ export const forDialogflow = async (req: Request, res: Response) => {
     let responseData = await detectIntent(languageCode, queryText, sessionId);
 
     if (responseData) {
-    res.send(responseData.response);
+      if(responseData.intentDisplayName === 'ShowingVenues'){
+        const venues = await feature12Client.venue.findMany({
+          select: {
+            category: true,
+          },
+          distinct: ["category"],
+        });
+        // console.log(venues);
+        const categories = venues.map(venue => venue.category);
+        const categoriesString = categories.join(', ');
+        res.json({ 
+          fulfillmentText : responseData.fulfillmentText,
+          consequences: categoriesString
+        });
+      }else{
+        res.send({fulfillmentText : responseData.fulfillmentText});
+      }
   } else {
     res.send('No response data');
   }
