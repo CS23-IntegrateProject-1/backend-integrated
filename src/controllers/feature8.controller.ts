@@ -703,6 +703,22 @@ export const getAllNotificationAdBusinessByBusinessId = async (req: Request, res
     }
 }
 
+export const getAllNotificationAdBusinessMain = async (req: Request, res: Response) => {
+
+    try {
+        const adBiz = await feature8Client.ad_business.findMany();
+
+        if (!adBiz || adBiz.length === 0) {
+            return res.status(404).json({ error: 'No notifications found for the specified business' });
+        }
+
+        res.status(200).json(adBiz);
+    } catch (error) {
+        console.error('Error fetching notifications by business ID:', error);
+        res.status(500).json({ error: 'Failed to retrieve notifications' });
+    }
+}
+
 // export const ShowUpdateOrder = async (req: Request, res: Response) => {
 //     const token = req.cookies.authToken; // token stored in authToken
 //     // wait to change the userId to businessId(not finish yet) businessId->venueId->orderUpdate
