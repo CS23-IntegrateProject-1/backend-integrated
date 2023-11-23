@@ -7,7 +7,6 @@ import {
   AboutShowDBResponse,
   AboutStoreDBResponse,
   AboutUpdateDBResponse,
-  AboutDestroyDBResponse,
 } from "../../controllers/feature1/models/about.model";
 
 export interface IAboutRepository {

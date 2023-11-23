@@ -134,15 +134,16 @@ model Friendship {
 }
 
 model Venue {
-  name              String
-  description       String?
-  category          String?
-  capacity          Int
-  chatRoomId        Int                 @unique
-  locationId        Int                 @unique
-  score             Decimal
-  venueId           Int                 @id @default(autoincrement())
-  website_url       String              @db.Text
+  name        String
+  description String?
+  category    String?
+  capacity    Int
+  chatRoomId  Int      @unique
+  locationId  Int      @unique
+  score       Decimal
+  venueId     Int      @id @default(autoincrement())
+  website_url String   @db.Text
+  location    Location @relation(fields: [locationId], references: [locationId])
   App_transaction   App_transaction[]
   Article_venue     Article_venue[]
   Business_finance  Business_finance[]
@@ -928,12 +929,6 @@ model Notfication_ad_business {
   @@index([advertisementId], map: "Notfication_ad_business_advertisementId_fkey")
 }
 
-enum Status_ad {
-  Rejected
-  In_progress
-  Completed
-}
-
 model Ad_tag {
   adId  Int
   tagId Int
@@ -1097,6 +1092,7 @@ model Location {
   longtitude     Decimal          @db.Decimal(10, 6)
   address        String           @db.Text
   Saved_location Saved_location[]
+  Venue          Venue?
 }
 
 model Saved_location {
@@ -1396,6 +1392,12 @@ model userSaved_location {
   user       User     @relation(fields: [userId], references: [userId])
 
   @@index([userId], map: "userSaved_location_userId_fkey")
+}
+
+enum Status_ad {
+  Rejected
+  In_progress
+  Completed
 }
 
 enum Table_status {
