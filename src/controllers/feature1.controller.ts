@@ -5,16 +5,12 @@ import { TosController } from "./feature1/TosController";
 import { PrivacyPolicyController } from "./feature1/PrivacyPolicyController";
 import { AboutController } from "./feature1/AboutController";
 import { PromptPayController } from "./feature1/PromptPayController";
+import SearchController from "./feature1/SearchController";
+import FriendController from "./feature1/FriendController";
 
 export const getfeature1 = async (req: Request, res: Response) => {
   return res.json({});
 };
-
-export const accountHandler = async (req: Request, res: Response) => {};
-
-export const bioFetchHandler = async (req: Request, res: Response) => {};
-
-export const helpHandler = async (req: Request, res: Response) => {};
 
 export const aboutHandler = async (req: Request, res: Response) => {
   switch (req.method) {
@@ -79,5 +75,23 @@ export const promptPayHandler = async (req: Request, res: Response) => {
     case "GET":
     default:
       return new PromptPayController().show(req, res);
+  }
+};
+
+export const searchHandler = async (req: Request, res: Response) => {
+  switch (req.method) {
+    case "GET":
+    default:
+      return new SearchController().show(req, res);
+  }
+};
+
+export const friendHandler = async (req: Request, res: Response) => {
+  switch (req.method) {
+    case "POST":
+      return new FriendController().addFriend(req, res);
+    case "GET":
+    default:
+      return new FriendController().index(req, res);
   }
 };
