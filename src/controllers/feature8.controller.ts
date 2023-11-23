@@ -684,7 +684,27 @@ export const getBusinessIdByVenueIdForReal = async (req: Request, res: Response)
     }
   };
 
+export const getAdBusinessbyAdvertisementIdAndBusinessId = async (req: Request, res: Response) => {
+    const { advertisementId, businessId } = req.params;
 
+    try {
+        const adBusiness = await feature8Client.ad_business.findUnique({
+            where: {
+                advertisementId: parseInt(advertisementId, 10),
+                businessId: parseInt(businessId, 10),
+            },
+        });
+
+        if (!adBusiness) {
+            return res.status(404).json({ error: 'AdBusiness not found' });
+        }
+
+        res.status(200).json(adBusiness);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Failed to retrieve adBusiness' });
+    }
+}
 
 // export const ShowUpdateOrder = async (req: Request, res: Response) => {
 //     const token = req.cookies.authToken; // token stored in authToken
