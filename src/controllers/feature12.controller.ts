@@ -143,13 +143,13 @@ createChatRooms();
 // };
 
 //Get the secondUserID from friendship table of specific user who has login
-export const getFriendList = async (req: Request, res: Response) => {
-  const { firstUserId } = req.params;
+export const getFriendList = async (req: any, res: Response) => {
 
   try {
+    const userId = req.userId;
     const friendships = await feature12Client.friendship.findMany({
       where: {
-        firstUserId: parseInt(firstUserId),
+        firstUserId: parseInt(userId),
       },
       select: {
         sencondUserId: true,
@@ -164,8 +164,7 @@ export const getFriendList = async (req: Request, res: Response) => {
             userId: friendship.sencondUserId,
           },
           select: {
-            fname: true,
-            lname: true,
+            username: true,
             userId: true,
           },
         });

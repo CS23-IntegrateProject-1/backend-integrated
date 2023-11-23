@@ -12,6 +12,7 @@ import {
   getFriendList,
   forDialogflow,
 } from "../controllers/feature12.controller";
+import { customVerifyCookie } from "../middlewares/verifyCookies";
 
 const feature12Router = Router();
 //CRUD
@@ -35,7 +36,7 @@ feature12Router.get("/displayAnswer/:id", displayAnswerWrtVenueID);
 //Get all user
 feature12Router.get("/displayUser", getAllUsers);
 //Get Friend List
-feature12Router.get("/displayFriendList/:firstUserId", getFriendList);
+feature12Router.get("/displayFriendList",customVerifyCookie, getFriendList);
 
 //dialogflow route
 feature12Router.post("/dialogflow", forDialogflow);
