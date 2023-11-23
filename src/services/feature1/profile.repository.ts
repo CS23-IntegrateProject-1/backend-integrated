@@ -1,10 +1,19 @@
 import { PrismaClient, Prisma, Gender, User_bio } from "@prisma/client";
 import { DefaultArgs } from "@prisma/client/runtime/library";
-import { ProfileShowDBResponse } from "../../controllers/feature1/models/profile.model";
+import {
+  ProfileShowDBResponse,
+  ProfileUpdateDBResponse,
+  ProfileUpdateRequest,
+} from "../../controllers/feature1/models/profile.model";
 import { omit, pick } from "ramda";
 
 export interface IProfileRepository {
   getUserById(userId: number): Promise<ProfileShowDBResponse>;
+
+  updateUserById(
+    userId: number,
+    data: ProfileUpdateRequest,
+  ): Promise<ProfileUpdateDBResponse>;
 }
 
 type Profile = {
@@ -47,6 +56,48 @@ export class ProfileRepository implements IProfileRepository {
 
   constructor() {
     this.prismaClient = new PrismaClient();
+  }
+
+  async updateUserById(
+    userId: number,
+    data: ProfileUpdateRequest,
+  ): Promise<ProfileShowDBResponse> {
+    const result = await this.prismaClient.user.update({
+      include: { User_bio: true },
+      where: {
+        userId: userId,
+      },
+      data: {
+        phone: data.phone,
+        email: data.phone,
+        userId,
+        User_bio: {
+          connectOrCreate: {
+            create: {
+              birthday: data.birthday,
+              gender: data.gender,
+            },
+            where: {
+              userId,
+            },
+          },
+          update: {
+            birthday: data.birthday,
+            gender: data.gender,
+          },
+        },
+      },
+    });
+
+    if (!result) {
+      throw new Error("User not found");
+    }
+
+    const profile = makeProfile(result);
+
+    const extendedProfile = expandBio(profile);
+
+    return extendedProfile as ProfileUpdateDBResponse;
   }
 
   async getUserById(userId: number): Promise<ProfileShowDBResponse> {

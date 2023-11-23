@@ -1,8 +1,17 @@
-import { ProfileShowDBResponse } from "../../controllers/feature1/models/profile.model";
+import {
+  ProfileShowDBResponse,
+  ProfileUpdateDBResponse,
+  ProfileUpdateRequest,
+} from "../../controllers/feature1/models/profile.model";
 import { IProfileRepository } from "./profile.repository";
 
 export interface IProfileService {
   getUserProfile(userId: number): Promise<ProfileShowDBResponse>;
+
+  updateUserProfile(
+    userId: number,
+    data: ProfileUpdateRequest,
+  ): Promise<ProfileUpdateDBResponse>;
 }
 
 export default class ProfileService implements IProfileService {
@@ -10,5 +19,12 @@ export default class ProfileService implements IProfileService {
 
   async getUserProfile(userId: number): Promise<ProfileShowDBResponse> {
     return this.repository.getUserById(userId);
+  }
+
+  async updateUserProfile(
+    userId: number,
+    data: ProfileUpdateRequest,
+  ): Promise<ProfileUpdateDBResponse> {
+    return this.repository.updateUserById(userId, data);
   }
 }

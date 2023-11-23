@@ -47,5 +47,6 @@ feature1Router.get("/friend", friendHandler);
 feature1Router.post("/friend/add", friendHandler);
 
 feature1Router.get("/profile", profileHandler);
+feature1Router.put("/profile", profileHandler);
 
 export default feature1Router;

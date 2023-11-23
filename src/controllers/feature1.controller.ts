@@ -99,6 +99,8 @@ export const friendHandler = async (req: Request, res: Response) => {
 
 export const profileHandler = async (req: Request, res: Response) => {
   switch (req.method) {
+    case "PUT":
+      return new ProfileController().update(req, res);
     case "GET":
     default:
       return new ProfileController().show(req, res);
