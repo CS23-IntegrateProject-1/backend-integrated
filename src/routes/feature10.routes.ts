@@ -10,7 +10,9 @@ import {
     getAllFilms,
     getShowsByFilmId,
     getSeatsTypeByScreenId,
-    getShowsByTheaterId
+    getShowsByTheaterId,
+    getFilmsByTheaterId,
+    getTheaterById
 } from "../controllers/feature10.controller";
 
 const feature10Router = Router();
@@ -24,6 +26,8 @@ feature10Router.get("/getAllFilms", getAllFilms);
 feature10Router.get("/getShowsByFilmId/:id/:date", getShowsByFilmId);
 feature10Router.get("/getSeatsTypeByScreenId/:id", getSeatsTypeByScreenId);
 feature10Router.get("/getShowsByTheaterId/:id/:date", getShowsByTheaterId);
+feature10Router.get("/getFilmsByTheaterId/:id/:date", getFilmsByTheaterId);
+feature10Router.get("/getTheaterById/:id", getTheaterById);
 
 export default feature10Router;
 

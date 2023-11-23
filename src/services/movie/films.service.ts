@@ -124,6 +124,41 @@ class filmService{
 		return data;
 	}
 
+	// getFilmsByTheaterId(id: number, date: string): Promise<any[]> {
+	// 	const prisma = new PrismaClient();
+	// 	const data = prisma.films.findMany({
+	// 		//distinct: ["filmId"],
+	// 		where: {
+	// 			Shows: {
+	// 				every: {
+	// 					date: new Date(date)
+	// 				}
+	// 			},
+	// 		},
+	// 	});
+	// 	return data;
+	// }
+
+	getFilmsByTheaterId(id: number, date: string): Promise<any[]> {
+		const prisma = new PrismaClient();
+		const data = prisma.films.findMany({
+			//distinct: ["filmId"],
+			where: {
+				Shows: {
+					some: {
+						screen: {
+							theaterId: id
+						}
+					},
+					every: {
+						date: new Date(date)
+					}
+				}
+			}
+		});
+		return data;
+	}
+
 	
 }
 

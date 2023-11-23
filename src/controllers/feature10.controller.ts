@@ -92,15 +92,26 @@ export const getSeatsTypeByScreenId = async (req: Request, res: Response) => {
 
 //page4
 //
-//
-//
-//
 
 export const getShowsByTheaterId = async (req: Request, res: Response) => {
     const id = Number(req.params.id);
     const date = req.params.date;
 
     const data = await showService.getShowsByTheaterId(id, date);
+    res.json(data);
+}
+
+export const getFilmsByTheaterId = async (req: Request, res: Response) => {
+    const id = Number(req.params.id);
+    const date = req.params.date;
+
+    const data = await filmService.getFilmsByTheaterId(id, date);
+    res.json(data);
+}  
+
+export const getTheaterById = async (req: Request, res: Response) => {
+    const id = Number(req.params.id);
+    const data = await theaterService.getTheaterById(id);
     res.json(data);
 }
 
