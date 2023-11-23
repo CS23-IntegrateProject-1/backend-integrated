@@ -45,8 +45,8 @@ feature6Router.get("/getOfflineAvailableTables", getOfflineAvailableTables);
 //Business Side Part
 
 //GET METHOD
-feature6Router.get("/allTableType/:venueId",getAllTableTypeByVenueId);
-feature6Router.get("/allTable/:venueId", getAllTableByVenueId);
+feature6Router.get("/allTableType",getAllTableTypeByVenueId);
+feature6Router.get("/allTableByVenueId", getAllTableByVenueId);
 feature6Router.get("/MyTable/:tableId", getTableByTableId);
 feature6Router.get("/Dashboard/:venueId", getCountPerDay);
 

@@ -1,6 +1,13 @@
 import { Day, PrismaClient } from "@prisma/client";
 import { Response, Request } from "express";
-import { addMinutes, addHours, startOfDay, endOfDay, parse, format } from "date-fns";
+import {
+    addMinutes,
+    addHours,
+    startOfDay,
+    endOfDay,
+    parse,
+    format,
+} from "date-fns";
 import authService from "../services/auth/auth.service";
 import { Decimal } from "@prisma/client/runtime/library";
 
@@ -216,7 +223,7 @@ export const createReservation = async (req: Request, res: Response) => {
                     .status(400)
                     .json({ error: "No suitable tables available." });
             }
-            const depositId = await feature6Client.deposit.findMany({
+            const depositId = await feature6Client.deposit.findFirst({
                 where: {
                     venueId: venueId,
                 },
@@ -225,6 +232,13 @@ export const createReservation = async (req: Request, res: Response) => {
                 },
             });
 
+            console.log(depositId?.depositId)
+            if (depositId === undefined || !depositId) {
+                return res.status(400).json({ error: "No deposit found." });
+            }
+
+            
+            
             // Create the reservation
             const newReservation = await feature6Client.reservation.create({
                 data: {
@@ -236,8 +250,8 @@ export const createReservation = async (req: Request, res: Response) => {
                     status: "Pending",
                     isPaidDeposit: "Pending",
                     isReview: false,
-                    depositId: depositId[0].depositId,
-                    branchId: branchId,
+                    depositId: depositId?.depositId,
+                    // branchId: branchId,
                 },
             });
 
@@ -531,12 +545,33 @@ export const findSuitableTable = async (
 export const getTableByTableId = async (req: Request, res: Response) => {
     try {
         const { tableId } = req.params;
-        const venueId = req.body.venueId;
-        const table = await feature6Client.tables.findUnique({
+        const token = req.cookies.authToken;
+        if (!token) {
+            return res.status(401).json({ error: "No auth token" });
+        }
+        const decodedToken = authService.decodeToken(token);
+        const { businessId } = decodedToken;
+        console.log(businessId);
+
+        const getVenueId = await feature6Client.property.findFirst({
+            where: {
+                businessId: businessId,
+            },
+            select: {
+                venueId: true,
+            },
+        });
+
+        console.log(getVenueId)
+
+        const venueId = getVenueId?.venueId;
+        if (venueId == undefined || !venueId) {
+            return res.status(400).json({error: "Venue is undefined"});
+        }
+        const table = await feature6Client.tables.findMany({
             where: {
                 tableId: parseInt(tableId),
-                venueId: parseInt(venueId),
-                tableTypeDetailId: venueId.tableTypeDetailId,
+                venueId: venueId
             },
             include: {
                 table_type: true,
@@ -552,10 +587,29 @@ export const getTableByTableId = async (req: Request, res: Response) => {
 // in-progress
 export const getAllTableTypeByVenueId = async (req: Request, res: Response) => {
     try {
-        const { venueId } = req.params;
+        const token = req.cookies.authToken;
+        if (!token) {
+            return res.status(401).json({ error: "No auth token" });
+        }
+        const decodedToken = authService.decodeToken(token);
+        const { businessId } = decodedToken;
+        console.log(businessId);
+
+        const getVenueId = await feature6Client.property.findFirst({
+            where: {
+                businessId: businessId,
+            },
+            select: {
+                venueId: true,
+            },
+        });
+
+        console.log(getVenueId)
+
+        const venueId = getVenueId?.venueId;
         const table = await feature6Client.table_type_detail.findMany({
             where: {
-                venueId: parseInt(venueId),
+                venueId: venueId,
             },
         });
 
@@ -568,10 +622,29 @@ export const getAllTableTypeByVenueId = async (req: Request, res: Response) => {
 // in-progress
 export const getAllTableByVenueId = async (req: Request, res: Response) => {
     try {
-        const { venueId } = req.params;
+        const token = req.cookies.authToken;
+        if (!token) {
+            return res.status(401).json({ error: "No auth token" });
+        }
+        const decodedToken = authService.decodeToken(token);
+        const { businessId } = decodedToken;
+        console.log(businessId);
+
+        const getVenueId = await feature6Client.property.findFirst({
+            where: {
+                businessId: businessId,
+            },
+            select: {
+                venueId: true,
+            },
+        });
+
+        console.log(getVenueId)
+
+        const venueId = getVenueId?.venueId;
         const table = await feature6Client.tables.findMany({
             where: {
-                venueId: parseInt(venueId),
+                venueId: venueId,
             },
             include: {
                 table_type: true,
@@ -588,7 +661,25 @@ export const getAllTableByVenueId = async (req: Request, res: Response) => {
 // In-progress
 export const createTable = async (req: Request, res: Response) => {
     try {
-        const { venueId, information, tableTypeDetailId, table_no, branchId } =
+        const token = req.cookies.authToken;
+        if (!token) {
+            return res.status(401).json({ error: "No auth token" });
+        }
+        const decodedToken = authService.decodeToken(token);
+        const { businessId } = decodedToken;
+        console.log(businessId);
+
+        const getVenueId = await feature6Client.property.findFirst({
+            where: {
+                businessId: businessId,
+            },
+            select: {
+                venueId: true,
+            },
+        });
+
+        const venueId = getVenueId?.venueId || 0;
+        const { information, tableTypeDetailId, table_no, branchId } =
             req.body;
         const newTable = await feature6Client.tables.create({
             data: {
@@ -609,7 +700,30 @@ export const createTable = async (req: Request, res: Response) => {
 
 export const createTableType = async (req: Request, res: Response) => {
     try {
-        const { capacity, detail, name, venueId, image_url } = req.body;
+        const token = req.cookies.authToken;
+        if (!token) {
+            return res.status(401).json({ error: "No auth token" });
+        }
+        const decodedToken = authService.decodeToken(token);
+        const { businessId } = decodedToken;
+        console.log(businessId);
+
+        const getVenueId = await feature6Client.property.findFirst({
+            where: {
+                businessId: businessId,
+            },
+            select: {
+                venueId: true,
+            },
+        });
+
+        console.log(getVenueId)
+
+        const venueId = getVenueId?.venueId;
+        if (venueId == undefined || !venueId) {
+            return res.status(400).json({error: "Venue is undefined"});
+        }
+        const { capacity, detail, name, image_url } = req.body;
         const newTableType = await feature6Client.table_type_detail.create({
             data: {
                 capacity: capacity,
@@ -635,10 +749,20 @@ export const getCountPerDay = async (req: Request, res: Response) => {
         }
         const decodedToken = authService.decodeToken(token);
         const { businessId } = decodedToken;
-        console.log(decodedToken);
-        
+        console.log(businessId);
 
-        const { venueId } = req.params;
+        const getVenueId = await feature6Client.property.findFirst({
+            where: {
+                businessId: businessId,
+            },
+            select: {
+                venueId: true,
+            },
+        });
+
+        console.log(getVenueId)
+
+        const venueId = getVenueId?.venueId;
         const today = new Date();
         // const startOfToday = addHours(startOfDay(today), 7);
         // const endOfToday = addHours(endOfDay(today), 7);
@@ -667,7 +791,7 @@ export const getCountPerDay = async (req: Request, res: Response) => {
                                 lte: endOfToday,
                             },
                         },
-                        venueId: parseInt(venueId),
+                        venueId: venueId,
                     },
                 ],
             },
@@ -697,7 +821,7 @@ export const getCountPerDay = async (req: Request, res: Response) => {
                             gte: startOfToday,
                             lte: endOfToday,
                         },
-                        venueId: parseInt(venueId),
+                        venueId: venueId,
                     },
                 ],
             },
@@ -723,10 +847,31 @@ export const getCountPerDay = async (req: Request, res: Response) => {
 
 export const deleteTable = async (req: Request, res: Response) => {
     try {
+        const token = req.cookies.authToken;
+        if (!token) {
+            return res.status(401).json({ error: "No auth token" });
+        }
+        const decodedToken = authService.decodeToken(token);
+        const { businessId } = decodedToken;
+        console.log(businessId);
+
+        const getVenueId = await feature6Client.property.findFirst({
+            where: {
+                businessId: businessId,
+            },
+            select: {
+                venueId: true,
+            },
+        });
+
+        console.log(getVenueId)
+
+        const venueId = getVenueId?.venueId;
         const { tableId } = req.params;
         const deletedTable = await feature6Client.tables.delete({
             where: {
                 tableId: parseInt(tableId),
+                venueId: venueId,
             },
         });
         return res.json({
@@ -795,7 +940,10 @@ export const createOfflineReservation = async (req: Request, res: Response) => {
                     depositId: true,
                 },
             });
-
+            
+            if (depositId.length === 0) {
+                return res.status(400).json({ error: "No deposit found." });
+            }
             // Create the reservation
             const newReservation = await feature6Client.reservation.create({
                 data: {
