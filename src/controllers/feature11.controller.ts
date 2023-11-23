@@ -1,7 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 import { Response, Request } from "express";
 import jwt, { JwtPayload, Secret } from 'jsonwebtoken';
-import authService from "../services/auth.service";
+import authService from "../services/auth/auth.service";
 //import { startOfDay, endOfDay } from 'date-fns';
 //const feature11Client = new PrismaClient();
 const prisma = new PrismaClient();
