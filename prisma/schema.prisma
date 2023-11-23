@@ -178,10 +178,10 @@ model Venue_branch {
   venueId       Int
   branch_name   String
   Orders        Orders[]
-  venue         Venue           @relation(fields: [venueId], references: [venueId])
+  Reservation   Reservation[]
   Stocks        Stocks[]
   Tables        Tables[]
-  Reservation   Reservation[]
+  venue         Venue           @relation(fields: [venueId], references: [venueId])
   Venue_reviews Venue_reviews[]
 
   @@index([venueId], map: "Venue_branch_venueId_fkey")
@@ -195,18 +195,19 @@ model Venue_contacts {
 }
 
 model Venue_reviews {
-  branchId      Int
   userId        Int
-  magnitude     Float?       @db.Double
-  score         Float?       @db.Double
   rating        Int
   review        String?
   date_added    DateTime     @default(now())
   venueReviewId Int          @id @default(autoincrement())
-  user          User         @relation(fields: [userId], references: [userId])
+  magnitude     Float?
+  score         Float?
+  branchId      Int
   venue         Venue_branch @relation(fields: [branchId], references: [branchId])
+  user          User         @relation(fields: [userId], references: [userId])
 
   @@index([userId], map: "Venue_reviews_userId_fkey")
+  @@index([branchId], map: "Venue_reviews_branchId_fkey")
 }
 
 model Venue_managers {
@@ -564,11 +565,11 @@ model Food_reviews {
   foodReviewId Int      @id @default(autoincrement())
   menuId       Int
   userId       Int
-  magnitude    Float?   @db.Double
-  score        Float?   @db.Double
   rating       Float
   review       String?
   date_added   DateTime @default(now())
+  magnitude    Float?
+  score        Float?
   menu         Menu     @relation(fields: [menuId], references: [menuId])
   user         User     @relation(fields: [userId], references: [userId])
 
@@ -917,12 +918,12 @@ model Ad_business {
 }
 
 model Notfication_ad_business {
-  notiAdBusinessId Int         @id @default(autoincrement())
+  notiAdBusinessId Int                               @id @default(autoincrement())
   title            String
   message          String
-  isApprove        Boolean     @default(false)
+  isApprove        Notfication_ad_business_isApprove @default(In_progress)
   advertisementId  Int
-  ad               Ad_business @relation(fields: [advertisementId], references: [advertisementId])
+  ad               Ad_business                       @relation(fields: [advertisementId], references: [advertisementId])
 
   @@index([advertisementId], map: "Notfication_ad_business_advertisementId_fkey")
 }
@@ -987,10 +988,10 @@ model Business_user {
   businessId      Int           @id @default(autoincrement())
   username        String
   hashed_password String
+  email           String?       @unique @db.VarChar(125)
   fname           String?
   lname           String?
   phone_num       String?       @unique @db.VarChar(10)
-  email           String?       @unique @db.VarChar(125)
   profile_picture String?
   prompt_pay      Int?
   ad_business     Ad_business[]
@@ -1522,4 +1523,10 @@ enum Payment_status {
   Pending
   Success
   Canceled
+}
+
+enum Notfication_ad_business_isApprove {
+  Rejected
+  In_progress
+  Completed
 }
