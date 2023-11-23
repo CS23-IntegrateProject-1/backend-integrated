@@ -15,7 +15,7 @@ model User {
   email                  String                   @unique @db.VarChar(125)
   profile_picture        String?
   addId                  String?                  @unique
-  phone                  String                   @db.VarChar(10)
+  phone                  String                   @unique @db.VarChar(10)
   tierId                 Int?
   userId                 Int                      @id @default(autoincrement())
   prompt_pay             Int?
@@ -197,6 +197,8 @@ model Venue_contacts {
 model Venue_reviews {
   venuId        Int
   userId        Int
+  magnitude     Float?   @db.Double
+  score         Float?   @db.Double
   rating        Int
   review        String?
   date_added    DateTime @default(now())
@@ -563,6 +565,8 @@ model Food_reviews {
   foodReviewId Int      @id @default(autoincrement())
   menuId       Int
   userId       Int
+  magnitude    Float?   @db.Double
+  score        Float?   @db.Double
   rating       Float
   review       String?
   date_added   DateTime @default(now())
@@ -984,6 +988,12 @@ model Business_user {
   businessId      Int           @id @default(autoincrement())
   username        String
   hashed_password String
+  fname           String?
+  lname           String?
+  phone_num       String?        @unique @db.VarChar(10)
+  email           String?        @unique @db.VarChar(125)
+  profile_picture String?
+  prompt_pay      Int?
   ad_business     Ad_business[]
   Property        Property[]
 }
