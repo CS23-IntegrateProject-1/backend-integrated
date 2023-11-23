@@ -580,15 +580,69 @@ export const getVen = async (req: Request, res: Response) => {
 
 export const getBranch = async (req: Request, res: Response) => {
     try {
-        const Ven = await feature3Client.$queryRaw`
+        const Branch = await feature3Client.$queryRaw`
             SELECT venueId, branchId, branch_name
             FROM Venue_branch
             Order by branchId
         `;
 
-        return res.json(Ven);
+        return res.json(Branch);
     } catch (error) {
         console.error(error);
         return res.status(500).json(error);
     }
 };
+
+export const getBranchRate = async (req: Request, res: Response) => {
+    try {
+        const BranchRate = await feature3Client.$queryRaw`
+            SELECT VB.branchId, VR.rating
+            FROM Venue_branch VB, Venue_reviews VR
+            WHERE VB.branchId = VR.branchId
+            ORDER BY branchId
+        `;
+
+        return res.json(BranchRate);
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json(error);
+    }
+};
+
+export const getVenRate = async (req: Request, res: Response) => {
+    try {
+        const VenRate = await feature3Client.$queryRaw`
+            SELECT V.venueId, VB.branchId, name, description, category, capacity,
+            chatRoomId, locationId, website_url, AVG(VR.rating) as rating
+            FROM Venue V, Venue_branch VB, Venue_reviews VR
+            WHERE V.venueId = VB.venueId AND VB.branchId = VR.branchId
+            GROUP BY V.venueId, VB.branchId
+            ORDER BY V.venueId;
+        `;
+
+        return res.json(VenRate);
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json(error);
+    }
+};
+
+export const getVenRate4 = async (req: Request, res: Response) => {
+    try {
+        const VenRate4 = await feature3Client.$queryRaw`
+            SELECT V.venueId, VB.branchId, name, description, category, capacity,
+            chatRoomId, locationId, website_url, AVG(VR.rating) as rating
+            FROM Venue V, Venue_branch VB, Venue_reviews VR
+            WHERE V.venueId = VB.venueId AND VB.branchId = VR.branchId
+            GROUP BY V.venueId, VB.branchId
+            HAVING AVG(VR.rating) >= 4
+            ORDER BY V.venueId;
+        `;
+
+        return res.json(VenRate4);
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json(error);
+    }
+};
+
