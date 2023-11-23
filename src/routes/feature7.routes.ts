@@ -104,6 +104,8 @@ feature7Router.post("/editSet/:venueId/:setId",editSet);
 feature7Router.get("/getMenuByVenueIdNotInSet/:venueId/:setId",getMenuByVenueNotInSet);
 //delete menu item before adding to set
 feature7Router.post("/deleteMenuItemBeforeAddingToSet",deleteMenuItemBeforeAddingToSet);
+//delete menu item before adding to set for edit set
+feature7Router.post("/deleteMenuItemBeforeAddingToSet/:setId",deleteMenuItemBeforeAddingToSet);
 //show menu items in set
 feature7Router.get("/showMenuItemsInSet/:setId",showMenuItemsInSet);
 export default feature7Router;

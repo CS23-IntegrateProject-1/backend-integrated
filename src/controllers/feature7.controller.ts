@@ -1134,7 +1134,7 @@ export const getMenuByVenueNotInSet = async (req: Request, res: Response) => {
 export const deleteMenuItemBeforeAddingToSet = async (req: Request, res: Response) => {
     try {
         const menuId = req.body.menuId;
-        const setId = "0";
+        const setId = "0" || req.params.setId;
         const selectedMenuItem = req.cookies.setItems || [];
         console.log(selectedMenuItem);
         const selectedMenuItems = JSON.parse(selectedMenuItem);
