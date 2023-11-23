@@ -9,8 +9,6 @@ const prisma = new PrismaClient();
 // * TODO : 
 // * edit article 
 // * change keyword to link, 
-// * get comment like by creator
-// * add comment like by creator
 // * upload image with req.file
 
 enum Category {
@@ -441,22 +439,40 @@ export const getArticleDetail = async (req: Request, res: Response) => {
   }
 };
   
-// ! not 100% finish -> how to get comment like by creator?
 export const getArticleComment = async (req: Request, res: Response) => {
   const { id } = req.params;
 
   try {
-    const comment = await prisma.comments.findMany({
+    const newcomment = await prisma.comments.findMany({
       where: { articleId: parseInt(id) },
       include: {
-        user: true
+        user: {
+          select: {
+            username: true,
+            profile_picture: true
+          }
+        }
       }
     });
 
-    if (!comment) {
+    const commentWithLikeBy = await Promise.all(
+      newcomment.map(async (comment) => {
+        const isLikeByCreator = await prisma.comment_like_by_creator.findUnique({
+          where: { commentId_articleId: { commentId: comment.commentId, articleId: parseInt(id) }}
+        })
+  
+        // Add the like count to each article object
+        return {
+          ...comment,
+          isLikeByCreator: Boolean(isLikeByCreator)
+        };
+      })
+    );
+
+    if (!commentWithLikeBy) {
       res.json({ error: "Comment not found" });
     } else {
-      res.json(comment);
+      res.json(commentWithLikeBy);
     }
   } catch (error) {
     console.error(error);
@@ -475,20 +491,32 @@ export const getAllArticle = async (req: Request, res: Response) => {
   try {
     const articles = await prisma.article.findMany({
       include: {
-        Image: true,
+        Image: {
+          select: {
+            url: true,
+            description: true
+          }
+        },
         Article_tags: {
           include: {
-            tag: true,
+            tag: {
+              select: {
+                tag_name: true
+              }
+            },
           },
         },
         Article_venue: {
           include: {
-            venue: true,
+            venue: {
+              select: { name: true }
+            }
           },
         },
         user: {
-          include: {
-            user: true,
+          select: {
+            username: true,
+            profile_picture: true,
           }
         }
       },
@@ -617,20 +645,32 @@ export const getArticleHistory = async (req: Request, res: Response) => {
     const articles = await prisma.article.findMany({
       where: { userId },
       include: {
-        Image: true,
+        Image: {
+          select: {
+            url: true,
+            description: true
+          }
+        },
         Article_tags: {
           include: {
-            tag: true,
+            tag: {
+              select: {
+                tag_name: true
+              }
+            },
           },
         },
         Article_venue: {
           include: {
-            venue: true,
+            venue: {
+              select: { name: true }
+            }
           },
         },
         user: {
-          include: {
-            user: true,
+          select: {
+            username: true,
+            profile_picture: true,
           }
         }
       },
@@ -653,7 +693,7 @@ export const getArticleHistory = async (req: Request, res: Response) => {
 
         const isLike = await prisma.like.findUnique({
           where: { articleId_userId: { articleId: article.articleId, userId } },
-        });
+        })
   
         // Add the like count to each article object
         return {
@@ -672,6 +712,95 @@ export const getArticleHistory = async (req: Request, res: Response) => {
   }
 };
 
+//interface Comment_like_by_creatorCreateInput {
+//  commentId: number,
+//  articleId: number
+//}
+
+export const CreatorLikeComment = async (req: Request, res: Response) => {
+  const token = req.cookies.authToken;
+  if (!token) {
+    return res.json({ error: "No auth token" })
+  }
+  const decodedToken = authService.decodeToken(token)
+  const userId = decodedToken.userId;
+
+  try {
+    const { commentId } = req.body;
+    
+    const thisArticle = await prisma.comments.findUnique({
+      where: { commentId },
+      include: {
+        article: {
+          include: {
+            user: {
+              select: { userId: true }
+            }
+          }
+        }
+      }
+    })
+
+    if (thisArticle && thisArticle.article && thisArticle.article.user.userId === userId) {
+      const articleId = thisArticle.articleId || 0; // Assign a default value if articleId is undefined
+      const newLike = await prisma.comment_like_by_creator.create({
+        data: {
+          commentId,
+          articleId,
+        },
+      });
+
+      res.json("Like successful")
+    }
+    else {
+      res.json("This is not the creator")
+    }
+  } catch (error) {
+    console.error(error);
+    res.json({ error: "Internal server error" });
+  }
+};
+
+export const deleteCommentLikeByCreator = async (req: Request, res: Response) => {
+  const token = req.cookies.authToken;
+  if (!token) {
+    return res.json({ error: "No auth token" })
+  }
+  const decodedToken = authService.decodeToken(token)
+  const userId = decodedToken.userId;
+
+  try {
+    const { commentId } = req.body;
+    
+    const thisArticle = await prisma.comments.findUnique({
+      where: { commentId },
+      include: {
+        article: {
+          include: {
+            user: {
+              select: { userId: true }
+            }
+          }
+        }
+      }
+    })
+
+    if (thisArticle && thisArticle.article && thisArticle.article.user.userId === userId) {
+      const articleId = thisArticle.articleId || 0; // Assign a default value if articleId is undefined
+      const deleteLike = await prisma.comment_like_by_creator.delete({
+        where: { commentId_articleId: { commentId, articleId }}
+      })
+
+      res.json("Delete like successful")
+    }
+    else {
+      res.json("This is not the creator")
+    }
+  } catch (error) {
+    console.error(error);
+    res.json({ error: "Internal server error" });
+  }
+}
 // example of controller getAllAuthors
 // export const getAllAuthors = async (req: Request, res: Response) => {
 //   try {

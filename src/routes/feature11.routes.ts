@@ -17,8 +17,11 @@ import {
     deleteImage,
     deleteVenue,
     deleteTag,
-    getArticleHistory
+    getArticleHistory,
+    CreatorLikeComment,
+    deleteCommentLikeByCreator
 } from "../controllers/feature11.controller";
+import feature1Router from "./feature1.routes";
 
 const feature11Router = Router();
 
@@ -30,6 +33,7 @@ feature11Router.post("/addArticle", addArticle);
 //feature11Router.post("/addArticle/:Id", addArticle);
 feature11Router.post("/writeComment", addComment);
 feature11Router.post("/addLike", addLike);
+feature11Router.post("/addCommentByCreator", CreatorLikeComment)
 
 // * DELETE
 feature11Router.delete("/deleteArticle", deleteArticle);
@@ -38,6 +42,7 @@ feature11Router.delete("/deleteLike", deleteLike);
 feature11Router.delete("/deleteImage", deleteImage);
 feature11Router.delete("/deleteVenue", deleteVenue);
 feature11Router.delete("/deleteTag", deleteTag);
+feature11Router.delete("/deleteCommentLikeByCreator", deleteCommentLikeByCreator)
 
 // * UPDATE
 feature11Router.patch("/editComment", editComment);
