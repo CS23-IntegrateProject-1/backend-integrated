@@ -1,8 +1,14 @@
 import { PrismaClient } from "@prisma/client";
 import { Response, Request } from "express";
+import fs from 'fs';
+import { EntityTypesClient, protos } from '@google-cloud/dialogflow';
+import path from 'path';
 const feature12Client = new PrismaClient();
-
 const prisma = new PrismaClient();
+
+//For Updating the entity type in dialogflow
+const entities = JSON.parse(fs.readFileSync(path.resolve(__dirname, '../../dialogflowData.json'), 'utf-8'));
+type IEntityType = protos.google.cloud.dialogflow.v2.IEntityType;
 
 //for dialogflow integration-1
 import dialogflow from '@google-cloud/dialogflow';
@@ -10,6 +16,7 @@ import dialogflow from '@google-cloud/dialogflow';
 //Getting CREDENTIALS from .env file for dialogflow
 import loadEnv from "../configs/dotenvConfig";
 loadEnv();
+
 // Your credentials
 const CREDENTIALS = JSON.parse(process.env.CREDENTIALS || '');
 
@@ -54,14 +61,13 @@ const detectIntent = async (languageCode, queryText, sessionId) => {
     const responses = await sessionClient.detectIntent(request);
     // console.log(responses);
     const result = responses[0].queryResult;
-    console.log(result);
+    // result?.outputContexts?.forEach(context => console.log(context.parameters?.fields));
 
     if (result) {
     // Now you can safely access properties or methods on 'result'
-        // console.log(result);
+        console.log(result);
         return {
-            fulfillmentText: result.fulfillmentText,
-            intentDisplayName: result.intent?.displayName,
+          result: result,
         };
     } else {
     console.log('Result is null or undefined');
@@ -77,27 +83,160 @@ export const forDialogflow = async (req: Request, res: Response) => {
     let responseData = await detectIntent(languageCode, queryText, sessionId);
 
     if (responseData) {
-      if(responseData.intentDisplayName === 'ShowingVenues'){
-        const venues = await feature12Client.venue.findMany({
-          select: {
-            category: true,
-          },
-          distinct: ["category"],
-        });
-        // console.log(venues);
-        const categories = venues.map(venue => venue.category);
-        const categoriesString = categories.join(', ');
-        res.json({ 
-          fulfillmentText : responseData.fulfillmentText,
-          consequences: categoriesString
-        });
+      if(responseData.result.intent?.displayName === 'ShowingVenues'){
+        try{
+          const categories = await feature12Client.venue.findMany({
+            select: {
+              category: true,
+            },
+            distinct: ["category"],
+          });
+          // console.log(venues);
+          const categoriesArr = categories.map(venue => venue.category);
+          const categoriesString = categoriesArr.join(', ');
+          res.json({ 
+            fulfillmentText : responseData.result.fulfillmentText,
+            consequences: categoriesString
+          });
+        } catch (error) {
+          return res.status(500).json({ error });
+        }
+      }else if(responseData.result.intent?.displayName === 'choosingCategory'){
+        const category = responseData.result?.outputContexts?.[0]?.parameters?.fields?.category?.stringValue;
+        // console.log(category);
+        try {
+          const names = await feature12Client.venue.findMany({
+            where: {
+              category: category,
+            },
+            select: {
+              venueId: true,
+              name: true,
+            },
+            distinct: ["name"],
+          });
+          const namesArr = names.map(venue => venue.name);
+          const namesString = namesArr.join(', ');
+          res.json({ 
+            fulfillmentText : responseData.result.fulfillmentText,
+            consequences: namesString
+          });
+        } catch (error) {
+          return res.status(500).json({ error });
+        }
       }else{
-        res.send({fulfillmentText : responseData.fulfillmentText});
+        res.send({fulfillmentText : responseData.result.fulfillmentText});
       }
   } else {
     res.send('No response data');
   }
 };
+
+async function fetchVenuesAndWriteToFile() {
+  const venues = await prisma.venue.findMany({
+    select: {
+      name: true
+    },
+    distinct: ["name"],
+  });
+  const venueData = {
+    name: 'venue',
+    entries: venues.map(venue => ({
+      value: venue.name,
+      synonyms: [venue.name], // synonyms can be the same as the value if you don't have any synonyms
+    })),
+  };
+
+  const categories = await feature12Client.venue.findMany({
+    select: {
+      category: true,
+    },
+    distinct: ["category"],
+  });
+    const categoryData = {
+    name: 'category',
+    entries: categories.map(category => ({
+      value: category,
+      synonyms: [category], // synonyms can be the same as the value if you don't have any synonyms
+    })),
+  };
+
+  fs.writeFileSync('dialogflowData.json', JSON.stringify([venueData,categoryData], null, 2));
+}
+
+async function updateEntityType() {
+  const projectId = PROJECID; // Replace with your Dialogflow project ID
+
+  const client = new EntityTypesClient({
+    projectId: projectId,
+    credentials: {
+      private_key: CREDENTIALS['private_key'],
+      client_email: CREDENTIALS['client_email']
+    }
+  });
+  const parent = `projects/${projectId}/agent`;
+
+  // Get the list of entity types
+  const [entityTypes] = await client.listEntityTypes({ parent });
+
+  for (const entity of entities) {
+    // Find the entity type with the display name 'venue'
+    const entityType = entityTypes.find(et => et.displayName === entity.name);
+
+    if (entityType) {
+      // Get the UUID of the entity type
+      const entityTypePath = entityType.name;
+
+      const request = {
+        entityType: {
+          name: entityTypePath,
+          displayName: entity.name,
+          kind: 'KIND_MAP',
+          entities: entity.entries.map(entry => ({
+            value: entry.value,
+            synonyms: entry.synonyms,
+          })),
+        },
+        updateMask: {
+          paths: ['entities'],
+        },
+      } as { entityType: IEntityType };
+
+      const [response] = await client.updateEntityType(request);
+      console.log('Entity updated:', response);
+    }
+  }
+}
+
+// async function createEntityType() {
+//   const projectId = PROJECID; // Replace with your Dialogflow project ID
+
+//   const client = new EntityTypesClient();
+//   const parent = `projects/${projectId}/agent`;
+//   for (const entity of entities) {
+//     const request = {
+//       parent: parent,
+//       entityType: {
+//         displayName: entity.name, // entity name
+//         kind: 'KIND_MAP',
+//         entities: entity.entries.map(entry => ({
+//           value: entry.value,
+//           synonyms: entry.synonyms,
+//         })),
+//       },
+//     } as { parent: string, entityType: IEntityType };
+
+//     const [response] = await client.createEntityType(request);
+//     console.log('Entity created:', response);
+//   }
+// }
+
+export const fetchData = async (req: Request, res: Response) => {
+  await fetchVenuesAndWriteToFile().catch(err => console.error(err));
+  await updateEntityType().catch(err => console.error(err));
+  console.log('Data written to file');
+  res.send('Data written to file');
+}
 
 // const existingChatRoom = await feature12Client.chat_room.findUnique({
 //   where: {
