@@ -918,14 +918,20 @@ model Ad_business {
 }
 
 model Notfication_ad_business {
-  notiAdBusinessId Int                               @id @default(autoincrement())
+  notiAdBusinessId Int         @id @default(autoincrement())
   title            String
   message          String
-  isApprove        Notfication_ad_business_isApprove @default(In_progress)
+  isApprove        Status_ad   @default(In_progress)
   advertisementId  Int
-  ad               Ad_business                       @relation(fields: [advertisementId], references: [advertisementId])
+  ad               Ad_business @relation(fields: [advertisementId], references: [advertisementId])
 
   @@index([advertisementId], map: "Notfication_ad_business_advertisementId_fkey")
+}
+
+enum Status_ad {
+  Rejected
+  In_progress
+  Completed
 }
 
 model Ad_tag {
@@ -1523,10 +1529,4 @@ enum Payment_status {
   Pending
   Success
   Canceled
-}
-
-enum Notfication_ad_business_isApprove {
-  Rejected
-  In_progress
-  Completed
 }
