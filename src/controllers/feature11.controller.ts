@@ -401,7 +401,9 @@ export const getArticleDetail = async (req: Request, res: Response) => {
         Article_venue: {
           include: {
             venue: {
-              select: { name: true }
+              select: { 
+                venueId: true,
+                name: true }
             },
           }
         },
@@ -448,6 +450,64 @@ export const getArticleDetail = async (req: Request, res: Response) => {
   }
 };
   
+export const public_getArticleDetail = async (req: Request, res: Response) => {
+  const { articleId } = req.params;
+
+  try {
+    const article = await prisma.article.findUnique({
+      where: { articleId: parseInt(articleId) },
+      include: {
+        Image: {
+          select: {
+            url: true,
+            description: true
+          }
+        },
+        Article_tags: {
+          include: {
+            tag: {
+              select: { tag_name: true }
+            },
+          },
+        },
+        Article_venue: {
+          include: {
+            venue: {
+              select: { 
+                venueId: true,
+                name: true }
+            },
+          }
+        },
+      },
+    });
+
+    if (!article) {
+      res.json({ error: "Article not found" });
+    }
+
+    const likeCount = await prisma.like.count({
+      where: { articleId: parseInt(articleId) },
+    });
+
+    const commentCount = await prisma.comments.count({
+      where: { articleId: parseInt(articleId) }
+    })
+  
+    // Add the like count to the article object
+    const articleWithLikeCount = {
+      ...article,
+      Like: likeCount,
+      CommentCount: commentCount,
+    };
+  
+    res.json(articleWithLikeCount);
+  } catch (error) {
+    console.error(error);
+    res.json({ error: "Internal server error" });
+  }
+};
+
 export const getArticleComment = async (req: Request, res: Response) => {
   const { id } = req.params;
 
@@ -518,7 +578,9 @@ export const getAllArticle = async (req: Request, res: Response) => {
         Article_venue: {
           include: {
             venue: {
-              select: { name: true }
+              select: { 
+                venueId: true,
+                name: true }
             }
           },
         },
@@ -556,6 +618,74 @@ export const getAllArticle = async (req: Request, res: Response) => {
           Like: likeCount,
           Comment: commentCount,
           isLike: Boolean(isLike)
+        };
+      })
+    );
+  
+    res.json(articlesWithLikeCount);
+  } catch (error) {
+    console.error(error);
+    res.json({ error: "Internal server error" });
+  }
+};
+
+export const public_getAllArticle = async (req: Request, res: Response) => {
+  try {
+    const articles = await prisma.article.findMany({
+      include: {
+        Image: {
+          select: {
+            url: true,
+            description: true
+          }
+        },
+        Article_tags: {
+          include: {
+            tag: {
+              select: {
+                tag_name: true
+              }
+            },
+          },
+        },
+        Article_venue: {
+          include: {
+            venue: {
+              select: { 
+                venueId: true,
+                name: true }
+            }
+          },
+        },
+        user: {
+          select: {
+            username: true,
+            profile_picture: true,
+          }
+        }
+      },
+    });
+  
+    if (articles.length === 0) {
+      res.status(404).json({ error: "Article not found" });
+      return;
+    }
+  
+    const articlesWithLikeCount = await Promise.all(
+      articles.map(async (article) => {
+        const likeCount = await prisma.like.count({
+          where: { articleId: article.articleId },
+        });
+
+        const commentCount = await prisma.comments.count({
+          where: { articleId: article.articleId }
+        })
+  
+        // Add the like count to each article object
+        return {
+          ...article,
+          Like: likeCount,
+          Comment: commentCount,
         };
       })
     );
@@ -672,7 +802,9 @@ export const getArticleHistory = async (req: Request, res: Response) => {
         Article_venue: {
           include: {
             venue: {
-              select: { name: true }
+              select: { 
+                venueId: true,
+                name: true }
             }
           },
         },
@@ -745,7 +877,9 @@ export const getUserArticle = async (req: Request, res: Response) => {
         Article_venue: {
           include: {
             venue: {
-              select: { name: true }
+              select: { 
+                venueId: true,
+                name: true }
             }
           },
         },
@@ -804,7 +938,18 @@ export const getCommentHistory = async (req: Request, res: Response) => {
 
   try {
     const comment = await prisma.comments.findMany({
-      where: { userId }
+      where: { userId },
+      include: {
+        article: {
+          select: { topic: true }
+        },
+        user: {
+          select: {
+            username: true,
+            profile_picture: true
+          }
+        }
+      }
     })
 
     res.json(comment)
