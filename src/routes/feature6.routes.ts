@@ -5,12 +5,15 @@ import { getMyReservationByStatus } from "../controllers/feature6.controller";
 import { getVenueById } from "../controllers/feature6.controller";
 import { getVenueAndReservationsById } from "../controllers/feature6.controller";
 import { getReservationById } from "../controllers/feature6.controller";
-import { createReservation } from "../controllers/feature6.controller";
-import { checkAvailability } from "../controllers/feature6.controller";
+// import { checkAvailability } from "../controllers/feature6.controller";
 import { getAvailableTables } from "../controllers/feature6.controller";
 import { findSuitableTable } from "../controllers/feature6.controller";
 
+// import { checkOfflineAvailability } from "../controllers/feature6.controller";
+import { getOfflineAvailableTables } from "../controllers/feature6.controller";
 //IMPORT FOR BUSINESS SIDE
+import { createReservation } from "../controllers/feature6.controller";
+import { createOfflineReservation } from "../controllers/feature6.controller";
 import { getAllTableTypeByVenueId } from "../controllers/feature6.controller";
 import { getTableByTableId } from "../controllers/feature6.controller";
 import { createTable } from "../controllers/feature6.controller";
@@ -30,9 +33,13 @@ feature6Router.post("/MyReservation", getMyReservationByStatus);
 feature6Router.get("/MyReservation/:venueId/:reservationId", getVenueAndReservationsById);
 
 //Not Finished
-feature6Router.get("/checkAvailability", checkAvailability);
+// feature6Router.get("/checkAvailability", checkAvailability);
 feature6Router.get("/getAvailableTables", getAvailableTables);
 feature6Router.get("/findSuitableTable", findSuitableTable);
+
+
+// feature6Router.get("/checkOfflineAvailability", checkOfflineAvailability);
+feature6Router.get("/getOfflineAvailableTables", getOfflineAvailableTables);
 
 
 //Business Side Part
@@ -45,6 +52,7 @@ feature6Router.get("/Dashboard/:venueId", getCountPerDay);
 
 //POST METHOD
 feature6Router.post("/createReservation", createReservation);
+feature6Router.post("/createOfflineReservation", createOfflineReservation);
 feature6Router.post("/createTable", createTable);
 feature6Router.post("/createTableType", createTableType);
 export default feature6Router;
