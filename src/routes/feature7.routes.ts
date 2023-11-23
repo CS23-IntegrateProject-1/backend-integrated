@@ -99,7 +99,7 @@ feature7Router.delete("/deleteSet/:setId",deleteSet);
 //delete menu item from set
 feature7Router.delete("/deleteMenuItemFromSet/:setId/:menuId",deleteMenuItemFromSet);
 //edit set
-feature7Router.post("/editSet/:setId",editSet);
+feature7Router.post("/editSet/:venueId/:setId",editSet);
 //get menu by venue which are not included in specific set
 feature7Router.get("/getMenuByVenueIdNotInSet/:venueId/:setId",getMenuByVenueNotInSet);
 //delete menu item before adding to set
