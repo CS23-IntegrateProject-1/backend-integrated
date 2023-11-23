@@ -911,7 +911,7 @@ export const addSetWithMenuItems = async (req: any, res: Response) => {
             const selectedMenuItem = req.cookies.setItems || [];
             const selectedMenuItems = JSON.parse(selectedMenuItem);
             const menuIds = selectedMenuItems.filter(item => item.setId === 0);
-            const image = req.file.filename || "image.jpg";
+            const image = req.file.filename;
 
             try {
                 const createdSet = await feature7Client.sets.create({
