@@ -203,7 +203,7 @@ model Venue_reviews {
   magnitude     Float?
   score         Float?
   branchId      Int
-  Venue_branch  Venue_branch @relation(fields: [branchId], references: [branchId])
+  venue         Venue_branch @relation(fields: [branchId], references: [branchId])
   user          User         @relation(fields: [userId], references: [userId])
 
   @@index([userId], map: "Venue_reviews_userId_fkey")
@@ -781,7 +781,7 @@ model Reservation {
   Notes                    Notes?
   Notification_reservation Notification_reservation[]
   Orders                   Orders?
-  Venue_branch             Venue_branch?              @relation(fields: [branchId], references: [branchId])
+  branch                   Venue_branch?              @relation(fields: [branchId], references: [branchId])
   deposit                  Deposit                    @relation(fields: [depositId], references: [depositId])
   user                     User                       @relation(fields: [userId], references: [userId])
   venue                    Venue                      @relation(fields: [venueId], references: [venueId])
@@ -837,9 +837,9 @@ model Tables {
   tableTypeDetailId Int
   table_no          Int
   branchId          Int?
-  status            Tables_status
+  status            Table_status
   Reservation_table Reservation_table[]
-  Venue_branch      Venue_branch?       @relation(fields: [branchId], references: [branchId])
+  branch            Venue_branch?       @relation(fields: [branchId], references: [branchId])
   table_type        Table_type_detail   @relation(fields: [tableTypeDetailId], references: [tableTypeDetailId])
   venue             Venue               @relation(fields: [venueId], references: [venueId])
 
@@ -915,6 +915,23 @@ model Ad_business {
   Venue_transaction       Venue_transaction?
 
   @@index([businessId], map: "Ad_business_businessId_fkey")
+}
+
+model Notfication_ad_business {
+  notiAdBusinessId Int         @id @default(autoincrement())
+  title            String
+  message          String
+  isApprove        Status_ad   @default(In_progress)
+  advertisementId  Int
+  ad               Ad_business @relation(fields: [advertisementId], references: [advertisementId])
+
+  @@index([advertisementId], map: "Notfication_ad_business_advertisementId_fkey")
+}
+
+enum Status_ad {
+  Rejected
+  In_progress
+  Completed
 }
 
 model Ad_tag {
@@ -1219,6 +1236,28 @@ model Notification {
   @@index([venueTransactionId], map: "Notification_venueTransactionId_fkey")
 }
 
+model Notification_reservation {
+  notiReserveId Int         @id @default(autoincrement())
+  title         String
+  message       String
+  status        Status
+  reserveId     Int
+  reserve       Reservation @relation(fields: [reserveId], references: [reservationId])
+
+  @@index([reserveId], map: "Notification_reservation_reserveId_fkey")
+}
+
+model Notification_order {
+  notificationOrderId Int          @id @default(autoincrement())
+  title               String
+  message             String
+  status              Order_status
+  orderId             Int
+  order               Orders       @relation(fields: [orderId], references: [orderId])
+
+  @@index([orderId], map: "Notification_order_orderId_fkey")
+}
+
 model Credit_card {
   creditCardId Int      @id @default(autoincrement())
   card_no      String
@@ -1348,48 +1387,20 @@ model Payments {
   reserved_log   Reservation_logs @relation(fields: [reservationId], references: [reservationId])
 }
 
-model Notfication_ad_business {
-  notiAdBusinessId Int                               @id @default(autoincrement())
-  title            String
-  message          String
-  isApprove        Notfication_ad_business_isApprove @default(In_progress)
-  advertisementId  Int
-  Ad_business      Ad_business                       @relation(fields: [advertisementId], references: [advertisementId])
-
-  @@index([advertisementId], map: "Notfication_ad_business_advertisementId_fkey")
-}
-
-model Notification_order {
-  notificationOrderId Int                       @id @default(autoincrement())
-  title               String
-  message             String
-  status              Notification_order_status
-  orderId             Int
-  Orders              Orders                    @relation(fields: [orderId], references: [orderId])
-
-  @@index([orderId], map: "Notification_order_orderId_fkey")
-}
-
-model Notification_reservation {
-  notiReserveId Int                             @id @default(autoincrement())
-  title         String
-  message       String
-  status        Notification_reservation_status
-  reserveId     Int
-  Reservation   Reservation                     @relation(fields: [reserveId], references: [reservationId])
-
-  @@index([reserveId], map: "Notification_reservation_reserveId_fkey")
-}
-
 model userSaved_location {
   savedLocId Int      @id @default(autoincrement())
   userId     Int
   name       String
   address    String   @db.Text
   createdAt  DateTime @default(now()) @db.Timestamp(0)
-  User       User     @relation(fields: [userId], references: [userId])
+  user       User     @relation(fields: [userId], references: [userId])
 
   @@index([userId], map: "userSaved_location_userId_fkey")
+}
+
+enum Table_status {
+  Available
+  Unavailable
 }
 
 enum Approve_status {
