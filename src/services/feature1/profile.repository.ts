@@ -63,10 +63,10 @@ export class ProfileRepository implements IProfileRepository {
       throw new Error("User not found");
     }
 
-    const x = makeProfile(result);
+    const profile = makeProfile(result);
 
-    const y = expandBio(x);
+    const extendedProfile = expandBio(profile);
 
-    return y as ProfileShowDBResponse;
+    return extendedProfile as ProfileShowDBResponse;
   }
 }
