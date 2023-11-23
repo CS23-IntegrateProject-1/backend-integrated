@@ -46,7 +46,6 @@ export default class ProfileController implements IProfileController {
       const result = await ProfilePayload.safeParseAsync(profile);
 
       if (!result.success) {
-        console.log(result.error.issues);
         return res.status(400).json(makeErrorResponse("Invalid request"));
       }
 
