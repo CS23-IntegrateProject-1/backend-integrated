@@ -1,4 +1,4 @@
-import { PrismaClient, Prisma, Gender } from "@prisma/client";
+import { PrismaClient, Prisma, Gender, User_bio } from "@prisma/client";
 import { DefaultArgs } from "@prisma/client/runtime/library";
 import { ProfileShowDBResponse } from "../../controllers/feature1/models/profile.model";
 import { omit, pick } from "ramda";
@@ -12,7 +12,7 @@ type Profile = {
   username: string;
   phone: string;
   email: string;
-  User_bio: null | { birthday: Date | null; gender: Gender | null };
+  User_bio: null | User_bio;
 };
 
 type ExpandedProfile = {
