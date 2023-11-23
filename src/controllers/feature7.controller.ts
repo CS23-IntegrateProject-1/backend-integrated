@@ -742,7 +742,7 @@ export const editMenu = async (req: any, res: Response) => {
                 return res.status(400).json({ error: err.message });
             }
             const menuId = req.params.menuId;
-            const imageFile= await feature7Client.menu.findUnique({where:{menuId:parseInt(menuId)}});
+            const imageFile = await feature7Client.menu.findUnique({ where: { menuId: parseInt(menuId) } });
             const name = req.body.name;
             const price = req.body.price;
             const description = req.body.description;
@@ -931,7 +931,7 @@ export const addSetWithMenuItems = async (req: any, res: Response) => {
                         setId: createdSet.setId,
                     })),
                 });
-                
+
                 const updated = selectedMenuItems.filter(item => item.setId !== 0);
                 res.cookie('setItems', JSON.stringify(updated));
                 res.json({ createdSet, setItems });
@@ -1059,7 +1059,7 @@ export const editSet = async (req: any, res: Response) => {
                 return res.status(400).json({ error: err.message });
             }
             const setId = req.params.setId;
-            const imageFile= await feature7Client.sets.findUnique({where:{setId:parseInt(setId)}});
+            const imageFile = await feature7Client.sets.findUnique({ where: { setId: parseInt(setId) } });
             const { name, price, description } = req.body;
             const venueId = req.params.venueId;
             const selectedMenuItem = req.cookies.setItems || [];
@@ -1134,7 +1134,7 @@ export const getMenuByVenueNotInSet = async (req: Request, res: Response) => {
 export const deleteMenuItemBeforeAddingToSet = async (req: Request, res: Response) => {
     try {
         const menuId = req.body.menuId;
-        const setId="0";
+        const setId = "0";
         const selectedMenuItem = req.cookies.setItems || [];
         console.log(selectedMenuItem);
         const selectedMenuItems = JSON.parse(selectedMenuItem);
@@ -1163,8 +1163,12 @@ export const showMenuItemsInSet = async (req: Request, res: Response) => {
                 },
             },
         });
-        const menuName=menu.map((item)=>item.name);
-        return res.status(200).json(menuName);
+        const result = menu.map((menuItem) => ({
+            setId: setId,
+            menuId: menuItem.menuId,
+            menuName: menuItem.name,
+        }));
+        return res.status(200).json(result);
     }
     catch (e) {
         console.log(e);
