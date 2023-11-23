@@ -19,7 +19,9 @@ import {
     deleteTag,
     getArticleHistory,
     CreatorLikeComment,
-    deleteCommentLikeByCreator
+    deleteCommentLikeByCreator,
+    getUserArticle,
+    getCommentHistory
 } from "../controllers/feature11.controller";
 import feature1Router from "./feature1.routes";
 
@@ -51,6 +53,8 @@ feature11Router.patch("/editComment", editComment);
 feature11Router.get("/fetchAllArticle", getAllArticle);
 feature11Router.get("/fetchAllVenueName", getAllVenueName);
 feature11Router.get("/fetchArticleHistory", getArticleHistory)
+feature11Router.get("/fetchUserArticle", getUserArticle)
+feature11Router.get("/fetchCommentHistory", getCommentHistory)
 
 // parameter = article id
 feature11Router.get("/fetchArticleDetail/:articleId", getArticleDetail);

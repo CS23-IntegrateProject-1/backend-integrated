@@ -385,15 +385,24 @@ export const getArticleDetail = async (req: Request, res: Response) => {
     const article = await prisma.article.findUnique({
       where: { articleId: parseInt(articleId) },
       include: {
-        Image: true,
+        Image: {
+          select: {
+            url: true,
+            description: true
+          }
+        },
         Article_tags: {
           include: {
-            tag: true,
+            tag: {
+              select: { tag_name: true }
+            },
           },
         },
         Article_venue: {
           include: {
-            venue: true,
+            venue: {
+              select: { name: true }
+            },
           }
         },
       },
@@ -711,6 +720,99 @@ export const getArticleHistory = async (req: Request, res: Response) => {
     res.json({ error: "Internal server error" });
   }
 };
+
+export const getUserArticle = async (req: Request, res: Response) => {
+  try {
+    const { userId } = req.body;
+    const articles = await prisma.article.findMany({
+      where: { userId },
+      include: {
+        Image: {
+          select: {
+            url: true,
+            description: true
+          }
+        },
+        Article_tags: {
+          include: {
+            tag: {
+              select: {
+                tag_name: true
+              }
+            },
+          },
+        },
+        Article_venue: {
+          include: {
+            venue: {
+              select: { name: true }
+            }
+          },
+        },
+        user: {
+          select: {
+            username: true,
+            profile_picture: true,
+          }
+        }
+      },
+    });
+  
+    if (articles.length === 0) {
+      res.status(404).json({ error: "Article not found" });
+      return;
+    }
+  
+    const articlesWithLikeCount = await Promise.all(
+      articles.map(async (article) => {
+        const likeCount = await prisma.like.count({
+          where: { articleId: article.articleId },
+        });
+
+        const commentCount = await prisma.comments.count({
+          where: { articleId: article.articleId }
+        })
+
+        const isLike = await prisma.like.findUnique({
+          where: { articleId_userId: { articleId: article.articleId, userId } },
+        })
+  
+        // Add the like count to each article object
+        return {
+          ...article,
+          Like: likeCount,
+          Comment: commentCount,
+          isLike: Boolean(isLike)
+        };
+      })
+    );
+  
+    res.json(articlesWithLikeCount);
+  } catch (error) {
+    console.error(error);
+    res.json({ error: "Internal server error" });
+  }
+};
+
+export const getCommentHistory = async (req: Request, res: Response) => {
+  const token = req.cookies.authToken;
+  if (!token) {
+    return res.json({ error: "No auth token" })
+  }
+  const decodedToken = authService.decodeToken(token)
+  const userId = decodedToken.userId;
+
+  try {
+    const comment = await prisma.comments.findMany({
+      where: { userId }
+    })
+
+    res.json(comment)
+  } catch (error) {
+    console.error(error);
+    res.json({ error: "Internal server error" });
+  }
+}
 
 //interface Comment_like_by_creatorCreateInput {
 //  commentId: number,
