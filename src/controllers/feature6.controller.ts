@@ -251,7 +251,7 @@ export const createReservation = async (req: Request, res: Response) => {
                     isPaidDeposit: "Pending",
                     isReview: false,
                     depositId: depositId?.depositId,
-                    // branchId: branchId,
+                    branchId: branchId,
                 },
             });
 
@@ -541,7 +541,8 @@ export const findSuitableTable = async (
 // BUSINESS SIDE PART
 // GET METHOD
 
-// In-progress
+//In progress
+//waiting for Fix about authen
 export const getTableByTableId = async (req: Request, res: Response) => {
     try {
         const { tableId } = req.params;
@@ -584,7 +585,8 @@ export const getTableByTableId = async (req: Request, res: Response) => {
     }
 };
 
-// in-progress
+//In progress
+//waiting for Fix about authen
 export const getAllTableTypeByVenueId = async (req: Request, res: Response) => {
     try {
         const token = req.cookies.authToken;
@@ -619,7 +621,8 @@ export const getAllTableTypeByVenueId = async (req: Request, res: Response) => {
     }
 };
 
-// in-progress
+//In progress
+//waiting for Fix about authen
 export const getAllTableByVenueId = async (req: Request, res: Response) => {
     try {
         const token = req.cookies.authToken;
@@ -658,7 +661,7 @@ export const getAllTableByVenueId = async (req: Request, res: Response) => {
 };
 
 //POST METHOD
-// In-progress
+//Finished
 export const createTable = async (req: Request, res: Response) => {
     try {
         const token = req.cookies.authToken;
@@ -698,6 +701,7 @@ export const createTable = async (req: Request, res: Response) => {
     }
 };
 
+//Finished
 export const createTableType = async (req: Request, res: Response) => {
     try {
         const token = req.cookies.authToken;
@@ -740,7 +744,8 @@ export const createTableType = async (req: Request, res: Response) => {
     }
 };
 
-// Dashboard not error but trasactionToday get null
+// Dashboard
+// Finished
 export const getCountPerDay = async (req: Request, res: Response) => {
     try {
         const token = req.cookies.authToken;
@@ -845,6 +850,8 @@ export const getCountPerDay = async (req: Request, res: Response) => {
     }
 };
 
+// In-Progress
+// fix about if condition when can't delete bc you are not owner of venue
 export const deleteTable = async (req: Request, res: Response) => {
     try {
         const token = req.cookies.authToken;
@@ -868,6 +875,9 @@ export const deleteTable = async (req: Request, res: Response) => {
 
         const venueId = getVenueId?.venueId;
         const { tableId } = req.params;
+        if(tableId == undefined){
+            return res.status(401).json({ error: "No selected table" });
+        }
         const deletedTable = await feature6Client.tables.delete({
             where: {
                 tableId: parseInt(tableId),
@@ -884,7 +894,6 @@ export const deleteTable = async (req: Request, res: Response) => {
 };
 
 // OFFLINE RESERVATION
-
 var isResponse = true;
 export const createOfflineReservation = async (req: Request, res: Response) => {
     isResponse = true;
@@ -1350,8 +1359,8 @@ export const getOfflineAvailableTables = async (
         };
 
         // console.log("avail table --> ", availableTables2)
-        // getOfflineAvailableTablesResponse = availableTables2;
-        res.status(200).json({ availableTables });
+        getOfflineAvailableTablesResponse = availableTables2;
+        // res.status(200).json({ availableTables });
     } catch (e) {
         return res.status(500).json(e);
     }
