@@ -72,16 +72,6 @@ export const searchHandler = async (req: Request, res: Response) => {
   }
 };
 
-export const friendHandler = async (req: Request, res: Response) => {
-  switch (req.method) {
-    case "POST":
-      return new FriendController().addFriend(req, res);
-    case "GET":
-    default:
-      return new FriendController().index(req, res);
-  }
-};
-
 export const groupHandler = async (req: Request, res: Response) => {
   switch (req.method) {
     case "POST":
