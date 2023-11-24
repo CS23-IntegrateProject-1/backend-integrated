@@ -217,9 +217,9 @@ export const getRecommendedVenues = async (req: Request, res: Response) => {
 export const getVenuesRatings = async (req: Request, res: Response) => {
     try {
         const ratings = await feature3Client.$queryRaw`
-            SELECT venuId, AVG(rating) as rating
+            SELECT branchId, AVG(rating) as rating
             FROM Venue_reviews
-            GROUP BY venuId
+            GROUP BY branchId
         `;
 
         return res.json(ratings);
@@ -568,7 +568,7 @@ export const getVen = async (req: Request, res: Response) => {
             SELECT venueId, name, description, category, capacity, 
             chatRoomId, locationId, website_url
             FROM Venue
-            Order by venueId
+            Order by venueId;
         `;
 
         return res.json(Ven);
@@ -583,7 +583,7 @@ export const getBranch = async (req: Request, res: Response) => {
         const Branch = await feature3Client.$queryRaw`
             SELECT venueId, branchId, branch_name
             FROM Venue_branch
-            Order by branchId
+            Order by branchId;
         `;
 
         return res.json(Branch);
@@ -599,7 +599,7 @@ export const getBranchRate = async (req: Request, res: Response) => {
             SELECT VB.branchId, VR.rating
             FROM Venue_branch VB, Venue_reviews VR
             WHERE VB.branchId = VR.branchId
-            ORDER BY branchId
+            ORDER BY branchId;
         `;
 
         return res.json(BranchRate);
