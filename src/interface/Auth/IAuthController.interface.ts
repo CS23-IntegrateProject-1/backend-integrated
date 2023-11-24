@@ -8,6 +8,10 @@ export default interface IAuthController {
 	adminSignup: (req: any, res: any) => Promise<any>;
 	adminLogin: (req: any, res: any) => Promise<any>;
 
+	businessSignup: (req: any, res: any) => Promise<any>;
+	businessLogin: (req: any, res: any) => Promise<any>;
+
 	getUser: (req: any, res: any) => Promise<any>;
 	getAdminUser: (req: any, res: any) => Promise<any>;
+	getBusinessUser: (req: any, res: any) => Promise<any>;
 }
