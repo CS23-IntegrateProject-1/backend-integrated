@@ -71,8 +71,11 @@ export default class AboutRepository implements IAboutRepository {
     }
   }
 
-  storeAbout(version: string, detail: string): Promise<AboutStoreDBResponse> {
-    return this.prismaClient.about_app.create({
+  async storeAbout(
+    version: string,
+    detail: string,
+  ): Promise<AboutStoreDBResponse> {
+    return await this.prismaClient.about_app.create({
       data: {
         version,
         detail,

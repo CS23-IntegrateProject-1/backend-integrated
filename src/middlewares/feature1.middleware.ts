@@ -20,6 +20,7 @@ export const authMiddleware = (
     req.params.userId = userId;
 
     next();
+    return;
   } catch (error) {
     res.clearCookie("authToken", { domain: FRONTEND_URL });
 

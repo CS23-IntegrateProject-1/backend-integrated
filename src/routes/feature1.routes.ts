@@ -2,7 +2,6 @@ import { Router } from "express";
 
 // here import your controllers(function)
 import {
-  aboutHandler,
   getfeature1,
   paymentMethodHandler,
   searchHandler,
@@ -12,21 +11,20 @@ import {
   friendHandler,
   groupHandler,
   groupInfoHandler,
+  profileHandler,
+  aboutHandler,
 } from "../controllers/feature1.controller";
 import { authMiddleware } from "../middlewares/feature1.middleware";
-import ProfileController from "../controllers/feature1/ProfileController";
-
-const profileController = new ProfileController();
 
 const feature1Router = Router();
 
 // here define your routes
 feature1Router.get("/", getfeature1);
 
-feature1Router.get("/about", aboutHandler);
-feature1Router.post("/about", aboutHandler);
-feature1Router.put("/about", aboutHandler);
-feature1Router.delete("/about", aboutHandler);
+feature1Router.get("/about", authMiddleware, aboutHandler);
+feature1Router.post("/about", authMiddleware, aboutHandler);
+feature1Router.put("/about", authMiddleware, aboutHandler);
+feature1Router.delete("/about", authMiddleware, aboutHandler);
 
 feature1Router.get("/term-of-services", tosHandler);
 feature1Router.post("/term-of-services", tosHandler);
@@ -51,8 +49,8 @@ feature1Router.get("/search/friends", searchHandler);
 feature1Router.get("/friend", friendHandler);
 feature1Router.post("/friend/add", friendHandler);
 
-feature1Router.get("/profile", authMiddleware, profileController.show);
-feature1Router.put("/profile", authMiddleware, profileController.update);
+feature1Router.get("/profile", authMiddleware, profileHandler);
+feature1Router.put("/profile", authMiddleware, profileHandler);
 
 feature1Router.get("/group", groupHandler);
 feature1Router.get("/group/:id", groupInfoHandler);

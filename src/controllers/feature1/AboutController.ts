@@ -18,7 +18,7 @@ import {
 import { Prisma } from "@prisma/client";
 import { extractToken } from "./utils";
 
-interface IAboutController {
+export interface IAboutController {
   store: (req: Request, res: Response) => unknown;
   show: (req: Request, res: Response) => unknown;
   update: (req: Request, res: Response) => unknown;
@@ -54,7 +54,9 @@ export class AboutController implements IAboutController {
       }
 
       try {
+        console.log("here");
         const response = await this.service.storeAbout(version, detail);
+        console.log("there");
 
         const webResponse = makeAboutStoreWebResponse(response);
 
