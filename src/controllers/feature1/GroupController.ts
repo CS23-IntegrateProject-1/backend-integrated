@@ -12,6 +12,7 @@ import {
   makeGroupCreateWebResponse,
   makeGroupIndexWebResponse,
 } from "./models/group.model";
+import { PrismaClient } from "@prisma/client";
 
 export interface IGroupController {
   addGroup(req: Request, res: Response): unknown;
@@ -57,13 +58,14 @@ export default class GroupController implements IGroupController {
     }
   }
 
+  // TODO @SoeThandarLwin: Refactor to follow proper structure later
   async index(req: Request, res: Response) {
     let token: string;
 
     try {
       token = extractToken(req);
     } catch (e) {
-      return res.status(401).json(makeErrorResponse("Unauthorized"));
+      return res.status(401).json(makeErrorResponse("Unauthrozied"));
     }
 
     try {
@@ -72,12 +74,26 @@ export default class GroupController implements IGroupController {
         process.env.JWT_SECRET as string,
       );
       const userId = (decoded as jwt.JwtPayload).userId;
+      const client = new PrismaClient();
+      const result = await client.group_user.findMany({
+        where: {
+          memberId: userId,
+        },
+        include: {
+          group: true,
+        },
+      });
 
-      const groups = await this.service.listGroupsOfUser(userId);
+      client.$disconnect();
 
-      const webResponse = makeGroupIndexWebResponse(groups);
+      const response = result.map((r) => {
+        return {
+          group_id: r.group.groupId,
+          group_name: r.group.group_name,
+        };
+      });
 
-      return res.status(200).json(webResponse);
+      return res.status(200).json(response);
     } catch (e) {
       if (e instanceof JsonWebTokenError) {
         return res.status(401).json(makeErrorResponse("Invalid token"));

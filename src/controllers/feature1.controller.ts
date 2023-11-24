@@ -111,7 +111,9 @@ export const profileHandler = async (req: Request, res: Response) => {
 export const groupHandler = async (req: Request, res: Response) => {
   switch (req.method) {
     case "POST":
-    default:
       return new GroupController().create(req, res);
+    case "GET":
+    default:
+      return new GroupController().index(req, res);
   }
 };
