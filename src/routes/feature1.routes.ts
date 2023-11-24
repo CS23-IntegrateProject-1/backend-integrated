@@ -12,6 +12,7 @@ import {
   friendHandler,
   profileHandler,
   groupHandler,
+  groupInfoHandler,
 } from "../controllers/feature1.controller";
 
 const feature1Router = Router();
@@ -50,6 +51,8 @@ feature1Router.post("/friend/add", friendHandler);
 feature1Router.get("/profile", profileHandler);
 feature1Router.put("/profile", profileHandler);
 
+feature1Router.get("/group", groupHandler);
+feature1Router.get("/group/:id", groupInfoHandler);
 feature1Router.post("/group/add", groupHandler);
 
 export default feature1Router;
