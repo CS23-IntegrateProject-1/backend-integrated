@@ -593,6 +593,22 @@ export const getBranch = async (req: Request, res: Response) => {
     }
 };
 
+export const getBranchVenue = async (req: Request, res: Response) => {
+    try {
+        const BranchVenue = await feature3Client.$queryRaw`
+            SELECT VB.venueId, branchId, branch_name, name, description, category, capacity, 
+            chatRoomId, locationId, website_url
+            FROM Venue_branch VB, Venue V
+            WHERE VB.venueId = V.venueId
+        `;
+
+        return res.json(BranchVenue);
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json(error);
+    }
+};
+
 export const getBranchRate = async (req: Request, res: Response) => {
     try {
         const BranchRate = await feature3Client.$queryRaw`

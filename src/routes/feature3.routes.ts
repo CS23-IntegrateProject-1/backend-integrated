@@ -26,6 +26,13 @@ import {
     deleteFoodReview,
     getFoodReviews,
     getSentimentAnalysis,
+    getVen,
+    getBranch,
+    getBranchRate,
+    getVenRate,
+    getVenRate4,
+    getBranchVenue,
+
 } from "../controllers/feature3.controller";
 import { get } from "http";
 
@@ -62,5 +69,28 @@ feature3Router.get("/food-reviews/:id", getFoodReviews);
 feature3Router.post("/food-reviews", addFoodReview);
 feature3Router.patch("/food-reviews/:foodReviewId", editFoodReview);
 feature3Router.delete("/food-reviews/:foodReviewId", deleteFoodReview);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+feature3Router.get("/ven", getVen);
+feature3Router.get("/branch", getBranch)
+feature3Router.get("/branchRate", getBranchRate)
+feature3Router.get("/venRate", getVenRate)
+feature3Router.get("/venRate4", getVenRate4)
+feature3Router.get("/branchVenue", getBranchVenue)
+
+
 
 export default feature3Router;
