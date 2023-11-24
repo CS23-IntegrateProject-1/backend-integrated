@@ -12,19 +12,37 @@ import {
   groupHandler,
   groupInfoHandler,
   profileHandler,
-  aboutHandler,
 } from "../controllers/feature1.controller";
 import { authMiddleware } from "../middlewares/feature1.middleware";
+import { AboutController } from "../controllers/feature1/AboutController";
+
+const aboutController = new AboutController();
 
 const feature1Router = Router();
 
 // here define your routes
 feature1Router.get("/", getfeature1);
 
-feature1Router.get("/about", authMiddleware, aboutHandler);
-feature1Router.post("/about", authMiddleware, aboutHandler);
-feature1Router.put("/about", authMiddleware, aboutHandler);
-feature1Router.delete("/about", authMiddleware, aboutHandler);
+feature1Router.get(
+  "/about",
+  authMiddleware,
+  aboutController.show.bind(aboutController),
+);
+feature1Router.post(
+  "/about",
+  authMiddleware,
+  aboutController.store.bind(aboutController),
+);
+feature1Router.put(
+  "/about",
+  authMiddleware,
+  aboutController.update.bind(aboutController),
+);
+feature1Router.delete(
+  "/about",
+  authMiddleware,
+  aboutController.destroy.bind(aboutController),
+);
 
 feature1Router.get("/term-of-services", tosHandler);
 feature1Router.post("/term-of-services", tosHandler);
