@@ -14,20 +14,36 @@ export default class SearchController implements ISearchController {
   private service: ISearchService = new SearchService(new SearchRepository());
 
   async show(req: Request, res: Response) {
-    const { username } = req.query;
+    const { username, phone } = req.query;
 
-    if (!username) {
+    if (!username && !phone) {
       return res.status(400).json(makeErrorResponse("Malformed request"));
     }
 
-    try {
-      const response = await this.service.searchByUserName(username.toString());
+    if (!!username) {
+      try {
+        const response = await this.service.searchByUserName(
+          username.toString(),
+        );
 
-      const webResponse = makeSearchWebResponse(response);
+        const webResponse = makeSearchWebResponse(response);
 
-      return res.json(webResponse);
-    } catch (e) {
-      return res.status(404).json(makeErrorResponse("User does not exist"));
+        return res.json(webResponse);
+      } catch (e) {
+        return res.status(404).json(makeErrorResponse("User does not exist"));
+      }
+    }
+
+    if (!!phone) {
+      try {
+        const response = await this.service.searchByPhone(phone.toString());
+
+        const webResponse = makeSearchWebResponse(response);
+
+        return res.json(webResponse);
+      } catch (e) {
+        return res.status(404).json(makeErrorResponse("User does not exist"));
+      }
     }
   }
 }

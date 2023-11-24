@@ -10,6 +10,8 @@ import {
   privacyPolicyHandler,
   promptPayHandler,
   friendHandler,
+  profileHandler,
+  groupHandler,
 } from "../controllers/feature1.controller";
 
 const feature1Router = Router();
@@ -44,5 +46,10 @@ feature1Router.get("/search/friends", searchHandler);
 
 feature1Router.get("/friend", friendHandler);
 feature1Router.post("/friend/add", friendHandler);
+
+feature1Router.get("/profile", profileHandler);
+feature1Router.put("/profile", profileHandler);
+
+feature1Router.post("/group/add", groupHandler);
 
 export default feature1Router;
