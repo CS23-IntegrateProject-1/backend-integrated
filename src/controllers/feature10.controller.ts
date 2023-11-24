@@ -100,19 +100,21 @@ export const getShowsByTheaterId = async (req: Request, res: Response) => {
     const data = await showService.getShowsByTheaterId(id, date);
     res.json(data);
 }
-
+//
 export const getFilmsByTheaterId = async (req: Request, res: Response) => {
-    const id = Number(req.params.id);
-    const date = req.params.date;
+    const id = req.body.id;
+    const date = req.body.date;
+    const year = req.body.year;
+    const month = req.body.month;
 
-    const data = await filmService.getFilmsByTheaterId(id, date);
+    const data = await filmService.getFilmsByTheaterId(id, date,month,year);
     res.json(data);
 }  
-
+//
 export const getTheaterById = async (req: Request, res: Response) => {
     const id = Number(req.params.id);
     const data = await theaterService.getTheaterById(id);
-    res.json(data);
+    res.status(200).json(data);
 }
 
 
