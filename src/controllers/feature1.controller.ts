@@ -7,7 +7,9 @@ import { AboutController } from "./feature1/AboutController";
 import { PromptPayController } from "./feature1/PromptPayController";
 import SearchController from "./feature1/SearchController";
 import FriendController from "./feature1/FriendController";
-import ProfileController from "./feature1/ProfileController";
+import ProfileController, {
+  IProfileController,
+} from "./feature1/ProfileController";
 import GroupController from "./feature1/GroupController";
 
 export const getfeature1 = async (req: Request, res: Response) => {
@@ -99,12 +101,14 @@ export const friendHandler = async (req: Request, res: Response) => {
 };
 
 export const profileHandler = async (req: Request, res: Response) => {
+  const controller: IProfileController = new ProfileController();
+
   switch (req.method) {
     case "PUT":
-      return new ProfileController().update(req, res);
+      return controller.update(req, res);
     case "GET":
     default:
-      return new ProfileController().show(req, res);
+      return controller.show(req, res);
   }
 };
 
