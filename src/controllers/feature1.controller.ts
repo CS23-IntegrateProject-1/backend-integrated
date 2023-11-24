@@ -8,6 +8,7 @@ import { PromptPayController } from "./feature1/PromptPayController";
 import SearchController from "./feature1/SearchController";
 import FriendController from "./feature1/FriendController";
 import ProfileController from "./feature1/ProfileController";
+import GroupController from "./feature1/GroupController";
 
 export const getfeature1 = async (req: Request, res: Response) => {
   return res.json({});
@@ -104,5 +105,13 @@ export const profileHandler = async (req: Request, res: Response) => {
     case "GET":
     default:
       return new ProfileController().show(req, res);
+  }
+};
+
+export const groupHandler = async (req: Request, res: Response) => {
+  switch (req.method) {
+    case "POST":
+    default:
+      return new GroupController().create(req, res);
   }
 };
