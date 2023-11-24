@@ -101,8 +101,10 @@ export const forDialogflow = async (req: Request, res: Response) => {
         } catch (error) {
           return res.status(500).json({ error });
         }
-      }else if(responseData.result.intent?.displayName === 'choosingCategory'){
-        const category = responseData.result?.outputContexts?.[0]?.parameters?.fields?.category?.stringValue;
+      }else if (responseData.result.intent?.displayName === "choosingCategory") {
+        const category =
+          responseData.result?.outputContexts?.[0]?.parameters?.fields?.category
+            ?.stringValue;
         // console.log(category);
         try {
           const names = await feature12Client.venue.findMany({
@@ -115,17 +117,41 @@ export const forDialogflow = async (req: Request, res: Response) => {
             },
             distinct: ["name"],
           });
-          const namesArr = names.map(venue => venue.name);
-          const namesString = namesArr.join(', ');
-          res.json({ 
-            fulfillmentText : responseData.result.fulfillmentText,
-            consequences: namesString
+          const namesArr = names.map((venue) => venue.name);
+          const namesString = namesArr.join(", ");
+          res.json({
+            fulfillmentText: responseData.result.fulfillmentText,
+            consequences: namesString,
           });
         } catch (error) {
           return res.status(500).json({ error });
         }
-      }else{
-        res.send({fulfillmentText : responseData.result.fulfillmentText});
+      } else if (
+        responseData.result.intent?.displayName === "Ask Restaurant"
+      ) {
+        const category =
+          responseData.result?.outputContexts?.[0]?.parameters?.fields?.category
+            ?.stringValue;
+        // console.log(category);
+        try {
+          const names = await feature12Client.venue.findMany({
+            
+            select: {
+              name: true,
+            },
+            distinct: ["name"],
+          });
+          const namesArr = names.map((venue) => venue.name);
+          const namesString = namesArr.join(", ");
+          res.json({
+            fulfillmentText: responseData.result.fulfillmentText,
+            consequences: namesString,
+          });
+        } catch (error) {
+          return res.status(500).json({ error });
+        }
+      } else {
+        res.send({ fulfillmentText: responseData.result.fulfillmentText });
       }
   } else {
     res.send('No response data');
@@ -322,6 +348,7 @@ export const getFriendList = async (req: any, res: Response) => {
           select: {
             username: true,
             userId: true,
+            addId: true,
           },
         });
       })
