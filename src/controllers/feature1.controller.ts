@@ -5,8 +5,10 @@ import { TosController } from "./feature1/TosController";
 import { PrivacyPolicyController } from "./feature1/PrivacyPolicyController";
 import { PromptPayController } from "./feature1/PromptPayController";
 import SearchController from "./feature1/SearchController";
-import FriendController from "./feature1/FriendController";
 import GroupController from "./feature1/GroupController";
+import { PrismaClient } from "@prisma/client";
+
+export const prismaClient = new PrismaClient();
 
 export const getfeature1 = async (req: Request, res: Response) => {
   return res.json({});
