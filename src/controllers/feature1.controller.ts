@@ -117,3 +117,7 @@ export const groupHandler = async (req: Request, res: Response) => {
       return new GroupController().index(req, res);
   }
 };
+
+export const groupInfoHandler = async (req: Request, res: Response) => {
+  return new GroupController().show(req, res);
+};
