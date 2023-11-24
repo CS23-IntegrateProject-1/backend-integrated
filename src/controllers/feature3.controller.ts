@@ -662,3 +662,40 @@ export const getVenRate4 = async (req: Request, res: Response) => {
     }
 };
 
+export const getReviewsBranch = async (req: Request, res: Response) => {
+    try {
+      const { branchId } = req.params;
+  
+      const reviews = await feature3Client.venue_reviews.findMany({
+        where: {
+          branchId: parseInt(branchId),
+        },
+      });
+  
+      res.status(200).json(reviews);
+    } catch (error) {
+      console.error('Error fetching reviews:', error);
+      res.status(500).json({ error: 'Internal Server Error' });
+    }
+  };
+
+export const postReviewsDelivery = async (req: Request, res: Response) => {
+    try {
+      const { userId, rating, review, branchId} = req.body;
+  
+      const newReview = await feature3Client.venue_reviews.create({
+        data: {
+          userId,
+          rating,
+          review,
+          branchId,
+        //   review_type,
+        },
+      });
+  
+      res.status(201).json(newReview);
+    } catch (error) {
+      console.error('Error creating review:', error);
+      res.status(500).json({ error: 'Internal Server Error' });
+    }
+};
