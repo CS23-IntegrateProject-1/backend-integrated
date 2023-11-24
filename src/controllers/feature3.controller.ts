@@ -679,9 +679,9 @@ export const getReviewsBranch = async (req: Request, res: Response) => {
     }
   };
 
-export const postReviewsDelivery = async (req: Request, res: Response) => {
+export const postReviewDelivery = async (req: Request, res: Response) => {
     try {
-      const { userId, rating, review, branchId} = req.body;
+      const { userId, rating, review, branchId } = req.body;
   
       const newReview = await feature3Client.venue_reviews.create({
         data: {
@@ -689,7 +689,7 @@ export const postReviewsDelivery = async (req: Request, res: Response) => {
           rating,
           review,
           branchId,
-        //   review_type,
+          review_type: 'Delivery',
         },
       });
   
