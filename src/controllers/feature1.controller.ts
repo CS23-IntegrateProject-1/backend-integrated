@@ -7,9 +7,6 @@ import { AboutController } from "./feature1/AboutController";
 import { PromptPayController } from "./feature1/PromptPayController";
 import SearchController from "./feature1/SearchController";
 import FriendController from "./feature1/FriendController";
-import ProfileController, {
-  IProfileController,
-} from "./feature1/ProfileController";
 import GroupController from "./feature1/GroupController";
 
 export const getfeature1 = async (req: Request, res: Response) => {
