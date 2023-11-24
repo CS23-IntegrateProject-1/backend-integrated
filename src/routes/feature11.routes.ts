@@ -38,6 +38,7 @@ feature11Router.post("/addArticle", addArticle);
 feature11Router.post("/writeComment", addComment);
 feature11Router.post("/addLike", addLike);
 feature11Router.post("/addCommentByCreator", CreatorLikeComment)
+feature11Router.post("/fetchUserArticle", getUserArticle)
 
 // * DELETE
 feature11Router.delete("/deleteArticle", deleteArticle);
@@ -56,7 +57,6 @@ feature11Router.get("/fetchAllArticle", getAllArticle);
 feature11Router.get("/fetchAllArticle_nologin", public_getAllArticle);
 feature11Router.get("/fetchAllVenueName", getAllVenueName);
 feature11Router.get("/fetchArticleHistory", getArticleHistory)
-feature11Router.get("/fetchUserArticle", getUserArticle)
 feature11Router.get("/fetchCommentHistory", getCommentHistory)
 
 // parameter = article id
