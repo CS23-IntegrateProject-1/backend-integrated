@@ -100,18 +100,6 @@ export const friendHandler = async (req: Request, res: Response) => {
   }
 };
 
-export const profileHandler = async (req: Request, res: Response) => {
-  const controller: IProfileController = new ProfileController();
-
-  switch (req.method) {
-    case "PUT":
-      return controller.update(req, res);
-    case "GET":
-    default:
-      return controller.show(req, res);
-  }
-};
-
 export const groupHandler = async (req: Request, res: Response) => {
   switch (req.method) {
     case "POST":

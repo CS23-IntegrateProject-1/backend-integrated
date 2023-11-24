@@ -24,6 +24,10 @@ export default class ProfileController implements IProfileController {
     new ProfileRepository(),
   );
 
+  constructor() {
+    console.log("initialized");
+  }
+
   async update(req: Request, res: Response) {
     const profile = req.body;
 

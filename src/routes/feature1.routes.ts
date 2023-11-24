@@ -10,11 +10,13 @@ import {
   privacyPolicyHandler,
   promptPayHandler,
   friendHandler,
-  profileHandler,
   groupHandler,
   groupInfoHandler,
 } from "../controllers/feature1.controller";
 import { authMiddleware } from "../middlewares/feature1.middleware";
+import ProfileController from "../controllers/feature1/ProfileController";
+
+const profileController = new ProfileController();
 
 const feature1Router = Router();
 
@@ -49,8 +51,8 @@ feature1Router.get("/search/friends", searchHandler);
 feature1Router.get("/friend", friendHandler);
 feature1Router.post("/friend/add", friendHandler);
 
-feature1Router.get("/profile", authMiddleware, profileHandler);
-feature1Router.put("/profile", authMiddleware, profileHandler);
+feature1Router.get("/profile", authMiddleware, profileController.show);
+feature1Router.put("/profile", authMiddleware, profileController.update);
 
 feature1Router.get("/group", groupHandler);
 feature1Router.get("/group/:id", groupInfoHandler);
