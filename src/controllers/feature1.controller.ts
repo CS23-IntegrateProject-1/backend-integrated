@@ -4,7 +4,6 @@ import { PaymentMethodController } from "./feature1/PaymentMethodController";
 import { TosController } from "./feature1/TosController";
 import { PrivacyPolicyController } from "./feature1/PrivacyPolicyController";
 import { PromptPayController } from "./feature1/PromptPayController";
-import SearchController from "./feature1/SearchController";
 import GroupController from "./feature1/GroupController";
 import { PrismaClient } from "@prisma/client";
 
@@ -63,14 +62,6 @@ export const promptPayHandler = async (req: Request, res: Response) => {
     case "GET":
     default:
       return new PromptPayController().show(req, res);
-  }
-};
-
-export const searchHandler = async (req: Request, res: Response) => {
-  switch (req.method) {
-    case "GET":
-    default:
-      return new SearchController().show(req, res);
   }
 };
 

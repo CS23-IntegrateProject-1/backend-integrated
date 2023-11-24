@@ -4,7 +4,6 @@ import { Router } from "express";
 import {
   getfeature1,
   paymentMethodHandler,
-  searchHandler,
   tosHandler,
   privacyPolicyHandler,
   promptPayHandler,
@@ -13,12 +12,14 @@ import {
 } from "../controllers/feature1.controller";
 import { authMiddleware } from "../middlewares/feature1.middleware";
 import { AboutController } from "../controllers/feature1/AboutController";
-import ProfileController from "../controllers/feature1/ProfileController";
 import FriendController from "../controllers/feature1/FriendController";
+import ProfileController from "../controllers/feature1/ProfileController";
+import SearchController from "../controllers/feature1/SearchController";
 
 const aboutController = new AboutController();
 const friendController = new FriendController();
 const profileController = new ProfileController();
+const searchController = new SearchController();
 
 const feature1Router = Router();
 
@@ -64,7 +65,11 @@ feature1Router.delete("/privacy-policy", privacyPolicyHandler);
 feature1Router.get("/promptpay", promptPayHandler);
 feature1Router.put("/promptpay", promptPayHandler);
 
-feature1Router.get("/search/friends", searchHandler);
+feature1Router.get(
+  "/search/friends",
+  authMiddleware,
+  searchController.show.bind(searchController),
+);
 
 feature1Router.get(
   "/friend",
