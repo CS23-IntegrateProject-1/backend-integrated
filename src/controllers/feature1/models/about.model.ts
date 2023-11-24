@@ -1,5 +1,3 @@
-import { defineDmmfProperty } from "@prisma/client/runtime/library";
-
 export type AboutIndexWebRequest = {};
 
 export type AboutShowWebRequest = {

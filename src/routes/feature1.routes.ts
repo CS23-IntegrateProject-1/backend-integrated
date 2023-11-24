@@ -3,24 +3,19 @@ import { Router } from "express";
 // here import your controllers(function)
 import {
   aboutHandler,
-  accountHandler,
-  bioFetchHandler,
   getfeature1,
-  helpHandler,
   paymentMethodHandler,
+  searchHandler,
   tosHandler,
   privacyPolicyHandler,
   promptPayHandler,
+  friendHandler,
 } from "../controllers/feature1.controller";
 
 const feature1Router = Router();
 
 // here define your routes
 feature1Router.get("/", getfeature1);
-feature1Router.all("/account", accountHandler);
-
-feature1Router.all("/help", helpHandler);
-feature1Router.get("/bio", bioFetchHandler);
 
 feature1Router.get("/about", aboutHandler);
 feature1Router.post("/about", aboutHandler);
@@ -44,5 +39,10 @@ feature1Router.delete("/privacy-policy", privacyPolicyHandler);
 
 feature1Router.get("/promptpay", promptPayHandler);
 feature1Router.put("/promptpay", promptPayHandler);
+
+feature1Router.get("/search/friends", searchHandler);
+
+feature1Router.get("/friend", friendHandler);
+feature1Router.post("/friend/add", friendHandler);
 
 export default feature1Router;
