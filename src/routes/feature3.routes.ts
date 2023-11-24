@@ -33,7 +33,7 @@ import {
     getVenRate4,
     getBranchVenue,
     getReviewsBranch,
-    // postReviewDelivery,
+    postReviewDelivery,
     // postReviewReservation,
 
 } from "../controllers/feature3.controller";
@@ -95,7 +95,7 @@ feature3Router.get("/venRate4", getVenRate4)
 feature3Router.get("/branchVenue", getBranchVenue)
 feature3Router.get("/reviews/:branchId", getReviewsBranch)
 
-// feature3Router.post("/reviewDelivery", postReviewDelivery);
+feature3Router.post("/reviewDelivery", postReviewDelivery);
 
 
 
