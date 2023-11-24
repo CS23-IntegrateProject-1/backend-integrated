@@ -7,10 +7,15 @@ import GroupService, {
 } from "../../services/feature1/group.service";
 import { extractToken } from "./utils";
 import { makeErrorResponse } from "./models/payment_method.model";
-import { makeGroupCreateWebResponse } from "./models/group.model";
-import { PrismaClient } from "@prisma/client";
+import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
+import {
+  makeGroupCreateWebResponse,
+  makeGroupIndexWebResponse,
+} from "./models/group.model";
 
 export interface IGroupController {
+  addGroup(req: Request, res: Response): unknown;
+
   index(req: Request, res: Response): unknown;
 
   create(req: Request, res: Response): unknown;
@@ -52,18 +57,13 @@ export default class GroupController implements IGroupController {
     }
   }
 
-  // TODO @SoeThandarLwin: Refactor to follow proper structure later
-  // TODO @SoeThandarLwin: Refactor to follow proper error checking and formatting later
-  async show(req: Request, res: Response) {
-    const { id } = req.params;
-    const groupId = Number(id);
-
+  async index(req: Request, res: Response) {
     let token: string;
 
     try {
       token = extractToken(req);
     } catch (e) {
-      return res.status(401).json(makeErrorResponse("Unauthrozied"));
+      return res.status(401).json(makeErrorResponse("Unauthorized"));
     }
 
     try {
@@ -72,41 +72,12 @@ export default class GroupController implements IGroupController {
         process.env.JWT_SECRET as string,
       );
       const userId = (decoded as jwt.JwtPayload).userId;
-      const client = new PrismaClient();
-      const result = await client.group.findFirst({
-        where: {
-          groupId,
-        },
-        include: {
-          Group_user: {
-            include: {
-              member: {
-                select: {
-                  userId: true,
-                  username: true,
-                  profile_picture: true,
-                },
-              },
-            },
-          },
-        },
-      });
 
-      if (!result) {
-        return res.status(404).json(makeErrorResponse("Group does not exist"));
-      }
+      const groups = await this.service.listGroupsOfUser(userId);
 
-      const response = {
-        group_id: result.groupId,
-        group_name: result.group_name,
-        members: result.Group_user.map((user) => ({
-          user_id: user.member.userId,
-          username: user.member.username,
-          avatar: user.member.profile_picture,
-        })),
-      };
+      const webResponse = makeGroupIndexWebResponse(groups);
 
-      return res.status(200).send(response);
+      return res.status(200).json(webResponse);
     } catch (e) {
       if (e instanceof JsonWebTokenError) {
         return res.status(401).json(makeErrorResponse("Invalid token"));
@@ -118,15 +89,16 @@ export default class GroupController implements IGroupController {
     }
   }
 
-  // TODO @SoeThandarLwin: Refactor to follow proper structure later
-  async index(req: Request, res: Response) {
+  async addGroup(req: Request, res: Response) {
     let token: string;
 
     try {
       token = extractToken(req);
     } catch (e) {
-      return res.status(401).json(makeErrorResponse("Unauthrozied"));
+      return res.status(401).json(makeErrorResponse("Unauthorized"));
     }
+
+    const { group_id } = req.body;
 
     try {
       const decoded = jwt.verify(
@@ -134,29 +106,26 @@ export default class GroupController implements IGroupController {
         process.env.JWT_SECRET as string,
       );
       const userId = (decoded as jwt.JwtPayload).userId;
-      const client = new PrismaClient();
-      const result = await client.group_user.findMany({
-        where: {
-          memberId: userId,
-        },
-        include: {
-          group: true,
-        },
-      });
 
-      client.$disconnect();
+      if (userId === group_id) {
+        return res
+          .status(409)
+          .json(makeErrorResponse("Cannot add oneself as group"));
+      }
 
-      const response = result.map((r) => {
-        return {
-          group_id: r.group.groupId,
-          group_name: r.group.group_name,
-        };
-      });
+      await this.service.addGroupById(userId, group_id);
 
-      return res.status(200).json(response);
+      return res.status(200).send();
     } catch (e) {
       if (e instanceof JsonWebTokenError) {
         return res.status(401).json(makeErrorResponse("Invalid token"));
+      } else if (e instanceof PrismaClientKnownRequestError) {
+        if (e.code === "P2002") {
+          return res
+            .status(409)
+            .json(makeErrorResponse("Already group with user"))
+            .send();
+        }
       }
 
       return res

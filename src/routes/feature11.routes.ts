@@ -23,8 +23,7 @@ import {
     getUserArticle,
     getCommentHistory,
     public_getAllArticle,
-    public_getArticleDetail,
-    editArticle
+    public_getArticleDetail
 } from "../controllers/feature11.controller";
 import feature1Router from "./feature1.routes";
 
@@ -52,7 +51,6 @@ feature11Router.delete("/deleteCommentLikeByCreator", deleteCommentLikeByCreator
 
 // * UPDATE
 feature11Router.patch("/editComment", editComment);
-feature11Router.patch("/editArticle", editArticle);
 
 // * READ
 feature11Router.get("/fetchAllArticle", getAllArticle);

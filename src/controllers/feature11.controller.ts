@@ -2,13 +2,12 @@ import { PrismaClient } from "@prisma/client";
 import { Response, Request } from "express";
 import jwt, { JwtPayload, Secret } from 'jsonwebtoken';
 import authService from "../services/auth/auth.service";
-import { TagColor } from "firebase-admin/lib/remote-config/remote-config-api";
-import { ta } from "date-fns/locale";
 //import { startOfDay, endOfDay } from 'date-fns';
 //const feature11Client = new PrismaClient();
 const prisma = new PrismaClient();
 
 // * TODO : 
+// * edit article 
 // * change keyword to link, 
 // * upload image with req.file
 
@@ -96,6 +95,8 @@ export const deleteTag = async (req: Request, res: Response) => {
   }
 }
 
+// ! if it doesn't work then the problem is at decoding userId
+// ! other than that is working fine (alr test in postman)
 export const addArticle = async (req: Request, res: Response) => {
   try {
     const article: ArticleCreateInput = req.body;
@@ -117,6 +118,7 @@ export const addArticle = async (req: Request, res: Response) => {
         content,
         category,
         userId,
+        //userId: parseInt(Id),
         author_name,
       },
     });
@@ -130,33 +132,19 @@ export const addArticle = async (req: Request, res: Response) => {
       });
     }
 
-    var newTag;
     for (const tag of tags) {
-      const existed = await prisma.tag.findMany({
-        where: { tag_name: tag }
+      const newTag = await prisma.tag.create({
+        data: {
+          tag_name: tag,
+        }
       })
 
-      if (existed.length === 0) {
-        newTag = await prisma.tag.create({
-          data: {
-            tag_name: tag,
-          }
-        })
-
-        await prisma.article_tags.create({
-          data: {
-            articleId: newArticle.articleId,
-            tagId: newTag.tagId,
-          },
-        });
-      } else {
-        await prisma.article_tags.create({
-          data: {
-            articleId: newArticle.articleId,
-            tagId: existed[0].tagId,
-          },
-        });
-      }
+      await prisma.article_tags.create({
+        data: {
+          articleId: newArticle.articleId,
+          tagId: newTag.tagId,
+        },
+      });
     }
 
     for (const imageDetail of imageDetails) {
@@ -176,14 +164,6 @@ export const addArticle = async (req: Request, res: Response) => {
   }
 };
 
-interface TagBody {
-  tagId: number;
-  articleId: number;
-  tag: {
-    tag_name: string;
-  };
-}
-
 // ! haven't test
 export const editArticle = async (req: Request, res: Response) => {
   try {
@@ -191,8 +171,16 @@ export const editArticle = async (req: Request, res: Response) => {
     const { articleId, topic, content, category, author_name } = req.body;
     const venueIds: number[] = req.body.venueIds;
     const tags: string[] = req.body.tags;
-    //const tags: TagBody[] = req.body.tags;
     const imageDetails: ImageInput[] = req.body.images;
+
+    //const userId = 1;
+    //const secret: Secret = 'fwjjpjegjwpjgwej' || "";
+    //const token = req.cookies.token;
+    //if (!token)
+    //  return res.json({ error: 'Unauthorized' });
+
+    //const decoded = jwt.verify(token, secret) as CustomJwtPayload;
+    //const userId = decoded.userId;
 
     const newArticle = await prisma.article.update({
       where: { articleId: parseInt(articleId) },
@@ -208,9 +196,8 @@ export const editArticle = async (req: Request, res: Response) => {
       where: { articleId: parseInt(articleId) }
     })
 
-    var newVenue;
     for (const venueId of venueIds) {
-      newVenue = await prisma.article_venue.create({
+      const newVenue = await prisma.article_venue.create({
         data: {
           articleId,
           venueId
@@ -222,77 +209,27 @@ export const editArticle = async (req: Request, res: Response) => {
       where: { articleId: parseInt(articleId) }
     })
 
-    var updatedTag;
-    var newTag;
     for (const tag of tags) {
-      var tagUse;
-      // * if we already have that tag in tag db
-      // * if not --> it's a new tag
-      const tagExisted = await prisma.tag.findMany({
-        where: {
-          tag_name: tag
+      const newTag = await prisma.tag.create({
+        data: {
+          tag_name: tag,
         }
       })
-      if (tagExisted.length === 0) {
-        newTag = await prisma.tag.create({
-          data: {
-            tag_name: tag
-          }
-        })
 
-        await prisma.article_tags.create({
-          data: {
-            articleId,
-            tagId: newTag.tagId,
-          },
-        })
-      }
-      else {
-        // * if alr have that tag
-        const thisTag = await prisma.tag.findMany({
-          where: {
-            tag_name: tag
-          }
-        })
-
-        // * check whether tag is use by the other article
-        tagUse = await prisma.article_tags.findMany({
-          where: {
-            tagId: thisTag[0].tagId
-          }
-        })
-
-        if (tagUse.length === 0)
-        {
-          updatedTag = await prisma.tag.update({
-            where: { tagId: thisTag[0].tagId },
-            data: {
-              tag_name: tag
-            }
-          })
-        } else {
-          updatedTag = await prisma.tag.create({
-            data: {
-              tag_name: tag,
-            }
-          })
-          await prisma.article_tags.create({
-            data: {
-              articleId,
-              tagId: updatedTag.tagId,
-            },
-          })
-        }
-      }
+      await prisma.article_tags.create({
+        data: {
+          articleId,
+          tagId: newTag.tagId,
+        },
+      });
     }
 
     await prisma.images.deleteMany({
       where: { articleId: parseInt(articleId) }
     })
 
-    var newImages;
     for (const imageDetail of imageDetails) {
-      newImages = await prisma.images.create({
+      await prisma.images.create({
         data: {
           url: imageDetail.url,
           description: imageDetail.description,
@@ -301,14 +238,7 @@ export const editArticle = async (req: Request, res: Response) => {
       });
     }
 
-    const editedArticle = {
-      ...newArticle,
-      venues: newVenue,
-      tags: updatedTag,
-      images: newImages
-    };
-
-    res.json(editedArticle);
+    res.json(newArticle);
   } catch (error) {
     console.error(error);
     res.json({ error: "Internal server error" });

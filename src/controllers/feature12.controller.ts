@@ -82,81 +82,55 @@ export const forDialogflow = async (req: Request, res: Response) => {
 
     // let responseData = await detectIntent(languageCode, queryText, sessionId);
 
-    if (responseData) {
-      if(responseData.result.intent?.displayName === 'ShowingVenues'){
-        try{
-          const categories = await feature12Client.venue.findMany({
-            select: {
-              category: true,
-            },
-            distinct: ["category"],
-          });
-          // console.log(venues);
-          const categoriesArr = categories.map(venue => venue.category);
-          const categoriesString = categoriesArr.join(', ');
-          res.json({ 
-            fulfillmentText : responseData.result.fulfillmentText,
-            consequences: categoriesString
-          });
-        } catch (error) {
-          return res.status(500).json({ error });
-        }
-      }else if (responseData.result.intent?.displayName === "choosingCategory") {
-        const category =
-          responseData.result?.outputContexts?.[0]?.parameters?.fields?.category
-            ?.stringValue;
-        // console.log(category);
-        try {
-          const names = await feature12Client.venue.findMany({
-            where: {
-              category: category,
-            },
-            select: {
-              venueId: true,
-              name: true,
-            },
-            distinct: ["name"],
-          });
-          const namesArr = names.map((venue) => venue.name);
-          const namesString = namesArr.join(", ");
-          res.json({
-            fulfillmentText: responseData.result.fulfillmentText,
-            consequences: namesString,
-          });
-        } catch (error) {
-          return res.status(500).json({ error });
-        }
-      } else if (
-        responseData.result.intent?.displayName === "Ask Restaurant"
-      ) {
-        const category =
-          responseData.result?.outputContexts?.[0]?.parameters?.fields?.category
-            ?.stringValue;
-        // console.log(category);
-        try {
-          const names = await feature12Client.venue.findMany({
-            
-            select: {
-              name: true,
-            },
-            distinct: ["name"],
-          });
-          const namesArr = names.map((venue) => venue.name);
-          const namesString = namesArr.join(", ");
-          res.json({
-            fulfillmentText: responseData.result.fulfillmentText,
-            consequences: namesString,
-          });
-        } catch (error) {
-          return res.status(500).json({ error });
-        }
-      } else {
-        res.send({ fulfillmentText: responseData.result.fulfillmentText });
-      }
-  } else {
-    res.send('No response data');
-  }
-};
+//     if (responseData) {
+//       if(responseData.result.intent?.displayName === 'ShowingVenues'){
+//         try{
+//           const categories = await feature12Client.venue.findMany({
+//             select: {
+//               category: true,
+//             },
+//             distinct: ["category"],
+//           });
+//           // console.log(venues);
+//           const categoriesArr = categories.map(venue => venue.category);
+//           const categoriesString = categoriesArr.join(', ');
+//           res.json({ 
+//             fulfillmentText : responseData.result.fulfillmentText,
+//             consequences: categoriesString
+//           });
+//         } catch (error) {
+//           return res.status(500).json({ error });
+//         }
+//       }else if(responseData.result.intent?.displayName === 'choosingCategory'){
+//         const category = responseData.result?.outputContexts?.[0]?.parameters?.fields?.category?.stringValue;
+//         // console.log(category);
+//         try {
+//           const names = await feature12Client.venue.findMany({
+//             where: {
+//               category: category,
+//             },
+//             select: {
+//               venueId: true,
+//               name: true,
+//             },
+//             distinct: ["name"],
+//           });
+//           const namesArr = names.map(venue => venue.name);
+//           const namesString = namesArr.join(', ');
+//           res.json({ 
+//             fulfillmentText : responseData.result.fulfillmentText,
+//             consequences: namesString
+//           });
+//         } catch (error) {
+//           return res.status(500).json({ error });
+//         }
+//       }else{
+//         res.send({fulfillmentText : responseData.result.fulfillmentText});
+//       }
+//   } else {
+//     res.send('No response data');
+//   }
+// };
 
 async function fetchVenuesAndWriteToFile() {
   const venues = await prisma.venue.findMany({
@@ -348,7 +322,6 @@ export const getFriendList = async (req: any, res: Response) => {
           select: {
             username: true,
             userId: true,
-            addId: true,
           },
         });
       })
