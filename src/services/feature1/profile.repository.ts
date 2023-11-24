@@ -69,7 +69,7 @@ export class ProfileRepository implements IProfileRepository {
       },
       data: {
         phone: data.phone,
-        email: data.phone,
+        email: data.email,
         userId,
         User_bio: {
           connectOrCreate: {
