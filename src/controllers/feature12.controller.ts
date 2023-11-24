@@ -18,61 +18,61 @@ import loadEnv from "../configs/dotenvConfig";
 loadEnv();
 
 // Your credentials
-const CREDENTIALS = JSON.parse(process.env.CREDENTIALS || '');
+// const CREDENTIALS = JSON.parse(process.env.CREDENTIALS || '');
 
 // Other way to read the credentials
 // import fs from 'fs';
 // const CREDENTIALS = JSON.parse(fs.readFileSync(''));
 
 // Your google dialogflow project-id
-const PROJECID = CREDENTIALS.project_id;
+// const PROJECID = CREDENTIALS.project_id;
 
-// Configuration for the client
-const CONFIGURATION = {
-  credentials: {
-    private_key: CREDENTIALS['private_key'],
-    client_email: CREDENTIALS['client_email']
-  }
-}
+// // Configuration for the client
+// const CONFIGURATION = {
+//   credentials: {
+//     private_key: CREDENTIALS['private_key'],
+//     client_email: CREDENTIALS['client_email']
+//   }
+// }
 
 //for dialogflow integration-2
 // Create a new session
-const sessionClient = new dialogflow.SessionsClient(CONFIGURATION);
+// const sessionClient = new dialogflow.SessionsClient(CONFIGURATION);
 
-// Detect intent function
-const detectIntent = async (languageCode, queryText, sessionId) => {
+// // Detect intent function
+// const detectIntent = async (languageCode, queryText, sessionId) => {
 
-    let sessionPath = sessionClient.projectAgentSessionPath(PROJECID, sessionId);
+//     let sessionPath = sessionClient.projectAgentSessionPath(PROJECID, sessionId);
 
-    // The text query request.
-    let request = {
-        session: sessionPath,
-        queryInput: {
-            text: {
-                // The query to send to the dialogflow agent
-                text: queryText,
-                // The language used by the client (en-US)
-                languageCode: languageCode,
-            },
-        },
-    };
+//     // The text query request.
+//     let request = {
+//         session: sessionPath,
+//         queryInput: {
+//             text: {
+//                 // The query to send to the dialogflow agent
+//                 text: queryText,
+//                 // The language used by the client (en-US)
+//                 languageCode: languageCode,
+//             },
+//         },
+//     };
 
     // Send request and log result
-    const responses = await sessionClient.detectIntent(request);
-    // console.log(responses);
-    const result = responses[0].queryResult;
-    // result?.outputContexts?.forEach(context => console.log(context.parameters?.fields));
+//     const responses = await sessionClient.detectIntent(request);
+//     // console.log(responses);
+//     const result = responses[0].queryResult;
+//     // result?.outputContexts?.forEach(context => console.log(context.parameters?.fields));
 
-    if (result) {
-    // Now you can safely access properties or methods on 'result'
-        console.log(result);
-        return {
-          result: result,
-        };
-    } else {
-    console.log('Result is null or undefined');
-    }
-}
+//     if (result) {
+//     // Now you can safely access properties or methods on 'result'
+//         console.log(result);
+//         return {
+//           result: result,
+//         };
+//     } else {
+//     console.log('Result is null or undefined');
+//     }
+// }
 
 //Post request for dialogflow with body parameters
 export const forDialogflow = async (req: Request, res: Response) => {
@@ -80,57 +80,57 @@ export const forDialogflow = async (req: Request, res: Response) => {
     let queryText = req.body.queryText;
     let sessionId = req.body.sessionId;
 
-    let responseData = await detectIntent(languageCode, queryText, sessionId);
+    // let responseData = await detectIntent(languageCode, queryText, sessionId);
 
-    if (responseData) {
-      if(responseData.result.intent?.displayName === 'ShowingVenues'){
-        try{
-          const categories = await feature12Client.venue.findMany({
-            select: {
-              category: true,
-            },
-            distinct: ["category"],
-          });
-          // console.log(venues);
-          const categoriesArr = categories.map(venue => venue.category);
-          const categoriesString = categoriesArr.join(', ');
-          res.json({ 
-            fulfillmentText : responseData.result.fulfillmentText,
-            consequences: categoriesString
-          });
-        } catch (error) {
-          return res.status(500).json({ error });
-        }
-      }else if(responseData.result.intent?.displayName === 'choosingCategory'){
-        const category = responseData.result?.outputContexts?.[0]?.parameters?.fields?.category?.stringValue;
-        // console.log(category);
-        try {
-          const names = await feature12Client.venue.findMany({
-            where: {
-              category: category,
-            },
-            select: {
-              venueId: true,
-              name: true,
-            },
-            distinct: ["name"],
-          });
-          const namesArr = names.map(venue => venue.name);
-          const namesString = namesArr.join(', ');
-          res.json({ 
-            fulfillmentText : responseData.result.fulfillmentText,
-            consequences: namesString
-          });
-        } catch (error) {
-          return res.status(500).json({ error });
-        }
-      }else{
-        res.send({fulfillmentText : responseData.result.fulfillmentText});
-      }
-  } else {
-    res.send('No response data');
-  }
-};
+//     if (responseData) {
+//       if(responseData.result.intent?.displayName === 'ShowingVenues'){
+//         try{
+//           const categories = await feature12Client.venue.findMany({
+//             select: {
+//               category: true,
+//             },
+//             distinct: ["category"],
+//           });
+//           // console.log(venues);
+//           const categoriesArr = categories.map(venue => venue.category);
+//           const categoriesString = categoriesArr.join(', ');
+//           res.json({ 
+//             fulfillmentText : responseData.result.fulfillmentText,
+//             consequences: categoriesString
+//           });
+//         } catch (error) {
+//           return res.status(500).json({ error });
+//         }
+//       }else if(responseData.result.intent?.displayName === 'choosingCategory'){
+//         const category = responseData.result?.outputContexts?.[0]?.parameters?.fields?.category?.stringValue;
+//         // console.log(category);
+//         try {
+//           const names = await feature12Client.venue.findMany({
+//             where: {
+//               category: category,
+//             },
+//             select: {
+//               venueId: true,
+//               name: true,
+//             },
+//             distinct: ["name"],
+//           });
+//           const namesArr = names.map(venue => venue.name);
+//           const namesString = namesArr.join(', ');
+//           res.json({ 
+//             fulfillmentText : responseData.result.fulfillmentText,
+//             consequences: namesString
+//           });
+//         } catch (error) {
+//           return res.status(500).json({ error });
+//         }
+//       }else{
+//         res.send({fulfillmentText : responseData.result.fulfillmentText});
+//       }
+//   } else {
+//     res.send('No response data');
+//   }
+// };
 
 async function fetchVenuesAndWriteToFile() {
   const venues = await prisma.venue.findMany({
@@ -164,49 +164,49 @@ async function fetchVenuesAndWriteToFile() {
   fs.writeFileSync('dialogflowData.json', JSON.stringify([venueData,categoryData], null, 2));
 }
 
-async function updateEntityType() {
-  const projectId = PROJECID; // Replace with your Dialogflow project ID
+// async function updateEntityType() {
+//   const projectId = PROJECID; // Replace with your Dialogflow project ID
 
-  const client = new EntityTypesClient({
-    projectId: projectId,
-    credentials: {
-      private_key: CREDENTIALS['private_key'],
-      client_email: CREDENTIALS['client_email']
-    }
-  });
-  const parent = `projects/${projectId}/agent`;
+//   const client = new EntityTypesClient({
+//     projectId: projectId,
+//     credentials: {
+//       private_key: CREDENTIALS['private_key'],
+//       client_email: CREDENTIALS['client_email']
+//     }
+//   });
+//   const parent = `projects/${projectId}/agent`;
 
-  // Get the list of entity types
-  const [entityTypes] = await client.listEntityTypes({ parent });
+//   // Get the list of entity types
+//   const [entityTypes] = await client.listEntityTypes({ parent });
 
-  for (const entity of entities) {
-    // Find the entity type with the display name 'venue'
-    const entityType = entityTypes.find(et => et.displayName === entity.name);
+//   for (const entity of entities) {
+//     // Find the entity type with the display name 'venue'
+//     const entityType = entityTypes.find(et => et.displayName === entity.name);
 
-    if (entityType) {
-      // Get the UUID of the entity type
-      const entityTypePath = entityType.name;
+//     if (entityType) {
+//       // Get the UUID of the entity type
+//       const entityTypePath = entityType.name;
 
-      const request = {
-        entityType: {
-          name: entityTypePath,
-          displayName: entity.name,
-          kind: 'KIND_MAP',
-          entities: entity.entries.map(entry => ({
-            value: entry.value,
-            synonyms: entry.synonyms,
-          })),
-        },
-        updateMask: {
-          paths: ['entities'],
-        },
-      } as { entityType: IEntityType };
+//       const request = {
+//         entityType: {
+//           name: entityTypePath,
+//           displayName: entity.name,
+//           kind: 'KIND_MAP',
+//           entities: entity.entries.map(entry => ({
+//             value: entry.value,
+//             synonyms: entry.synonyms,
+//           })),
+//         },
+//         updateMask: {
+//           paths: ['entities'],
+//         },
+//       } as { entityType: IEntityType };
 
-      const [response] = await client.updateEntityType(request);
-      console.log('Entity updated:', response);
-    }
-  }
-}
+//       const [response] = await client.updateEntityType(request);
+//       console.log('Entity updated:', response);
+//     }
+//   }
+// }
 
 // async function createEntityType() {
 //   const projectId = PROJECID; // Replace with your Dialogflow project ID
@@ -231,11 +231,11 @@ async function updateEntityType() {
 //   }
 // }
 
-export const fetchData = async (req: Request, res: Response) => {
-  await fetchVenuesAndWriteToFile().catch(err => console.error(err));
-  await updateEntityType().catch(err => console.error(err));
-  console.log('Data written to file');
-  res.send('Data written to file');
+// export const fetchData = async (req: Request, res: Response) => {
+//   await fetchVenuesAndWriteToFile().catch(err => console.error(err));
+//   await updateEntityType().catch(err => console.error(err));
+//   console.log('Data written to file');
+//   res.send('Data written to file');
 }
 
 // const existingChatRoom = await feature12Client.chat_room.findUnique({
