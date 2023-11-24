@@ -523,7 +523,7 @@ model Menu_category_list {
 
 model Sets {
   name         String
-  price        Decimal        @db.Decimal(5, 2)
+  price        Decimal        @db.Decimal(10, 2)
   description  String?
   image_url    String?        @db.Text
   venueId      Int
