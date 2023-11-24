@@ -8,7 +8,11 @@ import {
     getShowingFilms,
     getFilmsById,
     getAllFilms,
-    getShowsByFilmsId
+    getShowsByFilmId,
+    getSeatsTypeByScreenId,
+    getShowsByTheaterId,
+    getFilmsByTheaterId,
+    getTheaterById
 } from "../controllers/feature10.controller";
 
 const feature10Router = Router();
@@ -19,6 +23,11 @@ feature10Router.get("/getUpcomingFilms", getUpcomingFilms);
 feature10Router.get("/getShowingFilms", getShowingFilms);
 feature10Router.get("/getFilmsById/:id", getFilmsById);
 feature10Router.get("/getAllFilms", getAllFilms);
-feature10Router.get("/getShowsByFilmsId/:id", getShowsByFilmsId);
+feature10Router.get("/getShowsByFilmId/:id/:date", getShowsByFilmId);
+feature10Router.get("/getSeatsTypeByScreenId/:id", getSeatsTypeByScreenId);
+feature10Router.get("/getShowsByTheaterId/:id/:date", getShowsByTheaterId);
+feature10Router.post("/getFilmsByTheaterId", getFilmsByTheaterId);
+feature10Router.get("/getTheaterById/:id", getTheaterById);
 
 export default feature10Router;
+
