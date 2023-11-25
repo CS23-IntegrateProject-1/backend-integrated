@@ -667,15 +667,17 @@ export const createTable = async (req: Request, res: Response) => {
                 venueId: true,
             },
         });
+        
 
         const venueId = getVenueId?.venueId || 0;
-        const { information, tableTypeDetailId, table_no, branchId } = req.body;
+        const { information, tableTypeDetailId, tablenumber, branchId } =
+            req.body;
         const newTable = await feature6Client.tables.create({
             data: {
                 venueId: venueId,
                 information: information,
                 tableTypeDetailId: tableTypeDetailId,
-                table_no: table_no,
+                table_no: tablenumber,
                 branchId: branchId,
                 status: "Available",
             },
@@ -683,6 +685,8 @@ export const createTable = async (req: Request, res: Response) => {
 
         return res.json(newTable);
     } catch (e) {
+        console.log(e);
+        
         return res.status(500).json(e);
     }
 };
@@ -832,7 +836,7 @@ export const getCountPerDay = async (req: Request, res: Response) => {
         let ReservationCount = 0;
         reservationsToday.forEach((reservation) => {
             ReservationCount += reservation.Reservation_table.length;
-        });
+        });    
         let CustomerCount = 0;
         reservationsToday.forEach((reservation) => {
             CustomerCount += reservation.guest_amount;
