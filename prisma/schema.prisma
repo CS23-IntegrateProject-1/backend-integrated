@@ -116,9 +116,10 @@ model Group_user {
 }
 
 model Group {
-  groupId    Int          @id @default(autoincrement())
-  group_name String
-  Group_user Group_user[]
+  groupId       Int          @id @default(autoincrement())
+  group_name    String
+  group_profile String?       @db.Text
+  Group_user    Group_user[]
 }
 
 model Friendship {
@@ -199,7 +200,7 @@ model Venue_reviews {
   userId        Int
   rating        Int
   review        String?
-  review_type    Review_type?
+  review_type   Review_type?
   date_added    DateTime     @default(now())
   venueReviewId Int          @id @default(autoincrement())
   magnitude     Float?
