@@ -134,16 +134,16 @@ model Friendship {
 }
 
 model Venue {
-  name        String
-  description String?
-  category    String?
-  capacity    Int
-  chatRoomId  Int      @unique
-  locationId  Int      @unique
-  score       Decimal
-  venueId     Int      @id @default(autoincrement())
-  website_url String   @db.Text
-  location    Location @relation(fields: [locationId], references: [locationId])
+  name              String
+  description       String?
+  category          String?
+  capacity          Int
+  chatRoomId        Int                 @unique
+  locationId        Int                 @unique
+  score             Decimal
+  venueId           Int                 @id @default(autoincrement())
+  website_url       String              @db.Text
+  location          Location            @relation(fields: [locationId], references: [locationId])
   App_transaction   App_transaction[]
   Article_venue     Article_venue[]
   Business_finance  Business_finance[]
@@ -199,6 +199,7 @@ model Venue_reviews {
   userId        Int
   rating        Int
   review        String?
+  review_type    Review_type?
   date_added    DateTime     @default(now())
   venueReviewId Int          @id @default(autoincrement())
   magnitude     Float?
@@ -209,6 +210,11 @@ model Venue_reviews {
 
   @@index([userId], map: "Venue_reviews_userId_fkey")
   @@index([branchId], map: "Venue_reviews_branchId_fkey")
+}
+
+enum Review_type {
+  Delivery
+  Reservation
 }
 
 model Venue_managers {
@@ -523,7 +529,7 @@ model Menu_category_list {
 
 model Sets {
   name         String
-  price        Decimal        @db.Decimal(5, 2)
+  price        Decimal        @db.Decimal(10, 2)
   description  String?
   image_url    String?        @db.Text
   venueId      Int
