@@ -15,6 +15,7 @@ import { getAllTableTypeByVenueId } from "../controllers/feature6.controller";
 import { getAllTableByVenueId } from "../controllers/feature6.controller";
 import { getTableByTableId } from "../controllers/feature6.controller";
 import { getCountPerDay } from "../controllers/feature6.controller";
+import { getAllReservationOfVenue } from "../controllers/feature6.controller";
 import { createTable } from "../controllers/feature6.controller";
 import { createTableType } from "../controllers/feature6.controller";
 import { deleteTable } from "../controllers/feature6.controller";
@@ -51,6 +52,7 @@ feature6Router.get("/allTableType",getAllTableTypeByVenueId);
 feature6Router.get("/allTableByVenueId", getAllTableByVenueId);
 feature6Router.get("/MyTable/:tableId", getTableByTableId);
 feature6Router.get("/Dashboard/", getCountPerDay);
+feature6Router.get("/allReservationOfVenue", getAllReservationOfVenue);
 
 //POST METHOD
 feature6Router.post("/createTable", createTable);
@@ -66,11 +68,13 @@ feature6Router.delete("/deleteTable/:tableId", deleteTable);
 feature6Router.post("/createOfflineReservation", createOfflineReservation);
 feature6Router.get("/getOfflineAvailableTables", getOfflineAvailableTables);
 
-// import { checkIn } from "../controllers/feature6.controller";
-// import { qrCode } from "../controllers/feature6.controller";
+import { checkIn } from "../controllers/feature6.controller";
+import { qrCode } from "../controllers/feature6.controller";
+import { checkOut } from "../controllers/feature6.controller";
 
-//Check In
-// feature6Router.post("/checkIn/:reservationId", checkIn);
-// feature6Router.get("/qrcode/:reservationId", qrCode);
+// Check In
+feature6Router.post("/checkIn/:reservationId", checkIn);
+feature6Router.post("/checkOut/:reservationId", checkOut);
+feature6Router.get("/qrcode/:reservationId", qrCode);
 
 export default feature6Router;
