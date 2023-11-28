@@ -593,7 +593,7 @@ export const getBranch = async (req: Request, res: Response) => {
     }
 };
 
-export const getBranchVenue = async (req: Request, res: Response) => {
+export const getBranchVen = async (req: Request, res: Response) => {
     try {
         const BranchVenue = await feature3Client.$queryRaw`
             SELECT VB.venueId, branchId, branch_name, name, description, category, capacity, 
@@ -626,6 +626,24 @@ export const getBranchRate = async (req: Request, res: Response) => {
 };
 
 export const getVenRate = async (req: Request, res: Response) => {
+    try {
+        const VenRate = await feature3Client.$queryRaw`
+            SELECT V.venueId, VB.branchId, name, description, category, capacity,
+            chatRoomId, locationId, website_url, AVG(VR.rating) as rating
+            FROM Venue V, Venue_branch VB, Venue_reviews VR
+            WHERE V.venueId = VB.venueId AND VB.branchId = VR.branchId
+            GROUP BY V.venueId, VB.branchId
+            ORDER BY V.venueId;
+        `;
+
+        return res.json(VenRate);
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json(error);
+    }
+};
+
+export const getBranchVenRate = async (req: Request, res: Response) => {
     try {
         const VenRate = await feature3Client.$queryRaw`
             SELECT V.venueId, VB.branchId, name, description, category, capacity,
@@ -720,3 +738,5 @@ export const postReviewReservation = async (req: Request, res: Response) => {
       res.status(500).json(error);
     }
 };
+
+
