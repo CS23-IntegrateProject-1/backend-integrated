@@ -27,10 +27,10 @@ const feature6Router = Router();
 
 // Custimer side part
 //GET METHOD
-feature6Router.get("/allTable", getAllTable);
-feature6Router.get("/allReservation", getAllReservation);
-feature6Router.get("/venue/:venueId", getVenueById);
-feature6Router.get("/MyReservation/:reservationId", getReservationById);
+// feature6Router.get("/allTable", getAllTable);
+// feature6Router.get("/allReservation", getAllReservation);
+// feature6Router.get("/venue/:venueId", getVenueById);
+// feature6Router.get("/MyReservation/:reservationId", getReservationById);
 
 //Finished
 feature6Router.post("/MyReservation", getMyReservationByStatus);
