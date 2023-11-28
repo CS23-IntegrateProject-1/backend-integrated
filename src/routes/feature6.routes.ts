@@ -66,5 +66,11 @@ feature6Router.delete("/deleteTable/:tableId", deleteTable);
 feature6Router.post("/createOfflineReservation", createOfflineReservation);
 feature6Router.get("/getOfflineAvailableTables", getOfflineAvailableTables);
 
+// import { checkIn } from "../controllers/feature6.controller";
+// import { qrCode } from "../controllers/feature6.controller";
+
+//Check In
+// feature6Router.post("/checkIn/:reservationId", checkIn);
+// feature6Router.get("/qrcode/:reservationId", qrCode);
 
 export default feature6Router;

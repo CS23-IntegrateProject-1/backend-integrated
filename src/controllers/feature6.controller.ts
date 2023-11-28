@@ -7,6 +7,7 @@ import {
     endOfDay,
     parse,
     format,
+    sub,
 } from "date-fns";
 import authService from "../services/auth/auth.service";
 import { Decimal } from "@prisma/client/runtime/library";
@@ -187,6 +188,13 @@ export const createReservation = async (req: Request, res: Response) => {
         }
         const decodedToken = authService.decodeToken(token);
         const { userId } = decodedToken;
+
+        if (decodedToken.userType != "user") {
+            return res
+                .status(401)
+                .json({ error: "This user is not customer user" });
+        }
+
         const { venueId, guest_amount, reserve_date, time, branchId } =
             req.body;
 
@@ -251,6 +259,98 @@ export const createReservation = async (req: Request, res: Response) => {
                         tableId: selectedTable[0].tableId,
                     },
                 });
+
+            // ! new to change status in table
+            // // Function to update table status
+            // const updateTableStatusUnavailable = async (tableId: number) => {
+            //     await feature6Client.tables.update({
+            //         where: { tableId },
+            //         data: { status: "Unavailable" },
+            //     });
+            // };
+
+            // const updateTableStatusAvailable = async (tableId: number) => {
+            //     await feature6Client.tables.update({
+            //         where: { tableId },
+            //         data: { status: "Available" },
+            //     });
+            // };
+
+            // // Function to set table to Unavailable when the reservation time starts
+            // const setTableUnavailableAtReservationTime = async (
+            //     tableId: number,
+            //     reservationTime: Date
+            // ) => {
+            //     const currentTime = new Date();
+
+            //     // Check if the current time is equal to or later than the reservation time
+            //     if (currentTime >= reservationTime) {
+            //         await updateTableStatusUnavailable(tableId);
+            //     }
+            // };
+
+            // // Function to set table to Available after the reservation time
+            // const setTableAvailableAfterReservationTime = async (
+            //     tableId: number,
+            //     reservationTime: Date
+            // ) => {
+            //     const currentTime = new Date();
+
+            //     // Check if the reservation time has passed
+            //     if (currentTime >= reservationTime) {
+            //         await updateTableStatusAvailable(tableId);
+            //     }
+            // };
+
+            // const setTableUnavailable = async (tableId: number) => {
+            //     await updateTableStatusUnavailable(tableId);
+            // };
+            // // Function to set table to Available after 2 hours
+            // const setTableAvailableAfterTwoHours = async () => {
+            //     const twoHoursAgo = sub(new Date(), { hours: 2 });
+
+            //     const reservationsToCheckOut =
+            //         await feature6Client.reservation.findMany({
+            //             where: {
+            //                 status: "Check_in",
+            //                 reserved_time: { lt: twoHoursAgo },
+            //             },
+            //         });
+
+            //     for (const reservation of reservationsToCheckOut) {
+            //         const reservationTable =
+            //             await feature6Client.reservation_table.findFirst({
+            //                 where: { reserveId: reservation.reservationId },
+            //                 select: { tableId: true },
+            //             });
+
+            //         if (reservationTable) {
+            //             await updateTableStatusAvailable(
+            //                 reservationTable.tableId
+            //             );
+            //         }
+            //     }
+            // };
+
+            // // After a successful reservation set the table to unavailable
+            // await setTableUnavailableAtReservationTime(
+            //     selectedTable[0].tableId,
+            //     new Date(newreserveTime)
+            // );
+            // // Schedule a task to make the table available after the reservation time
+            // const reservationTime = new Date(newreserveTime);
+            // setTimeout(
+            //     () =>
+            //         setTableAvailableAfterReservationTime(
+            //             selectedTable[0].tableId,
+            //             reservationTime
+            //         ),
+            //     reservationTime.getTime() - new Date().getTime()
+            // );
+
+            // // Run the function to make tables available after 2 hours periodically
+            // setInterval(setTableAvailableAfterTwoHours, 60000); // Run every minute
+
             const responseData = {
                 newReservation,
                 reservationTableEntry,
@@ -516,7 +616,7 @@ export const findSuitableTable = async (
 // BUSINESS SIDE PART
 // GET METHOD
 
-// Almost finish 
+// Almost finish
 // Handle tableId that is not own by businessId
 export const getTableByTableId = async (req: Request, res: Response) => {
     try {
@@ -874,7 +974,7 @@ export const deleteTable = async (req: Request, res: Response) => {
         if (tableId == undefined) {
             return res.status(401).json({ error: "No selected table" });
         }
-        
+
         const deletedTable = await feature6Client.tables.delete({
             where: {
                 tableId: parseInt(tableId),
@@ -976,7 +1076,7 @@ export const createOfflineReservation = async (req: Request, res: Response) => {
                     guest_amount,
                     reserved_time: new Date(newreserveTime),
                     entry_time: new Date(newreserveTime),
-                    status: "Pending",
+                    status: "Check_in",
                     isPaidDeposit: "Pending",
                     isReview: false,
                     depositId: depositId[0].depositId,
@@ -993,6 +1093,58 @@ export const createOfflineReservation = async (req: Request, res: Response) => {
                     },
                 });
             // console.log("create reservation --> ", isResponse);
+
+            // ! new to change status in table
+            // // Function to update table status
+            // const updateTableStatusUnavailable = async (tableId: number) => {
+            //     await feature6Client.tables.update({
+            //         where: { tableId },
+            //         data: { status: "Unavailable" },
+            //     });
+            // };
+
+            // const updateTableStatusAvailable = async (tableId: number) => {
+            //     await feature6Client.tables.update({
+            //         where: { tableId },
+            //         data: { status: "Available" },
+            //     });
+            // };
+
+            // const setTableUnavailable = async (tableId: number) => {
+            //     await updateTableStatusUnavailable(tableId);
+            // };
+            // // Function to set table to Available after 2 hours
+            // const setTableAvailableAfterTwoHours = async () => {
+            //     const twoHoursAgo = sub(new Date(), { hours: 2 });
+
+            //     const reservationsToCheckOut =
+            //         await feature6Client.reservation.findMany({
+            //             where: {
+            //                 status: "Check_in",
+            //                 reserved_time: { lt: twoHoursAgo },
+            //             },
+            //         });
+
+            //     for (const reservation of reservationsToCheckOut) {
+            //         const reservationTable =
+            //             await feature6Client.reservation_table.findFirst({
+            //                 where: { reserveId: reservation.reservationId },
+            //                 select: { tableId: true },
+            //             });
+
+            //         if (reservationTable) {
+            //             await updateTableStatusAvailable(
+            //                 reservationTable.tableId
+            //             );
+            //         }
+            //     }
+            // };
+
+            // // After a successful reservation set the table to unavailable
+            // await setTableUnavailable(selectedTable[0].tableId);
+            // // Run the function to make tables available after 2 hours periodically
+            // setInterval(setTableAvailableAfterTwoHours, 60000); // Run every minute
+
             const responseData = {
                 newReservation,
                 reservationTableEntry,
@@ -1224,7 +1376,7 @@ export const findOfflineSuitableTable = async (
     res: Response
 ) => {
     try {
-        console.log("avai table res --> ", getOfflineAvailableTablesResponse);
+        // console.log("avai table res --> ", getOfflineAvailableTablesResponse);
         if (isResponse) {
             const { availableTables, guestAmount } =
                 getOfflineAvailableTablesResponse;
@@ -1262,3 +1414,5 @@ export const findOfflineSuitableTable = async (
         return res.status(500).json(e);
     }
 };
+
+
