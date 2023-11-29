@@ -612,10 +612,10 @@ export const getBranchVen = async (req: Request, res: Response) => {
 export const getBranchRate = async (req: Request, res: Response) => {
     try {
         const BranchRate = await feature3Client.$queryRaw`
-            SELECT VB.branchId, VR.rating
+            SELECT VB.branchId, VB.venueId, VR.rating
             FROM Venue_branch VB, Venue_reviews VR
             WHERE VB.branchId = VR.branchId
-            ORDER BY branchId;
+            GROUP BY VB.branchId;
         `;
 
         return res.json(BranchRate);
