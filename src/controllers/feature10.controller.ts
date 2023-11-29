@@ -117,6 +117,30 @@ export const getTheaterById = async (req: Request, res: Response) => {
     res.status(200).json(data);
 }
 
+//test
+export const getTestTest = async (req: Request, res: Response) => {
+    try {
+        const data = await prisma.shows.findMany({
+            where: {
+                showId: 1,
+            },
+            include: {
+                screen:{
+                    include:{
+                        theater:true
+                    }
+                },
+                film:true
+            }    
+        });
+        res.json(data); 
+
+    } catch (err) {
+        const error = err as Error;
+        res.status(500).json({error: error.message});
+    }
+}    
+
 
 
 

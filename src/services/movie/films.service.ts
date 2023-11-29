@@ -141,8 +141,11 @@ class filmService{
 
 	async getFilmsByTheaterId(id: number, date: number, month:number, year:number): Promise<any[]> {
 		const prisma = new PrismaClient();
-		const queryDate = new Date(year+"-"+month+"-"+date).toISOString()
+		const dateString = date<10 ? "0"+date : date.toString()
+		const monthString = month<10 ? "0"+month : month.toString()
+		const queryDate = new Date(year+"-"+monthString+"-"+dateString).toISOString()
 		console.log(queryDate);
+		
 		
 		const shows = await prisma.films.findMany({
 			where: {
@@ -157,10 +160,16 @@ class filmService{
 			},
 			include: {
 				Shows: {
+					where: {
+						screen: {
+							theaterId: id,
+						},
+						date: queryDate,
+					},
 					include: {
-						screen: true
+						screen: true,
 					}
-				}
+				},
 			}
 		});
 
