@@ -25,7 +25,7 @@ import {
     editFoodReview,
     deleteFoodReview,
     getFoodReviews,
-    getSentimentAnalysis,
+    // getSentimentAnalysis,
     getVen,
     getBranch,
     getBranchRate,
@@ -35,6 +35,10 @@ import {
     getReviewsBranch,
     postReviewDelivery,
     postReviewReservation,
+    getVenBranchPage,
+    // getReviewPerUser,
+    getMyReviews,
+
 
 } from "../controllers/feature3.controller";
 import { get } from "http";
@@ -59,7 +63,7 @@ feature3Router.get("/food-vouchers", getAllFoodVouchers);
 feature3Router.get("/discount-vouchers", getAllDiscountVouchers);
 
 // Sentiment analysis
-feature3Router.get("/sentiment-analysis/:id", getSentimentAnalysis);
+// feature3Router.get("/sentiment-analysis/:id", getSentimentAnalysis);
 
 // Venue reviews
 feature3Router.get("/venue-reviews/:id", getVenueReviews);
@@ -86,17 +90,23 @@ feature3Router.delete("/food-reviews/:foodReviewId", deleteFoodReview);
 
 
 
-
 feature3Router.get("/ven", getVen); // Only venue details
 feature3Router.get("/branch", getBranch) // Only branch
 feature3Router.get("/branchRate", getBranchRate) // Only branch rate
 feature3Router.get("/venXRate", getVenRate) // Venue details & Rate of that venue
 feature3Router.get("/venXRate4", getVenRate4) // Venue details that have rate > 4 & Rate of that venue
 feature3Router.get("/branchVenue", getBranchVen) // Branch with venue details
+
+// feature3Router.get("/reviewsbyuser", getReviewPerUser)
+
 feature3Router.get("/reviews/:branchId", getReviewsBranch) // Reviews of that branch
+
+feature3Router.get("/VenBranchPage/:venueId", getVenBranchPage) // Branch with venue details
 
 feature3Router.post("/reviewDelivery", postReviewDelivery); // Post from Delivery review
 feature3Router.post("/reviewReservation", postReviewReservation); // Post from Reservation review
+
+feature3Router.get("/myReviews", getMyReviews); // Get my reviews
 
 
 

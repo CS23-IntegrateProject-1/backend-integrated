@@ -44,34 +44,34 @@ export default class GroupRepository {
     this.prismaClient = new PrismaClient();
   }
 
-  async createGroup(userId: number, groupName: string, members: Array<number>) {
-    const allMembers = new Set(members);
-    allMembers.add(userId);
+  // async createGroup(userId: number, groupName: string, members: Array<number>) {
+  //   const allMembers = new Set(members);
+  //   allMembers.add(userId);
 
-    const result = await this.prismaClient.group.create({
-      data: {
-        Group_user: {
-          create: members.map((id) => ({ memberId: id })),
-        },
-        group_name: groupName,
-      },
-      include: {
-        Group_user: {
-          include: {
-            member: {
-              select: {
-                userId: true,
-                username: true,
-                profile_picture: true,
-              },
-            },
-          },
-        },
-      },
-    });
+  //   const result = await this.prismaClient.group.create({
+  //     data: {
+  //       Group_user: {
+  //         create: members.map((id) => ({ memberId: id })),
+  //       },
+  //       group_name: groupName,
+  //     },
+  //     include: {
+  //       Group_user: {
+  //         include: {
+  //           member: {
+  //             select: {
+  //               userId: true,
+  //               username: true,
+  //               profile_picture: true,
+  //             },
+  //           },
+  //         },
+  //       },
+  //     },
+  //   });
 
-    return result as GroupCreateDBResponse;
-  }
+  //   return result as GroupCreateDBResponse;
+  // }
 
   async listGroupsByUserId(userId: number): Promise<GroupIndexDBResponse> {
     /*

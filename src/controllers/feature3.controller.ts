@@ -1,84 +1,86 @@
 import { PrismaClient } from "@prisma/client";
 import { Response, Request } from "express";
-import * as fs from "fs";
-import { type } from "os";
-import * as path from "path";
+// import * as fs from "fs";
+// import { type } from "os";
+// import * as path from "path";
+import authService from "../services/auth/auth.service";
+import { auth } from "firebase-admin";
 
 const feature3Client = new PrismaClient();
 
 export const getfeature3 = async (req: Request, res: Response) => {};
 
-const executePythonFile = async (pythonScriptPath: string, arg: string) => {
-  return new Promise((resolve, reject) => {
-    const { exec } = require("child_process");
-    console.log(pythonScriptPath);
-    exec(
-      `python ${"../backend-integrated/src/services/sentimentAnalysis/func.py"} --review "${arg}"`,
-      (error, stdout, stderr) => {
-        if (error) {
-          console.error(`Error executing Python script: ${error.message}`);
-          reject(error);
-        } else {
-          try {
-            const resultObject = JSON.parse(stdout);
-            resolve(resultObject);
-          } catch (parseError) {
-            console.error(`Error parsing JSON: ${parseError}`);
-            reject(parseError);
-          }
-        }
-      }
-    );
-  });
-};
+// const executePythonFile = async (pythonScriptPath: string, arg: string) => {
+//   return new Promise((resolve, reject) => {
+//     const { exec } = require("child_process");
+//     console.log(pythonScriptPath);
+//     exec(
+//       `python ${"../backend-integrated/src/services/sentimentAnalysis/func.py"} --review "${arg}"`,
+//       (error, stdout, stderr) => {
+//         if (error) {
+//           console.error(`Error executing Python script: ${error.message}`);
+//           reject(error);
+//         } else {
+//           try {
+//             const resultObject = JSON.parse(stdout);
+//             resolve(resultObject);
+//           } catch (parseError) {
+//             console.error(`Error parsing JSON: ${parseError}`);
+//             reject(parseError);
+//           }
+//         }
+//       }
+//     );
+//   });
+// };
 
-export const getSentimentAnalysis = async (req: Request, res: Response) => {
-  const { id } = req.params;
+// export const getSentimentAnalysis = async (req: Request, res: Response) => {
+//   const { id } = req.params;
 
-  try {
-    const review = await feature3Client.venue_reviews.findMany({
-      where: {
-        venueReviewId: parseInt(id),
-      } as any,
-    });
+//   try {
+//     const review = await feature3Client.venue_reviews.findMany({
+//       where: {
+//         venueReviewId: parseInt(id),
+//       } as any,
+//     });
 
-    if (review && review.length > 0) {
-      const review_txt = review[0].review;
+//     if (review && review.length > 0) {
+//       const review_txt = review[0].review;
 
-      // Check if review_txt is not null before proceeding
-      if (review_txt !== null) {
-        const pythonPath = "../services/sentimentAnalysis/func.py";
+//       // Check if review_txt is not null before proceeding
+//       if (review_txt !== null) {
+//         const pythonPath = "../services/sentimentAnalysis/func.py";
 
-        if (fs.existsSync(path.resolve(__dirname, pythonPath))) {
-          try {
-            const sentiment_analysis = await executePythonFile(
-              pythonPath,
-              review_txt
-            );
-            return res.json(sentiment_analysis);
-          } catch (error) {
-            console.error("Error in executePythonFile:", error);
-            return res
-              .status(500)
-              .json({ error: "Error executing Python file" });
-          }
-        } else {
-          console.error(`Python file not found at path: ${pythonPath}`);
-          return res.status(500).json({ error: "Python file not found" });
-        }
-      } else {
-        console.error(`Review is null for venueReviewId: ${id}`);
-        return res.status(404).json({ error: "Review is null" });
-      }
-    } else {
-      console.error(`Review not found for venueReviewId: ${id}`);
-      return res.status(404).json({ error: "Review not found" });
-    }
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json(error);
-  }
-};
+//         if (fs.existsSync(path.resolve(__dirname, pythonPath))) {
+//           try {
+//             const sentiment_analysis = await executePythonFile(
+//               pythonPath,
+//               review_txt
+//             );
+//             return res.json(sentiment_analysis);
+//           } catch (error) {
+//             console.error("Error in executePythonFile:", error);
+//             return res
+//               .status(500)
+//               .json({ error: "Error executing Python file" });
+//           }
+//         } else {
+//           console.error(`Python file not found at path: ${pythonPath}`);
+//           return res.status(500).json({ error: "Python file not found" });
+//         }
+//       } else {
+//         console.error(`Review is null for venueReviewId: ${id}`);
+//         return res.status(404).json({ error: "Review is null" });
+//       }
+//     } else {
+//       console.error(`Review not found for venueReviewId: ${id}`);
+//       return res.status(404).json({ error: "Review not found" });
+//     }
+//   } catch (error) {
+//     console.error(error);
+//     return res.status(500).json(error);
+//   }
+// };
 
 export const getAdvertisements = async (req: Request, res: Response) => {
   try {
@@ -528,96 +530,6 @@ export const deleteFoodReview = async (req: Request, res: Response) => {
     return res.status(500).json({ error: "Internal Server Error" });
   }
 };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 export const getVen = async (req: Request, res: Response) => {
@@ -683,7 +595,6 @@ export const getBranchRate = async (req: Request, res: Response) => {
   }
 };
 
-
 export const getVenRate = async (req: Request, res: Response) => {
   try {
     const VenRate = await feature3Client.$queryRaw`
@@ -747,6 +658,9 @@ export const getReviewsBranch = async (req: Request, res: Response) => {
       where: {
         branchId: parseInt(branchId),
       },
+      orderBy: {
+        date_added: 'desc',
+      },
     });
 
     res.status(200).json(reviews);
@@ -758,7 +672,8 @@ export const getReviewsBranch = async (req: Request, res: Response) => {
 
 export const postReviewDelivery = async (req: Request, res: Response) => {
   try {
-    const { userId, rating, review, branchId } = req.body;
+    const { rating, review, branchId } = req.body;
+    const userId = authService.decodeToken(req.cookies.authToken).userId;
 
     const newReview = await feature3Client.venue_reviews.create({
       data: {
@@ -795,5 +710,142 @@ export const postReviewReservation = async (req: Request, res: Response) => {
   } catch (error) {
     console.error("Error creating review:", error);
     res.status(500).json(error);
+  }
+};
+
+export const getVenBranchPage = async (req: Request, res: Response) => {
+  const { venueId } = req.params;
+  const venueIdInt = parseInt(venueId);
+  console.log("hello", venueIdInt);
+  try {
+    const VenBranchPage = await feature3Client.$queryRaw`
+  SELECT
+    VB.branchId,
+    V.venueId,
+    VB.venueId,
+    VB.branch_name,
+    V.name,
+    COALESCE(AVG(VR.rating), 0) AS rating
+  FROM
+    Venue_branch VB
+    LEFT JOIN Venue_reviews VR ON VB.branchId = VR.branchId
+    JOIN Venue V ON V.venueId = VB.venueId
+  WHERE
+    VB.venueId = ${venueIdInt}
+  GROUP BY
+    VR.branchId;
+`;
+    console.log(VenBranchPage);
+    return res.json(VenBranchPage);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json(error);
+  }
+};
+
+export const getVenueDetail = async (req: Request, res: Response) => {
+  try {
+    const VenueDetail = await feature3Client.$queryRaw`
+              SELECT V.venueId, VB.branchId, name, description, category, capacity,
+              chatRoomId, locationId, website_url, AVG(VR.rating) as rating
+              FROM Venue V, Venue_branch VB, Venue_reviews VR
+              WHERE V.venueId = VB.venueId AND VB.branchId = VR.branchId
+              GROUP BY V.venueId, VB.branchId
+              ORDER BY V.venueId;
+          `;
+
+    return res.json(VenueDetail);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json(error);
+  }
+};
+
+// export const getReviewPerUser = async (req: Request, res: Response) => {
+//   try {
+//     const decoded = await authService.decodeToken(req.cookies.authToken);
+//   } catch (e) {
+//     console.log(e);
+//     return res.status(500);
+//   }
+  
+// };
+
+// export const getReviewPerUser = async (req: Request, res: Response) => {
+//   try {
+//     if (!req.cookies.authToken) {
+//       return res.status(401).json({ error: 'Unauthorized' });
+//     }
+
+//     const decoded = await authService.decodeToken(req.cookies.authToken);
+//     // Rest of the code
+//   } catch (e) {
+//     console.log(e);
+//     return res.sendStatus(500);
+//   }
+// };
+
+
+// export const getReviewPerUser = async (req: Request, res: Response) => {
+//   const token = req.cookies.authToken;
+//   if (!token) {
+//     return res.json({ error: "No auth token" })
+//   }
+//   const decodedToken = authService.decodeToken(token)
+//   const thisUserId = decodedToken.userId;
+
+//   try {
+//     const userId = req.body;
+//   }
+//   catch (e) {
+//     console.log(e);
+//     return res.status(500);
+//   }
+// };
+
+export const getMyReviews = async (req: Request, res: Response) => {
+  try {
+    const userId = authService.decodeToken(req.cookies.authToken).userId;
+    const myReviews = await feature3Client.venue.findMany({
+      where: {
+        Venue_branch: {
+          some: {
+            Venue_reviews: {
+              some: {
+                userId: userId,
+              }
+            }
+          }
+        }
+      },
+      include: {
+        Venue_branch: {
+          where: {
+            Venue_reviews: {
+              some: {
+                userId: userId,
+              }
+            }
+          },
+          include: {
+            Venue_reviews: {
+              where: {
+                userId: userId,
+              },
+              orderBy: {
+                date_added: 'desc',
+              }
+            }
+          }
+        }
+      }
+       
+    })
+
+    res.status(200).json(myReviews);
+  }
+  catch (error) {
+    console.error("Error from getMyReviews Backend: ", error);
+    return res.status(500).json(error);
   }
 };

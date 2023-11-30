@@ -17,7 +17,7 @@ export interface IGroupController {
 }
 
 export default class GroupController implements IGroupController {
-  private service: IGroupService = new GroupService(new GroupRepository());
+  // private service: IGroupService = new GroupService(new GroupRepository());
 
   async create(req: Request, res: Response) {
     let token: string;
@@ -36,11 +36,11 @@ export default class GroupController implements IGroupController {
       const userId = (decoded as jwt.JwtPayload).userId;
       const { group_name: groupName, members } = req.body;
 
-      const groups = await this.service.createGroup(userId, groupName, members);
+      // const groups = await this.service.createGroup(userId, groupName, members);
 
-      const webResponse = makeGroupCreateWebResponse(groups);
+      // const webResponse = makeGroupCreateWebResponse(groups);
 
-      return res.status(200).json(webResponse);
+      // return res.status(200).json(webResponse);
     } catch (e) {
       if (e instanceof JsonWebTokenError) {
         return res.status(401).json(makeErrorResponse("Invalid token"));
