@@ -2,6 +2,7 @@ import {PrismaClient} from "@prisma/client";
 import { Response, Request } from "express";
 import { adinfo } from "../interface/Auth/Advertisement";
 import { voucherinfo } from "../interface/Auth/Voucher";
+import { Promotioninfo } from "../interface/Auth/Promotion"; 
 import authService from "../services/auth/auth.service";
 
 const feature5Client = new PrismaClient();
@@ -10,7 +11,7 @@ export const getfeature5 = async (req: Request, res: Response) => {
     res.status(200).json({message: 'This is Feature5'});
 };
 
-
+//-----------------------------Advertisement-----------------------------------
 export const AdBusiness = async (req: Request, res: Response) => {
     try {
         const { businessId } = authService.decodeToken(req.cookies.authToken);
@@ -28,7 +29,6 @@ export const AdBusiness = async (req: Request, res: Response) => {
             target_group,
         } = newAd;
 
-        // const {id} = req.params;
         const newAdvertisement = await feature5Client.ad_business.create({
             data: {
                 name,
@@ -97,10 +97,10 @@ export const AdminApprove = async (req: Request, res: Response) => {
 }
 
 export const GetAllAdvertisement = async (req: Request, res: Response) => {
-    const {id} = req.params;
+    const { businessId } = authService.decodeToken(req.cookies.authToken);
     try {
         const GetAllAd = await feature5Client.ad_business.findMany({
-            where: {businessId: parseInt(id)},
+            where: {businessId},
             
         })
         res.json(GetAllAd)
@@ -148,6 +148,7 @@ export const GetAllTags = async (req: Request, res: Response) => {
 }
 
 
+//----------------------------Voucher-----------------------------
 export const Voucher = async (req: Request, res: Response) => {
     try {
         const newVch: voucherinfo = req.body;
@@ -278,10 +279,10 @@ export const VoucherApprove = async (req: Request, res: Response) => {
 }
 
 export const GetallVenue = async (req: Request, res: Response) => {
-    const{id} = req.params;
+    const { businessId } = authService.decodeToken(req.cookies.authToken);
     try {
         const getvenue = await feature5Client.property.findMany({
-            where: {businessId: parseInt(id)},
+            where: {businessId},
             include: {venue: true}
         })
         res.json(getvenue)
@@ -294,10 +295,10 @@ export const GetallVenue = async (req: Request, res: Response) => {
 
 
 export const GetAllVoucher = async (req: Request, res: Response) => {
-    const{id} = req.params
+    const { businessId } = authService.decodeToken(req.cookies.authToken);
     try {
         const GetAllVoucher = await feature5Client.property.findMany({
-            where: {businessId: parseInt(id)},
+            where: {businessId},
             select: {
                 venue:{
                     select:{
@@ -330,6 +331,8 @@ export const GetInfomationOfVoucher = async (req: Request, res: Response) => {
     }
 }
 
+
+//--------------------------------Membertier----------------------------------
 export const GettierName = async (req: Request, res: Response) => {
     const { userId } = authService.decodeToken(req.cookies.authToken);
   try {
@@ -436,6 +439,81 @@ export const Getpointused = async (req: Request, res: Response) => {
       res.status(500).json({ error: error.message });
     }
   };
+
+
+//------------------------------Promotion-----------------------------------
+ 
+export const Promotion = async (req: Request, res: Response) => {
+    try {
+        // const isApprove = "In_progress"
+        // const menuIds : number[] = req.body.menuIds;
+        const newAd: Promotioninfo = req.body;
+        const {name,
+            description,
+            image_url,
+            start_date,
+            end_date,
+            discount_price
+        } = newAd;
+
+        const { menuId , venueId} = req.body;
+        
+        const newPromotion = await feature5Client.promotion.create({
+            data: {
+                name,
+                description,
+                image_url,
+                start_date,
+                end_date,
+                discount_price,
+                menuId, 
+                venueId
+                
+            }
+        })
+
+        res.json(newPromotion);
+    } catch(err) {
+        console.log(err);
+        const error = err as Error;
+        res.status(500).json({ error: error.message});
+    }
+};
+
+export const DeletePromotion = async (req: Request, res: Response) => {
+    try {
+
+        const {id} = req.params;
+        const deletepromotion = await feature5Client.promotion.delete({
+            where: {promotionId: parseInt(id)}
+        })
+
+        res.json(deletepromotion);
+    } catch(err) {
+        console.log(err);
+        const error = err as Error;
+        res.status(500).json({ error: error.message});
+    }
+};
+
+
+// export const getAllPromotion = async (req: Request, res: Response) => {
+//     try {
+//         const { businessId } = authService.decodeToken(req.cookies.authToken);
+//         const getallpromotion = await feature5Client.promotion.delete({
+//             where: {}
+//         })
+
+//         res.json(getallPromotion);
+//     } catch(err) {
+//         console.log(err);
+//         const error = err as Error;
+//         res.status(500).json({ error: error.message});
+//     }
+// };
+
+    
+
 
 
 
