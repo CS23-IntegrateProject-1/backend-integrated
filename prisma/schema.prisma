@@ -890,7 +890,7 @@ model Promotion {
   start_date     DateTime
   end_date       DateTime
   discount_price Float
-  isApprove      Boolean  @default(false)
+  isApprove      Approve_status  @default(In_progress)
   venueId        Int
   menuId         Int
   menu           Menu     @relation(fields: [menuId], references: [menuId])
