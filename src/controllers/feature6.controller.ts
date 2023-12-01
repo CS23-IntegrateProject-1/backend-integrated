@@ -897,7 +897,6 @@ export const createOfflineReservation = async (req: Request, res: Response) => {
                     check_out_time: defaultCheckoutTime,
                 },
             });
-
             const entry_time = addHours(new Date(), 7);
             await feature6Client.reservation.update({
                 where: { reservationId },
@@ -1093,7 +1092,7 @@ export const checkOut = async (req: Request, res: Response) => {
                 status: "Check_out",
             },
         });
-        
+
         const selectedTable = await feature6Client.reservation_table.findFirst({
             where: {
                 reserveId: reservationId,
@@ -1111,6 +1110,7 @@ export const checkOut = async (req: Request, res: Response) => {
             },
         });
 
+        res.clearCookie("reservationToken");
         return res.json({ checkOutLog });
     } catch (e) {
         return res.status(500).json(e);
