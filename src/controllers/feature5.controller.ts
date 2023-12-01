@@ -13,7 +13,7 @@ export const getfeature5 = async (req: Request, res: Response) => {
 
 //-----------------------------Advertisement-----------------------------------
 export const AdBusiness = async (req: Request, res: Response) => {
-    try {
+	try {
         const { businessId } = authService.decodeToken(req.cookies.authToken);
         const Tags: number[] = req.body.Tags;
         const isApprove = "In_progress"
@@ -60,7 +60,6 @@ export const AdBusiness = async (req: Request, res: Response) => {
         res.status(500).json({ error: error.message});
     }
 };
-
 
 export const DeleteAdvertisement = async (req: Request, res: Response) => {
     try {
@@ -160,11 +159,37 @@ export const Voucher = async (req: Request, res: Response) => {
 			endDate: end_date ,
 			description,
 			point_use,
-			// voucherType: Vouchertype,
+			voucherType: Vouchertype,
 			
 		} = req.body;
 
         const isApprove = "In_progress";
+
+		const token = req.cookies.authToken;
+		if (!token) {
+			return res.status(401).json({ error: "No auth token" });
+		}
+		const decodedToken = authService.decodeToken(token);
+		if (decodedToken.userType != "business") {
+			return res
+				.status(401)
+				.json({ error: "This user is not business user" });
+		}
+		const businessId = decodedToken.businessId;
+
+		const getVenueId = await feature5Client.property.findFirst({
+			where: {
+				businessId: businessId,
+			},
+			select: {
+				venueId: true,
+			},
+		});
+
+		const venueId = getVenueId?.venueId;
+		if (venueId == undefined || !venueId) {
+			return res.status(400).json({ error: "Venue is undefined" });
+		}
 
         // const {
         //     voucher_name: voucherName,
@@ -175,7 +200,7 @@ export const Voucher = async (req: Request, res: Response) => {
         //     point_use
         // } = newVch;
 
-        const {Vouchertype,id} = req.body;
+        // const {Vouchertype,id} = req.body;
 
         const newVoucher = await feature5Client.voucher.create({
             data:{
@@ -185,18 +210,19 @@ export const Voucher = async (req: Request, res: Response) => {
                 end_date,
                 description,
                 point_use,
-                venueId: parseInt(id),
+                venueId,
                 isApprove
             }
         })
-
-        if(Vouchertype == "discount"){
+		console.log(Vouchertype + "----");
+		
+        if(Vouchertype == "Discount"){
             const {
-                fix_discount,
-                percent_discount,
-                limitation,
-                minimum_spend
-            } = req.body;
+				fixDiscount: fix_discount,
+				percentage: percent_discount,
+				limitation: limitation,
+				minimum: minimum_spend,
+			} = req.body;
 
             await feature5Client.discount_voucher.create({
                 data:{
@@ -209,10 +235,10 @@ export const Voucher = async (req: Request, res: Response) => {
             })
         }
 
-        if(Vouchertype == "food"){
+        if(Vouchertype == "Gift"){
             const {
-                limitation,
-                minimum_spend
+                limitation: limitation,
+                minimum: minimum_spend
             } = req.body;
 
             await feature5Client.food_voucher.create({
@@ -235,7 +261,7 @@ export const Voucher = async (req: Request, res: Response) => {
         // res.status(500).json({ error: error.message});
         const error = err as Error & { code?: string };
         console.error('Prisma error:', error);
-        res.status(500).json({ error: error.message });
+        res.status(500).json({ err });
     }
 }
 
