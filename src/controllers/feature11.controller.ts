@@ -255,6 +255,8 @@ export const editArticle = async (req: Request, res: Response) => {
           }
         })
 
+        console.log("this tag --> ", thisTag[0].tagId)
+
         // * check whether tag is use by the other article
         tagUse = await prisma.article_tags.findMany({
           where: {
@@ -270,7 +272,16 @@ export const editArticle = async (req: Request, res: Response) => {
               tag_name: tag
             }
           })
+
+          await prisma.article_tags.create({
+            data: {
+              articleId,
+              tagId: updatedTag.tagId,
+            },
+          })
         } else {
+          // ! should be in this case
+          console.log("this case")
           updatedTag = await prisma.tag.create({
             data: {
               tag_name: tag,
