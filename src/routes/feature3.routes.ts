@@ -38,7 +38,13 @@ import {
     getVenBranchPage,
     // getReviewPerUser,
     getMyReviews,
-    getReviewsBranchOverAll
+    getReviewsBranchOverAll,
+    getRecommendedPlaces,
+    getVenuesPage,
+    getVenDetail,
+    
+
+
 
 
 } from "../controllers/feature3.controller";
@@ -95,20 +101,27 @@ feature3Router.get("/ven", getVen); // Only venue details
 feature3Router.get("/branch", getBranch) // Only branch
 feature3Router.get("/branchRate", getBranchRate) // Only branch rate
 feature3Router.get("/venXRate", getVenRate) // Venue details & Rate of that venue
-feature3Router.get("/venXRate4", getVenRate4) // Venue details that have rate > 4 & Rate of that venue
-feature3Router.get("/branchVenue", getBranchVen) // Branch with venue details
 
-// feature3Router.get("/reviewsbyuser", getReviewPerUser)
+feature3Router.get("/branchVenue", getBranchVen) // Branch with venue details
+feature3Router.get("/venXRate4", getVenRate4) // Venue details
+
+//////////////////////////////////////////////////////////////////////////
+
+feature3Router.get("/VenuesPage", getVenuesPage) // Venue details with branchId
+
+feature3Router.get("/RecommendedPlaces", getRecommendedPlaces) // Venue details with branchId that rate > 4
+
+feature3Router.get("/VenBranchPage/:venueId", getVenBranchPage) // Branch with venue details
+
+feature3Router.get("/VenDetail", getVenDetail) // Reviews of that branch
 
 feature3Router.get("/reviews/:branchId", getReviewsBranch) // Reviews of that branch
 feature3Router.get("/reviewsBranchOverAll", getReviewsBranchOverAll) // Branch with venue details
 
-feature3Router.get("/VenBranchPage/:venueId", getVenBranchPage) // Branch with venue details
-
 feature3Router.post("/reviewDelivery", postReviewDelivery); // Post from Delivery review
 feature3Router.post("/reviewReservation", postReviewReservation); // Post from Reservation review
 
-feature3Router.get("/myReviews", getMyReviews); // Get my reviews
+feature3Router.get("/myReviews", getMyReviews); // Get my reviews of the user who login right now
 
 
 

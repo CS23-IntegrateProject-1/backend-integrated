@@ -780,47 +780,6 @@ export const getVenueDetail = async (req: Request, res: Response) => {
   }
 };
 
-// export const getReviewPerUser = async (req: Request, res: Response) => {
-//   try {
-//     const decoded = await authService.decodeToken(req.cookies.authToken);
-//   } catch (e) {
-//     console.log(e);
-//     return res.status(500);
-//   }
-  
-// };
-
-// export const getReviewPerUser = async (req: Request, res: Response) => {
-//   try {
-//     if (!req.cookies.authToken) {
-//       return res.status(401).json({ error: 'Unauthorized' });
-//     }
-
-//     const decoded = await authService.decodeToken(req.cookies.authToken);
-//     // Rest of the code
-//   } catch (e) {
-//     console.log(e);
-//     return res.sendStatus(500);
-//   }
-// };
-
-
-// export const getReviewPerUser = async (req: Request, res: Response) => {
-//   const token = req.cookies.authToken;
-//   if (!token) {
-//     return res.json({ error: "No auth token" })
-//   }
-//   const decodedToken = authService.decodeToken(token)
-//   const thisUserId = decodedToken.userId;
-
-//   try {
-//     const userId = req.body;
-//   }
-//   catch (e) {
-//     console.log(e);
-//     return res.status(500);
-//   }
-// };
 
 export const getMyReviews = async (req: Request, res: Response) => {
   try {
@@ -865,6 +824,61 @@ export const getMyReviews = async (req: Request, res: Response) => {
   }
   catch (error) {
     console.error("Error from getMyReviews Backend: ", error);
+    return res.status(500).json(error);
+  }
+};
+
+export const getVenuesPage = async (req: Request, res: Response) => {
+  try {
+    const RecommendedPlaces = await feature3Client.$queryRaw`
+            SELECT V.venueId, VB.branchId, name, description, category, capacity,
+            chatRoomId, locationId, website_url, COALESCE(AVG(VR.rating) , 0) as rating
+            FROM Venue V, Venue_branch VB, Venue_reviews VR
+            WHERE V.venueId = VB.venueId AND VB.branchId = VR.branchId
+            GROUP BY V.venueId
+            ORDER BY V.venueId;
+          `;
+
+    return res.json(RecommendedPlaces);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json(error);
+  }
+};
+
+export const getRecommendedPlaces = async (req: Request, res: Response) => {
+  try {
+    const RecommendedPlaces = await feature3Client.$queryRaw`
+            SELECT V.venueId, VB.branchId, name, description, category, capacity,
+            chatRoomId, locationId, website_url, COALESCE(AVG(VR.rating) , 0) as rating
+            FROM Venue V, Venue_branch VB, Venue_reviews VR
+            WHERE V.venueId = VB.venueId AND VB.branchId = VR.branchId
+            GROUP BY V.venueId
+            HAVING AVG(VR.rating) >= 4
+            ORDER BY V.venueId;
+          `;
+
+    return res.json(RecommendedPlaces);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json(error);
+  }
+};
+
+export const getVenDetail = async (req: Request, res: Response) => {
+  try {
+    const VenDetail = await feature3Client.$queryRaw`
+          SELECT V.venueId, VB.branchId, name, description, category, capacity,
+          chatRoomId, locationId, website_url, COALESCE(AVG(VR.rating) , 0) as rating
+          FROM Venue V, Venue_branch VB, Venue_reviews VR
+          WHERE V.venueId = VB.venueId AND VB.branchId = VR.branchId
+          GROUP BY V.venueId, VB.branchId
+          ORDER BY V.venueId;
+          `;
+
+    return res.json(VenDetail);
+  } catch (error) {
+    console.error(error);
     return res.status(500).json(error);
   }
 };
