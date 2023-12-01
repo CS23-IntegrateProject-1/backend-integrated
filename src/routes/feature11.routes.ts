@@ -23,7 +23,8 @@ import {
     getUserArticle,
     getCommentHistory,
     public_getAllArticle,
-    public_getArticleDetail
+    public_getArticleDetail,
+    editArticle
 } from "../controllers/feature11.controller";
 import feature1Router from "./feature1.routes";
 
@@ -38,6 +39,7 @@ feature11Router.post("/addArticle", addArticle);
 feature11Router.post("/writeComment", addComment);
 feature11Router.post("/addLike", addLike);
 feature11Router.post("/addCommentByCreator", CreatorLikeComment)
+feature11Router.post("/fetchUserArticle", getUserArticle)
 
 // * DELETE
 feature11Router.delete("/deleteArticle", deleteArticle);
@@ -50,13 +52,13 @@ feature11Router.delete("/deleteCommentLikeByCreator", deleteCommentLikeByCreator
 
 // * UPDATE
 feature11Router.patch("/editComment", editComment);
+feature11Router.patch("/editArticle", editArticle);
 
 // * READ
 feature11Router.get("/fetchAllArticle", getAllArticle);
 feature11Router.get("/fetchAllArticle_nologin", public_getAllArticle);
 feature11Router.get("/fetchAllVenueName", getAllVenueName);
 feature11Router.get("/fetchArticleHistory", getArticleHistory)
-feature11Router.post("/fetchUserArticle", getUserArticle)
 feature11Router.get("/fetchCommentHistory", getCommentHistory)
 
 // parameter = article id
