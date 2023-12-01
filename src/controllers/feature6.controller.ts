@@ -11,6 +11,11 @@ import {
 } from "date-fns";
 import authService from "../services/auth/auth.service";
 import { Decimal } from "@prisma/client/runtime/library";
+import { genToken } from "../services/reservation/genToken.service";
+import { getAvailableTables } from "../services/reservation/getAvailableTables.service";
+import { getOfflineAvailableTables } from "../services/reservation/getOfflineAvailableTables.service";
+import { findSuitableTable } from "../services/reservation/findSuitable.service";
+import qr from "qr-image";
 
 const feature6Client = new PrismaClient();
 
@@ -202,15 +207,17 @@ export const createReservation = async (req: Request, res: Response) => {
         const reserved_time = new Date(concatDatetime);
 
         if (reserved_time <= new Date()) {
-            return res.status(400).json({ error: "Cannot reserve in the past." });
+            return res
+                .status(400)
+                .json({ error: "Cannot reserve in the past." });
         }
-        
+
         const newreserveTime = addHours(new Date(reserved_time), 7);
         // const entry_time = addMinutes(new Date(reserved_time), -30);
-        await getAvailableTables(req, res);
+        const getAvailableTablesResponse = await getAvailableTables(req);
+
         const selectedTable = await findSuitableTable(
-            getAvailableTablesResponse,
-            res
+            getAvailableTablesResponse
         );
         if (isResponse) {
             if (
@@ -220,7 +227,6 @@ export const createReservation = async (req: Request, res: Response) => {
                 selectedTable.length === 0
             ) {
                 isResponse = false;
-                console.log("create reservation --> ", isResponse);
                 return res
                     .status(400)
                     .json({ error: "No suitable tables available." });
@@ -234,7 +240,6 @@ export const createReservation = async (req: Request, res: Response) => {
                 },
             });
 
-            console.log(depositId?.depositId);
             if (depositId === undefined || !depositId) {
                 return res.status(400).json({ error: "No deposit found." });
             }
@@ -276,266 +281,10 @@ export const createReservation = async (req: Request, res: Response) => {
     }
 };
 
-let availabilityResponse: any;
-let getAvailableTablesResponse: any;
-let getSuitableTableResponse: any;
-
-export const getAvailableTables = async (req: Request, res: Response) => {
-    try {
-        const { venueId, reserve_date, branchId, time } = req.body;
-        try {
-            const token = req.cookies.authToken;
-            if (!token) {
-                return res.status(401).json({ error: "No auth token" });
-            }
-
-            const concatDatetime = `${reserve_date} ${time}`;
-            const reservedTimeStart = new Date(concatDatetime);
-            const PrepareReservedTimeStart = addHours(
-                new Date(reservedTimeStart),
-                5
-            );
-            const tables = await feature6Client.tables.findMany({
-                where: { venueId, branchId },
-            });
-            if (tables.length === 0) {
-                isResponse = false;
-                return res
-                    .status(400)
-                    .json({ error: "No table in this venue" });
-            }
-            const DateTimeStart: Date = addHours(
-                new Date(reservedTimeStart),
-                7
-            );
-            const dateOnly = DateTimeStart.toISOString().split("T")[0];
-            const TodayDate = new Date(dateOnly);
-            const reservedTimeEnd = addHours(new Date(reservedTimeStart), 9);
-            const isoStartTime = new Date(
-                PrepareReservedTimeStart
-            ).toISOString();
-            const isoEndTime = reservedTimeEnd.toISOString();
-            const [year, month, d] = reserve_date.split(/[- :]/);
-            const DateString = `${year}-${month}-${d}`;
-            const myDate = new Date(DateString);
-            const day = myDate.getDay();
-            const daysOfWeek = [
-                "Sun",
-                "Mon",
-                "Tue",
-                "Wed",
-                "Thu",
-                "Fri",
-                "Sat",
-            ];
-            const isopen = await feature6Client.opening_day.findMany({
-                where: { venueId },
-                select: {
-                    day: true,
-                },
-            });
-            const openday: string[] = await Promise.all(
-                isopen.map(async (open) => {
-                    return open.day;
-                })
-            ).then((nestedArrays) => nestedArrays.flat());
-            var pos;
-            for (let index = 0; index < daysOfWeek.length; index++) {
-                if (openday[openday.length - 1] == daysOfWeek[index])
-                    pos = index;
-            }
-            openday.push(daysOfWeek[pos + 1]);
-            var canreserve = 0;
-            for (let index = 0; index < openday.length; index++) {
-                if (daysOfWeek[day] == openday[index]) canreserve++;
-            }
-            if (canreserve === 0) {
-                isResponse = false;
-                return res.status(400).json({ error: "Today venue is closed" });
-            }
-            const dayName = daysOfWeek[day];
-            const opening = await feature6Client.opening_day.findMany({
-                where: {
-                    venueId,
-                    day: dayName as Day,
-                },
-            });
-            var notOpen = false;
-            const dayBefore = daysOfWeek[day - 1];
-            if (opening.length === 0) {
-                const openBefore = await feature6Client.opening_day.findMany({
-                    where: {
-                        venueId,
-                        day: dayBefore as Day,
-                    },
-                });
-                const closeBefore = openBefore[0].closing_hours;
-                const closeBeforeString = closeBefore
-                    .toISOString()
-                    .split("T")[1]
-                    .split(".")[0];
-                if (closeBeforeString <= "02:00:00") {
-                    isResponse = false;
-                    return res
-                        .status(400)
-                        .json({ error: "Today venue is closed" });
-                } else {
-                    notOpen = true;
-                }
-            }
-            var open, close;
-            if (notOpen) {
-                const openBefore = await feature6Client.opening_day.findMany({
-                    where: {
-                        venueId,
-                        day: dayBefore as Day,
-                    },
-                });
-                open = openBefore[0].opening_hours;
-                close = openBefore[0].closing_hours;
-                TodayDate.setDate(TodayDate.getDate() - 1);
-            } else {
-                open = opening[0].opening_hours;
-                close = opening[0].closing_hours;
-            }
-            const openString = open.toISOString().split("T")[1].split(".")[0];
-            const [hours, minutes, seconds] = openString.split(":").map(Number);
-            const openMS = TodayDate.setHours(hours, minutes, seconds);
-            const openDate = addHours(new Date(openMS), 7);
-            const closeString = close.toISOString().split("T")[1].split(".")[0];
-            const [closehours, closeminutes, closeseconds] = closeString
-                .split(":")
-                .map(Number);
-            if (closeString < openString) {
-                TodayDate.setDate(TodayDate.getDate() + 1);
-            }
-            const closeMS = TodayDate.setHours(
-                closehours,
-                closeminutes,
-                closeseconds
-            );
-            const closeDate = addHours(new Date(closeMS), 7);
-            const twoHoursBeforeClose = addHours(closeDate, -2);
-            if (
-                DateTimeStart < openDate ||
-                DateTimeStart > twoHoursBeforeClose
-            ) {
-                isResponse = false;
-                return res.status(400).json({
-                    error: "Reservation time is not within valid hours.",
-                });
-            }
-            const overlappingReservations =
-                await feature6Client.reservation.findMany({
-                    where: {
-                        venueId,
-                        reserved_time: {
-                            gte: isoStartTime,
-                            lte: isoEndTime,
-                        },
-                        status: {
-                            not: "Cancel",
-                        },
-                    },
-                });
-            availabilityResponse = overlappingReservations;
-        } catch (e) {
-            console.error("Error checking availability:", e);
-            return res.status(500).json(e);
-        }
-
-        const allTables = await feature6Client.tables.findMany({
-            where: {
-                venueId: venueId,
-                tableTypeDetailId: venueId.tableTypeDetailId,
-            },
-            include: {
-                table_type: true,
-            },
-        });
-
-        const reservedTableIds: number[] = await Promise.all(
-            availabilityResponse.map(async (reservation) => {
-                const tables = await feature6Client.reservation_table.findMany({
-                    where: { reserveId: reservation.reservationId },
-                });
-
-                return tables.map((table) => table.tableId);
-            })
-        ).then((nestedArrays) => nestedArrays.flat());
-
-        const availableTables = allTables
-            .filter((table) => !reservedTableIds.includes(table.tableId))
-            .map((table) => ({
-                tableId: table.tableId,
-                capacity: table.table_type.capacity,
-            }));
-
-        if (
-            availableTables.length === 0 ||
-            !availableTables ||
-            availableTables === null ||
-            availableTables === undefined
-        ) {
-            isResponse = false;
-            return res.json({ error: "No more Available Table" });
-        }
-        const availableTables2 = {
-            availableTables: availableTables,
-            guestAmount: req.body.guest_amount,
-        };
-        getAvailableTablesResponse = availableTables2;
-        // res.status(200).json({ availableTables });
-    } catch (e) {
-        return res.status(500).json(e);
-    }
-};
-
-//Finished
-export const findSuitableTable = async (
-    getAvailableTablesResponse,
-    res: Response
-) => {
-    try {
-        if (isResponse) {
-            const { availableTables, guestAmount } = getAvailableTablesResponse;
-
-            const tableWithMaxCapacity = availableTables.reduce(
-                (maxTable, currentTable) => {
-                    return currentTable.capacity > maxTable.capacity
-                        ? currentTable
-                        : maxTable;
-                },
-                availableTables[0]
-            );
-
-            if (guestAmount <= tableWithMaxCapacity.capacity) {
-                const suitableTables = availableTables.filter(
-                    (table) => table.capacity >= guestAmount
-                );
-
-                suitableTables.sort((table1, table2) => {
-                    const diff1 = Math.abs(table1.capacity - guestAmount);
-                    const diff2 = Math.abs(table2.capacity - guestAmount);
-                    return diff1 - diff2;
-                });
-
-                getSuitableTableResponse = suitableTables;
-                return suitableTables;
-            }
-        } else {
-            return [];
-        }
-    } catch (e) {
-        return res.status(500).json(e);
-    }
-};
-
 // BUSINESS SIDE PART
 // GET METHOD
 
-// Almost finish
-// Handle tableId that is not own by businessId
+// Finished
 export const getTableByTableId = async (req: Request, res: Response) => {
     try {
         const { tableId } = req.params;
@@ -564,6 +313,7 @@ export const getTableByTableId = async (req: Request, res: Response) => {
         if (venueId == undefined || !venueId) {
             return res.status(400).json({ error: "Venue is undefined" });
         }
+
         const table = await feature6Client.tables.findUnique({
             where: {
                 tableId: parseInt(tableId),
@@ -574,6 +324,13 @@ export const getTableByTableId = async (req: Request, res: Response) => {
             },
         });
 
+        if (!table) {
+            return res
+                .status(403)
+                .json({
+                    error: "You do not have permission to access this table",
+                });
+        }
         return res.status(200).json(table);
     } catch (e) {
         return res.status(500).json(e);
@@ -603,8 +360,6 @@ export const getAllTableTypeByVenueId = async (req: Request, res: Response) => {
                 venueId: true,
             },
         });
-
-        console.log(getVenueId);
 
         const venueId = getVenueId?.venueId;
         const table = await feature6Client.table_type_detail.findMany({
@@ -701,7 +456,6 @@ export const createTable = async (req: Request, res: Response) => {
         return res.json(newTable);
     } catch (e) {
         console.log(e);
-
         return res.status(500).json(e);
     }
 };
@@ -757,9 +511,9 @@ export const createTableType = async (req: Request, res: Response) => {
     }
 };
 
-// Dashboard
+// ! new Dashboard 1
 // In Progress
-// Some problem about time
+// Some problem about time can't find
 export const getCountPerDay = async (req: Request, res: Response) => {
     try {
         const token = req.cookies.authToken;
@@ -784,14 +538,14 @@ export const getCountPerDay = async (req: Request, res: Response) => {
 
         const venueId = getVenueId?.venueId;
         const today = new Date();
-        // console.log(today);
-        // console.log(startOfDay(today));
-        // console.log(endOfDay(today));
+        // console.log("Today", today);
+        // console.log("Start of Today", startOfDay(today));
+        // console.log("End of Today", endOfDay(today));
         const startOfToday = addHours(startOfDay(today), 7);
         const endOfToday = addHours(endOfDay(today), 7);
 
-        // console.log(startOfToday);
-        // console.log(endOfToday);
+        // console.log("start +7",startOfToday);
+        // console.log("end +7",endOfToday);
         // const startOfToday = startOfDay(today);
         // const endOfToday = endOfDay(today);
 
@@ -909,8 +663,7 @@ export const getAllReservationOfVenue = async (req: Request, res: Response) => {
     }
 };
 
-// In-Progress
-// fix about if condition when can't delete bc you are not owner of venue
+// Finished
 export const deleteTable = async (req: Request, res: Response) => {
     try {
         const token = req.cookies.authToken;
@@ -974,7 +727,51 @@ export const deleteTable = async (req: Request, res: Response) => {
     }
 };
 
+// ! new function 2
+// Finished
+export const cancelReservation = async (req: Request, res: Response) => {
+    try {
+        const token = req.cookies.authToken;
+        if (!token) {
+            return res.status(401).json({ error: "No auth token" });
+        }
+        const decodedToken = authService.decodeToken(token);
+        const { userId } = decodedToken;
+
+        const reservationId = parseInt(req.params.reservationId);
+        const reservation = await feature6Client.reservation.findUnique({
+            where: { reservationId },
+        });
+
+        if (!reservation) {
+            return res.status(404).json({ error: "Reservation not found" });
+        }
+        if (reservation.userId !== userId) {
+            return res
+                .status(401)
+                .json({ error: "This reservation does not belong to you" });
+        }
+
+        if (reservation.status !== "Pending") {
+            return res.status(400).json({
+                error: "Reservation is already canceled or checked out",
+            });
+        }
+        await feature6Client.reservation.update({
+            where: { reservationId },
+            data: {
+                status: "Cancel",
+            },
+        });
+
+        return res.json({ message: "Reservation canceled successfully" });
+    } catch (e) {
+        return res.status(500).json(e);
+    }
+};
+
 // OFFLINE RESERVATION
+// Finished
 var isResponse = true;
 export const createOfflineReservation = async (req: Request, res: Response) => {
     isResponse = true;
@@ -1021,11 +818,12 @@ export const createOfflineReservation = async (req: Request, res: Response) => {
         // const entry_time = addMinutes(new Date(reserved_time), -30);
         req.body.reserve_date = reserve_date;
         req.body.time = time;
-        await getOfflineAvailableTables(req, res);
-        // console.log("after call 1 --> ", isResponse)
+        req.body.venueId = venueId;
+        const offlineAvailabilityResponse = await getOfflineAvailableTables(
+            req
+        );
         const selectedTable = await findSuitableTable(
-            getOfflineAvailableTablesResponse,
-            res
+            offlineAvailabilityResponse
         );
         if (isResponse) {
             if (
@@ -1035,7 +833,6 @@ export const createOfflineReservation = async (req: Request, res: Response) => {
                 selectedTable.length === 0
             ) {
                 isResponse = false;
-                console.log("create reservation --> ", isResponse);
                 return res
                     .status(400)
                     .json({ error: "No suitable tables available." });
@@ -1056,7 +853,7 @@ export const createOfflineReservation = async (req: Request, res: Response) => {
             const newReservation = await feature6Client.reservation.create({
                 data: {
                     venueId,
-                    userId: -1,
+                    userId: 0,
                     guest_amount,
                     reserved_time: new Date(newreserveTime),
                     entry_time: new Date(newreserveTime),
@@ -1076,13 +873,45 @@ export const createOfflineReservation = async (req: Request, res: Response) => {
                         tableId: selectedTable[0].tableId,
                     },
                 });
-            // console.log("create reservation --> ", isResponse);
+
+            // ! new
+            //  Checkin for offline reservation
+            await feature6Client.tables.update({
+                where: {
+                    tableId: selectedTable[0].tableId,
+                },
+                data: {
+                    status: "Unavailable",
+                },
+            });
+
+            const reservationId = newReservation.reservationId;
+            const checkInTime = addHours(new Date(), 7);
+
+            const defaultCheckoutTime = new Date();
+            defaultCheckoutTime.setHours(7, 0, 0, 0);
+            const checkInLog = await feature6Client.check_in_log.create({
+                data: {
+                    reserveId: reservationId,
+                    check_in_time: checkInTime,
+                    check_out_time: defaultCheckoutTime,
+                },
+            });
+
+            const entry_time = addHours(new Date(), 7);
+            await feature6Client.reservation.update({
+                where: { reservationId },
+                data: {
+                    status: "Check_in",
+                    entry_time: entry_time,
+                },
+            });
 
             const responseData = {
                 newReservation,
                 reservationTableEntry,
             };
-            res.status(200).json(responseData);
+            return res.status(200).json(responseData);
         }
     } catch (e) {
         console.log(e);
@@ -1090,350 +919,164 @@ export const createOfflineReservation = async (req: Request, res: Response) => {
     }
 };
 
-let offlineAvailabilityResponse: any;
-let getOfflineAvailableTablesResponse: any;
-let getOfflineSuitableTableResponse: any;
-
-export const getOfflineAvailableTables = async (
-    req: Request,
-    res: Response
-) => {
-    try {
-        const token = req.cookies.authToken;
-        if (!token) {
-            return res.status(401).json({ error: "No auth token" });
-        }
-        const decodedToken = authService.decodeToken(token);
-        if (decodedToken.userType != "business") {
-            return res
-                .status(401)
-                .json({ error: "This user is not business user" });
-        }
-        const businessId = decodedToken.businessId;
-
-        const getVenueId = await feature6Client.property.findFirst({
-            where: {
-                businessId: businessId,
-            },
-            select: {
-                venueId: true,
-            },
-        });
-
-        const { venueId, reserve_date, time } = req.body;
-
-        try {
-            const concatDatetime = `${reserve_date} ${time}`;
-            const reservedTimeStart = new Date(concatDatetime);
-            const ReservedTimeStart = addHours(new Date(reservedTimeStart), 7);
-            const tables = await feature6Client.tables.findMany({
-                where: { venueId },
-            });
-            if (tables.length === 0) {
-                isResponse = false;
-                return res
-                    .status(400)
-                    .json({ error: "No table in this venue." });
-            }
-            const DateTimeStart: Date = addHours(
-                new Date(reservedTimeStart),
-                7
-            );
-            const dateOnly = DateTimeStart.toISOString().split("T")[0];
-            const TodayDate = new Date(dateOnly);
-            const reservedTimeEnd = addHours(new Date(reservedTimeStart), 9);
-            const isoStartTime = new Date(ReservedTimeStart).toISOString();
-            const isoEndTime = reservedTimeEnd.toISOString();
-            const [year, month, d] = reserve_date.split(/[- :]/);
-            const DateString = `${year}-${month}-${d}`;
-            const myDate = new Date(DateString);
-            const day = myDate.getDay();
-            const daysOfWeek = [
-                "Sun",
-                "Mon",
-                "Tue",
-                "Wed",
-                "Thu",
-                "Fri",
-                "Sat",
-            ];
-            const isopen = await feature6Client.opening_day.findMany({
-                where: { venueId },
-                select: {
-                    day: true,
-                },
-            });
-            const openday: string[] = await Promise.all(
-                isopen.map(async (open) => {
-                    return open.day;
-                })
-            ).then((nestedArrays) => nestedArrays.flat());
-            var pos;
-            for (let index = 0; index < daysOfWeek.length; index++) {
-                if (openday[openday.length - 1] == daysOfWeek[index])
-                    pos = index;
-            }
-            openday.push(daysOfWeek[pos + 1]);
-            var canreserve = 0;
-            for (let index = 0; index < openday.length; index++) {
-                if (daysOfWeek[day] == openday[index]) canreserve++;
-            }
-            if (canreserve === 0) {
-                isResponse = false;
-                return res.status(400).json({ error: "Today venue is closed" });
-            }
-            const dayName = daysOfWeek[day];
-            const opening = await feature6Client.opening_day.findMany({
-                where: {
-                    venueId,
-                    day: dayName as Day,
-                },
-            });
-
-            var notOpen = false;
-            const dayBefore = daysOfWeek[day - 1];
-            if (opening.length === 0) {
-                const openBefore = await feature6Client.opening_day.findMany({
-                    where: {
-                        venueId,
-                        day: dayBefore as Day,
-                    },
-                });
-                const closeBefore = openBefore[0].closing_hours;
-                const closeBeforeString = closeBefore
-                    .toISOString()
-                    .split("T")[1]
-                    .split(".")[0];
-                if (closeBeforeString <= "02:00:00") {
-                    isResponse = false;
-                    return res
-                        .status(400)
-                        .json({ error: "Today venue is closed" });
-                } else {
-                    notOpen = true;
-                }
-            }
-            var open, close;
-            if (notOpen) {
-                const openBefore = await feature6Client.opening_day.findMany({
-                    where: {
-                        venueId,
-                        day: dayBefore as Day,
-                    },
-                });
-                open = openBefore[0].opening_hours;
-                close = openBefore[0].closing_hours;
-                TodayDate.setDate(TodayDate.getDate() - 1);
-            } else {
-                open = opening[0].opening_hours;
-                close = opening[0].closing_hours;
-            }
-            const openString = open.toISOString().split("T")[1].split(".")[0];
-            const [hours, minutes, seconds] = openString.split(":").map(Number);
-            const openMS = TodayDate.setHours(hours, minutes, seconds);
-            const openDate = addHours(new Date(openMS), 7);
-            const closeString = close.toISOString().split("T")[1].split(".")[0];
-            const [closehours, closeminutes, closeseconds] = closeString
-                .split(":")
-                .map(Number);
-            if (closeString < openString) {
-                TodayDate.setDate(TodayDate.getDate() + 1);
-            }
-            const closeMS = TodayDate.setHours(
-                closehours,
-                closeminutes,
-                closeseconds
-            );
-            const closeDate = addHours(new Date(closeMS), 7);
-            const twoHoursBeforeClose = addHours(closeDate, -2);
-            if (
-                DateTimeStart < openDate ||
-                DateTimeStart > twoHoursBeforeClose
-            ) {
-                isResponse = false;
-                return res.status(400).json({
-                    error: "Reservation time is not within valid hours.",
-                });
-            }
-            const overlappingReservations =
-                await feature6Client.reservation.findMany({
-                    where: {
-                        venueId,
-                        reserved_time: {
-                            gte: isoStartTime,
-                            lte: isoEndTime,
-                        },
-                        status: {
-                            not: "Cancel",
-                        },
-                    },
-                });
-            offlineAvailabilityResponse = overlappingReservations;
-            console.log(offlineAvailabilityResponse)
-        } catch (e) {
-            console.error("Error checking availability:", e);
-            return res.status(500).json(e);
-        }
-
-        const allTables = await feature6Client.tables.findMany({
-            where: {
-                venueId: venueId,
-                tableTypeDetailId: venueId.tableTypeDetailId,
-            },
-            include: {
-                table_type: true,
-            },
-        });
-
-        const reservedTableIds: number[] = await Promise.all(
-            offlineAvailabilityResponse.map(async (reservation) => {
-                const tables = await feature6Client.reservation_table.findMany({
-                    where: { reserveId: reservation.reservationId },
-                });
-
-                return tables.map((table) => table.tableId);
-            })
-        ).then((nestedArrays) => nestedArrays.flat());
-
-        const availableTables = allTables
-            .filter((table) => !reservedTableIds.includes(table.tableId))
-            .map((table) => ({
-                tableId: table.tableId,
-                capacity: table.table_type.capacity,
-            }));
-
-        if (
-            availableTables.length === 0 ||
-            !availableTables ||
-            availableTables === null ||
-            availableTables === undefined
-        ) {
-            isResponse = false;
-            console.log("table --> ", isResponse);
-            return res.json({ error: "No more Available Table" });
-        }
-        const availableTables2 = {
-            availableTables: availableTables,
-            guestAmount: req.body.guest_amount,
-        };
-
-        // console.log("avail table --> ", availableTables2)
-        getOfflineAvailableTablesResponse = availableTables2;
-        // res.status(200).json({ availableTables });
-    } catch (e) {
-        return res.status(500).json(e);
-    }
-};
-
-export const findOfflineSuitableTable = async (
-    getOfflineAvailableTablesResponse,
-    res: Response
-) => {
-    try {
-        if (isResponse) {
-            const { availableTables, guestAmount } =
-                getOfflineAvailableTablesResponse;
-
-            const tableWithMaxCapacity = availableTables.reduce(
-                (maxTable, currentTable) => {
-                    return currentTable.capacity > maxTable.capacity
-                        ? currentTable
-                        : maxTable;
-                },
-                availableTables[0]
-            );
-
-            if (guestAmount <= tableWithMaxCapacity.capacity) {
-                const suitableTables = availableTables.filter(
-                    (table) => table.capacity >= guestAmount
-                );
-
-                suitableTables.sort((table1, table2) => {
-                    const diff1 = Math.abs(table1.capacity - guestAmount);
-                    const diff2 = Math.abs(table2.capacity - guestAmount);
-                    return diff1 - diff2;
-                });
-                console.log("suitableTables", suitableTables);
-
-                // console.log("Alone table Result ---->", suitableTables[0]);
-                getOfflineSuitableTableResponse = suitableTables;
-                return suitableTables;
-                // return res.status(200).json(suitableTables[0]);
-            }
-        } else {
-            return [];
-        }
-    } catch (e) {
-        return res.status(500).json(e);
-    }
-};
-
-import qr from "qr-image";
-
+// In Progress
+// Waiting for QR-CODE
 export const checkIn = async (req: Request, res: Response) => {
     try {
         const reservationId = parseInt(req.params.reservationId);
-        const checkInTime = addHours(new Date() ,7);
+        const checkInTime = addHours(new Date(), 7);
         const reservation = await feature6Client.reservation.findUnique({
             where: { reservationId },
         });
 
-        // console.log("Reservation:", reservation);
-
         if (!reservation) {
             return res.status(404).json({ error: "Reservation not found" });
+        }
+        if (
+            reservation.status === "Cancel" ||
+            reservation.status === "Check_out"
+        ) {
+            return res.status(400).json({ error: "Check-In not success" });
+        }
+
+        const existingCheckInLog = await feature6Client.check_in_log.findFirst({
+            where: {
+                reserveId: reservationId,
+            },
+        });
+        if (existingCheckInLog) {
+            return res
+                .status(400)
+                .json({ error: "You have already checked in" });
         }
 
         const defaultCheckoutTime = new Date();
         defaultCheckoutTime.setHours(7, 0, 0, 0);
-        const checkInLog = await feature6Client.check_in_log.create({
-            data: {
-                reserveId: reservationId,
-                check_in_time: checkInTime,
-                check_out_time: defaultCheckoutTime,
-            },
-        });
+        const isSuccess = true;
+        if (isSuccess) {
+            const checkInLog = await feature6Client.check_in_log.create({
+                data: {
+                    reserveId: reservationId,
+                    check_in_time: checkInTime,
+                    check_out_time: defaultCheckoutTime,
+                },
+            });
 
-        // console.log("Check-in Log:", checkInLog);
+            const entry_time = addHours(new Date(), 7);
+            await feature6Client.reservation.update({
+                where: { reservationId },
+                data: {
+                    status: "Check_in",
+                    entry_time: entry_time,
+                },
+            });
+            const selectedTable =
+                await feature6Client.reservation_table.findFirst({
+                    where: {
+                        reserveId: reservationId,
+                    },
+                    select: {
+                        tableId: true,
+                    },
+                });
 
-        const entry_time = addHours(new Date(), 7);
-        await feature6Client.reservation.update({
-            where: { reservationId },
-            data: {
-                status: "Check_in",
-                entry_time: entry_time,
-            },
-        });
-        const selectedTable = await feature6Client.reservation_table.findFirst({
-            where: {
-                reserveId: reservationId,
-            },
-            select: {
-                tableId: true,
-            },
-        });
+            await feature6Client.tables.update({
+                where: {
+                    tableId: selectedTable?.tableId,
+                },
+                data: {
+                    status: "Unavailable",
+                },
+            });
 
-        console.log("eeee", selectedTable);
+            // !new for Scaning QR code
+            // const qrCodeData = {
+            //     reservationId: reservationId,
+            //     // Other data
+            // };
 
-        await feature6Client.tables.update({
-            where: {
-                tableId: selectedTable?.tableId,
-            },
-            data: {
-                status: "Unavailable",
-            },
-        });
+            // const qrCodeText = JSON.stringify(qrCodeData);
+            // const qrCodeImage = await qr.toDataURL(qrCodeText);
 
-        return res.json({ checkInLog });
-    } catch (error) {
-        return res.status(500).json({ error: "Check-In not success" });
+            // return res.json({ checkInLog, qrCodeImage  });
+            const reservationToken = genToken(reservationId);
+            res.cookie("reservationToken", reservationToken, {
+                httpOnly: true,
+                secure: true,
+                sameSite: "none",
+            });
+            return res.json({ checkInLog });
+        }
+    } catch (e) {
+        return res.status(500).json(e);
     }
 };
 
+// QR CODE SOLUTION 1
+// export const checkinQR = async (req, res) => {
+//     try {
+//         const qrCodeData2 = {
+//             reservationId: 5555,
+//         };
+
+//         const qrCodeText = JSON.stringify(qrCodeData2);
+//         const qrCodeImage = qr.image(qrCodeText, { type: "png" });
+//         console.log("Text", qrCodeText);
+
+//         res.type("png");
+//         qrCodeImage.pipe(res);
+//         // const qrCodeData = qrCodeImage.pipe(res);
+//         // const qrCodeData = req.body.qrCodeData;
+
+//         // // Extract reservation ID or other relevant information from qrCodeData
+//         // const reservationId = qrCodeData.reservationId;
+//         // await checkIn(reservationId, res);
+//     } catch (e) {
+//         // return res.status(500).json({ error: "Check-In not successful" });
+//         console.log(e);
+//         return res.status(500).json(e);
+//     }
+// };
+
+// QR code SOLUTION 2
+export const qrCode = async (req: Request, res: Response) => {
+    try {
+        const { reservationId } = req.params;
+        const qrCodeData = {
+            reservationId: reservationId,
+        };
+
+        const qrCodeText = JSON.stringify(qrCodeData);
+
+        const qrCode = qr.image(qrCodeText, {
+            type: "png",
+        });
+        // const qrCode = qr.image(`Reservation ID: ${reservationId}`, {
+        //     type: "png",
+        // });
+        res.type("png");
+        return qrCode.pipe(res);
+    } catch (e) {
+        return res.status(500).json({ error: "QR code not success" });
+    }
+};
+
+// CHECKOUT FUNCTION
+// Finished
 export const checkOut = async (req: Request, res: Response) => {
     try {
         const reservationId = parseInt(req.params.reservationId);
         const checkOutTime = addHours(new Date(), 7);
+
+        const reservation = await feature6Client.reservation.findUnique({
+            where: { reservationId },
+        });
+        if (!reservation) {
+            return res.status(404).json({ error: "Reservation not found" });
+        }
+        if (reservation.status !== "Check_in") {
+            return res.status(400).json({ error: "Check-Out not success" });
+        }
 
         const checkOutLog = await feature6Client.check_in_log.update({
             where: {
@@ -1444,15 +1087,13 @@ export const checkOut = async (req: Request, res: Response) => {
                 check_out_time: checkOutTime,
             },
         });
-
-        // Update status reservation
         await feature6Client.reservation.update({
             where: { reservationId },
             data: {
-                status: "Check_out"
-            }
+                status: "Check_out",
+            },
         });
-
+        
         const selectedTable = await feature6Client.reservation_table.findFirst({
             where: {
                 reserveId: reservationId,
@@ -1461,8 +1102,6 @@ export const checkOut = async (req: Request, res: Response) => {
                 tableId: true,
             },
         });
-
-        // Update status table
         await feature6Client.tables.update({
             where: {
                 tableId: selectedTable?.tableId,
@@ -1474,20 +1113,42 @@ export const checkOut = async (req: Request, res: Response) => {
 
         return res.json({ checkOutLog });
     } catch (e) {
-        return res.status(500).json({ e });
+        return res.status(500).json(e);
     }
 };
 
-// QR code route
-export const qrCode = async (req: Request, res: Response) => {
-    try {
-        const { reservationId } = req.params;
-        const qrCode = qr.image(`Reservation ID: ${reservationId}`, {
-            type: "png",
-        });
-        res.type("png");
-        return qrCode.pipe(res);
-    } catch (e) {
-        return res.status(500).json({ error: "QR code not success" });
-    }
-};
+// งงจ้าาา
+// This part is for share reservation link
+// In Progress
+
+// export const sharelink = async (req: Request, res: Response) => {
+//     try {
+//         const reservation = await feature6Client.reservation.findUnique({
+//             where: { reservationId: parseInt(req.params.reservationId) },
+//         });
+
+//         if (!reservation) {
+//             return res.status(404).json({ error: "Reservation not found" });
+//         }
+
+//         return res.render("reservation-details", { reservation });
+//     } catch (error) {
+//         console.error(error);
+//         return res.status(500).json({ error: "Internal Server Error" });
+//     }
+// };
+
+// Share Link Button
+// const copyCurrentPageLink = async () => {
+//     const currentUrl = window.location.href;
+//     try {
+//         await navigator.clipboard.writeText(currentUrl);
+//         alert("Link copied to clipboard!");
+//     } catch (err) {
+//         console.error("Unable to copy to clipboard", err);
+//         alert("Failed to copy link to clipboard");
+//     }
+// };
+
+// Example usage (e.g., in a button click event handler)
+//   document.getElementById('copyLinkButton').addEventListener('click', copyCurrentPageLink);
