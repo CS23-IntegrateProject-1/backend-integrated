@@ -670,6 +670,24 @@ export const getReviewsBranch = async (req: Request, res: Response) => {
   }
 };
 
+export const getReviewsBranchOverAll = async (req: Request, res: Response) => {
+  try {
+    const { branchId } = req.params;
+    const branchIdInt = parseInt(branchId);
+
+    const ReviewsBranchOverAll = await feature3Client.$queryRaw`
+    SELECT branchId, venueReviewId, AVG(VR.rating) as rating, count(review) as total_reviews
+    FROM Venue_reviews VR
+    GROUP BY branchId;
+`;
+
+return res.json(ReviewsBranchOverAll);
+  } catch (error) {
+    console.error("Error fetching reviews:", error);
+    res.status(500).json(error);
+  }
+};
+
 export const postReviewDelivery = async (req: Request, res: Response) => {
   try {
     const { rating, review, branchId } = req.body;
@@ -680,7 +698,7 @@ export const postReviewDelivery = async (req: Request, res: Response) => {
         userId,
         rating,
         review,
-        branchId,
+        branchId: 1,
         review_type: "Delivery",
       },
     });
@@ -694,14 +712,15 @@ export const postReviewDelivery = async (req: Request, res: Response) => {
 
 export const postReviewReservation = async (req: Request, res: Response) => {
   try {
-    const { userId, rating, review, branchId } = req.body;
+    const { rating, review, branchId } = req.body;
+    const userId = authService.decodeToken(req.cookies.authToken).userId;
 
     const newReview = await feature3Client.venue_reviews.create({
       data: {
         userId,
         rating,
         review,
-        branchId,
+        branchId: 1,
         review_type: "Reservation",
       },
     });

@@ -38,6 +38,7 @@ import {
     getVenBranchPage,
     // getReviewPerUser,
     getMyReviews,
+    getReviewsBranchOverAll
 
 
 } from "../controllers/feature3.controller";
@@ -100,6 +101,7 @@ feature3Router.get("/branchVenue", getBranchVen) // Branch with venue details
 // feature3Router.get("/reviewsbyuser", getReviewPerUser)
 
 feature3Router.get("/reviews/:branchId", getReviewsBranch) // Reviews of that branch
+feature3Router.get("/reviewsBranchOverAll", getReviewsBranchOverAll) // Branch with venue details
 
 feature3Router.get("/VenBranchPage/:venueId", getVenBranchPage) // Branch with venue details
 
