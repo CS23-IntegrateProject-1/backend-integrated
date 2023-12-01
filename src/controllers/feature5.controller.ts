@@ -307,20 +307,40 @@ export const GetallVenue = async (req: Request, res: Response) => {
 
 
 export const GetAllVoucher = async (req: Request, res: Response) => {
-    const { businessId } = authService.decodeToken(req.cookies.authToken);
     try {
-        const GetAllVoucher = await feature5Client.property.findMany({
-            where: {businessId},
+
+        const token = req.cookies.authToken;
+        if (!token) {
+            return res.status(401).json({ error: "No auth token" });
+        }
+        const decodedToken = authService.decodeToken(token);
+        if (decodedToken.userType != "business") {
+            return res
+                .status(401)
+                .json({ error: "This user is not business user" });
+        }
+        const businessId = decodedToken.businessId;
+
+        const getVenueId = await feature5Client.property.findFirst({
+            where: {
+                businessId: businessId,
+            },
             select: {
-                venue:{
-                    select:{
-                        Voucher: true
-                    }
-                }
-            }
-   
+                venueId: true,
+            },
+        });
+
+        const venueId = getVenueId?.venueId;
+        if (venueId == undefined || !venueId) {
+            return res.status(400).json({ error: "Venue is undefined" });
+        }
+
+        const GetAllVoucher = await feature5Client.voucher.findMany({
+            where: {venueId: venueId}
+            
         })
-        res.json(GetAllVoucher)
+
+        res.json(GetAllVoucher);
 
     } catch (err) {
         const error = err as Error;
@@ -508,21 +528,72 @@ export const DeletePromotion = async (req: Request, res: Response) => {
     }
 };
 
+export const PromotionApprove = async (req: Request, res: Response) => {
+    try {
+        const {id} = req.params;
+        const { isApprove } = req.body;
+        const ApproveVoucher = await feature5Client.promotion.update({
+            where: {promotionId: parseInt(id)},
+            data: {isApprove}
+        })
+        res.json(ApproveVoucher)
+    } catch (err) {
+        const error = err as Error;
+        res.status(500).json({ error: error.message});
+    }
+}
 
-// export const getAllPromotion = async (req: Request, res: Response) => {
-//     try {
-//         const { businessId } = authService.decodeToken(req.cookies.authToken);
-//         const getallpromotion = await feature5Client.promotion.delete({
-//             where: {}
-//         })
 
-//         res.json(getallPromotion);
-//     } catch(err) {
-//         console.log(err);
-//         const error = err as Error;
-//         res.status(500).json({ error: error.message});
-//     }
-// };
+export const getAllPromotion = async (req: Request, res: Response) => {
+    try {
+        // const { businessId } = authService.decodeToken(req.cookies.authToken);
+
+        // const getVenueId = await feature5Client.property.findFirst({
+        //     where: {
+        //         businessId: businessId,
+        //     },
+        //     select: {
+        //         venueId: true,
+        //     },
+        // });
+
+        const token = req.cookies.authToken;
+        if (!token) {
+            return res.status(401).json({ error: "No auth token" });
+        }
+        const decodedToken = authService.decodeToken(token);
+        if (decodedToken.userType != "business") {
+            return res
+                .status(401)
+                .json({ error: "This user is not business user" });
+        }
+        const businessId = decodedToken.businessId;
+
+        const getVenueId = await feature5Client.property.findFirst({
+            where: {
+                businessId: businessId,
+            },
+            select: {
+                venueId: true,
+            },
+        });
+
+        const venueId = getVenueId?.venueId;
+        if (venueId == undefined || !venueId) {
+            return res.status(400).json({ error: "Venue is undefined" });
+        }
+        const getallPromotion = await feature5Client.promotion.findMany({
+            where: {venueId: venueId}
+            
+        })
+
+        res.json(getallPromotion);
+    } catch(err) {
+        console.log(err);
+        const error = err as Error;
+        res.status(500).json({ error: error.message});
+    }
+};
 
     
 
