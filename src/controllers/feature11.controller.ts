@@ -1,10 +1,8 @@
 import { PrismaClient } from "@prisma/client";
 import { Response, Request } from "express";
-import jwt, { JwtPayload, Secret } from 'jsonwebtoken';
 import authService from "../services/auth/auth.service";
-import { TagColor } from "firebase-admin/lib/remote-config/remote-config-api";
-import { ta } from "date-fns/locale";
-//import { startOfDay, endOfDay } from 'date-fns';
+import multer from "../multerConfig"
+
 //const feature11Client = new PrismaClient();
 const prisma = new PrismaClient();
 
@@ -16,10 +14,6 @@ enum Category {
     Review = "Review",
     Blog = "Blog",
     Question = "Question",
-}
-
-interface CustomJwtPayload extends JwtPayload {
-  userId: number;
 }
 
 interface ArticleCreateInput {
@@ -45,20 +39,19 @@ interface ImageInput {
   //articleId: number;
 }
 
-//export const getfeature11 = async (req: Request, res: Response) => {
-    
-//};
+// ! image upload
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    // Define the destination where the files will be saved
+    cb(null, 'uploads/');
+  },
+  filename: (req, file, cb) => {
+    // Define the filename for the uploaded file
+    cb(null, Date.now() + '-' + file.originalname);
+  },
+});
 
-//const getAllUsers = async (req: Request, res: Response) => {
-//  try {
-//    const allUsers = await prisma.venue.findMany();
-
-//    res.json(allUsers);
-//  } catch (error) {
-//    console.error("Error retrieving all users:", error);
-//    res.status(500).json({ error: "Internal server error" });
-//  }
-//};
+const upload = multer({ storage });
 
 export const deleteTag = async (req: Request, res: Response) => {
   try {
@@ -103,6 +96,7 @@ export const addArticle = async (req: Request, res: Response) => {
     const venueIds: number[] = req.body.venueIds;
     const tags: string[] = req.body.tags;
     const imageDetails: ImageInput[] = req.body.images;
+    //const imageFiles
 
     const token = req.cookies.authToken;
     if (!token) {
@@ -184,7 +178,6 @@ interface TagBody {
   };
 }
 
-// ! haven't test
 export const editArticle = async (req: Request, res: Response) => {
   try {
     //const article: ArticleCreateInput = req.body;
@@ -255,8 +248,6 @@ export const editArticle = async (req: Request, res: Response) => {
           }
         })
 
-        console.log("this tag --> ", thisTag[0].tagId)
-
         // * check whether tag is use by the other article
         tagUse = await prisma.article_tags.findMany({
           where: {
@@ -280,8 +271,6 @@ export const editArticle = async (req: Request, res: Response) => {
             },
           })
         } else {
-          // ! should be in this case
-          console.log("this case")
           updatedTag = await prisma.tag.create({
             data: {
               tag_name: tag,
