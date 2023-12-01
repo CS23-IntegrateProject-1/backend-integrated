@@ -1,0 +1,124 @@
+[
+  {
+    "name": "venue",
+    "entries": [
+      {
+        "value": "zyx",
+        "synonyms": [
+          "zyx"
+        ]
+      },
+      {
+        "value": "abc",
+        "synonyms": [
+          "abc"
+        ]
+      },
+      {
+        "value": "ABC Mart",
+        "synonyms": [
+          "ABC Mart"
+        ]
+      },
+      {
+        "value": "7Eleven",
+        "synonyms": [
+          "7Eleven"
+        ]
+      },
+      {
+        "value": "Mixue",
+        "synonyms": [
+          "Mixue"
+        ]
+      },
+      {
+        "value": "Venue4",
+        "synonyms": [
+          "Venue4"
+        ]
+      },
+      {
+        "value": "Venue5",
+        "synonyms": [
+          "Venue5"
+        ]
+      },
+      {
+        "value": "Venue6",
+        "synonyms": [
+          "Venue6"
+        ]
+      },
+      {
+        "value": "Venue7",
+        "synonyms": [
+          "Venue7"
+        ]
+      },
+      {
+        "value": "Venue8",
+        "synonyms": [
+          "Venue8"
+        ]
+      },
+      {
+        "value": "Venue9",
+        "synonyms": [
+          "Venue9"
+        ]
+      },
+      {
+        "value": "Venue10",
+        "synonyms": [
+          "Venue10"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "category",
+    "entries": [
+      {
+        "value": {
+          "category": "Club"
+        },
+        "synonyms": [
+          {
+            "category": "Club"
+          }
+        ]
+      },
+      {
+        "value": {
+          "category": "Restaurant"
+        },
+        "synonyms": [
+          {
+            "category": "Restaurant"
+          }
+        ]
+      },
+      {
+        "value": {
+          "category": "Bar"
+        },
+        "synonyms": [
+          {
+            "category": "Bar"
+          }
+        ]
+      },
+      {
+        "value": {
+          "category": "A LaCarte"
+        },
+        "synonyms": [
+          {
+            "category": "A LaCarte"
+          }
+        ]
+      }
+    ]
+  }
+]

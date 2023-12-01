@@ -1,6 +1,8 @@
-import { Customer_type, Prisma, PrismaClient, Target_group } from "@prisma/client";
+import {PrismaClient} from "@prisma/client";
 import { Response, Request } from "express";
-
+import { adinfo } from "../interface/Auth/Advertisement";
+import { voucherinfo } from "../interface/Auth/Voucher";
+import authService from "../services/auth/auth.service";
 
 const feature5Client = new PrismaClient();
 
@@ -8,40 +10,10 @@ export const getfeature5 = async (req: Request, res: Response) => {
     res.status(200).json({message: 'This is Feature5'});
 };
 
-enum isApprove {
-    Rejected = "Rejected",
-    In_progress = "In_progress",
-    Completed = "Completed"
-}
-
-interface adinfo {
-    name: string;
-    description: string;
-    image_url: string;
-    start_date: Date;
-    end_date: Date;
-    cost: number;
-    isApprove: isApprove;
-    customer_type: Customer_type;
-    target_group: Target_group;
-    businessId: number;
-    
-}
-
-interface voucherinfo{
-    voucher_name: string;
-    voucher_image: string;
-    start_date: Date;
-    end_date: Date;
-    description: string;
-    point_use: number;
-    venueId: number;
-    isApprove: isApprove;
-}
 
 export const AdBusiness = async (req: Request, res: Response) => {
     try {
-        
+        const { businessId } = authService.decodeToken(req.cookies.authToken);
         const Tags: number[] = req.body.Tags;
         const isApprove = "In_progress"
 
@@ -56,8 +28,7 @@ export const AdBusiness = async (req: Request, res: Response) => {
             target_group,
         } = newAd;
 
-        const {id} = req.params;
-
+        // const {id} = req.params;
         const newAdvertisement = await feature5Client.ad_business.create({
             data: {
                 name,
@@ -68,7 +39,7 @@ export const AdBusiness = async (req: Request, res: Response) => {
                 cost,
                 customer_type,
                 target_group,
-                businessId: parseInt(id),
+                businessId,
                 isApprove
             }
         })
@@ -84,66 +55,12 @@ export const AdBusiness = async (req: Request, res: Response) => {
 
         res.json(newAdvertisement);
     } catch(err) {
+        console.log(err);
         const error = err as Error;
         res.status(500).json({ error: error.message});
     }
 };
 
-// export const AdBusiness = async (req: Request, res: Response) => {
-//     console.log("first")
-//     try {
-//         const {name,
-//             description,
-//             image_url,
-//             start_date,
-//             end_date,
-//             cost,
-//             customer_type,
-//             target_group,
-//         } = req.body;
-
-//         const {id} = req.params;
-//         const businessId = parseInt(id);
-//         const adParams: adinfo = {
-//             name : name,
-//             description : description,
-//             image_url : image_url,
-//             start_date : start_date,
-//             end_date : end_date,
-//             cost : cost,
-//             customer_type : customer_type,
-//             target_group : target_group,
-//             businessId : businessId
-//         }
-        
-//         const ad = await createdAdBusiness(adParams);
-//         if (!ad){
-//             res.status(404).json({ error: "not success"})
-//         }
-//         res.json({ message: 'add successfully', ad});
-
-//     } catch(err) {
-//         const error = err as Error;
-//         res.status(500).json({ error: error.message});
-//     }
-    
-
-// };
-
-export const AdminApprove = async (req: Request, res: Response) => {
-    try {
-        const {id} = req.params;
-        const { isApprove } = req.body;
-        const ApproveAd = await feature5Client.ad_business.update({
-            where: {advertisementId: parseInt(id)},
-            data: {isApprove}
-        })
-        res.json(ApproveAd)
-    } catch (err) {
-        const error = err as Error;
-        res.status(500).json({ error: error.message});
-    }
-}
 
 export const DeleteAdvertisement = async (req: Request, res: Response) => {
     try {
@@ -164,18 +81,61 @@ export const DeleteAdvertisement = async (req: Request, res: Response) => {
     }
 }
 
-export const GetAllAdvertisement = async (req: Request, res: Response) => {
+export const AdminApprove = async (req: Request, res: Response) => {
     try {
-        const GetallAd = await feature5Client.ad_business.findMany({
-            where: {isApprove: "In_progress"},
-            
+        const {id} = req.params;
+        const { isApprove } = req.body;
+        const ApproveAd = await feature5Client.ad_business.update({
+            where: {advertisementId: parseInt(id)},
+            data: {isApprove}
         })
-        res.json(GetallAd)
+        res.json(ApproveAd)
     } catch (err) {
         const error = err as Error;
         res.status(500).json({ error: error.message});
     }
 }
+
+export const GetAllAdvertisement = async (req: Request, res: Response) => {
+    const {id} = req.params;
+    try {
+        const GetAllAd = await feature5Client.ad_business.findMany({
+            where: {businessId: parseInt(id)},
+            
+        })
+        res.json(GetAllAd)
+    } catch (err) {
+        const error = err as Error;
+        res.status(500).json({ error: error.message});
+    }
+}
+
+export const GetInprogressAdvertisement = async (req: Request, res: Response) => {
+    try {
+        const GetInprogressAd = await feature5Client.ad_business.findMany({
+            where: {isApprove: "In_progress"},
+            
+        })
+        res.json(GetInprogressAd)
+    } catch (err) {
+        const error = err as Error;
+        res.status(500).json({ error: error.message});
+    }
+}
+
+export const GetAllCompleteAdvertisement = async (req: Request, res: Response) => {
+    try {
+        const GetallCompleteAd = await feature5Client.ad_business.findMany({
+            where: {isApprove: "Completed"},
+            
+        })
+        res.json(GetallCompleteAd)
+    } catch (err) {
+        const error = err as Error;
+        res.status(500).json({ error: error.message});
+    }
+}
+
 
 export const GetAllTags = async (req: Request, res: Response) => {
     try {
@@ -186,6 +146,7 @@ export const GetAllTags = async (req: Request, res: Response) => {
         res.status(500).json({ error: error.message});
     }
 }
+
 
 export const Voucher = async (req: Request, res: Response) => {
     try {
@@ -248,6 +209,10 @@ export const Voucher = async (req: Request, res: Response) => {
                     voucherId: newVoucher.voucherId
                 }
             })
+
+            // await feature5Client.user_voucher.create({
+
+            // })
         }
 
         res.json(newVoucher)
@@ -261,33 +226,41 @@ export const Voucher = async (req: Request, res: Response) => {
     }
 }
 
+
 export const DeleteVoucher = async (req: Request, res: Response) => {
     try {
-        // const {id} = req.params;
-        const {Vouchertype,id} = req.body;
+        const { id } = req.params; 
 
-        if(Vouchertype == "discount"){
+        const discountVoucher = await feature5Client.discount_voucher.findUnique({
+            where: { voucherId: parseInt(id) }
+        });
+
+        const foodVoucher = await feature5Client.food_voucher.findUnique({
+            where: { voucherId: parseInt(id) }
+        });
+
+        if (discountVoucher) {
             await feature5Client.discount_voucher.delete({
-                where: {voucherId: parseInt(id)}
-            })
+                where: { voucherId: parseInt(id) }
+            });
         }
 
-        if(Vouchertype == "food"){
+        if (foodVoucher) {
             await feature5Client.food_voucher.delete({
-                where: {voucherId: parseInt(id)}
-            })
+                where: { voucherId: parseInt(id) }
+            });
         }
-        
+
         const DeleteAd = await feature5Client.voucher.delete({
-            where: {voucherId: parseInt(id)}
-            
-        })
-        res.json(DeleteAd)
+            where: { voucherId: parseInt(id) }
+        });
+
+        res.json(DeleteAd);
     } catch (err) {
         const error = err as Error;
-        res.status(500).json({ error: error.message});
+        res.status(500).json({ error: error.message });
     }
-}
+};
 
 export const VoucherApprove = async (req: Request, res: Response) => {
     try {
@@ -304,7 +277,7 @@ export const VoucherApprove = async (req: Request, res: Response) => {
     }
 }
 
-export const GetallVenue = async (req: Request, res: Response) =>{
+export const GetallVenue = async (req: Request, res: Response) => {
     const{id} = req.params;
     try {
         const getvenue = await feature5Client.property.findMany({
@@ -320,24 +293,152 @@ export const GetallVenue = async (req: Request, res: Response) =>{
 }
 
 
-// export const getUser = async (req: Request, res: Response) => {  
-//     try {
-//         // console.log("Hello world!");
-//         const allUsers = await feature5Client.user.findMany();
-//         res.status(200).json(allUsers);
-            
-//     } catch (e) {
-//         console.log(e);
-//         res.status(500).json({ error: 'Failed to retrieve data' });
-//     }
-// };
+export const GetAllVoucher = async (req: Request, res: Response) => {
+    const{id} = req.params
+    try {
+        const GetAllVoucher = await feature5Client.property.findMany({
+            where: {businessId: parseInt(id)},
+            select: {
+                venue:{
+                    select:{
+                        Voucher: true
+                    }
+                }
+            }
+   
+        })
+        res.json(GetAllVoucher)
 
-// example of controller getAllAuthors
-// export const getAllAuthors = async (req: Request, res: Response) => {
-//   try {
-//     const allAuthors = await feature1Client.modelName.findMany({
-//   } catch (e) {
-//     console.log(e);
-//   }
-// };
+    } catch (err) {
+        const error = err as Error;
+        res.status(500).json({ error: error.message});
+    }
+}
+
+export const GetInfomationOfVoucher = async (req: Request, res: Response) => {
+    const{id} = req.params
+    try {
+        const GetInfoVoucher = await feature5Client.voucher.findMany({
+            where: {voucherId: parseInt(id)},
+   
+        })
+        res.json(GetInfoVoucher)
+
+    } catch (err) {
+        const error = err as Error;
+        res.status(500).json({ error: error.message});
+    }
+}
+
+export const GettierName = async (req: Request, res: Response) => {
+    const { userId } = authService.decodeToken(req.cookies.authToken);
+  try {
+    const gettierName = await feature5Client.user.findUnique({
+      where: { userId: userId },
+      select: {
+        tier: {
+          select: {
+            tier_name: true,
+            // tier_benefit: true,
+          },
+        },
+      },
+    });
+    res.json(gettierName);
+  } catch (err) {
+    const error = err as Error;
+    res.status(500).json({ error: error.message });
+  }
+};
+
+export const GetInfoMembertier = async (req: Request, res: Response) => {
+    const { userId } = authService.decodeToken(req.cookies.authToken);
+  try {
+    const GetInfoMembertier = await feature5Client.user.findUnique({
+      where: { userId: userId },
+      select: {
+        tier: {
+          select: {
+            tier_name: true,
+            tier_benefit: true,
+          },
+        },
+      },
+    });
+    res.json(GetInfoMembertier);
+  } catch (err) {
+    const error = err as Error;
+    res.status(500).json({ error: error.message });
+  }
+};
+
+
+export const GetMyReward = async (req: Request, res: Response) => {
+    const { userId } = authService.decodeToken(req.cookies.authToken);
+    const { id }= req.body;
+    console.log(userId)
+    try {
+      const GetMyReward = await feature5Client.user_voucher.create({
+        data: {
+            userId: userId, 
+            voucherId: id 
+        }
+      });
+      res.json(GetMyReward);
+    } catch (err) {
+      const error = err as Error;
+      res.status(500).json({ error: error.message });
+    }
+};
+
+
+export const GetTodayPrivillage = async (req: Request, res: Response) => {
+  const { userId } = authService.decodeToken(req.cookies.authToken);
+
+  try {
+    const GetTodayPrivillage = await feature5Client.voucher.findMany({
+      where: {
+        User_voucher: {
+          every: {
+            userId: userId,
+          },
+        },
+        start_date: {
+          lte: new Date(),
+        },
+        end_date: {
+          gte: new Date(),
+        },
+      },
+    });
+    res.json(GetTodayPrivillage);
+  } catch (err) {
+    const error = err as Error;
+    res.status(500).json({ error: error.message });
+  }
+};
+
+export const Getpointused = async (req: Request, res: Response) => {
+    const { userId } = authService.decodeToken(req.cookies.authToken);
+  
+    try {
+      const Getpointused = await feature5Client.point.findUnique({
+        where: {
+           pointId: userId,
+        },
+        select:{
+            amount_used: true
+        }
+      });
+      res.json(Getpointused);
+    } catch (err) {
+      const error = err as Error;
+      res.status(500).json({ error: error.message });
+    }
+  };
+
+
+
+
+
 
