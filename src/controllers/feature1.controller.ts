@@ -8,7 +8,7 @@ import { PromptPayController } from "./feature1/PromptPayController";
 import SearchController from "./feature1/SearchController";
 import FriendController from "./feature1/FriendController";
 import ProfileController from "./feature1/ProfileController";
-import GroupController from "./feature1/GroupController";
+//import GroupController from "./feature1/GroupController";
 
 export const getfeature1 = async (req: Request, res: Response) => {
   return res.json({});
@@ -108,16 +108,16 @@ export const profileHandler = async (req: Request, res: Response) => {
   }
 };
 
-export const groupHandler = async (req: Request, res: Response) => {
-  switch (req.method) {
-    case "POST":
-      return new GroupController().create(req, res);
-    case "GET":
-    default:
-      return new GroupController().index(req, res);
-  }
-};
+//export const groupHandler = async (req: Request, res: Response) => {
+//  switch (req.method) {
+//    case "POST":
+//      return new GroupController().create(req, res);
+//    case "GET":
+//    default:
+//      return new GroupController().index(req, res);
+//  }
+//};
 
-export const groupInfoHandler = async (req: Request, res: Response) => {
-  return new GroupController().show(req, res);
-};
+//export const groupInfoHandler = async (req: Request, res: Response) => {
+//  return new GroupController().show(req, res);
+//};
