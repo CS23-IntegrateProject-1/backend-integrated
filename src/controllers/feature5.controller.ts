@@ -1,8 +1,6 @@
-import { Approve_status, Customer_type, Prisma, PrismaClient, Target_group } from "@prisma/client";
+import { Customer_type, Prisma, PrismaClient, Target_group } from "@prisma/client";
 import { Response, Request } from "express";
-import internal from "stream";
-// import { createdAdBusiness } from "../services/testService";
-// const bcrypt = require('bcrypt')
+
 
 const feature5Client = new PrismaClient();
 
