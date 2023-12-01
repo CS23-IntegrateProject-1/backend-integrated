@@ -151,17 +151,29 @@ export const GetAllTags = async (req: Request, res: Response) => {
 //----------------------------Voucher-----------------------------
 export const Voucher = async (req: Request, res: Response) => {
     try {
-        const newVch: voucherinfo = req.body;
+		// const newVch: voucherinfo = req.body;
+		const {
+
+			voucherName: voucher_name ,
+			voucherImage: voucher_image,
+			startDate: start_date ,
+			endDate: end_date ,
+			description,
+			point_use,
+			// voucherType: Vouchertype,
+			
+		} = req.body;
+
         const isApprove = "In_progress";
 
-        const {
-            voucher_name,
-            voucher_image,
-            start_date,
-            end_date,
-            description,
-            point_use
-        } = newVch;
+        // const {
+        //     voucher_name: voucherName,
+        //     voucher_image: voucherImage,
+        //     start_date: startDate,
+        //     end_date: endDate,
+        //     description,
+        //     point_use
+        // } = newVch;
 
         const {Vouchertype,id} = req.body;
 
