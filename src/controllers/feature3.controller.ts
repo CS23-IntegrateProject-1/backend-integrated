@@ -530,120 +530,136 @@ export const deleteFoodReview = async (req: Request, res: Response) => {
     return res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-export const getVen = async (req: Request, res: Response) => {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+export const getVenuesPage = async (req: Request, res: Response) => {
   try {
-    const Ven = await feature3Client.$queryRaw`
-            SELECT venueId, name, description, category, capacity, 
-            chatRoomId, locationId, website_url
-            FROM Venue
-            Order by venueId;
-        `;
-
-    return res.json(Ven);
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json(error);
-  }
-};
-
-export const getBranch = async (req: Request, res: Response) => {
-  try {
-    const Branch = await feature3Client.$queryRaw`
-            SELECT venueId, branchId, branch_name
-            FROM Venue_branch
-            Order by branchId;
-        `;
-
-    return res.json(Branch);
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json(error);
-  }
-};
-
-export const getBranchVen = async (req: Request, res: Response) => {
-  try {
-    const BranchVenue = await feature3Client.$queryRaw`
-            SELECT VB.venueId, branchId, branch_name, name, description, category, capacity, 
-            chatRoomId, locationId, website_url
-            FROM Venue_branch VB, Venue V
-            WHERE VB.venueId = V.venueId
-        `;
-
-    return res.json(BranchVenue);
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json(error);
-  }
-};
-
-export const getBranchRate = async (req: Request, res: Response) => {
-  try {
-    const BranchRate = await feature3Client.$queryRaw`
-        SELECT VB.branchId, VB.venueId, AVG(VR.rating) AS rating
-        FROM Venue_branch VB, Venue_reviews VR
-        WHERE VB.branchId = VR.branchId
-        Group By branchId;
-        `;
-
-    return res.json(BranchRate);
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json(error);
-  }
-};
-
-export const getVenRate = async (req: Request, res: Response) => {
-  try {
-    const VenRate = await feature3Client.$queryRaw`
-            SELECT V.venueId, VB.branchId, V.name, VB.branch_name, description, category, capacity,
-            chatRoomId, locationId, website_url, AVG(VR.rating) as rating
-            FROM Venue V, Venue_branch VB, Venue_reviews VR
-            WHERE V.venueId = VB.venueId AND VB.branchId = VR.branchId
-            GROUP BY V.venueId, VB.branchId
+    const VenuesPage = await feature3Client.$queryRaw`
+            SELECT V.venueId, VB.branchId, name, description, category, capacity, chatRoomId, locationId, website_url, COALESCE(AVG(VR.rating), 0) AS rating
+            FROM Venue V JOIN Venue_branch VB ON V.venueId = VB.venueId
+              LEFT JOIN Venue_reviews VR ON VB.branchId = VR.branchId
+            GROUP BY V.venueId
             ORDER BY V.venueId;
-        `;
+          `;
 
-    return res.json(VenRate);
+    return res.json(VenuesPage);
   } catch (error) {
     console.error(error);
     return res.status(500).json(error);
   }
 };
 
-export const getBranchVenRate = async (req: Request, res: Response) => {
+export const getRecommendedPlaces = async (req: Request, res: Response) => {
   try {
-    const VenRate = await feature3Client.$queryRaw`
+    const RecommendedPlaces = await feature3Client.$queryRaw`
             SELECT V.venueId, VB.branchId, name, description, category, capacity,
-            chatRoomId, locationId, website_url, AVG(VR.rating) as rating
+            chatRoomId, locationId, website_url, COALESCE(AVG(VR.rating) , 0) as rating
             FROM Venue V, Venue_branch VB, Venue_reviews VR
             WHERE V.venueId = VB.venueId AND VB.branchId = VR.branchId
-            GROUP BY V.venueId, VB.branchId
-            ORDER BY V.venueId;
-        `;
-
-    return res.json(VenRate);
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json(error);
-  }
-};
-
-export const getVenRate4 = async (req: Request, res: Response) => {
-  try {
-    const VenRate4 = await feature3Client.$queryRaw`
-            SELECT V.venueId, VB.branchId, name, description, category, capacity,
-            chatRoomId, locationId, website_url, AVG(VR.rating) as rating
-            FROM Venue V, Venue_branch VB, Venue_reviews VR
-            WHERE V.venueId = VB.venueId AND VB.branchId = VR.branchId
-            GROUP BY V.venueId, VB.branchId
+            GROUP BY V.venueId
             HAVING AVG(VR.rating) >= 4
             ORDER BY V.venueId;
-        `;
+          `;
 
-    return res.json(VenRate4);
+    return res.json(RecommendedPlaces);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json(error);
+  }
+};
+
+export const getVenBranchPage = async (req: Request, res: Response) => {
+  const { venueId } = req.params;
+  const venueIdInt = parseInt(venueId);
+
+  try {
+    const VenBranchPage = await feature3Client.$queryRaw`
+  SELECT
+    VB.branchId,
+    V.venueId,
+    VB.venueId,
+    VB.branch_name,
+    V.name,
+    COALESCE(AVG(VR.rating), 0) AS rating
+  FROM
+    Venue_branch VB
+    LEFT JOIN Venue_reviews VR ON VB.branchId = VR.branchId
+    JOIN Venue V ON V.venueId = VB.venueId
+  WHERE
+    VB.venueId = ${venueIdInt}
+  GROUP BY
+    VR.branchId;
+`;
+    console.log(VenBranchPage);
+    return res.json(VenBranchPage);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json(error);
+  }
+};
+
+export const getVenDetail = async (req: Request, res: Response) => {
+  const { branchId } = req.params;
+  const branchIdInt = parseInt(branchId);
+
+  try {
+    const VenDetail = await feature3Client.$queryRaw`
+      SELECT V.venueId, VB.branchId, name, VB.branch_name, description, category, capacity,
+        chatRoomId, locationId, website_url, COALESCE(AVG(VR.rating), 0) as rating
+      FROM Venue V
+      JOIN Venue_branch VB ON V.venueId = VB.venueId
+      LEFT JOIN Venue_reviews VR ON VB.branchId = VR.branchId
+      WHERE VB.branchId = ${branchIdInt}
+      GROUP BY V.venueId, VB.branchId
+      ORDER BY V.venueId;
+    `;
+
+    return res.json(VenDetail);
   } catch (error) {
     console.error(error);
     return res.status(500).json(error);
@@ -654,37 +670,151 @@ export const getReviewsBranch = async (req: Request, res: Response) => {
   try {
     const { branchId } = req.params;
 
-    const reviews = await feature3Client.venue_reviews.findMany({
+    const reviewsBranch = await feature3Client.venue_reviews.findMany({
       where: {
         branchId: parseInt(branchId),
       },
       orderBy: {
-        date_added: 'desc',
+        date_added: "desc",
       },
     });
 
-    res.status(200).json(reviews);
+    res.status(200).json(reviewsBranch);
   } catch (error) {
     console.error("Error fetching reviews:", error);
     res.status(500).json(error);
   }
 };
 
+// export const getReviewsBranchOverAll = async (req: Request, res: Response) => {
+//   try {
+//     const { branchId } = req.params;
+//     const branchIdInt = parseInt(branchId);
+
+//     const reviewsBranchOverAll = await feature3Client.venue_reviews.groupBy({
+//       by: { branchId: branchIdInt },
+//       _avg: { rating: true },
+//       _count: { review: true },
+//     });
+
+//     return res.json(reviewsBranchOverAll);
+//   } catch (error) {
+//     console.error("Error fetching reviews:", error);
+//     res.status(500).json(error);
+//   } 
+// };
+
+
+interface ReviewsBranchOverAll_Interface {
+  branchId: number;
+  venueReviewId: number;
+  rating: number;
+  total_reviews: number;
+}
+
 export const getReviewsBranchOverAll = async (req: Request, res: Response) => {
   try {
     const { branchId } = req.params;
-    const branchIdInt = parseInt(branchId);
+    const branchIdInt = Number(branchId);
 
-    const ReviewsBranchOverAll = await feature3Client.$queryRaw`
-    SELECT branchId, venueReviewId, AVG(VR.rating) as rating, count(review) as total_reviews
-    FROM Venue_reviews VR
-    GROUP BY branchId;
+    const ReviewsBranchOverAll: ReviewsBranchOverAll_Interface[] = await feature3Client.$queryRaw`
+      SELECT branchId, venueReviewId, AVG(VR.rating) as rating, count(review) as total_reviews
+      FROM Venue_reviews VR
+      WHERE branchId = ${branchIdInt}
+      GROUP BY branchId;
 `;
 
-return res.json(ReviewsBranchOverAll);
+    ReviewsBranchOverAll.forEach((RBOAObject: ReviewsBranchOverAll_Interface) => {
+      RBOAObject.rating = Number(RBOAObject.rating);
+      RBOAObject.total_reviews = Number(RBOAObject.total_reviews);
+    });
+
+    return res.json(ReviewsBranchOverAll);
   } catch (error) {
     console.error("Error fetching reviews:", error);
     res.status(500).json(error);
+  }
+};
+
+
+interface StarGraph_Interface {
+  branchId: number;
+  rating: number;
+  total_per_rating: number;
+  total_ratings_per_branch: number;
+}
+
+export const getStarGraph = async (req: Request, res: Response) => {
+  const { branchId } = req.params;
+  const branchIdInt = Number(branchId);
+
+  try {
+    const StarGraph: StarGraph_Interface[] = await feature3Client.$queryRaw`
+      SELECT B.branchId, R.rating, COALESCE(COUNT(VR.rating), 0) AS total_per_rating,
+        SUM(COALESCE(COUNT(VR.rating), 0)) OVER (PARTITION BY B.branchId) AS total_ratings_per_branch
+      FROM ( SELECT DISTINCT branchId FROM Venue_reviews ) B
+        CROSS JOIN ( SELECT DISTINCT rating FROM Venue_reviews ) R
+        LEFT JOIN Venue_reviews VR ON B.branchId = VR.branchId AND R.rating = VR.rating
+      WHERE B.branchId = ${branchIdInt}
+      GROUP BY B.branchId, R.rating
+      ORDER BY B.branchId, R.rating;
+      `;
+
+      StarGraph.forEach((SGObject: StarGraph_Interface) => {
+      SGObject.total_per_rating = Number(SGObject.total_per_rating);
+      SGObject.total_ratings_per_branch = Number(SGObject.total_ratings_per_branch);
+    });
+
+    return res.json(StarGraph);
+  } catch (error) {
+    console.error("Error fetching reviews:", error);
+    res.status(500).json(error);
+  }
+};
+
+
+export const getMyReviews = async (req: Request, res: Response) => {
+  try {
+    const userId = authService.decodeToken(req.cookies.authToken).userId;
+    const myReviews = await feature3Client.venue.findMany({
+      where: {
+        Venue_branch: {
+          some: {
+            Venue_reviews: {
+              some: {
+                userId: userId,
+              },
+            },
+          },
+        },
+      },
+      include: {
+        Venue_branch: {
+          where: {
+            Venue_reviews: {
+              some: {
+                userId: userId,
+              },
+            },
+          },
+          include: {
+            Venue_reviews: {
+              where: {
+                userId: userId,
+              },
+              orderBy: {
+                date_added: "desc",
+              },
+            },
+          },
+        },
+      },
+    });
+
+    res.status(200).json(myReviews);
+  } catch (error) {
+    console.error("Error from getMyReviews Backend: ", error);
+    return res.status(500).json(error);
   }
 };
 
@@ -729,156 +859,5 @@ export const postReviewReservation = async (req: Request, res: Response) => {
   } catch (error) {
     console.error("Error creating review:", error);
     res.status(500).json(error);
-  }
-};
-
-export const getVenBranchPage = async (req: Request, res: Response) => {
-  const { venueId } = req.params;
-  const venueIdInt = parseInt(venueId);
-  console.log("hello", venueIdInt);
-  try {
-    const VenBranchPage = await feature3Client.$queryRaw`
-  SELECT
-    VB.branchId,
-    V.venueId,
-    VB.venueId,
-    VB.branch_name,
-    V.name,
-    COALESCE(AVG(VR.rating), 0) AS rating
-  FROM
-    Venue_branch VB
-    LEFT JOIN Venue_reviews VR ON VB.branchId = VR.branchId
-    JOIN Venue V ON V.venueId = VB.venueId
-  WHERE
-    VB.venueId = ${venueIdInt}
-  GROUP BY
-    VR.branchId;
-`;
-    console.log(VenBranchPage);
-    return res.json(VenBranchPage);
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json(error);
-  }
-};
-
-export const getVenueDetail = async (req: Request, res: Response) => {
-  try {
-    const VenueDetail = await feature3Client.$queryRaw`
-              SELECT V.venueId, VB.branchId, name, description, category, capacity,
-              chatRoomId, locationId, website_url, AVG(VR.rating) as rating
-              FROM Venue V, Venue_branch VB, Venue_reviews VR
-              WHERE V.venueId = VB.venueId AND VB.branchId = VR.branchId
-              GROUP BY V.venueId, VB.branchId
-              ORDER BY V.venueId;
-          `;
-
-    return res.json(VenueDetail);
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json(error);
-  }
-};
-
-
-export const getMyReviews = async (req: Request, res: Response) => {
-  try {
-    const userId = authService.decodeToken(req.cookies.authToken).userId;
-    const myReviews = await feature3Client.venue.findMany({
-      where: {
-        Venue_branch: {
-          some: {
-            Venue_reviews: {
-              some: {
-                userId: userId,
-              }
-            }
-          }
-        }
-      },
-      include: {
-        Venue_branch: {
-          where: {
-            Venue_reviews: {
-              some: {
-                userId: userId,
-              }
-            }
-          },
-          include: {
-            Venue_reviews: {
-              where: {
-                userId: userId,
-              },
-              orderBy: {
-                date_added: 'desc',
-              }
-            }
-          }
-        }
-      }
-       
-    })
-
-    res.status(200).json(myReviews);
-  }
-  catch (error) {
-    console.error("Error from getMyReviews Backend: ", error);
-    return res.status(500).json(error);
-  }
-};
-
-export const getVenuesPage = async (req: Request, res: Response) => {
-  try {
-    const RecommendedPlaces = await feature3Client.$queryRaw`
-            SELECT V.venueId, VB.branchId, name, description, category, capacity,
-            chatRoomId, locationId, website_url, COALESCE(AVG(VR.rating) , 0) as rating
-            FROM Venue V, Venue_branch VB, Venue_reviews VR
-            WHERE V.venueId = VB.venueId AND VB.branchId = VR.branchId
-            GROUP BY V.venueId
-            ORDER BY V.venueId;
-          `;
-
-    return res.json(RecommendedPlaces);
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json(error);
-  }
-};
-
-export const getRecommendedPlaces = async (req: Request, res: Response) => {
-  try {
-    const RecommendedPlaces = await feature3Client.$queryRaw`
-            SELECT V.venueId, VB.branchId, name, description, category, capacity,
-            chatRoomId, locationId, website_url, COALESCE(AVG(VR.rating) , 0) as rating
-            FROM Venue V, Venue_branch VB, Venue_reviews VR
-            WHERE V.venueId = VB.venueId AND VB.branchId = VR.branchId
-            GROUP BY V.venueId
-            HAVING AVG(VR.rating) >= 4
-            ORDER BY V.venueId;
-          `;
-
-    return res.json(RecommendedPlaces);
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json(error);
-  }
-};
-
-export const getVenDetail = async (req: Request, res: Response) => {
-  try {
-    const VenDetail = await feature3Client.$queryRaw`
-          SELECT V.venueId, VB.branchId, name, description, category, capacity,
-          chatRoomId, locationId, website_url, COALESCE(AVG(VR.rating) , 0) as rating
-          FROM Venue V, Venue_branch VB, Venue_reviews VR
-          WHERE V.venueId = VB.venueId AND VB.branchId = VR.branchId
-          GROUP BY V.venueId, VB.branchId
-          ORDER BY V.venueId;
-          `;
-
-    return res.json(VenDetail);
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json(error);
   }
 };

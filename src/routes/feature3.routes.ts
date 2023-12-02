@@ -26,12 +26,18 @@ import {
     deleteFoodReview,
     getFoodReviews,
     // getSentimentAnalysis,
-    getVen,
-    getBranch,
-    getBranchRate,
-    getVenRate,
-    getVenRate4,
-    getBranchVen,
+
+
+
+
+
+
+
+
+
+
+
+
     getReviewsBranch,
     postReviewDelivery,
     postReviewReservation,
@@ -42,6 +48,8 @@ import {
     getRecommendedPlaces,
     getVenuesPage,
     getVenDetail,
+    getStarGraph,
+
     
 
 
@@ -91,19 +99,19 @@ feature3Router.delete("/food-reviews/:foodReviewId", deleteFoodReview);
 
 
 
+//***************************************************************************
 
 
 
 
 
 
-feature3Router.get("/ven", getVen); // Only venue details
-feature3Router.get("/branch", getBranch) // Only branch
-feature3Router.get("/branchRate", getBranchRate) // Only branch rate
-feature3Router.get("/venXRate", getVenRate) // Venue details & Rate of that venue
 
-feature3Router.get("/branchVenue", getBranchVen) // Branch with venue details
-feature3Router.get("/venXRate4", getVenRate4) // Venue details
+
+
+
+
+
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -113,15 +121,17 @@ feature3Router.get("/RecommendedPlaces", getRecommendedPlaces) // Venue details 
 
 feature3Router.get("/VenBranchPage/:venueId", getVenBranchPage) // Branch with venue details
 
-feature3Router.get("/VenDetail", getVenDetail) // Reviews of that branch
+feature3Router.get("/VenDetail/:branchId", getVenDetail) // Reviews of that branch
 
-feature3Router.get("/reviews/:branchId", getReviewsBranch) // Reviews of that branch
-feature3Router.get("/reviewsBranchOverAll", getReviewsBranchOverAll) // Branch with venue details
+feature3Router.get("/Reviews/:branchId", getReviewsBranch) // Reviews of that branch
+feature3Router.get("/ReviewsBranchOverAll/:branchId", getReviewsBranchOverAll) // Overall rating of that branch
+feature3Router.get("/StarGraph/:branchId", getStarGraph) // Star graph of that branch
 
-feature3Router.post("/reviewDelivery", postReviewDelivery); // Post from Delivery review
-feature3Router.post("/reviewReservation", postReviewReservation); // Post from Reservation review
+feature3Router.get("/MyReviews", getMyReviews); // Get my reviews of the user who login right now
 
-feature3Router.get("/myReviews", getMyReviews); // Get my reviews of the user who login right now
+feature3Router.post("/ReviewDelivery", postReviewDelivery); // Post from Delivery review
+feature3Router.post("/ReviewReservation", postReviewReservation); // Post from Reservation review
+
 
 
 
