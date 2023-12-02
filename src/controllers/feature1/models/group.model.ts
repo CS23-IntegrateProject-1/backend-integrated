@@ -1,10 +1,19 @@
-import { User } from "@prisma/client";
 import { map } from "ramda";
+
+type UserMinimalInfo = {
+  userId: number;
+  username: string;
+  profile_picture: string;
+};
 
 export type GroupCreateDBResponse = {
   groupId: number;
   group_name: string;
-  Group_user: Array<{ groupId: number; memberId: number; member: User }>;
+  Group_user: Array<{
+    groupId: number;
+    memberId: number;
+    member: UserMinimalInfo;
+  }>;
 };
 
 export type GroupIndexDBResponse = Array<GroupDBResponse>;
