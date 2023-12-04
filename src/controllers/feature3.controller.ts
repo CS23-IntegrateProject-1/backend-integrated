@@ -666,18 +666,37 @@ export const getVenDetail = async (req: Request, res: Response) => {
   }
 };
 
+// export const getReviewsBranch = async (req: Request, res: Response) => {
+//   try {
+//     const { branchId } = req.params;
+
+//     const reviewsBranch = await feature3Client.venue_reviews.findMany({
+//       where: {
+//         branchId: parseInt(branchId),
+//       },
+//       orderBy: {
+//         date_added: "desc",
+//       },
+//     });
+
+//     res.status(200).json(reviewsBranch);
+//   } catch (error) {
+//     console.error("Error fetching reviews:", error);
+//     res.status(500).json(error);
+//   }
+// };
+
+
 export const getReviewsBranch = async (req: Request, res: Response) => {
   try {
     const { branchId } = req.params;
+    const branchIdInt = parseInt(branchId);
 
-    const reviewsBranch = await feature3Client.venue_reviews.findMany({
-      where: {
-        branchId: parseInt(branchId),
-      },
-      orderBy: {
-        date_added: "desc",
-      },
-    });
+    const reviewsBranch = await feature3Client.$queryRaw`
+    SELECT U.userId, U.username, VR.branchId, VR.venueReviewId, VR.rating, VR.review, VR.date_added, VR.review_type
+    FROM Venue_reviews VR, User U
+    WHERE VR.branchId = ${branchIdInt} AND VR.userId = U.userId;
+    `;
 
     res.status(200).json(reviewsBranch);
   } catch (error) {
