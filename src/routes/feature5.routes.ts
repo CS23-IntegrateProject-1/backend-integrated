@@ -25,7 +25,8 @@ import {
     Promotion,
     DeletePromotion,
     PromotionApprove,
-    getAllPromotion
+    getAllPromotion,
+    getAdvertisementById,
     // GetAllCompleteVoucher,
     // getUser
 } from "../controllers/feature5.controller";
