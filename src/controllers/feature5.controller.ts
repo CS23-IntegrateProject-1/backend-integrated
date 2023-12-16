@@ -4,6 +4,7 @@ import { adinfo } from "../interface/Auth/Advertisement";
 import { voucherinfo } from "../interface/Auth/Voucher";
 import { Promotioninfo } from "../interface/Auth/Promotion";
 import authService from "../services/auth/auth.service";
+import { includes } from "ramda";
 
 const feature5Client = new PrismaClient();
 
@@ -390,18 +391,61 @@ export const GetAllVoucher = async (req: Request, res: Response) => {
   }
 };
 
-export const GetInfomationOfVoucher = async (req: Request, res: Response) => {
-  const { id } = req.params;
-  try {
-    const GetInfoVoucher = await feature5Client.voucher.findMany({
-      where: { voucherId: parseInt(id) },
-    });
-    res.json(GetInfoVoucher);
-  } catch (err) {
-    const error = err as Error;
-    res.status(500).json({ error: error.message });
-  }
-};
+export const getVoucherById = async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const voucher = await feature5Client.voucher.findFirst({
+        where: {
+          voucherId: parseInt(id)
+        },
+      });
+      res.json(voucher);
+    } catch (e) {
+      console.log(e);
+      res.status(500).json(e);
+    }
+  };
+
+  export const CollectVoucher = async (req: Request, res: Response) => {
+    try {
+      const { userId } = authService.decodeToken(req.cookies.authToken);
+      const {id} = req.params;
+      // const 
+      const voucher = await feature5Client.user_voucher.create({
+        data:{
+          userId: userId,
+          voucherId: parseInt(id),
+          isUsed: false
+        }
+        
+      });
+      res.json(voucher);
+    } catch (e) {
+      console.log(e);
+      res.status(500).json(e);
+    }
+  };
+
+  export const getCollectedVoucher = async (req: Request, res: Response) => {
+    try {
+      const { userId } = authService.decodeToken(req.cookies.authToken);
+      const voucher = await feature5Client.voucher.findMany({
+        where: {
+          User_voucher:{
+            some:{
+              userId: userId,
+            }
+          }
+        },
+        
+        
+      });
+      res.json(voucher);
+    } catch (e) {
+      console.log(e);
+      res.status(500).json(e);
+    }
+  };
 
 //--------------------------------Membertier----------------------------------
 export const GettierName = async (req: Request, res: Response) => {
@@ -446,23 +490,7 @@ export const GetInfoMembertier = async (req: Request, res: Response) => {
   }
 };
 
-export const GetMyReward = async (req: Request, res: Response) => {
-  const { userId } = authService.decodeToken(req.cookies.authToken);
-  const { id } = req.body;
-  console.log(userId);
-  try {
-    const GetMyReward = await feature5Client.user_voucher.create({
-      data: {
-        userId: userId,
-        voucherId: id,
-      },
-    });
-    res.json(GetMyReward);
-  } catch (err) {
-    const error = err as Error;
-    res.status(500).json({ error: error.message });
-  }
-};
+
 
 // export const GetTodayPrivillage = async (req: Request, res: Response) => {
 // 	const { userId } = authService.decodeToken(req.cookies.authToken);
@@ -593,7 +621,7 @@ export const GetMenuforSelect = async (req: Request, res: Response) => {
       return res.status(401).json({ error: "This user is not business user" });
     }
     const businessId = decodedToken.businessId;
-    
+
     try {
       const result = await feature5Client.menu.findMany({
         select: {
@@ -648,7 +676,7 @@ export const PromotionApprove = async (req: Request, res: Response) => {
   }
 };
 
-export const getAllPromotion = async (req: Request, res: Response) => {
+export const getAllPromotion = async (req: Request, res: Response) => {  //For Business
   try {
     const token = req.cookies.authToken;
     if (!token) {
@@ -684,3 +712,61 @@ export const getAllPromotion = async (req: Request, res: Response) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+
+export const getPromotionbyId = async (req: Request, res: Response) => {
+  try {
+    const {id} = req.params;
+
+    const getPromotion = await feature5Client.promotion.findFirst({
+      where: {
+        promotionId: parseInt(id),
+      },
+      
+    });
+    res.json(getPromotion);
+  } catch (err) {
+    console.log(err);
+    const error = err as Error;
+    res.status(500).json({ error: error.message });
+  }
+};
+
+
+//------------------------------Redeem-----------------------------------
+export const Redeem = async (req: Request, res: Response) => {
+    try {
+      // const isApprove = "In_progress"
+      // const menuIds : number[] = req.body.menuIds;
+      const newAd: Promotioninfo = req.body;
+      const {
+        name,
+        description,
+        image_url,
+        start_date,
+        end_date,
+        discount_price,
+      } = newAd;
+  
+      const { menuId, venueId } = req.body;
+  
+      const newPromotion = await feature5Client.promotion.create({
+        data: {
+          name,
+          description,
+          image_url,
+          start_date,
+          end_date,
+          discount_price,
+          menuId,
+          venueId,
+        },
+      });
+  
+      res.json(newPromotion);
+    } catch (err) {
+      console.log(err);
+      const error = err as Error;
+      res.status(500).json({ error: error.message });
+    }
+  };
