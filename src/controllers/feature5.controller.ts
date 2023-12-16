@@ -4,7 +4,7 @@ import { adinfo } from "../interface/Auth/Advertisement";
 import { voucherinfo } from "../interface/Auth/Voucher";
 import { Promotioninfo } from "../interface/Auth/Promotion";
 import authService from "../services/auth/auth.service";
-import { includes } from "ramda";
+import { and, includes } from "ramda";
 
 const feature5Client = new PrismaClient();
 
@@ -220,17 +220,6 @@ export const Voucher = async (req: Request, res: Response) => {
       return res.status(400).json({ error: "Venue is undefined" });
     }
 
-    // const {
-    //     voucher_name: voucherName,
-    //     voucher_image: voucherImage,
-    //     start_date: startDate,
-    //     end_date: endDate,
-    //     description,
-    //     point_use
-    // } = newVch;
-
-    // const {Vouchertype,id} = req.body;
-
     const newVoucher = await feature5Client.voucher.create({
       data: {
         voucher_name,
@@ -410,7 +399,7 @@ export const CollectVoucher = async (req: Request, res: Response) => {
   try {
     const { userId } = authService.decodeToken(req.cookies.authToken);
     const { id } = req.params;
-    // const
+ 
     const voucher = await feature5Client.user_voucher.create({
       data: {
         userId: userId,
@@ -419,6 +408,43 @@ export const CollectVoucher = async (req: Request, res: Response) => {
       },
     });
     res.json(voucher);
+  } catch (e) {
+    console.log(e);
+    res.status(500).json(e);
+  }
+};
+
+export const UpdateUsedVoucher = async (req: Request, res: Response) => {
+  try {
+    const { userId } = authService.decodeToken(req.cookies.authToken);
+    const { id } = req.params;
+    
+    const userVoucher = await feature5Client.user_voucher.findUnique({
+      where: {
+        userId_voucherId: {
+          userId: userId,
+          voucherId: parseInt(id),
+        },
+      },
+    });
+
+    if (!userVoucher) {
+      return res.status(404).json({ message: 'User does not have this voucher.' });
+    }
+
+    const updatedVoucher = await feature5Client.user_voucher.update({
+      where: {
+        userId_voucherId: {
+          userId: userId,
+          voucherId: parseInt(id),
+        },
+      },
+      data: {
+        isUsed: true,
+      },
+    });
+
+    res.json(updatedVoucher);
   } catch (e) {
     console.log(e);
     res.status(500).json(e);

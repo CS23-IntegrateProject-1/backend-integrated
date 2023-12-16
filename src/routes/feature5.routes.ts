@@ -31,6 +31,7 @@ import {
   getPromotionbyId,
   getCollectedVoucher,
   CollectVoucher,
+  UpdateUsedVoucher
 
 } from "../controllers/feature5.controller";
 
@@ -58,7 +59,8 @@ feature5Router.get("/AllVoucher", GetAllVoucher); //for show all voucher are cre
 feature5Router.get("/AllVoucher/:id", getVoucherById); //for show voucher for update
 //MyReward
 feature5Router.get("/AllCollectedVoucher/",customVerifyCookie, getCollectedVoucher); //for show collected voucher for update
-feature5Router.post("/CollecteVoucher/:id",customVerifyCookie, CollectVoucher); //for collect voucher for update
+feature5Router.post("/CollectVoucher/:id",customVerifyCookie, CollectVoucher); //for collect voucher for update
+feature5Router.patch("/UpdateUsedVoucher/:id",customVerifyCookie, UpdateUsedVoucher); //for collect voucher for update
 
 //Membertier
 feature5Router.get("/tierName/", customVerifyCookie, GettierName); //for show only tier
