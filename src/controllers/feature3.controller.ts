@@ -577,20 +577,54 @@ export const deleteFoodReview = async (req: Request, res: Response) => {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-export const getVenuesPage = async (req: Request, res: Response) => {
-  try {
-    const VenuesPage = await feature3Client.$queryRaw`
-            SELECT V.venueId, VB.branchId, name, description, category, capacity, chatRoomId, locationId, website_url, COALESCE(AVG(VR.rating), 0) AS rating
-            FROM Venue V JOIN Venue_branch VB ON V.venueId = VB.venueId
-              LEFT JOIN Venue_reviews VR ON VB.branchId = VR.branchId
-            GROUP BY V.venueId
-            ORDER BY V.venueId;
-          `;
+interface VenueInfo {
+    venueId:     number;
+    branchId:    number;
+    name:        string;
+    description: string;
+    category:    string;
+    capacity:    number;
+    chatRoomId:  number;
+    locationId:  number;
+    website_url: string;
+    rating:      string;
+}
 
-    return res.json(VenuesPage);
+
+export const getVenuesPage = async (req: Request, res: Response) => {
+
+  const search = String(req.query.search);
+
+  try {
+    const VenuesPage = await feature3Client.$queryRaw<VenueInfo[]>`
+      SELECT
+        V.venueId,
+        VB.branchId,
+        name,
+        description,
+        category,
+        capacity,
+        chatRoomId,
+        locationId,
+        website_url,
+        COALESCE(AVG(VR.rating), 0) AS rating
+      FROM
+        Venue V
+        JOIN Venue_branch VB ON V.venueId = VB.venueId
+        LEFT JOIN Venue_reviews VR ON VB.branchId = VR.branchId
+      GROUP BY
+        V.venueId
+      ORDER BY
+        V.venueId;
+    `;
+
+
+
+    const filteredVenues = VenuesPage.filter(v => String(v.name).trim().toLowerCase().includes(String(search).trim().toLowerCase()));
+    return res.json(filteredVenues);
   } catch (error) {
     console.error(error);
-    return res.status(500).json(error);
+    return res.status(500).json({ error: 'Internal Server Error' });
   }
 };
 
