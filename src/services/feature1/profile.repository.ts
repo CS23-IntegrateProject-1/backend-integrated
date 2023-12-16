@@ -6,6 +6,7 @@ import {
   ProfileUpdateRequest,
 } from "../../controllers/feature1/models/profile.model";
 import { omit, pick } from "ramda";
+import { prismaClient } from "../../controllers/feature1.controller";
 
 export interface IProfileRepository {
   getUserById(userId: number): Promise<ProfileShowDBResponse>;
@@ -48,28 +49,18 @@ const expandBio = (profile: Profile): ExpandedProfile => {
 };
 
 export class ProfileRepository implements IProfileRepository {
-  private prismaClient: PrismaClient<
-    Prisma.PrismaClientOptions,
-    never,
-    DefaultArgs
-  >;
-
-  constructor() {
-    this.prismaClient = new PrismaClient();
-  }
-
   async updateUserById(
     userId: number,
     data: ProfileUpdateRequest,
   ): Promise<ProfileShowDBResponse> {
-    const result = await this.prismaClient.user.update({
+    const result = await prismaClient.user.update({
       include: { User_bio: true },
       where: {
         userId: userId,
       },
       data: {
         phone: data.phone,
-        email: data.phone,
+        email: data.email,
         userId,
         User_bio: {
           connectOrCreate: {
@@ -101,7 +92,7 @@ export class ProfileRepository implements IProfileRepository {
   }
 
   async getUserById(userId: number): Promise<ProfileShowDBResponse> {
-    const result = await this.prismaClient.user.findFirst({
+    const result = await prismaClient.user.findFirst({
       where: {
         userId,
       },

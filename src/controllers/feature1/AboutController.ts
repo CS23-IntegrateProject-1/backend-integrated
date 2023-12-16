@@ -4,7 +4,6 @@ import AboutService, {
 } from "../../services/feature1/about.service";
 import AboutRepository from "../../services/feature1/about.repository";
 import { makeErrorResponse } from "./models/payment_method.model";
-import jwt, { JsonWebTokenError } from "jsonwebtoken";
 import {
   makeAboutShowWebResponse,
   makeAboutIndexWebResponse,
@@ -16,9 +15,8 @@ import {
   PrismaClientValidationError,
 } from "@prisma/client/runtime/library";
 import { Prisma } from "@prisma/client";
-import { extractToken } from "./utils";
 
-interface IAboutController {
+export interface IAboutController {
   store: (req: Request, res: Response) => unknown;
   show: (req: Request, res: Response) => unknown;
   update: (req: Request, res: Response) => unknown;
@@ -29,20 +27,7 @@ export class AboutController implements IAboutController {
   private service: IAboutService = new AboutService(new AboutRepository());
 
   async store(req: Request, res: Response) {
-    let token: string;
-
     try {
-      token = extractToken(req);
-    } catch (e) {
-      return res.status(401).json(makeErrorResponse("Unauthorized"));
-    }
-
-    try {
-      const decoded = jwt.verify(
-        token as string,
-        process.env.JWT_SECRET as string,
-      );
-
       let { version, detail } = req.body;
 
       if (typeof version !== "string") {
@@ -74,29 +59,12 @@ export class AboutController implements IAboutController {
         }
       }
     } catch (e) {
-      if (e instanceof JsonWebTokenError) {
-        return res.status(401).json(makeErrorResponse("Invalid token"));
-      } else {
-        return res.status(404).json(makeErrorResponse("About not found"));
-      }
+      return res.status(404).json(makeErrorResponse("About not found"));
     }
   }
 
   async show(req: Request, res: Response) {
-    let token: string;
-
     try {
-      token = extractToken(req);
-    } catch (e) {
-      return res.status(401).json(makeErrorResponse("Unauthorized"));
-    }
-
-    try {
-      const decoded = jwt.verify(
-        token as string,
-        process.env.JWT_SECRET as string,
-      );
-
       const { id } = req.query;
 
       const idNum: number = Number(id);
@@ -118,103 +86,62 @@ export class AboutController implements IAboutController {
         return res.json(webResponse);
       }
     } catch (e) {
-      if (e instanceof JsonWebTokenError) {
-        return res.status(401).json(makeErrorResponse("Invalid token"));
+      return res.status(404).json(makeErrorResponse("About not found"));
+    }
+  }
+
+  async update(req: Request, res: Response) {
+    let { id, version, detail } = req.body;
+
+    const idNum = Number(id);
+
+    if (isNaN(idNum) || typeof version !== "string") {
+      return res.status(400).json(makeErrorResponse("Malformed request"));
+    }
+
+    if (typeof detail !== "string") {
+      detail = "";
+    }
+
+    try {
+      const response = await this.service.updateAbout(idNum, version, detail);
+
+      const webResponse = makeAboutUpdateWebResponse(response);
+
+      return res.json(webResponse);
+    } catch (e) {
+      if (e instanceof PrismaClientValidationError) {
+        return res
+          .status(400)
+          .json(makeErrorResponse("Invalid request"))
+          .send();
       } else {
         return res.status(404).json(makeErrorResponse("About not found"));
       }
     }
   }
 
-  async update(req: Request, res: Response) {
-    let token: string;
-
-    try {
-      token = extractToken(req);
-    } catch (e) {
-      return res.status(401).json(makeErrorResponse("Unauthorized"));
-    }
-
-    try {
-      const decoded = jwt.verify(
-        token as string,
-        process.env.JWT_SECRET as string,
-      );
-
-      let { id, version, detail } = req.body;
-
-      const idNum = Number(id);
-
-      if (isNaN(idNum) || typeof version !== "string") {
-        return res.status(400).json(makeErrorResponse("Malformed request"));
-      }
-
-      if (typeof detail !== "string") {
-        detail = "";
-      }
-
-      try {
-        const response = await this.service.updateAbout(idNum, version, detail);
-
-        const webResponse = makeAboutUpdateWebResponse(response);
-
-        return res.json(webResponse);
-      } catch (e) {
-        if (e instanceof PrismaClientValidationError) {
-          return res
-            .status(400)
-            .json(makeErrorResponse("Invalid request"))
-            .send();
-        } else {
-          return res.status(404).json(makeErrorResponse("About not found"));
-        }
-      }
-    } catch (e) {
-      if (e instanceof JsonWebTokenError) {
-        return res.status(401).json(makeErrorResponse("Invalid token"));
-      }
-    }
-  }
-
   async destroy(req: Request, res: Response) {
-    let token: string;
+    const { id } = req.query;
+    const idNum: number = Number(id);
 
-    try {
-      token = extractToken(req);
-    } catch (e) {
-      return res.status(401).json(makeErrorResponse("Unauthorized"));
+    if (isNaN(idNum)) {
+      return res.status(400).json(makeErrorResponse("Malformed request"));
     }
 
     try {
-      const decoded = jwt.verify(
-        token as string,
-        process.env.JWT_SECRET as string,
-      );
-      const { id } = req.query;
-      const idNum: number = Number(id);
+      await this.service.deleteAbout(idNum);
 
-      if (isNaN(idNum)) {
-        return res.status(400).json(makeErrorResponse("Malformed request"));
-      }
-
-      try {
-        await this.service.deleteAbout(idNum);
-
-        return res.status(200).send();
-      } catch (e) {
-        if (e instanceof Prisma.PrismaClientKnownRequestError) {
-          if (e.code === "P2025") {
-            return res
-              .status(404)
-              .json(makeErrorResponse(e.meta!.cause as string));
-          }
-        } else {
-          return res.status(500).send();
-        }
-      }
+      return res.status(200).send();
     } catch (e) {
-      if (e instanceof JsonWebTokenError) {
-        return res.status(401).json(makeErrorResponse("Invalid token"));
+      if (e instanceof Prisma.PrismaClientKnownRequestError) {
+        if (e.code === "P2025") {
+          return res
+            .status(404)
+            .json(makeErrorResponse(e.meta!.cause as string));
+        }
+      } else {
+        return res.status(500).send();
       }
     }
   }

@@ -1,11 +1,5 @@
 import { map } from "ramda";
 
-type UserMinimalInfo ={
-  userId: number;
-  username: string;
-  profile_picture: string | null;
-};
-
 export type GroupCreateDBResponse = {
   groupId: number;
   group_name: string;

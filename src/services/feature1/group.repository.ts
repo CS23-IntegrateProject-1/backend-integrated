@@ -51,7 +51,7 @@ export default class GroupRepository {
     const result = await this.prismaClient.group.create({
       data: {
         Group_user: {
-          create: members.map((id) => ({ memberId: id })),
+          create: Array.from(allMembers).map((id) => ({ memberId: id })),
         },
         group_name: groupName,
       },
