@@ -2,10 +2,12 @@ import { Day, PrismaClient } from "@prisma/client";
 import authService from "../auth/auth.service";
 import { addHours } from "date-fns";
 import { Request } from "express";
+import { error } from "console";
+
 
 export const getOfflineAvailableTables = async (req: Request) => {
-    const prisma = new PrismaClient();
     try {
+        const prisma = new PrismaClient();
         const token = req.cookies.authToken;
         if (!token) {
             throw new Error("No auth token");
@@ -26,7 +28,7 @@ export const getOfflineAvailableTables = async (req: Request) => {
         const venueId = getVenueId?.venueId;
 
         if (venueId == undefined || !venueId) {
-            throw new Error("Venue not found.");
+            return { error: "Venue not found." };
         }
 
         const { reserve_date, time, branchId } = req.body;
@@ -41,7 +43,7 @@ export const getOfflineAvailableTables = async (req: Request) => {
         });
 
         if (tables.length === 0) {
-            throw new Error("No tables found in this venue");
+            return { error: "No tables found in this venue" };
         }
 
         const DateTimeStart: Date = addHours(new Date(reservedTimeStart), 7);
@@ -82,7 +84,7 @@ export const getOfflineAvailableTables = async (req: Request) => {
         }
 
         if (canreserve === 0) {
-            throw new Error("Venue is closed today")
+            return { error: "Venue is closed today" };
         }
 
         const dayName = daysOfWeek[day];
@@ -108,7 +110,7 @@ export const getOfflineAvailableTables = async (req: Request) => {
                 .split("T")[1]
                 .split(".")[0];
             if (closeBeforeString <= "02:00:00") {
-                throw new Error("Venue is closed today.")
+                return { error: "Venue is closed today" };
             } else {
                 notOpen = true;
             }
@@ -150,7 +152,7 @@ export const getOfflineAvailableTables = async (req: Request) => {
         const twoHoursBeforeClose = addHours(closeDate, -2);
 
         if (DateTimeStart < openDate || DateTimeStart > twoHoursBeforeClose) {
-            throw new Error("Reservation time is not within valid hours.")
+            return { error: "Reservation time is not within valid hours." };
         }
 
         const overlappingReservations =
@@ -199,7 +201,7 @@ export const getOfflineAvailableTables = async (req: Request) => {
             availableTables === null ||
             availableTables === undefined
         ) {
-            throw new Error("No more Available Table");
+            return { error: "No more Available Table" };
         }
         const availableTables2 = {
             availableTables: availableTables,
@@ -208,6 +210,6 @@ export const getOfflineAvailableTables = async (req: Request) => {
 
         return availableTables2;
     } catch (e:any) {
-        throw new Error(e);
+        return error(e);
     }
 };
