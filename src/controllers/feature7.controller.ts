@@ -8,6 +8,7 @@ import { customVerifyCookie } from "../middlewares/verifyCookies";
 // import { json } from "stream/consumers";
 import multerConfig from "../multerConfig";
 import { parse } from "path";
+import { or } from "ramda";
 
 
 const feature7Client = new PrismaClient();
@@ -80,54 +81,33 @@ export const getSetById = async (req: Request, res: Response) => {
         console.log(e);
     }
 }
-export const checkMenuAvailability = async (req: Request, res: Response) => {
+export const addMenuToCookie = async (req: any, res: Response) => {
     try {
+        const userId = req.userId;
+        const reservationId =240;
+        const reservationInfo = await feature7Client.reservation.findUnique({
+            where: {
+                reservationId: reservationId,
+            },
+        });
+        const quantity = req.body.quantity;
+        if (quantity === undefined || quantity === null) {
+            return res.status(400).json({ error: 'Add Quantity' });
+        }
         const menuId = req.params.menuId;
-        const venueId = req.params.venueId;
-        const branchId = req.params.branchId;
+        const venueId = reservationInfo?.venueId;
+        const branchId = reservationInfo?.branchId;
         const stockRecord = await feature7Client.stocks.findFirst({
             where: {
-                venueId: parseInt(venueId),
-                branchId: parseInt(branchId),
+                venueId: venueId,
+                branchId: branchId!,
                 menuId: parseInt(menuId),
             },
         });
 
-        return res.status(200).json(stockRecord?.availability);
-    }
-    catch (e) {
-        console.error('Error checking stock availability:', e);
-    }
-}
-export const checkSetAvailability = async (req: Request, res: Response) => {
-    try {
-        const setItems = await feature7Client.set_items.findMany({
-            where: {
-                setId: parseInt(req.params.setId),
-            },
-        });
-        const menuIds = setItems.map((setItem) => setItem.menuId);
-        const stockRecords = await feature7Client.stocks.findMany({
-            where: {
-                menuId: {
-                    in: menuIds,
-                },
-                venueId: parseInt(req.params.venueId),
-                branchId: parseInt(req.params.branchId),
-            },
-        });
-        return res.status(200).json(stockRecords.every((stockRecord) => stockRecord.availability));
-    }
-    catch (e) {
-        console.log(e);
-    }
-}
-
-export const addMenuToCookie = async (req: any, res: Response) => {
-    try {
-        const userId = req.userId;
-        const quantity = req.body.quantity;
-        const menuId = req.params.menuId;
+        if (stockRecord?.availability === false) {
+            return res.status(404).json({ error: 'Menu item not available' });
+        }
         const menu = await feature7Client.menu.findUnique(
             {
                 where: {
@@ -146,7 +126,7 @@ export const addMenuToCookie = async (req: any, res: Response) => {
         // Check if the menu item is already in the cart
         const existingCartItem = existingCart.find((item) => item.menuId === menu.menuId);
 
-        if (existingCartItem && userId == existingCartItem.userId) {
+        if (existingCartItem && reservationId == existingCartItem.reservationId) {
             // If the item is already in the cart, update the quantity
             existingCartItem.quantity = quantity;
         } else {
@@ -154,6 +134,7 @@ export const addMenuToCookie = async (req: any, res: Response) => {
             existingCart.push({
                 userId: parseInt(userId),
                 menuId: menu.menuId,
+                reservationId: reservationId,
                 setId: null,
                 name: menu.name,
                 price: menu.price,
@@ -179,8 +160,37 @@ export const addMenuToCookie = async (req: any, res: Response) => {
 export const addSetToCookie = async (req: any, res: Response) => {
     try {
         const userId = req.userId;
+        const reservationId =240;
+        const reservationInfo = await feature7Client.reservation.findUnique({
+            where: {
+                reservationId: reservationId,
+            },
+        });
         const quantity = req.body.quantity;
+        if (quantity === undefined || quantity === null) {
+            return res.status(400).json({ error: 'Add Quantity' });
+        }
         const setId = req.params.setId;
+        const venueId = reservationInfo?.venueId;
+        const branchId = reservationInfo?.branchId;
+        const setItems = await feature7Client.set_items.findMany({
+            where: {
+                setId: parseInt(setId),
+            },
+        });
+        const menuIds = setItems.map((setItem) => setItem.menuId);
+        const stockRecords = await feature7Client.stocks.findMany({
+            where: {
+                menuId: {
+                    in: menuIds,
+                },
+                venueId: venueId,
+                branchId: branchId!,
+            },
+        });
+        if (stockRecords.every((stockRecord) => stockRecord.availability) === false) {
+            return res.status(404).json({ error: 'Set not available' });
+        }
         const set = await feature7Client.sets.findUnique(
             {
                 where: {
@@ -199,7 +209,7 @@ export const addSetToCookie = async (req: any, res: Response) => {
         // Check if the set item is already in the cart
         const existingCartItem = existingCart.find((item) => item.setId === set.setId);
 
-        if (existingCartItem && userId == existingCartItem.userId) {
+        if (existingCartItem && reservationId == existingCartItem.reservationId) {
             // If the item is already in the cart, update the quantity
             existingCartItem.quantity = quantity;
         } else {
@@ -207,6 +217,7 @@ export const addSetToCookie = async (req: any, res: Response) => {
             existingCart.push({
                 userId: parseInt(userId),
                 setId: set.setId,
+                reservationId: reservationId,
                 menuId: null,
                 name: set.name,
                 price: set.price,
@@ -232,11 +243,12 @@ export const addSetToCookie = async (req: any, res: Response) => {
 export const showCart = async (req: any, res: Response) => {
     try {
         const userId = parseInt(req.userId);
+        const reservationId =240;
         const cartString = req.cookies.cart || '[]';
         // console.log(cartString);
         const cart = JSON.parse(cartString);
         console.log(cart);
-        const userCart = cart.filter((item: any) => item.userId === userId);
+        const userCart = cart.filter((item: any) => item.reservationId === reservationId);
         console.log(userCart);
         res.status(200).json(userCart);
     }
@@ -284,70 +296,191 @@ export const showSetDetailFromCart = async (req: any, res: Response) => {
         console.log(e);
     }
 }
-// export const addCartToOrderDetailsOfDineIn = async (req: Request, res: Response) => {
-//     try{
+export const addCartToOrderDetailsOfDineIn = async (req: any, res: Response) => {
+    try{
+        const reservationId = 240;
+        const reservationInfo = await feature7Client.reservation.findUnique({
+            where: {
+                reservationId: reservationId,
+            },
+        });
+        const venueId = reservationInfo?.venueId;
+        const branchId = reservationInfo?.branchId;
+        const userId = req.userId;
+        const orderId = reservationId;
+        const findOrder = await feature7Client.orders.findFirst({
+            where: {
+                orderId: reservationId,
+            },
+        });
+        if (!findOrder) {
+        //create new order
+        const newOrder = await feature7Client.orders.create({
+            data: {
+                orderId: reservationId,
+                userId: userId,
+                branchId:branchId!,
+                reservedId: reservationId,
+                venueId: venueId!,
+                order_date: new Date(),
+                total_amount: 0,
+                // status: "On_going",
+            },
+          });
+        }
+          const cartString = req.cookies.cart || '[]';
+          const cart = JSON.parse(cartString);
+          console.log(cart);
+          const userCart = cart.filter((item: any) => item.reservationId === reservationId);
+        console.log(userCart);
+        //For menu
+        const menuIds = userCart
+        .filter((item) => item.menuId !== null) // Filter out null values
+        .map((item) => parseInt(item.menuId));
+        const menu = await feature7Client.menu.findMany({
+            where: {
+                menuId: {
+                    in: menuIds.map((id) => parseInt(id))
+                }
+            } 
+        });
+        const menuOrderDetails = await feature7Client.order_detail.createMany({
+            data: userCart
+                .filter((item) => item.menuId !== null) // Filter out null menuId values
+                .map((item) => ({
+                    orderId: orderId,
+                    menuId: item.menuId,
+                    unit_price: menu.find((menu) => menu.menuId === item.menuId)?.price,
+                    quantity: parseInt(item.quantity),
+                    setId: null,
+                    order_time: new Date(),
+                    status: "On_going",
+                })),
+        });
+        //For set
+        const setIds = userCart
+        .filter((item) => item.setId !== null) // Filter out null values
+        .map((item) => parseInt(item.setId));
+        // console.log(setIds);
+        const set = await feature7Client.sets.findMany({
+            where: {
+                setId: {
+                    in: setIds.map((id) => parseInt(id))
+                }
+            } 
+        });
+        const setOrderDetails = await feature7Client.order_detail.createMany({
+            data: userCart
+                .filter((item) => item.setId !== null) // Filter out null setId values
+                .map((item) => ({
+                    orderId: orderId,
+                    setId: item.setId,
+                    unit_price: set.find((set) => set.setId === item.setId)?.price,
+                    menuId: null,
+                    quantity: parseInt(item.quantity),
+                    order_time: new Date(),
+                    // status: "On_going",
+                })),
+        });
+        //get all orderdetails of the order
+        const orderDetailsOfOrder = await feature7Client.order_detail.findMany({
+            where: {
+                orderId: orderId,
+            },
+        });
 
+        //get total amount with quantity and unitprice
+        const totalAmount = orderDetailsOfOrder.reduce(
+            (total, orderDetail) => total + orderDetail.quantity * orderDetail.unit_price.toNumber(),
+            0
+        );
+        //update order with total amount
+        const updatedOrder = await feature7Client.orders.update({
+            where: {
+                orderId: orderId,
+            },
+            data: {
+                total_amount:totalAmount,
+            },
+        });
+        //clear cart
+        res.clearCookie('userCart');
+        const updatedCart = cart.filter(item => item.reservationId !== reservationId);
+        res.cookie('cart', JSON.stringify(updatedCart));
+        console.log(cart);
+        res.status(200).json(orderDetailsOfOrder);
+    }
+    catch (e) {
+        console.log(e);
+    }
+}
+// export const addCartToOrderDetailsOfDineIn = async (req: any, res: Response) => {
+//     try {
 //         const branchId = req.body.branchId;
 //         const venueId = req.params.venueId;
-//         // const reservedId = req.params.reservationId;
-//         const userId = 4;
-//         // const user = await feature7Client.reservation.findUnique({
-//         //     where: {
-//         //       reservationId: parseInt(reservedId),
-//         //     },
-//         //   });
-//         //get latest order id
-//         const latestOrder = await feature7Client.orders.findFirst({
-//             orderBy: {
-//               orderId: 'desc',
-//             },
-//           });
-//         //   const latestOrder = await feature7Client.orders.findUnique({
-//         //     where: {
-//         //         reservedId: parseInt(reservedId),
-//         //     },
-//         //   });
+//         const userId = parseInt(req.userId);
 
-//         const orderId = latestOrder?.orderId || 0;
-//         //create new orderId
-//         const newOrderId = orderId + 1;
-//         //create new order
-//         const newOrder = await feature7Client.orders.create({
-//             data: {
-//               orderId: newOrderId,
+//         // Check if the user already has an active order for the given venue
+//         const existingOrder = await feature7Client.orders.findFirst({
+//             where: {
 //                 userId: userId,
-//                 // userId: user?.userId,
-//                 branchId: parseInt(branchId),
-//                 reservedId: null,
 //                 venueId: parseInt(venueId),
-//                 order_date: new Date(),
-//                 total_amount: 0,
-//                 // status: "On_going",
+//                 status: "On_going", // Assuming this is your order status for active orders
 //             },
-//           });
-//           const cartString = req.cookies.cart || '[]';
-//           // console.log(cartString);
-//           const cart = JSON.parse(cartString);
-//           console.log(cart);
-//           const userCart = cart.filter((item: any) => item.userId === userId);
-//         //   console.log(userCart);
-//         console.log(userCart);
-//         //For menu
+//         });
+
+//         let orderId;
+//         if (existingOrder) {
+//             // If the user has an active order for the venue, use its orderId
+//             orderId = existingOrder.orderId;
+//         } else {
+//             // If the user doesn't have an active order for the venue, create a new order
+//             const latestOrder = await feature7Client.orders.findFirst({
+//                 orderBy: {
+//                     orderId: 'desc',
+//                 },
+//             });
+
+//             const newOrderId = latestOrder?.orderId ? latestOrder.orderId + 1 : 1;
+
+//             // Create a new order
+//             const newOrder = await feature7Client.orders.create({
+//                 data: {
+//                     orderId: newOrderId,
+//                     userId: userId,
+//                     branchId: parseInt(branchId),
+//                     reservedId: null,
+//                     venueId: parseInt(venueId),
+//                     order_date: new Date(),
+//                     total_amount: 0,
+//                     status: "On_going",
+//                 },
+//             });
+
+//             orderId = newOrderId;
+//         }
+
+//         const cartString = req.cookies.cart || '[]';
+//         const cart = JSON.parse(cartString);
+//         const userCart = cart.filter((item: any) => item.userId === userId);
+
+//         // For menu
 //         const menuIds = userCart
-//         .filter((item) => item.menuId !== null) // Filter out null values
-//         .map((item) => parseInt(item.menuId));
+//             .filter((item) => item.menuId !== null)
+//             .map((item) => parseInt(item.menuId));
 //         const menu = await feature7Client.menu.findMany({
 //             where: {
 //                 menuId: {
-//                     in: menuIds.map((id) => parseInt(id))
-//                 }
-//             } 
+//                     in: menuIds.map((id) => parseInt(id)),
+//                 },
+//             },
 //         });
+
 //         const menuOrderDetails = await feature7Client.order_detail.createMany({
 //             data: userCart
-//                 .filter((item) => item.menuId !== null) // Filter out null menuId values
+//                 .filter((item) => item.menuId !== null)
 //                 .map((item) => ({
-//                     orderId: newOrderId,
+//                     orderId: orderId,
 //                     menuId: item.menuId,
 //                     unit_price: menu.find((menu) => menu.menuId === item.menuId)?.price,
 //                     setId: null,
@@ -356,208 +489,72 @@ export const showSetDetailFromCart = async (req: any, res: Response) => {
 //                     status: "On_going",
 //                 })),
 //         });
-//         //For set
+
+//         // For set
 //         const setIds = userCart
-//         .filter((item) => item.setId !== null) // Filter out null values
-//         .map((item) => parseInt(item.setId));
-//         // console.log(setIds);
+//             .filter((item) => item.setId !== null)
+//             .map((item) => parseInt(item.setId));
 //         const set = await feature7Client.sets.findMany({
 //             where: {
 //                 setId: {
-//                     in: setIds.map((id) => parseInt(id))
-//                 }
-//             } 
+//                     in: setIds.map((id) => parseInt(id)),
+//                 },
+//             },
 //         });
+
 //         const setOrderDetails = await feature7Client.order_detail.createMany({
 //             data: userCart
-//                 .filter((item) => item.setId !== null) // Filter out null setId values
+//                 .filter((item) => item.setId !== null)
 //                 .map((item) => ({
-//                     orderId: newOrderId,
+//                     orderId: orderId,
 //                     setId: item.setId,
 //                     unit_price: set.find((set) => set.setId === item.setId)?.price,
 //                     menuId: null,
 //                     quantity: item.quantity,
 //                     order_time: new Date(),
-//                     // status: "On_going",
 //                 })),
 //         });
-//         //get all orderdetails of the order
+
+//         // Get all order details of the order
 //         const orderDetailsOfOrder = await feature7Client.order_detail.findMany({
 //             where: {
-//                 orderId: newOrderId,
+//                 orderId: orderId,
 //             },
 //         });
 
-//         //get total amount with quantity and unitprice
+//         // Get total amount with quantity and unit price
 //         const totalAmount = orderDetailsOfOrder.reduce(
 //             (total, orderDetail) => total + orderDetail.quantity * orderDetail.unit_price.toNumber(),
 //             0
 //         );
-//         //update order with total amount
+
+//         // Update order with total amount
 //         const updatedOrder = await feature7Client.orders.update({
 //             where: {
-//                 orderId: newOrderId,
+//                 orderId: orderId,
 //             },
 //             data: {
-//                 total_amount:totalAmount,
+//                 total_amount: totalAmount,
 //             },
 //         });
-//         //clear cart
-//         res.clearCookie('cart');
+
+//         // Clear cart
+//         // res.clearCookie('userCart');
+//         const updatedCart = cart.filter(item => item.userId !== userId);
+//         res.cookie('cart', JSON.stringify(updatedCart));
 //         res.status(200).json(orderDetailsOfOrder);
-//     }
-//     catch (e) {
+//     } catch (e) {
 //         console.log(e);
+//         res.status(500).json({ error: 'Internal Server Error' });
 //     }
-// }
-export const addCartToOrderDetailsOfDineIn = async (req: any, res: Response) => {
-    try {
-        const branchId = req.body.branchId;
-        const venueId = req.params.venueId;
-        const userId = parseInt(req.userId);
-
-        // Check if the user already has an active order for the given venue
-        const existingOrder = await feature7Client.orders.findFirst({
-            where: {
-                userId: userId,
-                venueId: parseInt(venueId),
-                status: "On_going", // Assuming this is your order status for active orders
-            },
-        });
-
-        let orderId;
-        if (existingOrder) {
-            // If the user has an active order for the venue, use its orderId
-            orderId = existingOrder.orderId;
-        } else {
-            // If the user doesn't have an active order for the venue, create a new order
-            const latestOrder = await feature7Client.orders.findFirst({
-                orderBy: {
-                    orderId: 'desc',
-                },
-            });
-
-            const newOrderId = latestOrder?.orderId ? latestOrder.orderId + 1 : 1;
-
-            // Create a new order
-            const newOrder = await feature7Client.orders.create({
-                data: {
-                    orderId: newOrderId,
-                    userId: userId,
-                    branchId: parseInt(branchId),
-                    reservedId: null,
-                    venueId: parseInt(venueId),
-                    order_date: new Date(),
-                    total_amount: 0,
-                    status: "On_going",
-                },
-            });
-
-            orderId = newOrderId;
-        }
-
-        const cartString = req.cookies.cart || '[]';
-        const cart = JSON.parse(cartString);
-        const userCart = cart.filter((item: any) => item.userId === userId);
-
-        // For menu
-        const menuIds = userCart
-            .filter((item) => item.menuId !== null)
-            .map((item) => parseInt(item.menuId));
-        const menu = await feature7Client.menu.findMany({
-            where: {
-                menuId: {
-                    in: menuIds.map((id) => parseInt(id)),
-                },
-            },
-        });
-
-        const menuOrderDetails = await feature7Client.order_detail.createMany({
-            data: userCart
-                .filter((item) => item.menuId !== null)
-                .map((item) => ({
-                    orderId: orderId,
-                    menuId: item.menuId,
-                    unit_price: menu.find((menu) => menu.menuId === item.menuId)?.price,
-                    setId: null,
-                    quantity: item.quantity,
-                    order_time: new Date(),
-                    status: "On_going",
-                })),
-        });
-
-        // For set
-        const setIds = userCart
-            .filter((item) => item.setId !== null)
-            .map((item) => parseInt(item.setId));
-        const set = await feature7Client.sets.findMany({
-            where: {
-                setId: {
-                    in: setIds.map((id) => parseInt(id)),
-                },
-            },
-        });
-
-        const setOrderDetails = await feature7Client.order_detail.createMany({
-            data: userCart
-                .filter((item) => item.setId !== null)
-                .map((item) => ({
-                    orderId: orderId,
-                    setId: item.setId,
-                    unit_price: set.find((set) => set.setId === item.setId)?.price,
-                    menuId: null,
-                    quantity: item.quantity,
-                    order_time: new Date(),
-                })),
-        });
-
-        // Get all order details of the order
-        const orderDetailsOfOrder = await feature7Client.order_detail.findMany({
-            where: {
-                orderId: orderId,
-            },
-        });
-
-        // Get total amount with quantity and unit price
-        const totalAmount = orderDetailsOfOrder.reduce(
-            (total, orderDetail) => total + orderDetail.quantity * orderDetail.unit_price.toNumber(),
-            0
-        );
-
-        // Update order with total amount
-        const updatedOrder = await feature7Client.orders.update({
-            where: {
-                orderId: orderId,
-            },
-            data: {
-                total_amount: totalAmount,
-            },
-        });
-
-        // Clear cart
-        // res.clearCookie('userCart');
-        const updatedCart = cart.filter(item => item.userId !== userId);
-        res.cookie('cart', JSON.stringify(updatedCart));
-        res.status(200).json(orderDetailsOfOrder);
-    } catch (e) {
-        console.log(e);
-        res.status(500).json({ error: 'Internal Server Error' });
-    }
-};
+// };
 export const showOnGoingOrderDetails = async (req: any, res: Response) => {
     try {
         const userId = parseInt(req.userId);
-        const venueId = parseInt(req.params.venueId);
-        const orderId = await feature7Client.orders.findFirst({
-            where: {
-                userId: userId,
-                venueId: venueId,
-                // status: "On_going",
-            },
-        });
+        const reservationId =240;
         const orderDetails = await feature7Client.order_detail.findMany({
             where: {
-                orderId: orderId?.orderId,
+                orderId: reservationId,
                 status: "On_going",
             },
         });
@@ -604,17 +601,10 @@ export const showOnGoingOrderDetails = async (req: any, res: Response) => {
 export const showCompletedOrderDetails = async (req: any, res: Response) => {
     try {
         const userId = parseInt(req.userId);
-        const venueId = parseInt(req.params.venueId);
-        const orderId = await feature7Client.orders.findFirst({
-            where: {
-                userId: userId,
-                venueId: venueId,
-                // status: "Completed",
-            },
-        });
+        const reservationId =240;
         const orderDetails = await feature7Client.order_detail.findMany({
             where: {
-                orderId: orderId?.orderId,
+                orderId: reservationId,
                 status: "Completed",
             },
         });
@@ -1170,6 +1160,184 @@ export const showMenuItemsInSet = async (req: Request, res: Response) => {
             menuName: menuItem.name,
         }));
         return res.status(200).json(result);
+    }
+    catch (e) {
+        console.log(e);
+    }
+}
+//show ongoing order in business
+export const onGoingOrderDetailsInBusiness = async (req: any, res: Response) => {
+    try{ const venueId = req.params.venueId;
+    const getReservations = await feature7Client.orders.findMany({
+        where: {
+            venueId: parseInt(venueId),
+        },
+    }); 
+    const getTable = await feature7Client.reservation_table.findMany({
+        where: {
+            reserveId: {
+                in: getReservations.map((reservation) => reservation.reservedId).filter((id) => id !== null) as number[],
+            },
+        },
+    });
+    const getOrderDetailsOfOngoingOrder = await feature7Client.order_detail.findMany({
+        where: {
+            orderId: {
+                in: getReservations.map((reservation) => reservation.orderId),
+            },
+            status: "On_going",
+        },
+    });
+    //add table number to order details
+    const orderDetailsWithTableNumber = getOrderDetailsOfOngoingOrder.map((orderDetail) => {
+        const table = getTable.find((table) => table.reserveId === orderDetail.orderId);
+        return {
+            ...orderDetail,
+            table: table,
+        };
+    });
+    res.status(200).json(orderDetailsWithTableNumber);}
+    catch (e) {
+        console.log(e);
+    }
+}
+//show completed order in business
+export const completedOrderDetailsInBusiness = async (req: any, res: Response) => {
+    try{ const venueId = req.params.venueId;
+    const getReservations = await feature7Client.orders.findMany({
+        where: {
+            venueId: parseInt(venueId),
+        },
+    }); 
+    const getTable = await feature7Client.reservation_table.findMany({
+        where: {
+            reserveId: {
+                in: getReservations.map((reservation) => reservation.reservedId).filter((id) => id !== null) as number[],
+            },
+        },
+    });
+    const getOrderDetailsOfOngoingOrder = await feature7Client.order_detail.findMany({
+        where: {
+            orderId: {
+                in: getReservations.map((reservation) => reservation.orderId),
+            },
+            status: "Completed",
+        },
+    });
+    //add table number to order details
+    const orderDetailsWithTableNumber = getOrderDetailsOfOngoingOrder.map((orderDetail) => {
+        const table = getTable.find((table) => table.reserveId === orderDetail.orderId);
+        return {
+            ...orderDetail,
+            table: table,
+        };
+    });
+    res.status(200).json(orderDetailsWithTableNumber);}
+    catch (e) {
+        console.log(e);
+    }
+}
+//change orderdetail status
+export const changeOrderDetailStatusCompleted = async (req: any, res: Response) => {
+    try {
+        const orderDetailId = req.params.orderDetailId;
+        const orderDetail = await feature7Client.order_detail.update({
+            where: {
+                orderDetailId: parseInt(orderDetailId),
+            },
+            data: {
+                status: "Completed",
+            },
+        });
+        const orderId = orderDetail.orderId;
+        //check every orderDetail in order is completed or not
+        const orderDetails = await feature7Client.order_detail.findMany({
+            where: {
+                orderId: orderId,
+            },
+        });
+        const completed = orderDetails.every((orderDetail) => orderDetail.status === "Completed");
+        //if all orderDetails are completed, change order status to completed
+        if (completed) {
+            const order = await feature7Client.orders.update({
+                where: {
+                    orderId: orderId,
+                },
+                data: {
+                    status: "Completed",
+                },
+            });
+        }
+        res.status(200).json(orderDetail);
+    }
+    catch (e) {
+        console.log(e);
+    }
+}
+//get receipt
+export const getReceipt = async (req: any, res: Response) => {
+    try {
+        const reservationId = 240;
+        const orderId = reservationId;
+        const orderInfo= await feature7Client.orders.findUnique({
+            where: {
+                orderId: orderId,
+            },
+        });
+        const orderDetails = await feature7Client.order_detail.findMany({
+            where: {
+                orderId: orderId,
+            },
+        });
+        //menu name
+        const menuIds = orderDetails
+            .map((orderDetail) => orderDetail.menuId)
+            .filter((menuId) => menuId !== null) as number[];
+        const menu = await feature7Client.menu.findMany({
+            where: {
+                menuId: {
+                    in: menuIds,
+                },
+            },
+        });
+        //set name
+        const setIds = orderDetails
+            .map((orderDetail) => orderDetail.setId)
+            .filter((setId) => setId !== null) as number[];
+        const set = await feature7Client.sets.findMany({
+            where: {
+                setId: {
+                    in: setIds,
+                },
+            },
+        });
+         // Calculate item count, total count, and total amount only once
+         const itemCount = orderDetails.length;
+         const totalCount = orderDetails.reduce((total, orderDetail) => total + orderDetail.quantity, 0);
+         const totalAmount = orderInfo?.total_amount;
+ 
+         // Process order details and add calculated values
+         const orderDetailsWithDetails = orderDetails.map((orderDetail) => {
+             const menuName = menu.find((menu) => menu.menuId === orderDetail.menuId)?.name;
+             const setName = set.find((set) => set.setId === orderDetail.setId)?.name;
+             return {
+                 
+                 menuName: menuName,
+                 setName: setName,
+             };
+         });
+ 
+         // Add calculated values to the response
+         const finalResponse = {
+            orderId: orderInfo?.orderId,
+             orderDate: orderInfo?.order_date,
+             orderDetails: orderDetailsWithDetails,
+             itemCount: itemCount,
+             totalCount: totalCount,
+             totalAmount: totalAmount,
+         };
+ 
+         res.status(200).json(finalResponse);
     }
     catch (e) {
         console.log(e);

@@ -7,8 +7,6 @@ import {
     getfeature7, 
     getSetsByVenueId,
     getSetById,
-    checkMenuAvailability,
-    checkSetAvailability,
     addMenuToCookie,
     showCart,
     addSetToCookie,
@@ -32,6 +30,10 @@ import {
     getMenuByVenueNotInSet,
     deleteMenuItemBeforeAddingToSet,
     showMenuItemsInSet,
+    onGoingOrderDetailsInBusiness,
+    completedOrderDetailsInBusiness,
+    changeOrderDetailStatusCompleted,
+    getReceipt,
 } from "../controllers/feature7.controller";
 import { customVerifyCookie } from "../middlewares/verifyCookies";
 import { clear } from "console";
@@ -50,14 +52,10 @@ feature7Router.get("/getSetsByVenueId/:id",getSetsByVenueId);
 feature7Router.get("/getMenuById/:id",getMenuById);
 //get set by id
 feature7Router.get("/getSetById/:id",getSetById);
-//check menu availability
-feature7Router.get("/checkMenuAvailability/:menuId/:venueId/:branchId",checkMenuAvailability);
-//check set availability
-feature7Router.get("/checkSetAvailability/:setId/:venueId/:branchId",checkSetAvailability);
 //add menu to cart
-feature7Router.post("/addMenuToCookie/:menuId", customVerifyCookie,addMenuToCookie);
+feature7Router.post("/addMenuToCookie/:menuId/", customVerifyCookie,addMenuToCookie);
 //add set to cart
-feature7Router.post("/addSetToCookie/:setId", customVerifyCookie,addSetToCookie);
+feature7Router.post("/addSetToCookie/:setId/", customVerifyCookie,addSetToCookie);
 //show cart of user
 feature7Router.get("/showCart",customVerifyCookie,showCart);
 //Show menu detail from cart
@@ -65,11 +63,11 @@ feature7Router.get("/showMenuDetailFromCart/:menuId",customVerifyCookie,showMenu
 //Show set detail from cart
 feature7Router.get("/showSetDetailFromCart/:setId",customVerifyCookie,showSetDetailFromCart);
 //add cart to order details
-feature7Router.post("/addCartToOrderDetailsOfDineIn/:venueId/",customVerifyCookie,addCartToOrderDetailsOfDineIn);
+feature7Router.post("/addCartToOrderDetailsOfDineIn/",customVerifyCookie,addCartToOrderDetailsOfDineIn);
 //show Ongoing Order details
-feature7Router.get("/showOngoingOrderDetails/:venueId",customVerifyCookie,showOnGoingOrderDetails);
+feature7Router.get("/showOngoingOrderDetails/",customVerifyCookie,showOnGoingOrderDetails);
 //show Completed Order details
-feature7Router.get("/showCompletedOrderDetails/:venueId",customVerifyCookie,showCompletedOrderDetails);
+feature7Router.get("/showCompletedOrderDetails/",customVerifyCookie,showCompletedOrderDetails);
 //show availability of menu of all branches
 feature7Router.get("/checkMenuAvailabilityOfAllBranches/:menuId/:venueId",checkMenuAvailabilityOfAllBranches);
 //Change menu availability
@@ -108,4 +106,12 @@ feature7Router.post("/deleteMenuItemBeforeAddingToSet",deleteMenuItemBeforeAddin
 feature7Router.post("/deleteMenuItemBeforeAddingToSet/:setId",deleteMenuItemBeforeAddingToSet);
 //show menu items in set
 feature7Router.get("/showMenuItemsInSet/:setId",showMenuItemsInSet);
+//show ongoing order in business
+feature7Router.get("/onGoingOrderDetailsInBusiness/:venueId",onGoingOrderDetailsInBusiness);
+//show ongoing order in business
+feature7Router.get("/completedOrderDetailsInBusiness/:venueId/",completedOrderDetailsInBusiness);
+//change orderdetails status completed
+feature7Router.post("/changeOrderDetailsStatusCompleted/:orderDetailId/",changeOrderDetailStatusCompleted);
+//get receipt
+feature7Router.get("/getReceipt/",customVerifyCookie,getReceipt);
 export default feature7Router;
