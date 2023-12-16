@@ -1,12 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import { Response, Request } from "express";
-import {
-    addHours,
-    startOfDay,
-    endOfDay,
-    parse,
-    format,
-} from "date-fns";
+import { addHours, startOfDay, endOfDay, parse, format } from "date-fns";
 import authService from "../services/auth/auth.service";
 import { Decimal } from "@prisma/client/runtime/library";
 import { genToken } from "../services/reservation/genToken.service";
@@ -219,17 +213,25 @@ export const createReservation = async (req: Request, res: Response) => {
         const newreserveTime = addHours(new Date(reserved_time), 7);
         // const entry_time = addMinutes(new Date(reserved_time), -30);
 
-        const getAvailableTablesResponse : any = await getAvailableTables(req);
-        if ( getAvailableTablesResponse.error == "No tables found in this venue" ) {
-            return res.status(400).json({ error: "No tables found in this venue" });
-        }
-        else if ( getAvailableTablesResponse.error == "Venue is closed today" ) {
+        const getAvailableTablesResponse: any = await getAvailableTables(req);
+        if (
+            getAvailableTablesResponse.error == "No tables found in this venue"
+        ) {
+            return res
+                .status(400)
+                .json({ error: "No tables found in this venue" });
+        } else if (
+            getAvailableTablesResponse.error == "Venue is closed today"
+        ) {
             return res.status(400).json({ error: "Venue is closed today" });
-        }
-        else if ( getAvailableTablesResponse.error == "Reservation time is not within valid hours" ) {
+        } else if (
+            getAvailableTablesResponse.error ==
+            "Reservation time is not within valid hours"
+        ) {
             return res.status(400).json({ error: "Not valid hours" });
-        }
-        else if ( getAvailableTablesResponse.error == "No more Available Table" ) {
+        } else if (
+            getAvailableTablesResponse.error == "No more Available Table"
+        ) {
             return res.status(400).json({ error: "No more Available Table" });
         }
         // console.log("getAvailableTablesResponse", getAvailableTablesResponse);
@@ -418,6 +420,7 @@ export const getAllTableByVenueId = async (req: Request, res: Response) => {
         const table = await feature6Client.tables.findMany({
             where: {
                 venueId: venueId,
+                isUsing: true,
             },
             include: {
                 table_type: true,
@@ -466,6 +469,7 @@ export const createTable = async (req: Request, res: Response) => {
                 table_no: tablenumber,
                 branchId: branchId,
                 status: "Available",
+                isUsing: true,
             },
         });
 
@@ -724,13 +728,13 @@ export const deleteTable = async (req: Request, res: Response) => {
                 .json({ error: "This table does not belong to your venue" });
         }
 
-        console.log("Table ID:", tableId);
-        console.log("Venue ID:", venueId);
-
-        const deletedTable = await feature6Client.tables.delete({
+        const deletedTable = await feature6Client.tables.update({
             where: {
                 tableId: parseInt(tableId),
                 venueId: venueId,
+            },
+            data: {
+                isUsing: false,
             },
         });
 
@@ -836,22 +840,30 @@ export const createOfflineReservation = async (req: Request, res: Response) => {
         req.body.reserve_date = reserve_date;
         req.body.time = time;
         req.body.venueId = venueId;
-        const offlineAvailabilityResponse : any  = await getOfflineAvailableTables(
-            req
-        );
-        if ( offlineAvailabilityResponse.error == "Venue not found." ) {
+        const offlineAvailabilityResponse: any =
+            await getOfflineAvailableTables(req);
+        if (offlineAvailabilityResponse.error == "Venue not found.") {
             return res.status(400).json({ error: "Venue not found." });
-        }
-        else if ( offlineAvailabilityResponse.error == "No tables found in this venue" ) {
-            return res.status(400).json({ error: "No tables found in this venue" });
-        }
-        else if ( offlineAvailabilityResponse.error == "Venue is closed today" ) {
+        } else if (
+            offlineAvailabilityResponse.error == "No tables found in this venue"
+        ) {
+            return res
+                .status(400)
+                .json({ error: "No tables found in this venue" });
+        } else if (
+            offlineAvailabilityResponse.error == "Venue is closed today"
+        ) {
             return res.status(400).json({ error: "Venue is closed today" });
-        }
-        else if ( offlineAvailabilityResponse.error == "Reservation time is not within valid hours." ) {
-            return res.status(400).json({ error: "Reservation time is not within valid hours." });
-        }
-        else if ( offlineAvailabilityResponse.error == "No more Available Table" ) {
+        } else if (
+            offlineAvailabilityResponse.error ==
+            "Reservation time is not within valid hours."
+        ) {
+            return res
+                .status(400)
+                .json({ error: "Reservation time is not within valid hours." });
+        } else if (
+            offlineAvailabilityResponse.error == "No more Available Table"
+        ) {
             return res.status(400).json({ error: "No more Available Table" });
         }
 
@@ -912,6 +924,7 @@ export const createOfflineReservation = async (req: Request, res: Response) => {
             await feature6Client.tables.update({
                 where: {
                     tableId: selectedTable[0].tableId,
+                    isUsing: true,
                 },
                 data: {
                     status: "Unavailable",
@@ -956,11 +969,18 @@ export const createOfflineReservation = async (req: Request, res: Response) => {
 export const checkIn = async (req: Request, res: Response) => {
     try {
         const reservationId = parseInt(req.params.reservationId);
+        const authToken = req.body.authToken;
+        const { userType } = authService.decodeToken(authToken);
         const checkInTime = addHours(new Date(), 7);
         const reservation = await feature6Client.reservation.findUnique({
             where: { reservationId },
         });
 
+        if (userType !== "user") {
+            return res
+                .status(401)
+                .json({ error: "This user is not customer user" });
+        }
         if (!reservation) {
             return res.status(404).json({ error: "Reservation not found" });
         }
@@ -1015,6 +1035,7 @@ export const checkIn = async (req: Request, res: Response) => {
             await feature6Client.tables.update({
                 where: {
                     tableId: selectedTable?.tableId,
+                    isUsing: true,
                 },
                 data: {
                     status: "Unavailable",
@@ -1048,8 +1069,11 @@ export const checkIn = async (req: Request, res: Response) => {
 export const qrCode = async (req: Request, res: Response) => {
     try {
         const { reservationId } = req.params;
+        const authToken = req.cookies.authToken;
+
         const qrCodeData = {
             reservationId: reservationId,
+            authToken: authToken,
         };
 
         const qrCodeText = JSON.stringify(qrCodeData);
@@ -1111,6 +1135,7 @@ export const checkOut = async (req: Request, res: Response) => {
         await feature6Client.tables.update({
             where: {
                 tableId: selectedTable?.tableId,
+                isUsing: true,
             },
             data: {
                 status: "Available",

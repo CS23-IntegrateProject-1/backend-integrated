@@ -19,7 +19,7 @@ export const getAvailableTables = async (req: Request) => {
             5
         );
         const tables = await prisma.tables.findMany({
-            where: { venueId, branchId },
+            where: { venueId, branchId, isUsing: true},
         });
         if (tables.length === 0) {
             return { error: "No tables found in this venue" };
@@ -138,6 +138,7 @@ export const getAvailableTables = async (req: Request) => {
         const allTables = await prisma.tables.findMany({
             where: {
                 venueId: venueId,
+                isUsing: true,
             },
             include: {
                 table_type: true,

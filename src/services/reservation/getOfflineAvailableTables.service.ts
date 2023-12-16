@@ -39,7 +39,7 @@ export const getOfflineAvailableTables = async (req: Request) => {
         const ReservedTimeStart = addHours(new Date(reservedTimeStart), 5);
 
         const tables = await prisma.tables.findMany({
-            where: { venueId, branchId },
+            where: { venueId, branchId, isUsing: true },
         });
 
         if (tables.length === 0) {
@@ -172,6 +172,7 @@ export const getOfflineAvailableTables = async (req: Request) => {
         const allTables = await prisma.tables.findMany({
             where: {
                 venueId: venueId,
+                isUsing: true,
             },
             include: {
                 table_type: true,
