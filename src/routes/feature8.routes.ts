@@ -52,7 +52,11 @@ import {
     getTransactionDetailsByVenueAndDate,
     getVenueByVenueId,
     getTransactionDetailByReservationIsPayForTable,
-    getTransactionDetailsByVenueAndDateForReservation
+    getTransactionDetailsByVenueAndDateForReservation,
+    checkTransactionDetailForOrder,
+    getTransactionDetailsByVenueAndDateForOrder,
+    getTransactionDetailForDelivery,
+    getTransactionDetailsByVenueAndDateForDelivery
 } from "../controllers/feature8.controller";
 
 
@@ -105,6 +109,10 @@ feature8Router.get("/apptransaction_details/:apptransactionId", getAppTransactio
 feature8Router.get("/apptransaction_details/bytransactionId/:transactionId", getApptransactiondetailByTransactionId); 
 feature8Router.get("/venue/:venueId/getReservationForAdmin", getTransactionDetailByReservationIsPayForTable);
 feature8Router.get("/venue/:venueId/getReservationForAdminFiltered", getTransactionDetailsByVenueAndDateForReservation);
+feature8Router.get("/checkTransactionDetailForOrder/:venueId", checkTransactionDetailForOrder);
+feature8Router.get("/getTransactionDetailsByVenueAndDateForOrder/:venueId", getTransactionDetailsByVenueAndDateForOrder);
+feature8Router.get("/getTransactionDetailForDelivery/:venueId", getTransactionDetailForDelivery);
+feature8Router.get("/getTransactionDetailsByVenueAndDateForDelivery/:venueId", getTransactionDetailsByVenueAndDateForDelivery);
 
     //business
 feature8Router.get("/venuetransactions", getVenuetransaction);
