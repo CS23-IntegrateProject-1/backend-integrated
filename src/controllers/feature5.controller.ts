@@ -102,6 +102,8 @@ export const getAdvertisementById = async (req: Request, res: Response) => {
 		console.log(e);
 		res.status(500).json(e);
 	}
+
+    
 };
 
 export const AdminApprove = async (req: Request, res: Response) => {
@@ -119,12 +121,8 @@ export const AdminApprove = async (req: Request, res: Response) => {
 	}
 };
 
-export const GetAllAdvertisement = async (req: Request, res: Response) => {
-	// const { businessId } = authService.decodeToken(req.cookies.authToken);
+export const GetAllAdvertisement = async (req: Request, res: Response) => {  //for admin
 	try {
-		// const GetAllAd = await feature5Client.ad_business.findMany({
-		// 	where: { businessId },
-		// });
 		const GetAllAd = await feature5Client.ad_business.findMany();
 		res.json(GetAllAd);
 	} catch (err) {
@@ -132,6 +130,7 @@ export const GetAllAdvertisement = async (req: Request, res: Response) => {
 		res.status(500).json({ error: error.message });
 	}
 };
+
 
 export const GetInprogressAdvertisement = async (
 	req: Request,

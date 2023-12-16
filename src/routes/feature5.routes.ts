@@ -42,7 +42,7 @@ feature5Router.patch("/AdminApprove/:id", AdminApprove); //for approve advertise
 feature5Router.delete("/DeleteAdBSN/:id", DeleteAdvertisement); // for delete advertisement
 feature5Router.get("/AllInprogressAdBSN", GetInprogressAdvertisement); //for show In_Progress or rejected status of advertisement
 feature5Router.get("/AllCompleteAdBSN", GetAllCompleteAdvertisement); //for show only completed advertisement
-feature5Router.get("/AdBSN/:id", getAdvertisementById);
+feature5Router.get("/AdBSN/:id", getAdvertisementById); //for show each advertisement by using advertisement id 
 feature5Router.get("/AllAdBSN/", customVerifyCookie, GetAllAdvertisement); //for show all advertisement was created
 feature5Router.get("/AllTag", GetAllTags); //for show all tag that business can choose to advert in user side
 
@@ -51,7 +51,7 @@ feature5Router.post("/Voucher", Voucher); // for create voucher
 feature5Router.get("/AllVenue/:id", GetallVenue); //for show all venues of business to choose their venue that can use voucher
 feature5Router.delete("/DeleteVoucher/:id", DeleteVoucher) ; // for delete voucher
 feature5Router.patch("/VoucherApprove/:id", VoucherApprove); //for approve status of voucher 
-feature5Router.get("/AllVoucher/:id", GetAllVoucher); //for show all voucher are created
+feature5Router.get("/AllVoucher/", GetAllVoucher); //for show all voucher are created
 feature5Router.get("/InfoOfVoucher/:id", GetInfomationOfVoucher); //for show Infomation of each voucher
 
 //Membertier
