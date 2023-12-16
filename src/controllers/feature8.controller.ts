@@ -407,6 +407,8 @@ export const getVenuetransaction = async (req: Request, res: Response) => {
     }
 }
 
+
+
 export const getVenuetransactionById = async (req: Request, res: Response) => {
     const venueTransactionId = parseInt(req.params.venueTransactionId, 10);
 
@@ -945,6 +947,92 @@ export const updateVenueCreditCard = async (req: Request, res: Response) => {
     }
 };
 
+export const getTransactionByVenueId = async (req: Request, res: Response) => {
+    const venueId = parseInt(req.params.venueId, 10);
+
+    try {
+        const transactions = await feature8Client.transaction.findMany({
+            where: { venueId },
+        });
+
+        if (!transactions) {
+            return res.status(404).json({ error: 'Transactions not found for this venue' });
+        }
+
+        res.status(200).json(transactions);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Failed to retrieve transactions' });
+    }
+}
+
+export const getTransactionDetailsByVenueId = async (req: Request, res: Response) => {
+    const venueId = parseInt(req.params.venueId, 10);
+
+    try {
+        const transactions = await feature8Client.transaction.findMany({
+            where: { venueId },
+        });
+
+        if (!transactions) {
+            return res.status(404).json({ error: 'Transactions not found for this venue' });
+        }
+
+        const transactionDetails = await Promise.all(
+            transactions.map((transaction) =>
+                feature8Client.transaction_detail.findMany({
+                    where: { transactionId: transaction.transactionId },
+                })
+            )
+        );
+
+        res.status(200).json(transactionDetails);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Failed to retrieve transaction details' });
+    }
+}
+
+export const getTransactionDetailsByVenueAndDate = async (req: Request, res: Response) => {
+  const { fromTime, toTime } = req.query;
+  const { venueId } = req.params;
+
+  if (!fromTime || !toTime) {
+    return res.status(400).json({ error: 'Both fromTime and toTime are required.' });
+  }
+
+  try {
+    const fromDate = new Date(fromTime as string);
+    const toDate = new Date(toTime as string);
+
+    const transactionDetails = await feature8Client.transaction_detail.findMany({
+      where: {
+        AND: [
+          {
+            timestamp: {
+              gte: fromDate,
+              lte: toDate,
+            },
+          },
+          {
+            transaction: {
+              venueId: Number(venueId),
+            },
+          },
+        ],
+      },
+    });
+
+    if (!transactionDetails || transactionDetails.length === 0) {
+      return res.status(404).json({ error: 'No transaction details found for the specified venue and date range' });
+    }
+
+    return res.json(transactionDetails);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: 'An error occurred while fetching transaction details.' });
+  }
+};
 
 //token function
 // import jwt, { Secret } from 'jsonwebtoken';

@@ -46,7 +46,10 @@ import {
     getBusinessIdByVenueId,
     getBusinessIdByVenueIdForReal,
     getAllNotificationAdBusinessByBusinessId,
-    getAllNotificationAdBusinessMain
+    getAllNotificationAdBusinessMain,
+    getTransactionByVenueId,
+    getTransactionDetailsByVenueId,
+    getTransactionDetailsByVenueAndDate
 } from "../controllers/feature8.controller";
 
 
@@ -85,6 +88,11 @@ feature8Router.get("/transactions", getAllTransaction);
 feature8Router.get("/transactions/:transactionId", getTransactionById);
 feature8Router.get("/transaction_details", getAllTransactionDetails); 
 feature8Router.get("/transaction_details/:transactionId", getTransactionDetailById);
+feature8Router.get("/transactionsbyvenueId/:venueId", getTransactionByVenueId);
+feature8Router.get("/transactiondetailbyvenueId/:venueId", getTransactionDetailsByVenueId);
+feature8Router.get("/transactiondetailbyvenueIdandTime/:venueId", getTransactionDetailsByVenueAndDate);
+
+
     //admin
 feature8Router.get("/apptransactions", getAllApptransaction);
 feature8Router.get("/apptransactions/:venueId", getAllApptransactionByVenueId);
@@ -97,6 +105,7 @@ feature8Router.get("/venuetransactions", getVenuetransaction);
 feature8Router.get("/venuetransactions/:venuetransactionId", getVenuetransactionById);
 feature8Router.get("/venuetransaction_details", getVenuetransactiondetail);
 feature8Router.get("/venuetransaction_details/:venuetransactionId", getVenuetransactiondetailById);
+
 
 // feature8Router.get("/updateorder", ShowUpdateOrder);
     // post method
