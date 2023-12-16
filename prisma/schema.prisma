@@ -118,7 +118,7 @@ model Group_user {
 model Group {
   groupId       Int          @id @default(autoincrement())
   group_name    String
-  group_profile String?       @db.Text
+  group_profile String?      @db.Text
   Group_user    Group_user[]
 }
 
@@ -414,18 +414,19 @@ model Chat_Room_Logs {
 }
 
 model Message {
-  roomId         Int
-  userId         Int
-  message        String
-  date_time      DateTime  @default(now())
-  messageId      Int       @id @default(autoincrement())
-  replyMessageId Int?
-  reply_from     Message?  @relation("reply", fields: [replyMessageId], references: [messageId])
-  reply          Message[] @relation("reply")
-  room           Chat_room @relation(fields: [roomId], references: [chatRoomId])
-  user           User      @relation(fields: [userId], references: [userId])
+  roomId    Int
+  userId    Int
+  message   String
+  date_time DateTime @default(now())
+  messageId Int      @id @default(autoincrement())
 
-  @@index([replyMessageId], map: "Message_replyMessageId_fkey")
+  // replyMessageId Int?
+  // reply_from     Message?  @relation("reply", fields: [replyMessageId], references: [messageId])
+  // reply          Message[] @relation("reply")
+  room Chat_room @relation(fields: [roomId], references: [chatRoomId])
+  user User      @relation(fields: [userId], references: [userId])
+
+  //@@index([replyMessageId], map: "Message_replyMessageId_fkey")
   @@index([roomId], map: "Message_roomId_fkey")
   @@index([userId], map: "Message_userId_fkey")
 }
@@ -845,6 +846,7 @@ model Tables {
   tableTypeDetailId Int
   table_no          Int
   branchId          Int?
+  isUsing           Boolean             @default(true)
   status            Table_status
   Reservation_table Reservation_table[]
   branch            Venue_branch?       @relation(fields: [branchId], references: [branchId])
@@ -888,18 +890,18 @@ model Recommendation {
 }
 
 model Promotion {
-  promotionId    Int      @id @default(autoincrement())
+  promotionId    Int            @id @default(autoincrement())
   name           String
   description    String?
-  image_url      String?  @db.Text
+  image_url      String?        @db.Text
   start_date     DateTime
   end_date       DateTime
   discount_price Float
-  isApprove      Approve_status  @default(In_progress)
+  isApprove      Approve_status @default(In_progress)
   venueId        Int
   menuId         Int
-  menu           Menu     @relation(fields: [menuId], references: [menuId])
-  venue          Venue    @relation(fields: [venueId], references: [venueId])
+  menu           Menu           @relation(fields: [menuId], references: [menuId])
+  venue          Venue          @relation(fields: [venueId], references: [venueId])
 
   @@index([menuId], map: "Promotion_menuId_fkey")
   @@index([venueId], map: "Promotion_venueId_fkey")
