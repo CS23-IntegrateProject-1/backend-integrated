@@ -49,7 +49,8 @@ import {
     getAllNotificationAdBusinessMain,
     getTransactionByVenueId,
     getTransactionDetailsByVenueId,
-    getTransactionDetailsByVenueAndDate
+    getTransactionDetailsByVenueAndDate,
+    getVenueByVenueId
 } from "../controllers/feature8.controller";
 
 
@@ -105,7 +106,7 @@ feature8Router.get("/venuetransactions", getVenuetransaction);
 feature8Router.get("/venuetransactions/:venuetransactionId", getVenuetransactionById);
 feature8Router.get("/venuetransaction_details", getVenuetransactiondetail);
 feature8Router.get("/venuetransaction_details/:venuetransactionId", getVenuetransactiondetailById);
-
+feature8Router.get("/venue/:venueId", getVenueByVenueId);
 
 // feature8Router.get("/updateorder", ShowUpdateOrder);
     // post method

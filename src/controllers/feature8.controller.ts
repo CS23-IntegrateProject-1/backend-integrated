@@ -1034,6 +1034,24 @@ export const getTransactionDetailsByVenueAndDate = async (req: Request, res: Res
   }
 };
 
+export const getVenueByVenueId = async (req: Request, res: Response) => {
+    const { venueId } = req.params;
+  
+    try {
+      const venue = await feature8Client.venue.findUnique({
+        where: { venueId: Number(venueId) },
+      });
+  
+      if (!venue) {
+        return res.status(404).json({ error: 'Venue not found' });
+      }
+  
+      res.json(venue);
+    } catch (error) {
+      res.status(500).json({ error: 'Something went wrong' });
+    }
+  };
+
 //token function
 // import jwt, { Secret } from 'jsonwebtoken';
 // interface CustomJwtPayload {
