@@ -695,7 +695,8 @@ export const getReviewsBranch = async (req: Request, res: Response) => {
     const reviewsBranch = await feature3Client.$queryRaw`
     SELECT U.userId, U.username, VR.branchId, VR.venueReviewId, VR.rating, VR.review, VR.date_added, VR.review_type
     FROM Venue_reviews VR, User U
-    WHERE VR.branchId = ${branchIdInt} AND VR.userId = U.userId;
+    WHERE VR.branchId = ${branchIdInt} AND VR.userId = U.userId
+    ORDER BY VR.date_added DESC;
     `;
 
     res.status(200).json(reviewsBranch);
@@ -839,15 +840,17 @@ export const getMyReviews = async (req: Request, res: Response) => {
 
 export const postReviewDelivery = async (req: Request, res: Response) => {
   try {
-    const { rating, review, branchId } = req.body;
+    const { rating, review } = req.body;
     const userId = authService.decodeToken(req.cookies.authToken).userId;
+    const { branchId } = req.params;
+    const branchIdInt = Number(branchId);
 
     const newReview = await feature3Client.venue_reviews.create({
       data: {
         userId,
         rating,
         review,
-        branchId: 1,
+        branchId: branchIdInt,
         review_type: "Delivery",
       },
     });
@@ -861,15 +864,17 @@ export const postReviewDelivery = async (req: Request, res: Response) => {
 
 export const postReviewReservation = async (req: Request, res: Response) => {
   try {
-    const { rating, review, branchId } = req.body;
+    const { rating, review } = req.body;
     const userId = authService.decodeToken(req.cookies.authToken).userId;
+    const { branchId } = req.params;
+    const branchIdInt = Number(branchId);
 
     const newReview = await feature3Client.venue_reviews.create({
       data: {
         userId,
         rating,
         review,
-        branchId: 1,
+        branchId: branchIdInt,
         review_type: "Reservation",
       },
     });

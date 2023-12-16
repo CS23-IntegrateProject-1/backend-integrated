@@ -129,8 +129,8 @@ feature3Router.get("/StarGraph/:branchId", getStarGraph) // Star graph of that b
 
 feature3Router.get("/MyReviews", getMyReviews); // Get my reviews of the user who login right now
 
-feature3Router.post("/ReviewDelivery", postReviewDelivery); // Post from Delivery review
-feature3Router.post("/ReviewReservation", postReviewReservation); // Post from Reservation review
+feature3Router.post("/ReviewDelivery/:branchId", postReviewDelivery); // Post from Delivery review
+feature3Router.post("/ReviewReservation/:branchId", postReviewReservation); // Post from Reservation review
 
 
 
