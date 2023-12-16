@@ -392,60 +392,57 @@ export const GetAllVoucher = async (req: Request, res: Response) => {
 };
 
 export const getVoucherById = async (req: Request, res: Response) => {
-    try {
-      const { id } = req.params;
-      const voucher = await feature5Client.voucher.findFirst({
-        where: {
-          voucherId: parseInt(id)
-        },
-      });
-      res.json(voucher);
-    } catch (e) {
-      console.log(e);
-      res.status(500).json(e);
-    }
-  };
+  try {
+    const { id } = req.params;
+    const voucher = await feature5Client.voucher.findFirst({
+      where: {
+        voucherId: parseInt(id),
+      },
+    });
+    res.json(voucher);
+  } catch (e) {
+    console.log(e);
+    res.status(500).json(e);
+  }
+};
 
-  export const CollectVoucher = async (req: Request, res: Response) => {
-    try {
-      const { userId } = authService.decodeToken(req.cookies.authToken);
-      const {id} = req.params;
-      // const 
-      const voucher = await feature5Client.user_voucher.create({
-        data:{
-          userId: userId,
-          voucherId: parseInt(id),
-          isUsed: false
-        }
-        
-      });
-      res.json(voucher);
-    } catch (e) {
-      console.log(e);
-      res.status(500).json(e);
-    }
-  };
+export const CollectVoucher = async (req: Request, res: Response) => {
+  try {
+    const { userId } = authService.decodeToken(req.cookies.authToken);
+    const { id } = req.params;
+    // const
+    const voucher = await feature5Client.user_voucher.create({
+      data: {
+        userId: userId,
+        voucherId: parseInt(id),
+        isUsed: false,
+      },
+    });
+    res.json(voucher);
+  } catch (e) {
+    console.log(e);
+    res.status(500).json(e);
+  }
+};
 
-  export const getCollectedVoucher = async (req: Request, res: Response) => {
-    try {
-      const { userId } = authService.decodeToken(req.cookies.authToken);
-      const voucher = await feature5Client.voucher.findMany({
-        where: {
-          User_voucher:{
-            some:{
-              userId: userId,
-            }
-          }
+export const getCollectedVoucher = async (req: Request, res: Response) => {
+  try {
+    const { userId } = authService.decodeToken(req.cookies.authToken);
+    const voucher = await feature5Client.voucher.findMany({
+      where: {
+        User_voucher: {
+          some: {
+            userId: userId,
+          },
         },
-        
-        
-      });
-      res.json(voucher);
-    } catch (e) {
-      console.log(e);
-      res.status(500).json(e);
-    }
-  };
+      },
+    });
+    res.json(voucher);
+  } catch (e) {
+    console.log(e);
+    res.status(500).json(e);
+  }
+};
 
 //--------------------------------Membertier----------------------------------
 export const GettierName = async (req: Request, res: Response) => {
@@ -489,8 +486,6 @@ export const GetInfoMembertier = async (req: Request, res: Response) => {
     res.status(500).json({ error: error.message });
   }
 };
-
-
 
 // export const GetTodayPrivillage = async (req: Request, res: Response) => {
 // 	const { userId } = authService.decodeToken(req.cookies.authToken);
@@ -577,15 +572,15 @@ export const Promotion = async (req: Request, res: Response) => {
 };
 
 export const GetAllBranches = async (req: Request, res: Response) => {
-   const token = req.cookies.authToken;
-    if (!token) {
-      return res.status(401).json({ error: "No auth token" });
-    }
-    const decodedToken = authService.decodeToken(token);
-    if (decodedToken.userType != "business") {
-      return res.status(401).json({ error: "This user is not business user" });
-    }
-    const businessId = decodedToken.businessId;
+  const token = req.cookies.authToken;
+  if (!token) {
+    return res.status(401).json({ error: "No auth token" });
+  }
+  const decodedToken = authService.decodeToken(token);
+  if (decodedToken.userType != "business") {
+    return res.status(401).json({ error: "This user is not business user" });
+  }
+  const businessId = decodedToken.businessId;
 
   try {
     const result = await feature5Client.venue_branch.findMany({
@@ -612,39 +607,39 @@ export const GetAllBranches = async (req: Request, res: Response) => {
 };
 
 export const GetMenuforSelect = async (req: Request, res: Response) => {
-    const token = req.cookies.authToken;
-    if (!token) {
-      return res.status(401).json({ error: "No auth token" });
-    }
-    const decodedToken = authService.decodeToken(token);
-    if (decodedToken.userType != "business") {
-      return res.status(401).json({ error: "This user is not business user" });
-    }
-    const businessId = decodedToken.businessId;
+  const token = req.cookies.authToken;
+  if (!token) {
+    return res.status(401).json({ error: "No auth token" });
+  }
+  const decodedToken = authService.decodeToken(token);
+  if (decodedToken.userType != "business") {
+    return res.status(401).json({ error: "This user is not business user" });
+  }
+  const businessId = decodedToken.businessId;
 
-    try {
-      const result = await feature5Client.menu.findMany({
-        select: {
-          name: true
-        },
-        where: {
-          venue: {
-            Property: {
-              some: {
-                businessId: businessId,
-              },
+  try {
+    const result = await feature5Client.menu.findMany({
+      select: {
+        name: true,
+      },
+      where: {
+        venue: {
+          Property: {
+            some: {
+              businessId: businessId,
             },
           },
         },
-      });
-  
-      res.json(result[0]);
-    } catch (err) {
-      console.log(err);
-      const error = err as Error;
-      res.status(500).json({ error: error.message });
-    }
-  };
+      },
+    });
+
+    res.json(result[0]);
+  } catch (err) {
+    console.log(err);
+    const error = err as Error;
+    res.status(500).json({ error: error.message });
+  }
+};
 
 export const DeletePromotion = async (req: Request, res: Response) => {
   try {
@@ -676,7 +671,8 @@ export const PromotionApprove = async (req: Request, res: Response) => {
   }
 };
 
-export const getAllPromotion = async (req: Request, res: Response) => {  //For Business
+export const getAllPromotion = async (req: Request, res: Response) => {
+  //For Business
   try {
     const token = req.cookies.authToken;
     if (!token) {
@@ -684,7 +680,16 @@ export const getAllPromotion = async (req: Request, res: Response) => {  //For B
     }
     const decodedToken = authService.decodeToken(token);
     if (decodedToken.userType != "business") {
-      return res.status(401).json({ error: "This user is not business user" });
+      try {
+        const result = feature5Client.promotion.findMany({
+          where: {
+            isApprove: "Completed",
+          },
+        });
+        return res.status(200).send(result);
+      } catch (e: Error | any) {
+        throw new Error(e.message);
+      }
     }
     const businessId = decodedToken.businessId;
 
@@ -713,16 +718,14 @@ export const getAllPromotion = async (req: Request, res: Response) => {  //For B
   }
 };
 
-
 export const getPromotionbyId = async (req: Request, res: Response) => {
   try {
-    const {id} = req.params;
+    const { id } = req.params;
 
     const getPromotion = await feature5Client.promotion.findFirst({
       where: {
         promotionId: parseInt(id),
       },
-      
     });
     res.json(getPromotion);
   } catch (err) {
@@ -732,41 +735,40 @@ export const getPromotionbyId = async (req: Request, res: Response) => {
   }
 };
 
-
 //------------------------------Redeem-----------------------------------
 export const Redeem = async (req: Request, res: Response) => {
-    try {
-      // const isApprove = "In_progress"
-      // const menuIds : number[] = req.body.menuIds;
-      const newAd: Promotioninfo = req.body;
-      const {
+  try {
+    // const isApprove = "In_progress"
+    // const menuIds : number[] = req.body.menuIds;
+    const newAd: Promotioninfo = req.body;
+    const {
+      name,
+      description,
+      image_url,
+      start_date,
+      end_date,
+      discount_price,
+    } = newAd;
+
+    const { menuId, venueId } = req.body;
+
+    const newPromotion = await feature5Client.promotion.create({
+      data: {
         name,
         description,
         image_url,
         start_date,
         end_date,
         discount_price,
-      } = newAd;
-  
-      const { menuId, venueId } = req.body;
-  
-      const newPromotion = await feature5Client.promotion.create({
-        data: {
-          name,
-          description,
-          image_url,
-          start_date,
-          end_date,
-          discount_price,
-          menuId,
-          venueId,
-        },
-      });
-  
-      res.json(newPromotion);
-    } catch (err) {
-      console.log(err);
-      const error = err as Error;
-      res.status(500).json({ error: error.message });
-    }
-  };
+        menuId,
+        venueId,
+      },
+    });
+
+    res.json(newPromotion);
+  } catch (err) {
+    console.log(err);
+    const error = err as Error;
+    res.status(500).json({ error: error.message });
+  }
+};

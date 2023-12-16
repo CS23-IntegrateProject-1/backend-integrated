@@ -19,7 +19,6 @@ import {
   GettierName,
   GetInfoMembertier,
   // GetTodayPrivillage,
-  GetMyReward,
   Getpointused,
   Promotion,
   DeletePromotion,
@@ -65,7 +64,7 @@ feature5Router.post("/CollecteVoucher/:id",customVerifyCookie, CollectVoucher); 
 feature5Router.get("/tierName/", customVerifyCookie, GettierName); //for show only tier
 feature5Router.get("/InfoMembertier/", customVerifyCookie, GetInfoMembertier); //for show tiername, tierbenefit
 // feature5Router.get("/TodayPrivillage/", customVerifyCookie, GetTodayPrivillage);
-feature5Router.post("/MyReward/", customVerifyCookie, GetMyReward); //for show voucher that user click to keep
+// feature5Router.post("/MyReward/", customVerifyCookie, GetMyReward); //for show voucher that user click to keep
 feature5Router.get("/pointUsed/", customVerifyCookie, Getpointused); //for show only point used of user
 
 //Promotion
