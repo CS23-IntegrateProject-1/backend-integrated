@@ -19,7 +19,7 @@ import {
     GetInfomationOfVoucher,
     GettierName,
     GetInfoMembertier,
-    GetTodayPrivillage,
+    // GetTodayPrivillage,
     GetMyReward,
     Getpointused,
     Promotion,
@@ -27,6 +27,8 @@ import {
     PromotionApprove,
     getAllPromotion,
     getAdvertisementById,
+    GetAllBranches,
+    GetMenuforSelect
     // GetAllCompleteVoucher,
     // getUser
 } from "../controllers/feature5.controller";
@@ -55,17 +57,22 @@ feature5Router.get("/AllVoucher/", GetAllVoucher); //for show all voucher are cr
 feature5Router.get("/InfoOfVoucher/:id", GetInfomationOfVoucher); //for show Infomation of each voucher
 
 //Membertier
-feature5Router.get("/tierName/", customVerifyCookie, GettierName); //for show only tier like Regular
+feature5Router.get("/tierName/", customVerifyCookie, GettierName); //for show only tier 
 feature5Router.get("/InfoMembertier/", customVerifyCookie, GetInfoMembertier); //for show tiername, tierbenefit
-feature5Router.get("/TodayPrivillage/", customVerifyCookie, GetTodayPrivillage);
+// feature5Router.get("/TodayPrivillage/", customVerifyCookie, GetTodayPrivillage);
 feature5Router.post("/MyReward/", customVerifyCookie, GetMyReward); //for show voucher that user click to keep
 feature5Router.get("/pointUsed/", customVerifyCookie, Getpointused); //for show only point used of user
 
 //Promotion
 feature5Router.post("/Promotion", Promotion); // for create promotion
 feature5Router.delete("/DeletePromotion/:id", DeletePromotion); // for create promotion
+feature5Router.get("/Showbranch/", GetAllBranches);
+feature5Router.get("/Showmenu/", GetMenuforSelect);
 feature5Router.patch("/PromotionApprove/:id", PromotionApprove);
 feature5Router.get("/AllPromotion/", getAllPromotion); 
 // feature5Router.get("/AllCompleteVoucher/:id", GetAllCompleteVoucher);
+
+//Redeem
+
 
 export default feature5Router;
