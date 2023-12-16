@@ -31,12 +31,12 @@ io.on("connection", (socket) => {
   console.log(`Socket connected: ${socket.id}`);
   const id = socket.handshake.query.id as string;
   console.log("id", id);
-  
+
   connectedClients.push({
     sockId: socket.id,
     userId: socket.handshake.query.id as string,
   });
-  
+
   console.log("connectedClients", connectedClients);
   socket.join("1");
   console.log(id + "join room 1");
@@ -57,35 +57,25 @@ io.on("connection", (socket) => {
       await feature12Client.message.create({
         data: {
           roomId: 1,
-          userId: recipients,
+          userId: 1,
           message: text,
           date_time: new Date(),
         },
       });
-
-      // Broadcast to all clients in room A without sender
-      recipients.forEach((recipient: string) => {
-        // Check if the recipient is yourself
-        if (recipient === id) {
-          // Do nothing
-        } else {
-          socket.broadcast.to("1").emit("receive-message", {
-            recipients: recipients,
-            sender: id,
-            text,
-          });
-        }
-      });
     } catch (error) {
       console.error("Error storing message in the database:", error);
     }
-  });
 
+    // Broadcast to all clients in room A without sender
+    socket.broadcast.to("1").emit("receive-message", {
+      recipients: recipients,
+      sender: id,
+      text,
+    });
+  });
 });
 
 export { httpServer, io };
-
-
 
 // import { Server, Socket } from "socket.io";
 // import { createServer, Server as HttpServer } from "http";
@@ -114,14 +104,14 @@ export { httpServer, io };
 //   const id = socket.handshake.query.id as string;
 //   console.log("id", id);
 //   socket.join(id);
-  
+
 //   connectedClients.push({ sockId: socket.id, userId: socket.handshake.query.id as string });
-  
+
 //   console.log("connectedClients", connectedClients)
 
 //   socket.on("send-message", ({ recipients, text }) => {
 //     console.log("recipient", recipients, "and", "text", text)
-    
+
 //     recipients.forEach((recipient: string) => {
 //       const newRecipients = recipients.filter(
 //         (r: string) => r !== recipient
@@ -136,7 +126,7 @@ export { httpServer, io };
 //       //   recipients: newRecipients,
 //       //   sender: id,
 //       // text})
-      
+
 //         // socket.broadcast.to(recipient).emit("receive-message", {
 //         //   recipients: newRecipients,
 //         //   sender: id,
@@ -147,13 +137,11 @@ export { httpServer, io };
 //       // connectedClients.filter((client) => {
 //       //   client.userId === id
 //       // })
-      
-       
+
 //       connectedClients.forEach((client) => {
 //         io.to(client.sockId).emit('receive-message', { recipients: newRecipients, sender: client.userId, text });
 //         console.log("client", client.sockId, "and", "text", text, "and", "recipients", recipients,  "and", "sender", id)
 //       });
-
 
 //     });
 //   })
