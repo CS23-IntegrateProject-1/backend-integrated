@@ -10,19 +10,37 @@ import multerConfig from "../multerConfig";
 import { parse } from "path";
 import { or } from "ramda";
 import { get } from "http";
+import { reservationMW } from "../middlewares/reservationMW";
 
 
 const feature7Client = new PrismaClient();
 
 export const getfeature7 = async (req: Request, res: Response) => {
 };
-export const getMenusByVenueId = async (req: Request, res: Response) => {
+export const getReservationId = async (req: any, res: Response) => {
+    try{
+        const reservationId=req.reservationId;
+        console.log(reservationId);
+        
+        res.status(200).json(reservationId);
+    }
+    catch (e) {
+        console.log(e);
+    }
+}
+export const getMenusByVenueId = async (req: any, res: Response) => {
     try {
-        const venueId = req.params.id;
+        const reservationId=req.reservationId;
+        const reservationInfo = await feature7Client.reservation.findUnique({
+            where: {
+                reservationId: reservationId,
+            },
+        });
+        const venueId = reservationInfo?.venueId;
         const allMenus = await feature7Client.menu.findMany(
             {
                 where: {
-                    venueId: parseInt(venueId)
+                    venueId: venueId
                 }
             }
         );
@@ -33,13 +51,19 @@ export const getMenusByVenueId = async (req: Request, res: Response) => {
         console.log(e);
     }
 }
-export const getSetsByVenueId = async (req: Request, res: Response) => {
+export const getSetsByVenueId = async (req: any, res: Response) => {
     try {
-        const venueId = req.params.id;
+        const reservationId=req.reservationId;
+        const reservationInfo = await feature7Client.reservation.findUnique({
+            where: {
+                reservationId: reservationId,
+            },
+        });
+        const venueId = reservationInfo?.venueId;
         const allSets = await feature7Client.sets.findMany(
             {
                 where: {
-                    venueId: parseInt(venueId)
+                    venueId: venueId
                 }
             }
         );
@@ -85,7 +109,7 @@ export const getSetById = async (req: Request, res: Response) => {
 export const addMenuToCookie = async (req: any, res: Response) => {
     try {
         const userId = req.userId;
-        const reservationId =240;
+        const reservationId =req.reservationId;
         const reservationInfo = await feature7Client.reservation.findUnique({
             where: {
                 reservationId: reservationId,
@@ -158,9 +182,9 @@ export const addMenuToCookie = async (req: any, res: Response) => {
         console.log(error);
     }
 }
-export const deleteMenuFromCookie = async (req: Request, res: Response) => {
+export const deleteMenuFromCookie = async (req: any, res: Response) => {
     try {
-        const reservationId =240;
+        const reservationId =req.reservationId;
         const menuId = req.params.menuId;
         // Retrieve existing cart from the 'cart' cookie or initialize an empty array
         const existingCartString = req.cookies.cart || '[]';
@@ -180,7 +204,7 @@ export const deleteMenuFromCookie = async (req: Request, res: Response) => {
 export const addSetToCookie = async (req: any, res: Response) => {
     try {
         const userId = req.userId;
-        const reservationId =240;
+        const reservationId =req.reservationId;
         const reservationInfo = await feature7Client.reservation.findUnique({
             where: {
                 reservationId: reservationId,
@@ -260,9 +284,9 @@ export const addSetToCookie = async (req: any, res: Response) => {
         console.log(error);
     }
 }
-export const deleteSetFromCookie = async (req: Request, res: Response) => {
+export const deleteSetFromCookie = async (req: any, res: Response) => {
     try {
-        const reservationId =240;
+        const reservationId =req.reservationId;
         const setId = req.params.setId;
         // Retrieve existing cart from the 'cart' cookie or initialize an empty array
         const existingCartString = req.cookies.cart || '[]';
@@ -281,9 +305,8 @@ export const deleteSetFromCookie = async (req: Request, res: Response) => {
 }
 export const showCart = async (req: any, res: Response) => {
     try {
-        const userId = parseInt(req.userId);
-        const reservationId =240;
-        // const reservationId =parseInt(req.reservationToken);
+        // const userId = parseInt(req.userId);
+        const reservationId =req.reservationId;
         const cartString = req.cookies.cart || '[]';
         // console.log(cartString);
         const cart = JSON.parse(cartString);
@@ -299,11 +322,11 @@ export const showCart = async (req: any, res: Response) => {
 //Show detail of specific menu from cart
 export const showMenuDetailFromCart = async (req: any, res: Response) => {
     try {
-        const userId = parseInt(req.userId);
-        const mneuId = parseInt(req.params.menuId);
+        const reservationId=req.reservationId;
+        const menuId = parseInt(req.params.menuId);
         const cartString = req.cookies.cart || '[]';
         const cart = JSON.parse(cartString);
-        const userCart = cart.filter((item: any) => item.userId === userId && item.menuId === mneuId);
+        const userCart = cart.filter((item: any) => item.reservationId === reservationId && item.menuId === menuId);
         if (userCart.length === 1) {
             const dataObject = userCart[0];
             res.status(200).json(dataObject);
@@ -319,11 +342,11 @@ export const showMenuDetailFromCart = async (req: any, res: Response) => {
 //for sets
 export const showSetDetailFromCart = async (req: any, res: Response) => {
     try {
-        const userId = parseInt(req.userId);
+        const reservationId=req.reservationId;
         const setId = parseInt(req.params.setId);
         const cartString = req.cookies.cart || '[]';
         const cart = JSON.parse(cartString);
-        const userCart = cart.filter((item: any) => item.userId === userId && item.setId === setId);
+        const userCart = cart.filter((item: any) => item.reservationId === reservationId && item.setId === setId);
         if (userCart.length === 1) {
             const dataObject = userCart[0];
             res.status(200).json(dataObject);
@@ -338,7 +361,7 @@ export const showSetDetailFromCart = async (req: any, res: Response) => {
 }
 export const addCartToOrderDetailsOfDineIn = async (req: any, res: Response) => {
     try{
-        const reservationId = 240;
+        const reservationId = req.reservationId;
         const reservationInfo = await feature7Client.reservation.findUnique({
             where: {
                 reservationId: reservationId,
@@ -441,6 +464,7 @@ export const addCartToOrderDetailsOfDineIn = async (req: any, res: Response) => 
             },
             data: {
                 total_amount:totalAmount,
+                status: "On_going",
             },
         });
         //clear cart
@@ -590,8 +614,7 @@ export const addCartToOrderDetailsOfDineIn = async (req: any, res: Response) => 
 // };
 export const showOnGoingOrderDetails = async (req: any, res: Response) => {
     try {
-        const userId = parseInt(req.userId);
-        const reservationId =240;
+        const reservationId =req.reservationId;
         const orderDetails = await feature7Client.order_detail.findMany({
             where: {
                 orderId: reservationId,
@@ -641,7 +664,7 @@ export const showOnGoingOrderDetails = async (req: any, res: Response) => {
 export const showCompletedOrderDetails = async (req: any, res: Response) => {
     try {
         const userId = parseInt(req.userId);
-        const reservationId =240;
+        const reservationId =req.reservationId;
         const orderDetails = await feature7Client.order_detail.findMany({
             where: {
                 orderId: reservationId,
@@ -1228,128 +1251,333 @@ export const showMenuItemsInSet = async (req: Request, res: Response) => {
 //     }
 // }
 //show ongoing order in business
+// export const onGoingOrderDetailsInBusiness = async (req: any, res: Response) => {
+//     try{ const venueId = req.params.venueId;
+//     const getReservations = await feature7Client.orders.findMany({
+//         where: {
+//             venueId: parseInt(venueId),
+//         },
+//     }); 
+//     console.log(getReservations);
+//     const getTable = await feature7Client.reservation_table.findMany({
+//         where: {
+//             reserveId: {
+//                 in: getReservations.map((reservation) => reservation.reservedId).filter((id) => id !== null) as number[],
+//             },
+//         },
+//     });
+//     const getOrderDetailsOfOngoingOrder = await feature7Client.order_detail.findMany({
+//         where: {
+//             orderId: {
+//                 in: getReservations.map((reservation) => reservation.orderId),
+//             },
+//             status: "On_going",
+//             // Filter based on menuId or setId not being null
+//             OR: [
+//                 { menuId: { not: null } },
+//                 { setId: { not: null } },
+//             ],
+//         },
+//     });
+//     const tableOrderDetailsMap = {};
+
+//         // Populate tableOrderDetailsMap using reservationId
+//         getOrderDetailsOfOngoingOrder.forEach((orderDetail) => {
+//             const reservationId = orderDetail.orderId;
+
+//             if (!tableOrderDetailsMap[reservationId]) {
+//                 tableOrderDetailsMap[reservationId] = [];
+//             }
+
+//             tableOrderDetailsMap[reservationId].push(orderDetail);
+//         });
+
+//         const response = getTable.map((table) => {
+//             const reservationId = table.reserveId;
+//             const orderDetails = tableOrderDetailsMap[reservationId] || [];
+
+//             return {
+//                 table,
+//                 orderDetails,
+//             };
+//         });
+
+//         res.status(200).json(response);
+//     }
+//     catch (e) {
+//         console.log(e);
+//     }
+// }
 export const onGoingOrderDetailsInBusiness = async (req: any, res: Response) => {
-    try{ const venueId = req.params.venueId;
-    const getReservations = await feature7Client.orders.findMany({
-        where: {
-            venueId: parseInt(venueId),
-        },
-    }); 
-    console.log(getReservations);
-    const getTable = await feature7Client.reservation_table.findMany({
-        where: {
-            reserveId: {
-                in: getReservations.map((reservation) => reservation.reservedId).filter((id) => id !== null) as number[],
+    try {
+        const venueId = req.params.venueId;
+        const getReservations = await feature7Client.orders.findMany({
+            where: {
+                venueId: parseInt(venueId),
             },
-        },
-    });
-    const getOrderDetailsOfOngoingOrder = await feature7Client.order_detail.findMany({
-        where: {
-            orderId: {
-                in: getReservations.map((reservation) => reservation.orderId),
+        });
+
+        const getTable = await feature7Client.reservation_table.findMany({
+            where: {
+                reserveId: {
+                    in: getReservations.map((reservation) => reservation.reservedId).filter((id) => id !== null) as number[],
+                },
             },
-            status: "On_going",
-            // Filter based on menuId or setId not being null
-            OR: [
-                { menuId: { not: null } },
-                { setId: { not: null } },
-            ],
-        },
-    });
-    // Fetch menu name or set name based on orderDetailId
-    const orderDetailsWithMenuAndSetName = await Promise.all(
-        getOrderDetailsOfOngoingOrder.map(async (orderDetail) => {
-            let menuName;
-            let setName;
-            if (orderDetail.menuId) {
-                const menuInfo = await feature7Client.menu.findFirst({
-                    where: {
-                        menuId: orderDetail.menuId,
-                    },
-                });
-                menuName = menuInfo?.name;
-            } else if (orderDetail.setId) {
-                const setInfo = await feature7Client.sets.findFirst({
-                    where: {
-                        setId: orderDetail.setId,
-                    },
-                });
-                setName = setInfo?.name || null;
+        });
+
+        const getOrderDetailsOfOngoingOrder = await feature7Client.order_detail.findMany({
+            where: {
+                orderId: {
+                    in: getReservations.map((reservation) => reservation.orderId),
+                },
+                status: "On_going",
+                // Filter based on menuId or setId not being null
+                OR: [
+                    { menuId: { not: null } },
+                    { setId: { not: null } },
+                ],
+            },
+        });
+        const orderIds = getOrderDetailsOfOngoingOrder.map((orderDetail) => orderDetail.orderId);
+
+        // Fetch order dates based on orderIds
+        const orderDates = await feature7Client.orders.findMany({
+            where: {
+                orderId: {
+                    in: orderIds,
+                },
+            },
+            select: {
+                orderId: true,
+                order_date: true,
+            },
+        });
+
+        // Create a map of order dates using orderId as the key
+        const orderDateMap = {};
+        orderDates.forEach((order) => {
+            orderDateMap[order.orderId] = order.order_date;
+        });
+        // Get non-null menuIds and setIds
+        const nonNullMenuIds = getOrderDetailsOfOngoingOrder.filter((orderDetail) => orderDetail.menuId !== null).map((orderDetail) => orderDetail.menuId);
+        const nonNullSetIds = getOrderDetailsOfOngoingOrder.filter((orderDetail) => orderDetail.setId !== null).map((orderDetail) => orderDetail.setId);
+
+        // Fetch menu and set names based on non-null menuIds and setIds
+        const nonNullMenuIdsFiltered = nonNullMenuIds.filter((id) => id !== null) as number[];
+
+        const menuNames = await feature7Client.menu.findMany({
+            where: {
+                menuId: {
+                    in: nonNullMenuIdsFiltered,
+                },
+            },
+            select: {
+                menuId: true,
+                name: true,
+            },
+        });
+
+        const setNames = await feature7Client.sets.findMany({
+            where: {
+                setId: {
+                    in: nonNullSetIds.filter((id) => id !== null) as number[],
+                },
+            },
+            select: {
+                setId: true,
+                name: true,
+            },
+        });
+
+        const menuNameMap = {};
+        const setNameMap = {};
+
+        // Populate menuNameMap and setNameMap
+        menuNames.forEach((menu) => {
+            menuNameMap[menu.menuId] = menu.name;
+        });
+
+        setNames.forEach((set) => {
+            setNameMap[set.setId] = set.name;
+        });
+
+        const tableOrderDetailsMap = {};
+
+        // Populate tableOrderDetailsMap using reservationId
+        getOrderDetailsOfOngoingOrder.forEach((orderDetail) => {
+            const reservationId = orderDetail.orderId;
+
+            if (!tableOrderDetailsMap[reservationId]) {
+                tableOrderDetailsMap[reservationId] = [];
             }
 
-            return {
-                ...orderDetail,
-                menuName: menuName,
-                setName: setName,
-            };
-        })
-    );
+            // Get menu and set names based on non-null menuId or setId
+            const menuName = orderDetail.menuId !== null ? menuNameMap[orderDetail.menuId] : null;
+            const setName = orderDetail.setId !== null ? setNameMap[orderDetail.setId] : null;
 
-    res.status(200).json({ getTable, orderDetailsWithMenuAndSetName });
-    }
-    catch (e) {
+            // Add menu and set names to order detail
+            const orderDetailWithNames = {
+                ...orderDetail,
+                menuName,
+                setName,
+            };
+
+            tableOrderDetailsMap[reservationId].push(orderDetailWithNames);
+        });
+
+        const response = getTable.map((table) => {
+            const reservationId = table.reserveId;
+            const orderDetails = tableOrderDetailsMap[reservationId] || [];
+            const orderDate = orderDateMap[reservationId];
+        
+            return {
+                table: {
+                    ...table,
+                    orderDate,
+                },
+                orderDetails,
+            };
+        });
+        
+        res.status(200).json(response);
+    } catch (e) {
         console.log(e);
     }
-}
+};
+
 //show completed order in business
 export const completedOrderDetailsInBusiness = async (req: any, res: Response) => {
-    try{ const venueId = req.params.venueId;
-    const getReservations = await feature7Client.orders.findMany({
-        where: {
-            venueId: parseInt(venueId),
-        },
-    }); 
-    const getTable = await feature7Client.reservation_table.findMany({
-        where: {
-            reserveId: {
-                in: getReservations.map((reservation) => reservation.reservedId).filter((id) => id !== null) as number[],
+    try {
+        const venueId = req.params.venueId;
+        const getReservations = await feature7Client.orders.findMany({
+            where: {
+                venueId: parseInt(venueId),
             },
-        },
-    });
-    const getOrderDetailsOfCompletedOrder = await feature7Client.order_detail.findMany({
-        where: {
-            orderId: {
-                in: getReservations.map((reservation) => reservation.orderId),
+        });
+
+        const getTable = await feature7Client.reservation_table.findMany({
+            where: {
+                reserveId: {
+                    in: getReservations.map((reservation) => reservation.reservedId).filter((id) => id !== null) as number[],
+                },
             },
-            status: "Completed",
-            // Filter based on menuId or setId not being null
-            OR: [
-                { menuId: { not: null } },
-                { setId: { not: null } },
-            ],
-        },
-    });
-    // Fetch menu name or set name based on orderDetailId
-    const orderDetailsWithMenuAndSetName = await Promise.all(
-        getOrderDetailsOfCompletedOrder.map(async (orderDetail) => {
-            const table = getTable.find((table) => table.reserveId === orderDetail.orderId);
-            let menuName;
-            let setName;
-            if (orderDetail.menuId) {
-                const menuInfo = await feature7Client.menu.findFirst({
-                    where: {
-                        menuId: orderDetail.menuId,
-                    },
-                });
-                menuName = menuInfo?.name;
-            } else if (orderDetail.setId) {
-                const setInfo = await feature7Client.sets.findFirst({
-                    where: {
-                        setId: orderDetail.setId,
-                    },
-                });
-                setName = setInfo?.name || null;
+        });
+
+        const getOrderDetailsOfCompletedOrder = await feature7Client.order_detail.findMany({
+            where: {
+                orderId: {
+                    in: getReservations.map((reservation) => reservation.orderId),
+                },
+                status: "Completed",
+                // Filter based on menuId or setId not being null
+                OR: [
+                    { menuId: { not: null } },
+                    { setId: { not: null } },
+                ],
+            },
+        });
+        const orderIds = getOrderDetailsOfCompletedOrder.map((orderDetail) => orderDetail.orderId);
+
+        // Fetch order dates based on orderIds
+        const orderDates = await feature7Client.orders.findMany({
+            where: {
+                orderId: {
+                    in: orderIds,
+                },
+            },
+            select: {
+                orderId: true,
+                order_date: true,
+            },
+        });
+
+        // Create a map of order dates using orderId as the key
+        const orderDateMap = {};
+        orderDates.forEach((order) => {
+            orderDateMap[order.orderId] = order.order_date;
+        });
+        // Get non-null menuIds and setIds
+        const nonNullMenuIds = getOrderDetailsOfCompletedOrder.filter((orderDetail) => orderDetail.menuId !== null).map((orderDetail) => orderDetail.menuId);
+        const nonNullSetIds = getOrderDetailsOfCompletedOrder.filter((orderDetail) => orderDetail.setId !== null).map((orderDetail) => orderDetail.setId);
+
+        // Fetch menu and set names based on non-null menuIds and setIds
+        const nonNullMenuIdsFiltered = nonNullMenuIds.filter((id) => id !== null) as number[];
+
+        const menuNames = await feature7Client.menu.findMany({
+            where: {
+                menuId: {
+                    in: nonNullMenuIdsFiltered,
+                },
+            },
+            select: {
+                menuId: true,
+                name: true,
+            },
+        });
+
+        const setNames = await feature7Client.sets.findMany({
+            where: {
+                setId: {
+                    in: nonNullSetIds.filter((id) => id !== null) as number[],
+                },
+            },
+            select: {
+                setId: true,
+                name: true,
+            },
+        });
+
+        const menuNameMap = {};
+        const setNameMap = {};
+
+        // Populate menuNameMap and setNameMap
+        menuNames.forEach((menu) => {
+            menuNameMap[menu.menuId] = menu.name;
+        });
+
+        setNames.forEach((set) => {
+            setNameMap[set.setId] = set.name;
+        });
+
+        const tableOrderDetailsMap = {};
+
+        // Populate tableOrderDetailsMap using reservationId
+        getOrderDetailsOfCompletedOrder.forEach((orderDetail) => {
+            const reservationId = orderDetail.orderId;
+
+            if (!tableOrderDetailsMap[reservationId]) {
+                tableOrderDetailsMap[reservationId] = [];
             }
 
-            return {
-                ...orderDetail,
-                menuName: menuName,
-                setName: setName,
-            };
-        })
-    );
+            // Get menu and set names based on non-null menuId or setId
+            const menuName = orderDetail.menuId !== null ? menuNameMap[orderDetail.menuId] : null;
+            const setName = orderDetail.setId !== null ? setNameMap[orderDetail.setId] : null;
 
-    res.status(200).json({getTable,orderDetailsWithMenuAndSetName});
+            // Add menu and set names to order detail
+            const orderDetailWithNames = {
+                ...orderDetail,
+                menuName,
+                setName,
+            };
+
+            tableOrderDetailsMap[reservationId].push(orderDetailWithNames);
+        });
+
+        const response = getTable.map((table) => {
+            const reservationId = table.reserveId;
+            const orderDetails = tableOrderDetailsMap[reservationId] || [];
+            const orderDate = orderDateMap[reservationId];
+        
+            return {
+                table: {
+                    ...table,
+                    orderDate,
+                },
+                orderDetails,
+            };
+        });
+        
+        res.status(200).json(response);
 }
     catch (e) {
         console.log(e);
@@ -1395,7 +1623,7 @@ export const changeOrderDetailStatusCompleted = async (req: any, res: Response) 
 //get receipt
 export const getReceipt = async (req: any, res: Response) => {
     try {
-        const reservationId = 240;
+        const reservationId = req.reservationId;
         const orderId = reservationId;
         const orderInfo= await feature7Client.orders.findUnique({
             where: {
