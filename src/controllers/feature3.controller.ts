@@ -593,34 +593,71 @@ interface VenueInfo {
 
 export const getVenuesPage = async (req: Request, res: Response) => {
 
-  const search = String(req.query.search);
+  const search = String(req.query.search || "");
+  const priceMin = Number(req.query.priceMin || 0);
+  const priceMax = Number(req.query.priceMax || 1000);
+  const capacity = String(req.query.capacity || "").split(",").filter(v => v !== "");
 
   try {
-    const VenuesPage = await feature3Client.$queryRaw<VenueInfo[]>`
-      SELECT
-        V.venueId,
-        VB.branchId,
-        name,
-        description,
-        category,
-        capacity,
-        chatRoomId,
-        locationId,
-        website_url,
-        COALESCE(AVG(VR.rating), 0) AS rating
-      FROM
-        Venue V
-        JOIN Venue_branch VB ON V.venueId = VB.venueId
-        LEFT JOIN Venue_reviews VR ON VB.branchId = VR.branchId
-      GROUP BY
-        V.venueId
-      ORDER BY
-        V.venueId;
-    `;
+    const [VenuesPage, menus,tables] = await Promise.all([feature3Client.$queryRaw<VenueInfo[]>`
+    SELECT
+      V.venueId,
+      VB.branchId,
+      name,
+      description,
+      category,
+      capacity,
+      chatRoomId,
+      locationId,
+      website_url,
+      COALESCE(AVG(VR.rating), 0) AS rating
+    FROM
+      Venue V
+      JOIN Venue_branch VB ON V.venueId = VB.venueId
+      LEFT JOIN Venue_reviews VR ON VB.branchId = VR.branchId
+    GROUP BY
+      V.venueId
+    ORDER BY
+      V.venueId;
+  `,feature3Client.menu.findMany({}), feature3Client.table_type_detail.findMany({})])
 
+    const filteredVenues = VenuesPage
+    .filter(v => String(v.name).trim().toLowerCase().includes(String(search).trim().toLowerCase()))
+    .filter(v => {
+      const venueMenus = menus.filter(m => m.venueId === v.venueId);
+      const statements: boolean[] = []
+      if(priceMin === 0 && priceMax === 1000){
+        return true;
+      }
+      statements.push(venueMenus.some(m => m.price.greaterThanOrEqualTo(priceMin) && m.price.lessThanOrEqualTo(priceMax)))
+      return statements.some(v => v === true);
+    })
+    .filter(v => {
+      const venueTables = tables.filter(t => t.venueId === v.venueId);
+      const statements: boolean[] = []
 
+      if(capacity.length === 0){
+        return true;
+      }
+      
+      if(capacity.includes("1-4")){
+        statements.push(venueTables.some(t => t.capacity >= 1 && t.capacity <= 4))
+      }
 
-    const filteredVenues = VenuesPage.filter(v => String(v.name).trim().toLowerCase().includes(String(search).trim().toLowerCase()));
+      if(capacity.includes("4-6")){
+        statements.push(venueTables.some(t => t.capacity >= 4 && t.capacity <= 6))
+      }
+
+      if(capacity.includes("6-10")){
+        statements.push(venueTables.some(t => t.capacity >= 6 && t.capacity <= 10))
+      }
+
+      if(capacity.includes("10M")){
+        console.log('10M')
+        statements.push(venueTables.some(t => t.capacity >= 10))
+      }
+      return statements.some(v => v === true);
+    })
     return res.json(filteredVenues);
   } catch (error) {
     console.error(error);
@@ -724,16 +761,25 @@ export const getVenDetail = async (req: Request, res: Response) => {
 export const getReviewsBranch = async (req: Request, res: Response) => {
   try {
     const { branchId } = req.params;
+    const reviewStars = String(req.query.reviewStars || "").split(",").filter(v => v !== "");
+    const reviewTypes = String(req.query.reviewTypes || "").split(',').filter(v => v !== "");;
     const branchIdInt = parseInt(branchId);
 
-    const reviewsBranch = await feature3Client.$queryRaw`
+    const reviewsBranch: { review_type: string, rating: number}[] = await feature3Client.$queryRaw`
     SELECT U.userId, U.username, VR.branchId, VR.venueReviewId, VR.rating, VR.review, VR.date_added, VR.review_type
     FROM Venue_reviews VR, User U
     WHERE VR.branchId = ${branchIdInt} AND VR.userId = U.userId
     ORDER BY VR.date_added DESC;
     `;
 
-    res.status(200).json(reviewsBranch);
+    const filteredReviews = reviewsBranch.filter((review) => {
+      console.log(reviewTypes, reviewStars)
+      const reviewTypeMatch = reviewTypes.length === 0 ? true : reviewTypes.includes(review.review_type);
+      const reviewStarMatch = reviewStars.length === 0 ? true : reviewStars.includes(String(review.rating));
+      return reviewTypeMatch && reviewStarMatch;
+    });
+
+    res.status(200).json(filteredReviews);
   } catch (error) {
     console.error("Error fetching reviews:", error);
     res.status(500).json(error);
@@ -916,6 +962,55 @@ export const postReviewReservation = async (req: Request, res: Response) => {
     res.status(201).json(newReview);
   } catch (error) {
     console.error("Error creating review:", error);
+    res.status(500).json(error);
+  }
+};
+
+export const postVenuesFavourites = async (req: Request, res: Response) => {
+  try {
+    const userId = Number(authService.decodeToken(req.cookies.authToken).userId);
+    const { venueId } = req.params;
+    const venueIdInt = Number(venueId);
+
+    const foundVenue = await feature3Client.saved_place.findFirst({
+      where: {
+        userId,
+        venueId: venueIdInt,
+      }
+    })
+
+    if(foundVenue) {
+      await feature3Client.saved_place.deleteMany({
+        where: {
+          userId,
+          venueId: venueIdInt,
+        }
+      })
+      const toggledFavourite = await feature3Client.saved_place.findFirst({
+        where: {
+          userId,
+          venueId: venueIdInt,
+        }
+      })
+
+      return res.status(200).json(toggledFavourite);
+    }else{
+      const newFavourite = await feature3Client.user.update({
+        where: {
+          userId
+        },
+        data: {
+          // Saved_place: {
+          //   create: {
+          //     venueId: venueIdInt
+          //   }
+          // }
+        }
+      })
+      return res.status(201).json(newFavourite);
+    }
+  } catch (error) {
+    console.error("Error creating favourite:", error);
     res.status(500).json(error);
   }
 };
