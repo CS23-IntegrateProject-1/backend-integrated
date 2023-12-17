@@ -258,7 +258,7 @@ model Search_history {
 }
 
 model Saved_place {
-  id      Int   @id
+  id      Int   @id @default(autoincrement())
   userId  Int
   venueId Int
   user    User  @relation(fields: [userId], references: [userId])
