@@ -50,7 +50,7 @@ export const createCheckoutSession = async (req: Request, res: any) => {
     // for additional parameters to pass.
     try {
       const session = await stripe.checkout.sessions.create({
-        mode: 'subscription',
+        mode: 'payment',
         payment_method_types: ['card'],
         line_items: [
           {
