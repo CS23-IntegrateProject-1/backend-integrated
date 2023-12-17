@@ -1425,6 +1425,8 @@ export const getTransactionReserveIdByVenueIdAndEqualToStatusCompleted = async (
 //     console.log(e);
 //   }
 // };
+
+
 const YOUR_DOMAIN = 'http://localhost:4000';
 const stripe = new Stripe(process.env.STRIP_KEY ?? '');
 export const createCheckoutSession = async (req: Request, res: Response) => {
@@ -1433,7 +1435,7 @@ export const createCheckoutSession = async (req: Request, res: Response) => {
             line_items: [
                 {
                     // Provide the exact Price ID (for example, pr_1234) of the product you want to sell
-                    price: 'price_1OOIFTBCLtNTpQNyEs4VTDUq',
+                    price: 'price_1OOKnUBCLtNTpQNyftYItTG9',
                     quantity: 1,
                 },
             ],
