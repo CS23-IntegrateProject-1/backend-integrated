@@ -1,12 +1,11 @@
 const express = require('express');
 const Stripe = require('stripe');
-const cors = require('cors'); // Import the cors middleware
+const cors = require('cors');
 require('dotenv').config();
 
 const stripe = Stripe(process.env.STRIPE_KEY);
 const router = express.Router();
 
-// Use cors middleware to enable Cross-Origin Resource Sharing
 router.use(cors());
 
 router.post('/create-checkout-session', async (req, res) => {
@@ -14,23 +13,35 @@ router.post('/create-checkout-session', async (req, res) => {
 
   const lineItems = cartItems.map(item => ({
     price_data: {
-      currency: 'usd', // Change the currency as needed
+      currency: 'usd',
       product_data: {
         name: item.name,
       },
-      unit_amount: Math.round(item.price * 100), // Convert to cents
+      unit_amount: Math.round(item.price * 100),
     },
     quantity: 1,
   }));
 
   try {
-    const session = await stripe.checkout.sessions.create({
-      line_items: lineItems,
-      mode: 'payment',
-      success_url: `${process.env.CLIENT_URL}/checkout-success`,
-      cancel_url: `${process.env.CLIENT_URL}/cart`,
-    });
-
+    // Inside the try block in stripe.js (routes)
+const session = await stripe.checkout.sessions.create({
+    line_items: [
+      {
+        price_data: {
+          currency: 'usd',
+          product_data: {
+            name: 'Sample Product',
+          },
+          unit_amount: 1000, // Sample price in cents
+        },
+        quantity: 1,
+      },
+    ],
+    mode: 'payment',
+    success_url: `${process.env.CLIENT_URL}/checkout-success`,
+    cancel_url: `${process.env.CLIENT_URL}/cart`,
+  });
+  
     res.send({ url: session.url });
   } catch (error) {
     console.error('Error creating checkout session:', error);
