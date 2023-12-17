@@ -776,10 +776,6 @@ model Help_desk {
   report_ticket  Report_ticket @relation(fields: [reportTicketId], references: [reportTicketId])
 }
 
-model Promotion_approval {
-  promotionId Int     @id
-  isApprove   Boolean @default(false)
-}
 
 model Comments {
   content                 String
