@@ -8,7 +8,7 @@ const stripe = new Stripe('sk_test_51OFf98BCLtNTpQNyJKiknfWUhqRZoF6SJa6zymmaQAVC
 const app = express();
 app.use(express.static('public'));
 
-const YOUR_DOMAIN = 'http://localhost:8080';
+const YOUR_DOMAIN = 'http://localhost:4000';
 
 app.post('/create-checkout-session', async (req: Request, res: Response) => {
   try {
@@ -32,4 +32,4 @@ app.post('/create-checkout-session', async (req: Request, res: Response) => {
   }
 });
 
-app.listen(4242, () => console.log('Running on port 8080'));
+app.listen(4242, () => console.log('Running on port 4000'));
