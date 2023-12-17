@@ -111,6 +111,7 @@ export default class GroupController implements IGroupController {
         return {
           group_id: r.group.groupId,
           group_name: r.group.group_name,
+          group_avatar: r.group.group_profile,
         };
       });
 
