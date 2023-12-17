@@ -588,7 +588,6 @@ export const getVenuesPage = async (req: Request, res: Response) => {
         }
 
         if (capacity.includes("10M")) {
-          console.log("10M");
           statements.push(venueTables.some((t) => t.capacity >= 10));
         }
         return statements.some((v) => v === true);
@@ -685,7 +684,6 @@ export const getRecommendedPlaces = async (req: Request, res: Response) => {
         }
 
         if (capacity.includes("10M")) {
-          console.log("10M");
           statements.push(venueTables.some((t) => t.capacity >= 10));
         }
         return statements.some((v) => v === true);
