@@ -56,7 +56,8 @@ import {
     checkTransactionDetailForOrder,
     getTransactionDetailsByVenueAndDateForOrder,
     getTransactionDetailForDelivery,
-    getTransactionDetailsByVenueAndDateForDelivery
+    getTransactionDetailsByVenueAndDateForDelivery,
+    getTransactionReserveIdByVenueIdAndEqualToStatusCompleted
 } from "../controllers/feature8.controller";
 
 
@@ -98,6 +99,7 @@ feature8Router.get("/transaction_details/:transactionId", getTransactionDetailBy
 feature8Router.get("/transactionsbyvenueId/:venueId", getTransactionByVenueId);
 feature8Router.get("/transactiondetailbyvenueId/:venueId", getTransactionDetailsByVenueId);
 feature8Router.get("/transactiondetailbyvenueIdandTime/:venueId", getTransactionDetailsByVenueAndDate);
+feature8Router.get("/getTransactionReserveIdByVenueIdAndEqualToStatusCompleted/:venueId", getTransactionReserveIdByVenueIdAndEqualToStatusCompleted)
 
 
     //admin

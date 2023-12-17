@@ -1309,6 +1309,50 @@ export const getTransactionDetailsByVenueAndDateForDelivery = async (req: Reques
   }
 };
 
+export const getTransactionReserveIdByVenueIdAndEqualToStatusCompleted = async (req: Request, res: Response) => {
+    const venueId = parseInt(req.params.venueId, 10);
+  
+    try {
+      const transactions = await feature8Client.transaction.findMany({
+        where: {
+          venueId: venueId,
+          Transaction_detail: {
+            status: 'Completed',
+          },
+        },
+        select: {
+          reserveId: true,
+        },
+      });
+  
+      if (!transactions || transactions.length === 0) {
+        return res.status(404).json({ error: 'No transactions found with completed details for the specified venue' });
+      }
+  
+      const ordersPromises = transactions.map(transaction => 
+        feature8Client.orders.findUnique({
+          where: {
+            reservedId: transaction.reserveId,
+          },
+          select: {
+            reservedId: true,
+            orderId: true,
+            total_amount: true,
+            status: true,
+            order_date: true,
+            isDelivery: true,
+          },
+        })
+      );
+  
+      const ordersss = (await Promise.all(ordersPromises)).filter(order => order !== null);
+  
+      res.status(200).json({ orders: ordersss.flat() });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: 'Failed to retrieve transactions' });
+    }
+  };
 
 //token function
 // import jwt, { Secret } from 'jsonwebtoken';
