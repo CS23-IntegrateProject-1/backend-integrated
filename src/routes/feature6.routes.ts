@@ -25,7 +25,7 @@ const feature6Router = Router();
 //GET METHOD
 feature6Router.get("/allTable", getAllTable);
 feature6Router.get("/allReservation", getAllReservation);
-feature6Router.get("/venue/:venueId", getVenueById);
+feature6Router.get("/venue/:venueId/:branchId", getVenueById);
 feature6Router.get("/MyReservation/:reservationId", getReservationById);
 
 //Finished

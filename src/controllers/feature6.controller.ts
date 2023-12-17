@@ -12,6 +12,7 @@ import qr from "qr-image";
 
 const feature6Client = new PrismaClient();
 
+
 //GET METHOD
 export const getAllTable = async (req: Request, res: Response) => {
     try {
@@ -40,7 +41,7 @@ export const getVenueById = async (req: Request, res: Response) => {
             where: {
                 venueId: parseInt(venueId),
                 branchId: parseInt(branchId),
-            },
+            }
         });
         const venue = await feature6Client.venue.findUnique({
             where: {
@@ -48,6 +49,7 @@ export const getVenueById = async (req: Request, res: Response) => {
             },
             include: {
                 Venue_photo: true,
+                location: true,
             },
         });
         return res.json(venue), branchName;
@@ -138,6 +140,7 @@ export const getVenueAndReservationsById = async (
         const decodedToken = authService.decodeToken(token);
         const { userId } = decodedToken;
         const { venueId, reservationId } = req.params;
+
         const venue = await feature6Client.venue.findUnique({
             where: {
                 venueId: parseInt(venueId),
@@ -174,6 +177,7 @@ export const getVenueAndReservationsById = async (
 
         return res.json({ venue, location, reservations });
     } catch (e) {
+        console.log(e)
         return res.status(500).json(e);
     }
 };
@@ -229,7 +233,7 @@ export const createReservation = async (req: Request, res: Response) => {
             getAvailableTablesResponse.error ==
             "Reservation time is not within valid hours"
         ) {
-            return res.status(400).json({ error: "Not valid hours" });
+            return res.status(400).json({ error: "Reservation time is not within valid hours" });
         } else if (
             getAvailableTablesResponse.error == "No more Available Table"
         ) {
