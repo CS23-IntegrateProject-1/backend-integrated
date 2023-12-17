@@ -26,6 +26,20 @@ export const getDashboardChart = async (req: Request, res: Response) => {
 	}
 };
 
+export const getBusinessDashboard = async (req: Request, res: Response) => {
+	try {
+				const business = await feature14Client.venue.findMany({
+					select: {
+						name: true,
+						category: true,
+					}
+				});
+				return res.status(200).json({ business });
+			} catch (error) {
+				return res.status(500).json({ error });
+			}
+};
+
 //===============================Report Ticket==============================
 export const createReportTicket =async (req:Request, res: Response) => {
 	const { title , Status, description, bussinessId } = req.body;

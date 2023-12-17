@@ -4,6 +4,7 @@ import { Router } from "express";
 import {
 
 	getDashboardChart,
+	getBusinessDashboard,
 	createReportTicket,
 	getAllReportTicket,
 	createHelpDesk,
@@ -22,6 +23,7 @@ const feature14Router = Router();
 
 // here define your routes
 feature14Router.get("/getDashboard", getDashboardChart);
+feature14Router.get("/getBusinessDashboard",getBusinessDashboard)
 
 feature14Router.post("/createReportTicket", createReportTicket);
 
