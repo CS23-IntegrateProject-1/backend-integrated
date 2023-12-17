@@ -1433,7 +1433,7 @@ export const createCheckoutSession = async (req: Request, res: Response) => {
             line_items: [
                 {
                     // Provide the exact Price ID (for example, pr_1234) of the product you want to sell
-                    price: '{{PRICE_ID}}',
+                    price: 'price_1OOIFTBCLtNTpQNyEs4VTDUq',
                     quantity: 1,
                 },
             ],
@@ -1444,7 +1444,7 @@ export const createCheckoutSession = async (req: Request, res: Response) => {
         res.status(200).json({url: session.url})
 
     } catch (error) {
-        res.status(400).json({error: 'Failed to create checkout session'})
+        res.status(400).json(error)
     }
     
         // res.redirect(303,session.url!);
