@@ -1,8 +1,11 @@
+import cookie from 'cookie';
+import jwt, { JsonWebTokenError } from "jsonwebtoken";
 import { Server, Socket } from "socket.io";
 import { createServer, Server as HttpServer } from "http";
 import express from "express";
 import loadEnv from "./configs/dotenvConfig";
 import { PrismaClient } from "@prisma/client";
+import { makeErrorResponse } from "./controllers/feature1/models/payment_method.model";
 const feature12Client = new PrismaClient();
 
 loadEnv();
@@ -17,35 +20,38 @@ const io = new Server(httpServer, {
 
 type Client = {
   sockId: string;
-  userId: string;
+  username: string;
 };
 
 interface Recipient {
-  id: string;
-  name: string;
+  id: number;
+  username: string;
+  avatar: string;
 }
-
 const connectedClients: Array<Client> = [];
 
 io.on("connection", (socket) => {
   console.log(`Socket connected: ${socket.id}`);
   const id = socket.handshake.query.id as string;
-  console.log("id", id);
+  console.log("id : ", id);
 
   connectedClients.push({
     sockId: socket.id,
-    userId: socket.handshake.query.id as string,
+    username: socket.handshake.query.id as string,
   });
 
-  console.log("connectedClients", connectedClients);
-  socket.join("1");
-  console.log(id + "join room 1");
+  // console.log("connectedClients", connectedClients);
+  // socket.join("1");
+  // console.log(id + " join room 1");
 
-  socket.on("join-room", (recipients) => {
-    console.log("recipients", recipients);
-    recipients.forEach((recipient: Recipient) => {
+  socket.on("join-room", (data) => {
+
+    // console.log("join-room", conversationName );
+    console.log("recipients", data);
+
+    data.recipients.forEach((recipient: Recipient) => {
       socket.join("1");
-      console.log(recipient.id + "Join Room 1");
+      console.log(recipient.username + " Join Room " + data.group_id);
     });
   });
 

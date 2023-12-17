@@ -349,6 +349,7 @@ export const getFriendList = async (req: any, res: Response) => {
             username: true,
             userId: true,
             addId: true,
+            profile_picture: true,
           },
         });
       })
