@@ -1323,11 +1323,6 @@ export const getTransactionReserveIdByVenueIdAndEqualToStatusCompleted = async (
         },
         select: {
           reserveId: true,
-          Transaction_detail: {
-            select: {
-              timestamp: true,
-            },
-          },
         },
       });
   
@@ -1335,87 +1330,30 @@ export const getTransactionReserveIdByVenueIdAndEqualToStatusCompleted = async (
         return res.status(404).json({ error: 'No transactions found with completed details for the specified venue' });
       }
   
-    const ordersPromises = transactions.map(transaction => 
+      const ordersPromises = transactions.map(transaction => 
         feature8Client.orders.findUnique({
-            where: {
-                reservedId: transaction.reserveId,
-            },
-            select: {
-                reservedId: true,
-                orderId: true,
-                total_amount: true,
-                status: true,
-                order_date: true,
-                isDelivery: true,
-            },
-        }).then(order => order ? { ...order, timestamp: transaction.Transaction_detail?.timestamp } : null)
-    );
+          where: {
+            reservedId: transaction.reserveId,
+          },
+          select: {
+            reservedId: true,
+            orderId: true,
+            total_amount: true,
+            status: true,
+            order_date: true,
+            isDelivery: true,
+          },
+        })
+      );
   
       const ordersss = (await Promise.all(ordersPromises)).filter(order => order !== null);
   
-      res.status(200).json({ ordersss });
+      res.status(200).json({ orders: ordersss.flat() });
     } catch (error) {
       console.error(error);
       res.status(500).json({ error: 'Failed to retrieve transactions' });
     }
   };
-
-  export const getTransactionReserveIdByVenueIdAndEqualToStatusCompletedAndFiltered = async (req: Request, res: Response) => {
-    const venueId = parseInt(req.params.venueId, 10);
-    const fromTime = new Date(req.query.fromTime as string);
-    const toTime = new Date(req.query.toTime as string);
-  
-    try {
-      const transactions = await feature8Client.transaction.findMany({
-        where: {
-          venueId: venueId,
-          Transaction_detail: {
-            status: 'Completed',
-            timestamp: {
-              gte: fromTime,
-              lte: toTime,
-            },
-          },
-        },
-        select: {
-          reserveId: true,
-          Transaction_detail: {
-            select: {
-              timestamp: true,
-            },
-          },
-        },
-      });
-  
-      if (!transactions || transactions.length === 0) {
-        return res.status(404).json({ error: 'No transactions found with completed details for the specified venue' });
-      }
-  
-    const ordersPromises = transactions.map(transaction => 
-        feature8Client.orders.findUnique({
-            where: {
-                reservedId: transaction.reserveId,
-            },
-            select: {
-                reservedId: true,
-                orderId: true,
-                total_amount: true,
-                status: true,
-                order_date: true,
-                isDelivery: true,
-            },
-        }).then(order => order ? { ...order, timestamp: transaction.Transaction_detail?.timestamp } : null)
-    );
-  
-      const ordersss = (await Promise.all(ordersPromises)).filter(order => order !== null);
-  
-      res.status(200).json({ ordersss });
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ error: 'Failed to retrieve transactions' });
-    }
-  };
-
 
 //token function
 // import jwt, { Secret } from 'jsonwebtoken';
