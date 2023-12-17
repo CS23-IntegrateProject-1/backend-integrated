@@ -7,10 +7,14 @@ import {
 	createReportTicket,
 	getAllReportTicket,
 	createHelpDesk,
-	createPromotionApproval,
+	//createPromotionApproval,
 	getReportTicketByNew,
 	getReportTicketByAssigned,
 	getReportTicketByComplete,
+	updatePromotionApproval,
+	getInProgressPromotion,
+	updateVoucherApproval,
+	getInProgressVoucher,
 
 } from "../controllers/feature14.controller";
 
@@ -28,7 +32,13 @@ feature14Router.get("/getReportTicketByNew",getReportTicketByNew);
 feature14Router.get("/getReportTicketByAssigned",getReportTicketByAssigned);
 feature14Router.get("/getReportTicketByComplete", getReportTicketByComplete);
 
-feature14Router.post("/createPromotionApproval",createPromotionApproval);
+feature14Router.put("/updatePromotionApproval/:id",updatePromotionApproval);
+feature14Router.get("/getInProgressPromotion",getInProgressPromotion);
+
+feature14Router.put("/updateVoucherApproval/:id",updateVoucherApproval);
+feature14Router.get("/getInProgressVoucher",getInProgressVoucher);
+
+//feature14Router.post("/createPromotionApproval",createPromotionApproval);
 
 
 

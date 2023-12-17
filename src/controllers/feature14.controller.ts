@@ -134,25 +134,99 @@ export const createHelpDesk = async( req:Request, res:Response) => {
 	}
 };
 //===============================Promotion Approval==============================
-export const createPromotionApproval = async(req:Request, res:Response) => {
-	const { isApprove ,promotionId} = req.body;
+export const updatePromotionApproval = async (req: Request, res: Response) => {
+	const { id } = req.params;
+	const { isApprove } = req.body;
 	try {
-		const promotion_approval = await feature14Client.promotion_approval.create({
-			data: {
-				promotionId:promotionId,
-				isApprove: isApprove,
+				const promotion_approval = await feature14Client.promotion.update({
+					where: {
+						promotionId: parseInt(id),
+					},
+					data: {
+						isApprove: isApprove,
+					},
+				});
+				return res.status(201).json({ promotion_approval });
+			} catch (error) {
+				console.log(error);
+				return res.status(500).json({ error });
 			}
-		});
-		if (isApprove) {
-			return res.json({ result: 'accept', promotion_approval });
-			} else {
-			return res.json({ result: 'reject', promotion_approval });
-			}
-	}catch (error) {
+};
+ export const getInProgressPromotion = async (req: Request, res: Response) => {
+	try{
+		const inProgressPromotion = await feature14Client.promotion.findMany({
+			where: {
+				isApprove: {
+					equals: 'In_progress',
+				},
+			  },
+		  });
+		  return res.status(200).json({ inProgressPromotion });
+
+	} catch (error) {
 		console.log(error);
 		return res.status(500).json({ error });
 	}
+ };
+
+ //===============================Voucher Approval==============================
+ export const updateVoucherApproval = async (req: Request, res: Response) => {
+	const { id } = req.params;
+	const { isApprove } = req.body;
+	try {
+				const voucher_approval = await feature14Client.voucher.update({
+					where: {
+						voucherId: parseInt(id),
+					},
+					data: {
+						isApprove: isApprove,
+					},
+				});
+				return res.status(201).json({ voucher_approval });
+			} catch (error) {
+				console.log(error);
+				return res.status(500).json({ error });
+			}
 };
+export const getInProgressVoucher = async (req: Request, res: Response) => {
+	try{
+		const voucher_approval = await feature14Client.voucher.findMany({
+			where: {
+				isApprove: {
+					equals: 'In_progress',
+				},
+			  },
+		  });
+		  return res.status(200).json({ voucher_approval });
+
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({ error });
+	}
+ };
+
+
+
+ ////////////////////////////////////////////////////////////////////////////////
+// export const createPromotionApproval = async(req:Request, res:Response) => {
+// 	const { isApprove ,promotionId} = req.body;
+// 	try {
+// 		const promotion_approval = await feature14Client.promotion_approval.create({
+// 			data: {
+// 				promotionId:promotionId,
+// 				isApprove: isApprove,
+// 			}
+// 		});
+// 		if (isApprove) {
+// 			return res.json({ result: 'accept', promotion_approval });
+// 			} else {
+// 			return res.json({ result: 'reject', promotion_approval });
+// 			}
+// 	}catch (error) {
+// 		console.log(error);
+// 		return res.status(500).json({ error });
+// 	}
+// };
 
 //=====================================ADMIN======================================
 // export const createAdminUser = async (req: Request, res: Response) => {
