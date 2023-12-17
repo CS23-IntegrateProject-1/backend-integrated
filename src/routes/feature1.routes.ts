@@ -103,7 +103,7 @@ feature1Router.get("/group/:id", groupInfoHandler);
 feature1Router.post("/group/add", groupHandler);
 
 feature1Router.put(
-  "/venue",
+  "/venue/info",
   businessAuthMiddleware,
   venueController.update.bind(venueController),
 );
