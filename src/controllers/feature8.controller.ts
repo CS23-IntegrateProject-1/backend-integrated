@@ -1,7 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 import { Response, Request } from "express";
+import crypto from "crypto";
 
-const crypto = require('crypto');
 const feature8Client = new PrismaClient();
 
 export const getfeature8 = async (req: Request, res: Response) => {

@@ -1158,7 +1158,7 @@ export const checkInStatus = async (req: Request, res: Response) => {
         if (!token) {
             return res.status(401).json({ error: "No auth token" });
         }
-        
+
         const status = await feature6Client.reservation.findUnique({
             where: {
                 reservationId: parseInt(reservationId),

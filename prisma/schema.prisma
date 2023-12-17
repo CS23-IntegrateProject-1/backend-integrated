@@ -51,6 +51,7 @@ model User {
   User_voucher           User_voucher[]
   Venue_reviews          Venue_reviews[]
   userSaved_location     userSaved_location[]
+  Chat_message           Chat_message[]
 
   @@index([tierId], map: "User_tierId_fkey")
 }
@@ -116,10 +117,11 @@ model Group_user {
 }
 
 model Group {
-  groupId       Int          @id @default(autoincrement())
+  groupId       Int            @id @default(autoincrement())
   group_name    String
-  group_profile String?      @db.Text
+  group_profile String?        @db.Text
   Group_user    Group_user[]
+  Chat_message  Chat_message[]
 }
 
 model Friendship {
@@ -144,6 +146,7 @@ model Venue {
   score             Decimal
   venueId           Int                 @id @default(autoincrement())
   website_url       String              @db.Text
+  venue_picture     String?             @db.Text
   App_transaction   App_transaction[]
   Article_venue     Article_venue[]
   Business_finance  Business_finance[]
@@ -422,6 +425,16 @@ model Message {
 
   @@index([roomId], map: "Message_roomId_fkey")
   @@index([userId], map: "Message_userId_fkey")
+}
+
+model Chat_message {
+  roomId    Int
+  userId    Int
+  message   String
+  date_time DateTime @default(now())
+  messageId Int      @id @default(autoincrement())
+  room      Group    @relation(fields: [roomId], references: [groupId])
+  user      User     @relation(fields: [userId], references: [userId])
 }
 
 model Orders {
@@ -763,10 +776,6 @@ model Help_desk {
   report_ticket  Report_ticket @relation(fields: [reportTicketId], references: [reportTicketId])
 }
 
-model Promotion_approval {
-  promotionId Int     @id
-  isApprove   Boolean @default(false)
-}
 
 model Comments {
   content                 String
@@ -805,7 +814,7 @@ model Like {
 model Reservation {
   venueId                  Int
   name                     String?
-  phone                    String?                     @db.VarChar(10)
+  phone                    String?                    @db.VarChar(10)
   guest_amount             Int
   reserved_time            DateTime                   @default(now())
   status                   Status
