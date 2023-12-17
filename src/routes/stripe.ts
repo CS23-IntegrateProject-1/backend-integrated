@@ -1,10 +1,13 @@
-// stripe.js (routes)
 const express = require('express');
 const Stripe = require('stripe');
-
+const cors = require('cors'); // Import the cors middleware
 require('dotenv').config();
+
 const stripe = Stripe(process.env.STRIPE_KEY);
 const router = express.Router();
+
+// Use cors middleware to enable Cross-Origin Resource Sharing
+router.use(cors());
 
 router.post('/create-checkout-session', async (req, res) => {
   const cartItems = req.body.cartItems;
