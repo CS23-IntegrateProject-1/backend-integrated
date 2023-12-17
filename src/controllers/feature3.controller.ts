@@ -502,7 +502,7 @@ interface VenueInfo {
     locationId:  number;
     website_url: string;
     rating:      string;
-  
+    venue_picture: string;
 }
 
 
@@ -525,7 +525,8 @@ export const getVenuesPage = async (req: Request, res: Response) => {
       chatRoomId,
       locationId,
       website_url,
-      COALESCE(AVG(VR.rating), 0) AS rating
+      COALESCE(AVG(VR.rating), 0) AS rating,
+      venue_picture
     FROM
       Venue V
       JOIN Venue_branch VB ON V.venueId = VB.venueId
@@ -629,6 +630,8 @@ export const getVenBranchPage = async (req: Request, res: Response) => {
   }
 };
 
+
+
 export const getVenDetail = async (req: Request, res: Response) => {
   const { branchId } = req.params;
   const branchIdInt = parseInt(branchId);
@@ -636,7 +639,7 @@ export const getVenDetail = async (req: Request, res: Response) => {
   try {
     const VenDetail = await feature3Client.$queryRaw`
       SELECT V.venueId, VB.branchId, name, VB.branch_name, description, category, capacity,
-        chatRoomId, locationId, website_url, COALESCE(AVG(VR.rating), 0) as rating
+        chatRoomId, locationId, website_url, COALESCE(AVG(VR.rating), 0) as rating, venue_picture
       FROM Venue V
       JOIN Venue_branch VB ON V.venueId = VB.venueId
       LEFT JOIN Venue_reviews VR ON VB.branchId = VR.branchId
