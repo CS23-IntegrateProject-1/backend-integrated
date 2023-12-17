@@ -50,7 +50,7 @@ io.on("connection", (socket) => {
     console.log("recipients", data);
 
     data.recipients.forEach((recipient: Recipient) => {
-      socket.join("1");
+      socket.join(data.group_id);
       console.log(recipient.username + " Join Room " + data.group_id);
     });
   });

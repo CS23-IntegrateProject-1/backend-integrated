@@ -324,6 +324,43 @@ createChatRooms();
 //   return res.status(200).json({ userId });
 // };
 
+// PrivateChat
+export const getPrivateChatList = async (req: any, res: Response) => {
+
+  try {
+    const userId = req.userId;
+    console.log("userId", userId);
+    const groupList = await feature12Client.group_user.findMany({
+      where: {
+        memberId: parseInt(userId),
+      },
+      select: {
+        groupId: true,
+      },
+    });
+
+    // Get the second user's details from the user table
+    const groupDetail = await Promise.all(
+      groupList.map(async (group) => {
+        return await feature12Client.group.findUnique({
+          where: {
+            groupId: group.groupId,
+          },
+          select: {
+            group_name: true,
+            group_profile: true,
+          },
+        });
+      })
+    );
+    
+    return res.status(200).json(groupDetail);
+  } catch (error) {
+    return res.status(500).json({ error });
+  }
+};
+
+
 //Get the secondUserID from friendship table of specific user who has login
 export const getFriendList = async (req: any, res: Response) => {
 

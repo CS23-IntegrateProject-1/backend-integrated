@@ -12,6 +12,7 @@ import {
   getFriendList,
   forDialogflow,
   fetchData,
+  getPrivateChatList,
 } from "../controllers/feature12.controller";
 import { customVerifyCookie } from "../middlewares/verifyCookies";
 
@@ -39,6 +40,7 @@ feature12Router.get("/displayUser", getAllUsers);
 //Get Friend List
 feature12Router.get("/displayFriendList",customVerifyCookie, getFriendList);
 
+feature12Router.get("/displayGroupDetail",customVerifyCookie, getPrivateChatList);
 //dialogflow route
 feature12Router.post("/dialogflow", forDialogflow);
 feature12Router.get("/fetchData", fetchData);
