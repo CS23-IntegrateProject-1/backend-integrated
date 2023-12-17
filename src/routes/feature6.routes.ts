@@ -6,6 +6,7 @@ import { getReservationById } from "../controllers/feature6.controller";
 import { getMyReservationByStatus } from "../controllers/feature6.controller";
 import { getVenueAndReservationsById } from "../controllers/feature6.controller";
 import { createReservation } from "../controllers/feature6.controller";
+import { checkInStatus } from "../controllers/feature6.controller";
 
 //IMPORT FOR BUSINESS SIDE
 import { getAllTableTypeByVenueId } from "../controllers/feature6.controller";
@@ -21,7 +22,7 @@ import { createOfflineReservation } from "../controllers/feature6.controller";
 
 const feature6Router = Router();
 
-// Custimer side part
+// Customer side part
 //GET METHOD
 feature6Router.get("/allTable", getAllTable);
 feature6Router.get("/allReservation", getAllReservation);
@@ -34,6 +35,7 @@ feature6Router.get(
     "/MyReservation/:venueId/:reservationId",
     getVenueAndReservationsById
 );
+feature6Router.get("/checkin/status/:reservationId", checkInStatus);
 
 //POST METHOD
 feature6Router.post("/createReservation", createReservation);
@@ -59,11 +61,9 @@ import { cancelReservation } from "../controllers/feature6.controller";
 import { checkIn } from "../controllers/feature6.controller";
 import { qrCode } from "../controllers/feature6.controller";
 import { checkOut } from "../controllers/feature6.controller";
-import { reservationMW } from "../middlewares/reservationMW";
-// import { sharelink } from "../controllers/feature6.controller";
+// import { reservationMW } from "../middlewares/reservationMW";
 
 // Check In
-// feature6Router.get("/sharelink/:reservationId", sharelink);
 feature6Router.post("/cancel/:reservationId", cancelReservation);
 feature6Router.post("/checkIn/:reservationId", checkIn);
 feature6Router.post("/checkOut/:reservationId", checkOut);

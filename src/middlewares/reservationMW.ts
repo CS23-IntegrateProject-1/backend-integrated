@@ -1,4 +1,4 @@
-import { NextFunction, Request, Response } from "express";
+import { NextFunction, Response } from "express";
 import jwt, { JwtPayload } from "jsonwebtoken";
 
 export const reservationMW = (req: any, res: Response, next: NextFunction) => {

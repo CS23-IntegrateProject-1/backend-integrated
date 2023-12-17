@@ -1151,38 +1151,35 @@ export const checkOut = async (req: Request, res: Response) => {
     }
 };
 
-// งงจ้าาา
-// This part is for share reservation link
-// In Progress
-
-// export const sharelink = async (req: Request, res: Response) => {
-//     try {
-//         const reservation = await feature6Client.reservation.findUnique({
-//             where: { reservationId: parseInt(req.params.reservationId) },
-//         });
-
-//         if (!reservation) {
-//             return res.status(404).json({ error: "Reservation not found" });
-//         }
-
-//         return res.render("reservation-details", { reservation });
-//     } catch (error) {
-//         console.error(error);
-//         return res.status(500).json({ error: "Internal Server Error" });
-//     }
-// };
-
-// Share Link Button
-// const copyCurrentPageLink = async () => {
-//     const currentUrl = window.location.href;
-//     try {
-//         await navigator.clipboard.writeText(currentUrl);
-//         alert("Link copied to clipboard!");
-//     } catch (err) {
-//         console.error("Unable to copy to clipboard", err);
-//         alert("Failed to copy link to clipboard");
-//     }
-// };
-
-// Example usage (e.g., in a button click event handler)
-//   document.getElementById('copyLinkButton').addEventListener('click', copyCurrentPageLink);
+export const checkInStatus = async (req: Request, res: Response) => {
+    try {
+        const { reservationId } = req.params;
+        const token = req.cookies.authToken;
+        if (!token) {
+            return res.status(401).json({ error: "No auth token" });
+        }
+        
+        const status = await feature6Client.reservation.findUnique({
+            where: {
+                reservationId: parseInt(reservationId),
+            },
+            select: {
+                status: true,
+            },
+        });
+        if (status?.status == "Check_in") {
+            // res.cookie("reservationToken")
+            const reservationToken = genToken(parseInt(reservationId));
+            res.cookie("reservationToken", reservationToken, {
+                httpOnly: true,
+                secure: true,
+                sameSite: "none",
+            });
+            
+        }
+        res.json(status?.status);
+       
+    } catch (e) {
+        return res.status(500).json(e);
+    }
+};
