@@ -21,10 +21,7 @@ import {
     getVenuesByCategory,
     getPhotos,
     getRecommendedVenues,
-    addFoodReview,
-    editFoodReview,
     deleteFoodReview,
-    getFoodReviews,
     // getSentimentAnalysis,
 
 
@@ -55,7 +52,6 @@ import {
 
 
 } from "../controllers/feature3.controller";
-import { get } from "http";
 
 const feature3Router = Router();
 
@@ -86,9 +82,6 @@ feature3Router.patch("/venue-reviews/:venueReviewId", editVenueReview);
 feature3Router.delete("/venue-reviews/:venueReviewId", deleteVenueReview);
 
 // Food reviews
-feature3Router.get("/food-reviews/:id", getFoodReviews);
-feature3Router.post("/food-reviews", addFoodReview);
-feature3Router.patch("/food-reviews/:foodReviewId", editFoodReview);
 feature3Router.delete("/food-reviews/:foodReviewId", deleteFoodReview);
 
 

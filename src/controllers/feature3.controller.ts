@@ -4,11 +4,8 @@ import { Response, Request } from "express";
 // import { type } from "os";
 // import * as path from "path";
 import authService from "../services/auth/auth.service";
-import { auth } from "firebase-admin";
 
 const feature3Client = new PrismaClient();
-
-export const getfeature3 = async (req: Request, res: Response) => {};
 
 // const executePythonFile = async (pythonScriptPath: string, arg: string) => {
 //   return new Promise((resolve, reject) => {
@@ -417,89 +414,6 @@ export const getAllFoodVouchers = async (req: Request, res: Response) => {
   try {
     const foodVouchers = await feature3Client.food_voucher.findMany();
     return res.json(foodVouchers);
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({ error: "Internal Server Error" });
-  }
-};
-
-export const getFoodReviews = async (req: Request, res: Response) => {
-  const { id } = req.params;
-  try {
-    const reviews = await feature3Client.food_reviews.findMany({
-      where: {
-        menuId: parseInt(id),
-      } as any,
-    });
-    return res.json(reviews);
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json(error);
-  }
-};
-
-export const addFoodReview = async (req: Request, res: Response) => {
-  const { menuId, userId, rating, review } = req.body;
-
-  // Get time now
-  const date_added = new Date();
-
-  try {
-    // Check if the user and venue exist (you may need additional validations)
-    const userExists = await feature3Client.user.findUnique({
-      where: { userId },
-    });
-
-    const foodExists = await feature3Client.menu.findUnique({
-      where: { menuId },
-    });
-
-    if (!userExists || !foodExists) {
-      return res.status(404).json({ error: "User or Food not found" });
-    }
-
-    // Create a new FoodReview
-    const newReview = await feature3Client.food_reviews.create({
-      data: {
-        menuId,
-        userId,
-        rating,
-        review,
-        date_added,
-      } as any,
-    });
-
-    return res.json(newReview);
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({ error: "Internal Server Error" });
-  }
-};
-
-export const editFoodReview = async (req: Request, res: Response) => {
-  const { foodReviewId } = req.params;
-  const { rating, review } = req.body;
-
-  try {
-    // Check if the review exists
-    const existingReview = await feature3Client.food_reviews.findUnique({
-      where: { foodReviewId: parseInt(foodReviewId) },
-    });
-
-    if (!existingReview) {
-      return res.status(404).json({ error: "Review not found" });
-    }
-
-    // Update the existing review with the provided fields
-    const updatedReview = await feature3Client.food_reviews.update({
-      where: { foodReviewId: parseInt(foodReviewId) },
-      data: {
-        rating: rating !== undefined ? rating : existingReview.rating,
-        review: review !== undefined ? review : existingReview.review,
-      },
-    });
-
-    return res.json(updatedReview);
   } catch (error) {
     console.error(error);
     return res.status(500).json({ error: "Internal Server Error" });
@@ -919,7 +833,7 @@ export const getMyReviews = async (req: Request, res: Response) => {
     const myReviews: { review_type: string, rating: number}[] = await feature3Client.$queryRaw`
     SELECT V.name, V.description, V.category, V.venueId, VB.branchId, VB.branch_name, VR.rating, VR.review, VR.date_added, VR.venueReviewId, VR.review_type
     FROM Venue V, Venue_branch VB, Venue_reviews VR
-    WHERE V.venueId = VB.venueId AND VB.branchId = VR.branchId AND userId = 2
+    WHERE V.venueId = VB.venueId AND VB.branchId = VR.branchId AND userId = ${userId}
     ORDER BY VR.date_added DESC;
     `;
 
