@@ -1,20 +1,19 @@
 import { PrismaClient } from "@prisma/client";
 import { Response, Request } from "express";
+
+import { exec } from "child_process";
+
 import * as fs from "fs";
-import { type } from "os";
 import * as path from "path";
 
 const feature3Client = new PrismaClient();
 
-export const getfeature3 = async (req: Request, res: Response) => {};
-
 const executePythonFile = async (pythonScriptPath: string, arg: string) => {
     return new Promise((resolve, reject) => {
-        const { exec } = require("child_process");
         console.log(pythonScriptPath);
         exec(
             `python ${"../backend-integrated/src/services/sentimentAnalysis/func.py"} --review "${arg}"`,
-            (error, stdout, stderr) => {
+            (error, stdout) => {
                 if (error) {
                     console.error(
                         `Error executing Python script: ${error.message}`

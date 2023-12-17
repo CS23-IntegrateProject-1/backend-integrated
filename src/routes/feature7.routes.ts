@@ -4,7 +4,6 @@ import { Router } from "express";
 import {
     getMenuById,
     getMenusByVenueId,
-    getfeature7, 
     getSetsByVenueId,
     getSetById,
     checkMenuAvailability,
@@ -34,14 +33,11 @@ import {
     showMenuItemsInSet,
 } from "../controllers/feature7.controller";
 import { customVerifyCookie } from "../middlewares/verifyCookies";
-import { clear } from "console";
-import { get } from "http";
 
 const feature7Router = Router();
 
 // feature7Router.use("/addMenuToCookie/:userId/:menuId", customVerifyCookie );
 // here define your routes
-feature7Router.get("/", getfeature7);
 //get all menus
 feature7Router.get("/getMenusByVenueId/:id",getMenusByVenueId);
 //get all sets
