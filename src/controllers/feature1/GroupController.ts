@@ -22,17 +22,20 @@ export default class GroupController implements IGroupController {
   async create(req: Request, res: Response) {
     try {
       const { group_name: groupName, members } = req.body;
+      let fileName: string|null;
 
-      const groups = await this.service.createGroup(Number(req.params.userId), groupName, members);
+      if (req['file']) {
+        fileName = req['file'].filename;
+      } else {
+        fileName = null;
+      }
+
+      const groups = await this.service.createGroup(Number(req.params.userId), groupName, members.map((m: string) => Number(m)), fileName);
 
       const webResponse = makeGroupCreateWebResponse(groups);
 
       return res.status(200).json(webResponse);
     } catch (e) {
-      if (e instanceof JsonWebTokenError) {
-        return res.status(401).json(makeErrorResponse("Invalid token"));
-      }
-
       return res
         .status(500)
         .json(makeErrorResponse("Unknown Error Encountered"));
@@ -45,20 +48,7 @@ export default class GroupController implements IGroupController {
     const { id } = req.params;
     const groupId = Number(id);
 
-    let token: string;
-
     try {
-      token = extractToken(req);
-    } catch (e) {
-      return res.status(401).json(makeErrorResponse("Unauthrozied"));
-    }
-
-    try {
-      const decoded = jwt.verify(
-        token as string,
-        process.env.JWT_SECRET as string,
-      );
-      const userId = (decoded as jwt.JwtPayload).userId;
       const result = await prismaClient.group.findFirst({
         where: {
           groupId,
@@ -85,6 +75,7 @@ export default class GroupController implements IGroupController {
       const response = {
         group_id: result.groupId,
         group_name: result.group_name,
+        group_avatar: result.group_profile,
         members: result.Group_user.map((user) => ({
           user_id: user.member.userId,
           username: user.member.username,

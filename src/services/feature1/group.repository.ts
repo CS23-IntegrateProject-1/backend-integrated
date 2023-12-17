@@ -12,6 +12,7 @@ export interface IGroupRepository {
     userId: number,
     groupName: string,
     members: Array<number>,
+    filename: string|null,
   ): Promise<GroupCreateDBResponse>;
 
   addGroupByUserName(requesterId: number, requesteeId: number): void;
@@ -44,7 +45,7 @@ export default class GroupRepository {
     this.prismaClient = new PrismaClient();
   }
 
-  async createGroup(userId: number, groupName: string, members: Array<number>) {
+  async createGroup(userId: number, groupName: string, members: Array<number>, filename: string) {
     const allMembers = new Set(members);
     allMembers.add(userId);
 
@@ -54,6 +55,7 @@ export default class GroupRepository {
           create: Array.from(allMembers).map((id) => ({ memberId: id })),
         },
         group_name: groupName,
+        group_profile: filename,
       },
       include: {
         Group_user: {

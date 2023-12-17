@@ -1,6 +1,7 @@
 import { Router } from "express";
 import multer from 'multer';
 const upload = multer({ dest: 'src/uploads' });
+import multerConfig from '../multerConfig';
 
 // here import your controllers(function)
 import {
@@ -103,7 +104,7 @@ feature1Router.put(
 
 feature1Router.get("/group", userAuthMiddleware, groupController.index.bind(groupController));
 feature1Router.get("/group/:id", groupInfoHandler);
-feature1Router.post("/group/add", userAuthMiddleware, upload.single('avatar') ,groupController.create.bind(groupController));
+feature1Router.post("/group/add", userAuthMiddleware, multerConfig.single('avatar'), groupController.create.bind(groupController));
 
 feature1Router.get(
   "/venue",

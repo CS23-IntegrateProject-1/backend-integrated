@@ -14,6 +14,7 @@ export interface IGroupService {
     userId: number,
     groupName: string,
     members: Array<number>,
+    filename: string|null,
   ): Promise<GroupCreateDBResponse>;
 }
 
@@ -24,8 +25,9 @@ export default class GroupService implements IGroupService {
     userId: number,
     groupName: string,
     members: Array<number>,
+    filename: string|null,
   ): Promise<GroupCreateDBResponse> {
-    return await this.repository.createGroup(userId, groupName, members);
+    return await this.repository.createGroup(userId, groupName, members, filename);
   }
 
   async addGroupById(requesterId: number, requesteeId: number): Promise<void> {
