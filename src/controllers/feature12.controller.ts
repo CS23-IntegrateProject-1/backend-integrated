@@ -323,6 +323,55 @@ createChatRooms();
 //   const { userId } = decodedToken;
 //   return res.status(200).json({ userId });
 // };
+//One Group Chat Detail
+export const getGroupChatDetail = async (req: Request, res: Response) => {
+  const { id } = req.params;
+  try{
+    const groupdetail = await feature12Client.group.findMany({
+      where: {
+        groupId: parseInt(id),
+      },
+      select: {
+        group_name: true,
+        group_profile: true,
+      },
+    });
+    const group_name=groupdetail[0].group_name;
+    const group_profile=groupdetail[0].group_profile;
+
+    const members = await feature12Client.group_user.findMany({
+      where: {
+        groupId: parseInt(id),
+      },
+      select: {
+        memberId: true,
+        member: {
+          select: {
+            username: true,
+            userId: true,
+            addId: true,
+            profile_picture: true,
+          },
+        },
+      },
+    });
+    const messages = await feature12Client.chat_message.findMany({
+      where: {
+        roomId: parseInt(id),
+      },
+      select: {
+        userId: true,
+        // message: true,
+        date_time: true,
+        messageId: true,
+      },
+    });
+    
+    return res.status(200).json({ group_name,group_profile,id,members, messages });
+  } catch (error) {
+    return res.status(500).json({ error });
+  }
+};
 
 // PrivateChat
 export const getPrivateChatList = async (req: any, res: Response) => {
@@ -375,7 +424,7 @@ export const getPrivateChatList = async (req: any, res: Response) => {
           },
           select: {
             userId: true,
-            message: true,
+            // message: true,
             date_time: true,
             messageId: true,
           },
