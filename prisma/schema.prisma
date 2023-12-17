@@ -246,8 +246,6 @@ model Venue_photo {
   image_url    String?  @db.Text
   date_added   DateTime @default(now())
   venue        Venue    @relation(fields: [venueId], references: [venueId])
-
-  @@index([venueId], map: "Venue_photo_venueId_fkey")
 }
 
 model Search_history {
@@ -275,8 +273,8 @@ model Member_tier {
   tier_name        String
   tier_benefit     String
   tierId           Int                @id @default(autoincrement())
-  Redeem_privilege Redeem_privilege[]
   User             User[]
+  Redeem_privilege Redeem_privilege[]
 }
 
 model Point {
@@ -604,9 +602,9 @@ model Complain_ticket {
 model Ticket_responses {
   ticketResponseId Int             @id @default(autoincrement())
   complainTicketId Int
+  isApprove        Boolean         @default(false)
   response_title   String
   response_detail  String
-  isApprove        Boolean         @default(false)
   ticket           Complain_ticket @relation(fields: [complainTicketId], references: [ComplainTicketId])
 
   @@index([complainTicketId], map: "Ticket_responses_complainTicketId_fkey")
@@ -736,6 +734,40 @@ model Article_tags {
   @@index([articleId], map: "Article_tags_articleId_fkey")
 }
 
+model Redeem_privilege {
+  redeemId    Int         @id @default(autoincrement())
+  title       String
+  description String
+  memberTier  Int
+  image_url   String?     @db.Text
+  member_tier Member_tier @relation(fields: [memberTier], references: [tierId])
+}
+
+model Report_ticket {
+  reportTicketId Int           @id @default(autoincrement())
+  title          String
+  Status         String
+  date           DateTime      @default(now()) @db.Date
+  time           DateTime      @default(now()) @db.Time()
+  description    String?       @db.Text
+  bussinessId    Int
+  business_user  Business_user @relation(fields: [bussinessId], references: [businessId])
+  Help_desk      Help_desk[]
+}
+
+model Help_desk {
+  reportTicketId Int           @id
+  assign_to      String
+  description    String?
+  isApprove      Boolean       @default(false)
+  report_ticket  Report_ticket @relation(fields: [reportTicketId], references: [reportTicketId])
+}
+
+model Promotion_approval {
+  promotionId Int     @id
+  isApprove   Boolean @default(false)
+}
+
 model Comments {
   content                 String
   userId                  Int
@@ -772,6 +804,8 @@ model Like {
 
 model Reservation {
   venueId                  Int
+  name                     String?
+  phone                    String?                     @db.VarChar(10)
   guest_amount             Int
   reserved_time            DateTime                   @default(now())
   status                   Status
@@ -782,8 +816,6 @@ model Reservation {
   isPaidDeposit            Deposit_status
   depositId                Int
   branchId                 Int?
-  name                     String?
-  phone                    String?                    @db.VarChar(10)
   Check_in_log             Check_in_log?
   Notes                    Notes?
   Notification_reservation Notification_reservation[]
@@ -1396,52 +1428,14 @@ model userSaved_location {
   userId       Int
   name         String
   address      String   @db.Text
-  createdAt    DateTime @default(now()) @db.Timestamp(0)
-  district     String?  @db.Text
-  postcode     String?  @db.Text
   province     String?  @db.Text
+  district     String?  @db.Text
   sub_district String?  @db.Text
+  postcode     String?  @db.Text
+  createdAt    DateTime @default(now()) @db.Timestamp(0)
   user         User     @relation(fields: [userId], references: [userId])
 
   @@index([userId], map: "userSaved_location_userId_fkey")
-}
-
-model Help_desk {
-  reportTicketId Int           @id
-  assign_to      String
-  description    String?
-  isApprove      Boolean       @default(false)
-  Report_ticket  Report_ticket @relation(fields: [reportTicketId], references: [reportTicketId])
-}
-
-model Promotion_approval {
-  promotionId Int     @id
-  isApprove   Boolean @default(false)
-}
-
-model Redeem_privilege {
-  redeemId    Int         @id @default(autoincrement())
-  title       String
-  description String
-  memberTier  Int
-  image_url   String?     @db.Text
-  Member_tier Member_tier @relation(fields: [memberTier], references: [tierId])
-
-  @@index([memberTier], map: "Redeem_privilege_memberTier_fkey")
-}
-
-model Report_ticket {
-  reportTicketId Int           @id @default(autoincrement())
-  title          String
-  Status         String
-  date           DateTime      @default(now()) @db.Date
-  time           DateTime      @default(now()) @db.Time(0)
-  description    String?       @db.Text
-  bussinessId    Int
-  Help_desk      Help_desk?
-  Business_user  Business_user @relation(fields: [bussinessId], references: [businessId])
-
-  @@index([bussinessId], map: "Report_ticket_bussinessId_fkey")
 }
 
 enum Review_type {
