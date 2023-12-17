@@ -917,13 +917,14 @@ export const getMyReviews = async (req: Request, res: Response) => {
     // });
 
     const myReviews: { review_type: string, rating: number}[] = await feature3Client.$queryRaw`
-    SELECT branchId, venueReviewId, AVG(VR.rating) as rating, count(review) as total_reviews
-    FROM Venue_reviews VR
-    GROUP BY branchId;
+    SELECT V.name, V.description, V.category, V.venueId, VB.branchId, VB.branch_name, VR.rating, VR.review, VR.date_added, VR.venueReviewId, VR.review_type
+    FROM Venue V, Venue_branch VB, Venue_reviews VR
+    WHERE V.venueId = VB.venueId AND VB.branchId = VR.branchId AND userId = 2
+    ORDER BY VR.date_added DESC;
     `;
 
     const filteredReviews = myReviews.filter((review) => {
-      console.log(reviewTypes, reviewStars)
+      // console.log(reviewTypes, reviewStars)
       const reviewTypeMatch = reviewTypes.length === 0 ? true : reviewTypes.includes(review.review_type);
       const reviewStarMatch = reviewStars.length === 0 ? true : reviewStars.includes(String(review.rating));
       return reviewTypeMatch && reviewStarMatch;
