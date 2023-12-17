@@ -28,11 +28,7 @@ export default class PaymentMethodService implements IPaymentMethodService {
   async getPaymentMethodOfUser(
     userId: number,
   ): Promise<PaymentMethodShowDBResponse> {
-    try {
-      return this.repository.getPaymentMethodByUserId(userId);
-    } catch (e) {
-      throw e;
-    }
+    return this.repository.getPaymentMethodByUserId(userId);
   }
 
   async updatePaymentMethodOfUser(

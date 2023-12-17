@@ -2,3 +2,4 @@ node_modules
 src/uploads/*
 .env.local
 .env
+.DS_Store

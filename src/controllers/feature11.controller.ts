@@ -1,17 +1,16 @@
 import { PrismaClient } from "@prisma/client";
 import { Response, Request } from "express";
 import jwt, { JwtPayload, Secret } from 'jsonwebtoken';
-
+import authService from "../services/auth/auth.service";
+import { TagColor } from "firebase-admin/lib/remote-config/remote-config-api";
+import { ta } from "date-fns/locale";
+//import { startOfDay, endOfDay } from 'date-fns';
 //const feature11Client = new PrismaClient();
 const prisma = new PrismaClient();
 
 // * TODO : 
-// * edit article 
 // * change keyword to link, 
-// * get comment like by creator
-// * add comment like by creator
-// * delete tag for article                                                  |  -->   maybe do both of this at the same time
-// * delete a tag in tag table when there is no article left pointing to it  |
+// * upload image with req.file
 
 enum Category {
     Review = "Review",
@@ -97,8 +96,6 @@ export const deleteTag = async (req: Request, res: Response) => {
   }
 }
 
-// ! if it doesn't work then the problem is at decoding userId
-// ! other than that is working fine (alr test in postman)
 export const addArticle = async (req: Request, res: Response) => {
   try {
     const article: ArticleCreateInput = req.body;
@@ -107,15 +104,12 @@ export const addArticle = async (req: Request, res: Response) => {
     const tags: string[] = req.body.tags;
     const imageDetails: ImageInput[] = req.body.images;
 
-    //const Id = req.params.Id;
-    const userId = 3;
-    //const secret: Secret = 'fwjjpjegjwpjgwej' || "";
-    //const token = req.cookies.token;
-    //if (!token)
-    //  return res.json({ error: 'Unauthorized' });
-
-    //const decoded = jwt.verify(token, secret) as CustomJwtPayload;
-    //const userId = decoded.userId;
+    const token = req.cookies.authToken;
+    if (!token) {
+      return res.json({ error: "No auth token" })
+    }
+    const decodedToken = authService.decodeToken(token)
+    const userId = decodedToken.userId;
 
     const newArticle = await prisma.article.create({
       data: {
@@ -123,7 +117,6 @@ export const addArticle = async (req: Request, res: Response) => {
         content,
         category,
         userId,
-        //userId: parseInt(Id),
         author_name,
       },
     });
@@ -137,19 +130,33 @@ export const addArticle = async (req: Request, res: Response) => {
       });
     }
 
+    var newTag;
     for (const tag of tags) {
-      const newTag = await prisma.tag.create({
-        data: {
-          tag_name: tag,
-        }
+      const existed = await prisma.tag.findMany({
+        where: { tag_name: tag }
       })
 
-      await prisma.article_tags.create({
-        data: {
-          articleId: newArticle.articleId,
-          tagId: newTag.tagId,
-        },
-      });
+      if (existed.length === 0) {
+        newTag = await prisma.tag.create({
+          data: {
+            tag_name: tag,
+          }
+        })
+
+        await prisma.article_tags.create({
+          data: {
+            articleId: newArticle.articleId,
+            tagId: newTag.tagId,
+          },
+        });
+      } else {
+        await prisma.article_tags.create({
+          data: {
+            articleId: newArticle.articleId,
+            tagId: existed[0].tagId,
+          },
+        });
+      }
     }
 
     for (const imageDetail of imageDetails) {
@@ -169,6 +176,14 @@ export const addArticle = async (req: Request, res: Response) => {
   }
 };
 
+interface TagBody {
+  tagId: number;
+  articleId: number;
+  tag: {
+    tag_name: string;
+  };
+}
+
 // ! haven't test
 export const editArticle = async (req: Request, res: Response) => {
   try {
@@ -176,16 +191,8 @@ export const editArticle = async (req: Request, res: Response) => {
     const { articleId, topic, content, category, author_name } = req.body;
     const venueIds: number[] = req.body.venueIds;
     const tags: string[] = req.body.tags;
+    //const tags: TagBody[] = req.body.tags;
     const imageDetails: ImageInput[] = req.body.images;
-
-    //const userId = 1;
-    //const secret: Secret = 'fwjjpjegjwpjgwej' || "";
-    //const token = req.cookies.token;
-    //if (!token)
-    //  return res.json({ error: 'Unauthorized' });
-
-    //const decoded = jwt.verify(token, secret) as CustomJwtPayload;
-    //const userId = decoded.userId;
 
     const newArticle = await prisma.article.update({
       where: { articleId: parseInt(articleId) },
@@ -201,8 +208,9 @@ export const editArticle = async (req: Request, res: Response) => {
       where: { articleId: parseInt(articleId) }
     })
 
+    var newVenue;
     for (const venueId of venueIds) {
-      const newVenue = await prisma.article_venue.create({
+      newVenue = await prisma.article_venue.create({
         data: {
           articleId,
           venueId
@@ -214,27 +222,77 @@ export const editArticle = async (req: Request, res: Response) => {
       where: { articleId: parseInt(articleId) }
     })
 
+    var updatedTag;
+    var newTag;
     for (const tag of tags) {
-      const newTag = await prisma.tag.create({
-        data: {
-          tag_name: tag,
+      var tagUse;
+      // * if we already have that tag in tag db
+      // * if not --> it's a new tag
+      const tagExisted = await prisma.tag.findMany({
+        where: {
+          tag_name: tag
         }
       })
+      if (tagExisted.length === 0) {
+        newTag = await prisma.tag.create({
+          data: {
+            tag_name: tag
+          }
+        })
 
-      await prisma.article_tags.create({
-        data: {
-          articleId,
-          tagId: newTag.tagId,
-        },
-      });
+        await prisma.article_tags.create({
+          data: {
+            articleId,
+            tagId: newTag.tagId,
+          },
+        })
+      }
+      else {
+        // * if alr have that tag
+        const thisTag = await prisma.tag.findMany({
+          where: {
+            tag_name: tag
+          }
+        })
+
+        // * check whether tag is use by the other article
+        tagUse = await prisma.article_tags.findMany({
+          where: {
+            tagId: thisTag[0].tagId
+          }
+        })
+
+        if (tagUse.length === 0)
+        {
+          updatedTag = await prisma.tag.update({
+            where: { tagId: thisTag[0].tagId },
+            data: {
+              tag_name: tag
+            }
+          })
+        } else {
+          updatedTag = await prisma.tag.create({
+            data: {
+              tag_name: tag,
+            }
+          })
+          await prisma.article_tags.create({
+            data: {
+              articleId,
+              tagId: updatedTag.tagId,
+            },
+          })
+        }
+      }
     }
 
     await prisma.images.deleteMany({
       where: { articleId: parseInt(articleId) }
     })
 
+    var newImages;
     for (const imageDetail of imageDetails) {
-      await prisma.images.create({
+      newImages = await prisma.images.create({
         data: {
           url: imageDetail.url,
           description: imageDetail.description,
@@ -243,7 +301,14 @@ export const editArticle = async (req: Request, res: Response) => {
       });
     }
 
-    res.json(newArticle);
+    const editedArticle = {
+      ...newArticle,
+      venues: newVenue,
+      tags: updatedTag,
+      images: newImages
+    };
+
+    res.json(editedArticle);
   } catch (error) {
     console.error(error);
     res.json({ error: "Internal server error" });
@@ -322,14 +387,12 @@ export const addComment = async (req: Request, res: Response) => {
   try {
     const comment: CommentCreateInput = req.body;
     const { content, articleId } = comment;
-    //const secret: Secret = 'fwjjpjegjwpjgwej' || "";
-    //const token = req.cookies.token;
-    //if (!token)
-    //  return res.json({ error: 'Unauthorized' });
-
-    //const decoded = jwt.verify(token, secret) as CustomJwtPayload;
-    //const userId = decoded.userId;
-    const userId = 3;
+    const token = req.cookies.authToken;
+    if (!token) {
+      return res.json({ error: "No auth token" })
+    }
+    const decodedToken = authService.decodeToken(token)
+    const userId = decodedToken.userId;
 
     const newComment = await prisma.comments.create({
       data: {
@@ -381,28 +444,37 @@ export const editComment = async (req: Request, res: Response) => {
 
 export const getArticleDetail = async (req: Request, res: Response) => {
   const { articleId } = req.params;
-  const userId = 3;
-  //const secret: Secret = 'fwjjpjegjwpjgwej' || "";
-  //const token = req.cookies.token;
-  //if (!token)
-  //  return res.json({ error: 'Unauthorized' });
-
-  //const decoded = jwt.verify(token, secret) as CustomJwtPayload;
-  //const userId = decoded.userId;
+  const token = req.cookies.authToken;
+  if (!token) {
+    return res.json({ error: "No auth token" })
+  }
+  const decodedToken = authService.decodeToken(token)
+  const userId = decodedToken.userId;
 
   try {
     const article = await prisma.article.findUnique({
       where: { articleId: parseInt(articleId) },
       include: {
-        Image: true,
+        Image: {
+          select: {
+            url: true,
+            description: true
+          }
+        },
         Article_tags: {
           include: {
-            tag: true,
+            tag: {
+              select: { tag_name: true }
+            },
           },
         },
         Article_venue: {
           include: {
-            venue: true,
+            venue: {
+              select: { 
+                venueId: true,
+                name: true }
+            },
           }
         },
       },
@@ -448,22 +520,98 @@ export const getArticleDetail = async (req: Request, res: Response) => {
   }
 };
   
-// ! not 100% finish -> how to get comment like by creator?
+export const public_getArticleDetail = async (req: Request, res: Response) => {
+  const { articleId } = req.params;
+
+  try {
+    const article = await prisma.article.findUnique({
+      where: { articleId: parseInt(articleId) },
+      include: {
+        Image: {
+          select: {
+            url: true,
+            description: true
+          }
+        },
+        Article_tags: {
+          include: {
+            tag: {
+              select: { tag_name: true }
+            },
+          },
+        },
+        Article_venue: {
+          include: {
+            venue: {
+              select: { 
+                venueId: true,
+                name: true }
+            },
+          }
+        },
+      },
+    });
+
+    if (!article) {
+      res.json({ error: "Article not found" });
+    }
+
+    const likeCount = await prisma.like.count({
+      where: { articleId: parseInt(articleId) },
+    });
+
+    const commentCount = await prisma.comments.count({
+      where: { articleId: parseInt(articleId) }
+    })
+  
+    // Add the like count to the article object
+    const articleWithLikeCount = {
+      ...article,
+      Like: likeCount,
+      CommentCount: commentCount,
+    };
+  
+    res.json(articleWithLikeCount);
+  } catch (error) {
+    console.error(error);
+    res.json({ error: "Internal server error" });
+  }
+};
+
 export const getArticleComment = async (req: Request, res: Response) => {
   const { id } = req.params;
 
   try {
-    const comment = await prisma.comments.findMany({
+    const newcomment = await prisma.comments.findMany({
       where: { articleId: parseInt(id) },
       include: {
-        user: true
+        user: {
+          select: {
+            username: true,
+            profile_picture: true
+          }
+        }
       }
     });
 
-    if (!comment) {
+    const commentWithLikeBy = await Promise.all(
+      newcomment.map(async (comment) => {
+        const isLikeByCreator = await prisma.comment_like_by_creator.findUnique({
+          where: { commentId_articleId: { commentId: comment.commentId, articleId: parseInt(id) }}
+        })
+  
+        // Add the like count to each article object
+        return {
+          ...comment,
+          isLikeByCreator: Boolean(isLikeByCreator)
+        };
+      })
+    );
+
+    if (!commentWithLikeBy) {
       res.json({ error: "Comment not found" });
     } else {
-      res.json(comment);
+      res.json(commentWithLikeBy);
     }
   } catch (error) {
     console.error(error);
@@ -472,32 +620,44 @@ export const getArticleComment = async (req: Request, res: Response) => {
 };
 
 export const getAllArticle = async (req: Request, res: Response) => {
-  const userId = 3;
-  //const secret: Secret = 'fwjjpjegjwpjgwej' || "";
-  //const token = req.cookies.token;
-  //if (!token)
-  //  return res.json({ error: 'Unauthorized' });
-
-  //const decoded = jwt.verify(token, secret) as CustomJwtPayload;
-  //const userId = decoded.userId;
+  const token = req.cookies.authToken;
+  if (!token) {
+    return res.json({ error: "No auth token" })
+  }
+  const decodedToken = authService.decodeToken(token)
+  const userId = decodedToken.userId;
 
   try {
     const articles = await prisma.article.findMany({
       include: {
-        Image: true,
+        Image: {
+          select: {
+            url: true,
+            description: true
+          }
+        },
         Article_tags: {
           include: {
-            tag: true,
+            tag: {
+              select: {
+                tag_name: true
+              }
+            },
           },
         },
         Article_venue: {
           include: {
-            venue: true,
+            venue: {
+              select: { 
+                venueId: true,
+                name: true }
+            }
           },
         },
         user: {
-          include: {
-            user: true,
+          select: {
+            username: true,
+            profile_picture: true,
           }
         }
       },
@@ -539,15 +699,81 @@ export const getAllArticle = async (req: Request, res: Response) => {
   }
 };
 
-export const addLike = async (req: Request, res: Response) => {
-  //const secret: Secret = 'fwjjpjegjwpjgwej' || "";
-  //const token = req.cookies.token;
-  //if (!token)
-  //  return res.json({ error: 'Unauthorized' });
+export const public_getAllArticle = async (req: Request, res: Response) => {
+  try {
+    const articles = await prisma.article.findMany({
+      include: {
+        Image: {
+          select: {
+            url: true,
+            description: true
+          }
+        },
+        Article_tags: {
+          include: {
+            tag: {
+              select: {
+                tag_name: true
+              }
+            },
+          },
+        },
+        Article_venue: {
+          include: {
+            venue: {
+              select: { 
+                venueId: true,
+                name: true }
+            }
+          },
+        },
+        user: {
+          select: {
+            username: true,
+            profile_picture: true,
+          }
+        }
+      },
+    });
+  
+    if (articles.length === 0) {
+      res.status(404).json({ error: "Article not found" });
+      return;
+    }
+  
+    const articlesWithLikeCount = await Promise.all(
+      articles.map(async (article) => {
+        const likeCount = await prisma.like.count({
+          where: { articleId: article.articleId },
+        });
 
-  //const decoded = jwt.verify(token, secret) as CustomJwtPayload;
-  //const userId = decoded.userId;
-  const userId = 3;
+        const commentCount = await prisma.comments.count({
+          where: { articleId: article.articleId }
+        })
+  
+        // Add the like count to each article object
+        return {
+          ...article,
+          Like: likeCount,
+          Comment: commentCount,
+        };
+      })
+    );
+  
+    res.json(articlesWithLikeCount);
+  } catch (error) {
+    console.error(error);
+    res.json({ error: "Internal server error" });
+  }
+};
+
+export const addLike = async (req: Request, res: Response) => {
+  const token = req.cookies.authToken;
+  if (!token) {
+    return res.json({ error: "No auth token" })
+  }
+  const decodedToken = authService.decodeToken(token)
+  const userId = decodedToken.userId;
   
   const like: LikeCreateInput = req.body;
   const { articleId } = like;
@@ -572,14 +798,12 @@ export const deleteLike = async (req: Request, res: Response) => {
   const like: LikeCreateInput = req.body;
   const { articleId } = like;
   
-  //const secret: Secret = 'fwjjpjegjwpjgwej' || "";
-  //const token = req.cookies.token;
-  //if (!token)
-  //  return res.json({ error: 'Unauthorized' });
-
-  //const decoded = jwt.verify(token, secret) as CustomJwtPayload;
-  //const userId = decoded.userId;
-  const userId = 1;
+  const token = req.cookies.authToken;
+  if (!token) {
+    return res.json({ error: "No auth token" })
+  }
+  const decodedToken = authService.decodeToken(token)
+  const userId = decodedToken.userId;
 
   try {
     const deletedLike = await prisma.like.delete({
@@ -618,6 +842,289 @@ export const getAllVenueName = async (req: Request, res: Response) => {
   }
 };
 
+export const getArticleHistory = async (req: Request, res: Response) => {
+  const token = req.cookies.authToken;
+  if (!token) {
+    return res.json({ error: "No auth token" })
+  }
+  const decodedToken = authService.decodeToken(token)
+  const userId = decodedToken.userId;
+
+  try {
+    const articles = await prisma.article.findMany({
+      where: { userId },
+      include: {
+        Image: {
+          select: {
+            url: true,
+            description: true
+          }
+        },
+        Article_tags: {
+          include: {
+            tag: {
+              select: {
+                tag_name: true
+              }
+            },
+          },
+        },
+        Article_venue: {
+          include: {
+            venue: {
+              select: { 
+                venueId: true,
+                name: true }
+            }
+          },
+        },
+        user: {
+          select: {
+            username: true,
+            profile_picture: true,
+          }
+        }
+      },
+    });
+  
+    if (articles.length === 0) {
+      res.status(404).json({ error: "Article not found" });
+      return;
+    }
+  
+    const articlesWithLikeCount = await Promise.all(
+      articles.map(async (article) => {
+        const likeCount = await prisma.like.count({
+          where: { articleId: article.articleId },
+        });
+
+        const commentCount = await prisma.comments.count({
+          where: { articleId: article.articleId }
+        })
+
+        const isLike = await prisma.like.findUnique({
+          where: { articleId_userId: { articleId: article.articleId, userId } },
+        })
+  
+        // Add the like count to each article object
+        return {
+          ...article,
+          Like: likeCount,
+          Comment: commentCount,
+          isLike: Boolean(isLike)
+        };
+      })
+    );
+  
+    res.json(articlesWithLikeCount);
+  } catch (error) {
+    console.error(error);
+    res.json({ error: "Internal server error" });
+  }
+};
+
+export const getUserArticle = async (req: Request, res: Response) => {
+  const token = req.cookies.authToken;
+  if (!token) {
+    return res.json({ error: "No auth token" })
+  }
+  const decodedToken = authService.decodeToken(token)
+  const thisUserId = decodedToken.userId;
+
+  try {
+    const { userId } = req.body;
+    const articles = await prisma.article.findMany({
+      where: { userId },
+      include: {
+        Image: {
+          select: {
+            url: true,
+            description: true
+          }
+        },
+        Article_tags: {
+          include: {
+            tag: {
+              select: {
+                tag_name: true
+              }
+            },
+          },
+        },
+        Article_venue: {
+          include: {
+            venue: {
+              select: { 
+                venueId: true,
+                name: true }
+            }
+          },
+        },
+        user: {
+          select: {
+            username: true,
+            profile_picture: true,
+          }
+        }
+      },
+    });
+  
+    if (articles.length === 0) {
+      res.status(404).json({ error: "Article not found" });
+      return;
+    }
+  
+    const articlesWithLikeCount = await Promise.all(
+      articles.map(async (article) => {
+        const likeCount = await prisma.like.count({
+          where: { articleId: article.articleId },
+        });
+
+        const commentCount = await prisma.comments.count({
+          where: { articleId: article.articleId }
+        })
+
+        const isLike = await prisma.like.findUnique({
+          where: { articleId_userId: { articleId: article.articleId, userId: thisUserId } },
+        })
+  
+        // Add the like count to each article object
+        return {
+          ...article,
+          Like: likeCount,
+          Comment: commentCount,
+          isLike: Boolean(isLike)
+        };
+      })
+    );
+  
+    res.json(articlesWithLikeCount);
+  } catch (error) {
+    console.error(error);
+    res.json({ error: "Internal server error" });
+  }
+};
+
+export const getCommentHistory = async (req: Request, res: Response) => {
+  const token = req.cookies.authToken;
+  if (!token) {
+    return res.json({ error: "No auth token" })
+  }
+  const decodedToken = authService.decodeToken(token)
+  const userId = decodedToken.userId;
+
+  try {
+    const comment = await prisma.comments.findMany({
+      where: { userId },
+      include: {
+        article: {
+          select: { topic: true }
+        },
+        user: {
+          select: {
+            username: true,
+            profile_picture: true
+          }
+        }
+      }
+    })
+
+    res.json(comment)
+  } catch (error) {
+    console.error(error);
+    res.json({ error: "Internal server error" });
+  }
+}
+
+//interface Comment_like_by_creatorCreateInput {
+//  commentId: number,
+//  articleId: number
+//}
+
+export const CreatorLikeComment = async (req: Request, res: Response) => {
+  const token = req.cookies.authToken;
+  if (!token) {
+    return res.json({ error: "No auth token" })
+  }
+  const decodedToken = authService.decodeToken(token)
+  const userId = decodedToken.userId;
+
+  try {
+    const { commentId } = req.body;
+    
+    const thisArticle = await prisma.comments.findUnique({
+      where: { commentId },
+      include: {
+        article: {
+          include: {
+            user: {
+              select: { userId: true }
+            }
+          }
+        }
+      }
+    })
+
+    if (thisArticle && thisArticle.article && thisArticle.article.user.userId === userId) {
+      const articleId = thisArticle.articleId || 0; // Assign a default value if articleId is undefined
+      const newLike = await prisma.comment_like_by_creator.create({
+        data: {
+          commentId,
+          articleId,
+        },
+      });
+
+      res.json("Like successful")
+    }
+    else {
+      res.json("This is not the creator")
+    }
+  } catch (error) {
+    console.error(error);
+    res.json({ error: "Internal server error" });
+  }
+};
+
+export const deleteCommentLikeByCreator = async (req: Request, res: Response) => {
+  const token = req.cookies.authToken;
+  if (!token) {
+    return res.json({ error: "No auth token" })
+  }
+  const decodedToken = authService.decodeToken(token)
+  const userId = decodedToken.userId;
+
+  try {
+    const { commentId } = req.body;
+    
+    const thisArticle = await prisma.comments.findUnique({
+      where: { commentId },
+      include: {
+        article: {
+          include: {
+            user: {
+              select: { userId: true }
+            }
+          }
+        }
+      }
+    })
+
+    if (thisArticle && thisArticle.article && thisArticle.article.user.userId === userId) {
+      const articleId = thisArticle.articleId || 0; // Assign a default value if articleId is undefined
+      const deleteLike = await prisma.comment_like_by_creator.delete({
+        where: { commentId_articleId: { commentId, articleId }}
+      })
+
+      res.json("Delete like successful")
+    }
+    else {
+      res.json("This is not the creator")
+    }
+  } catch (error) {
+    console.error(error);
+    res.json({ error: "Internal server error" });
+  }
+}
 // example of controller getAllAuthors
 // export const getAllAuthors = async (req: Request, res: Response) => {
 //   try {
@@ -626,3 +1133,42 @@ export const getAllVenueName = async (req: Request, res: Response) => {
 //     console.log(e);
 //   }
 // };
+
+//export const getCountPerDay = async (req: Request, res: Response) => {
+//  try {
+//      const { venueId } = req.params;
+//      const today = new Date();
+//      const startOfToday = startOfDay(today); // Gets the start of the current day
+//      const endOfToday = endOfDay(today); // Gets the end of the current day
+
+//      console.log(today)
+//      console.log(startOfDay)
+//      console.log(endOfDay)
+
+//      const reservationsToday = await prisma.reservation.findMany({
+//        where: {
+//          AND: [
+//            {
+//              reserved_time: {
+//                gte: startOfToday,
+//                lte: endOfToday,
+//              },
+//              venueId: parseInt(venueId)
+//            },
+//          ],
+//        },
+//        include: {
+//          Reservation_table: true,
+//        },
+//      });
+
+//      let count = 0;
+//      reservationsToday.forEach((reservation) => {
+//        count += reservation.Reservation_table.length;
+//      });
+
+//      res.json(count)
+//  } catch (e) {
+//      return res.status(500).json(e);
+//  }
+//};
