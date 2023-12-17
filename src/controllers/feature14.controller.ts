@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, Status } from "@prisma/client";
 import { Response, Request } from "express";
 import DashboardService from "../services/admin/dashboard.service";
 
@@ -56,6 +56,57 @@ export const getAllReportTicket = async (req: Request, res:Response) => {
 				return res.status(500).json({ error });
 			}
 }
+
+export const getReportTicketByNew = async (req: Request, res: Response) => {
+	try{
+		const newStatus = await feature14Client.report_ticket.findMany({
+			where: {
+				Status: {
+					contains: 'New',
+				},
+			  },
+		  });
+		  return res.status(200).json({ newStatus });
+
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({ error });
+	}
+};
+
+export const getReportTicketByAssigned = async (req: Request, res: Response) => {
+	try{
+		const assignStatus = await feature14Client.report_ticket.findMany({
+			where: {
+				Status: {
+					contains: 'Assigned',
+				},
+			  },
+		  });
+		  return res.status(200).json({ assignStatus });
+
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({ error });
+	}
+};
+
+export const getReportTicketByComplete = async (req: Request, res: Response) => {
+	try{
+		const completeStatus = await feature14Client.report_ticket.findMany({
+			where: {
+				Status: {
+					contains: 'Complete',
+				},
+			  },
+		  });
+		  return res.status(200).json({ completeStatus });
+
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({ error });
+	}
+};
 //===============================Help Desk==============================
 export const createHelpDesk = async( req:Request, res:Response) => {
 	const { assign_to, description, isApprove, reportTicketId} = req.body;
@@ -74,9 +125,9 @@ export const createHelpDesk = async( req:Request, res:Response) => {
 		});
 		if (isApprove) {
 			return res.json({ result: 'accept', help_desk });
-			} else {
+		} else {
 			return res.json({ result: 'reject', help_desk });
-			}
+		}
 	}catch (error) {
 		console.log(error);
 		return res.status(500).json({ error });
