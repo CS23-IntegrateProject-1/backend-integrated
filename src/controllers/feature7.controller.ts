@@ -9,6 +9,7 @@ import { customVerifyCookie } from "../middlewares/verifyCookies";
 import multerConfig from "../multerConfig";
 import { parse } from "path";
 import { or } from "ramda";
+import { get } from "http";
 
 
 const feature7Client = new PrismaClient();
@@ -1165,6 +1166,28 @@ export const showMenuItemsInSet = async (req: Request, res: Response) => {
         console.log(e);
     }
 }
+// show checkedin tables in business
+// export const showCheckedInTablesInBusiness = async (req: any, res: Response) => {
+//     try {
+//         const venueId = req.params.venueId;
+//         const getReservations = await feature7Client.orders.findMany({
+//             where: {
+//                 venueId: parseInt(venueId),
+//             },
+//         });
+//         const getTable = await feature7Client.reservation_table.findMany({
+//             where: {
+//                 reserveId: {
+//                     in: getReservations.map((reservation) => reservation.reservedId).filter((id) => id !== null) as number[],
+//                 },
+//             },
+//         });
+//         res.status(200).json(getTable);
+//     }
+//     catch (e) {
+//         console.log(e);
+//     }
+// }
 //show ongoing order in business
 export const onGoingOrderDetailsInBusiness = async (req: any, res: Response) => {
     try{ const venueId = req.params.venueId;
@@ -1173,6 +1196,7 @@ export const onGoingOrderDetailsInBusiness = async (req: any, res: Response) => 
             venueId: parseInt(venueId),
         },
     }); 
+    console.log(getReservations);
     const getTable = await feature7Client.reservation_table.findMany({
         where: {
             reserveId: {
@@ -1186,17 +1210,44 @@ export const onGoingOrderDetailsInBusiness = async (req: any, res: Response) => 
                 in: getReservations.map((reservation) => reservation.orderId),
             },
             status: "On_going",
+            // Filter based on menuId or setId not being null
+            OR: [
+                { menuId: { not: null } },
+                { setId: { not: null } },
+            ],
         },
     });
-    //add table number to order details
-    const orderDetailsWithTableNumber = getOrderDetailsOfOngoingOrder.map((orderDetail) => {
-        const table = getTable.find((table) => table.reserveId === orderDetail.orderId);
-        return {
-            ...orderDetail,
-            table: table,
-        };
-    });
-    res.status(200).json(orderDetailsWithTableNumber);}
+    // Fetch menu name or set name based on orderDetailId
+    const orderDetailsWithMenuAndSetName = await Promise.all(
+        getOrderDetailsOfOngoingOrder.map(async (orderDetail) => {
+            let menuName;
+            let setName;
+            if (orderDetail.menuId) {
+                const menuInfo = await feature7Client.menu.findFirst({
+                    where: {
+                        menuId: orderDetail.menuId,
+                    },
+                });
+                menuName = menuInfo?.name;
+            } else if (orderDetail.setId) {
+                const setInfo = await feature7Client.sets.findFirst({
+                    where: {
+                        setId: orderDetail.setId,
+                    },
+                });
+                setName = setInfo?.name || null;
+            }
+
+            return {
+                ...orderDetail,
+                menuName: menuName,
+                setName: setName,
+            };
+        })
+    );
+
+    res.status(200).json({ getTable, orderDetailsWithMenuAndSetName });
+    }
     catch (e) {
         console.log(e);
     }
@@ -1216,23 +1267,51 @@ export const completedOrderDetailsInBusiness = async (req: any, res: Response) =
             },
         },
     });
-    const getOrderDetailsOfOngoingOrder = await feature7Client.order_detail.findMany({
+    const getOrderDetailsOfCompletedOrder = await feature7Client.order_detail.findMany({
         where: {
             orderId: {
                 in: getReservations.map((reservation) => reservation.orderId),
             },
             status: "Completed",
+            // Filter based on menuId or setId not being null
+            OR: [
+                { menuId: { not: null } },
+                { setId: { not: null } },
+            ],
         },
     });
-    //add table number to order details
-    const orderDetailsWithTableNumber = getOrderDetailsOfOngoingOrder.map((orderDetail) => {
-        const table = getTable.find((table) => table.reserveId === orderDetail.orderId);
-        return {
-            ...orderDetail,
-            table: table,
-        };
-    });
-    res.status(200).json(orderDetailsWithTableNumber);}
+    // Fetch menu name or set name based on orderDetailId
+    const orderDetailsWithMenuAndSetName = await Promise.all(
+        getOrderDetailsOfCompletedOrder.map(async (orderDetail) => {
+            const table = getTable.find((table) => table.reserveId === orderDetail.orderId);
+            let menuName;
+            let setName;
+            if (orderDetail.menuId) {
+                const menuInfo = await feature7Client.menu.findFirst({
+                    where: {
+                        menuId: orderDetail.menuId,
+                    },
+                });
+                menuName = menuInfo?.name;
+            } else if (orderDetail.setId) {
+                const setInfo = await feature7Client.sets.findFirst({
+                    where: {
+                        setId: orderDetail.setId,
+                    },
+                });
+                setName = setInfo?.name || null;
+            }
+
+            return {
+                ...orderDetail,
+                menuName: menuName,
+                setName: setName,
+            };
+        })
+    );
+
+    res.status(200).json({getTable,orderDetailsWithMenuAndSetName});
+}
     catch (e) {
         console.log(e);
     }
@@ -1318,12 +1397,19 @@ export const getReceipt = async (req: any, res: Response) => {
  
          // Process order details and add calculated values
          const orderDetailsWithDetails = orderDetails.map((orderDetail) => {
+             const quantity = orderDetail.quantity;
              const menuName = menu.find((menu) => menu.menuId === orderDetail.menuId)?.name;
+             const menuPrice= menu.find((menu) => menu.menuId === orderDetail.menuId)?.price;
+             const setPrice= set.find((set) => set.setId === orderDetail.setId)?.price;
              const setName = set.find((set) => set.setId === orderDetail.setId)?.name;
              return {
                  
                  menuName: menuName,
                  setName: setName,
+                 quantity: quantity,
+                menuPrice: menuPrice,
+                setPrice: setPrice,
+
              };
          });
  
