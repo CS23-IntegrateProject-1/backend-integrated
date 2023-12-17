@@ -325,7 +325,7 @@ model Food_voucher {
 model User_voucher {
   userId    Int
   voucherId Int
-  isUsed    Boolean
+  isUsed    Boolean @default(false)
   user      User    @relation(fields: [userId], references: [userId])
   vouchers  Voucher @relation(fields: [voucherId], references: [voucherId])
 
@@ -1088,8 +1088,8 @@ model Route_details_cache {
 model Location {
   locationId     Int              @id @default(autoincrement())
   name           String
-  latitude       Decimal          @db.Decimal(10, 6)
-  longtitude     Decimal          @db.Decimal(10, 6)
+  latitude       Decimal?         @db.Decimal(10, 6)
+  longtitude     Decimal?         @db.Decimal(10, 6)
   address        String           @db.Text
   Saved_location Saved_location[]
   Venue          Venue?
@@ -1384,12 +1384,16 @@ model Payments {
 }
 
 model userSaved_location {
-  savedLocId Int      @id @default(autoincrement())
-  userId     Int
-  name       String
-  address    String   @db.Text
-  createdAt  DateTime @default(now()) @db.Timestamp(0)
-  user       User     @relation(fields: [userId], references: [userId])
+  savedLocId   Int      @id @default(autoincrement())
+  userId       Int
+  name         String
+  address      String   @db.Text
+  createdAt    DateTime @default(now()) @db.Timestamp(0)
+  district     String?  @db.Text
+  postcode     String?  @db.Text
+  province     String?  @db.Text
+  sub_district String?  @db.Text
+  user         User     @relation(fields: [userId], references: [userId])
 
   @@index([userId], map: "userSaved_location_userId_fkey")
 }

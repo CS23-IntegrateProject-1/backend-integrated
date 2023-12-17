@@ -10,6 +10,7 @@ import {
     updateSavedLocation,
     deleteSavedLocation,
     deleteLocation,
+    GetUserLocationById,
     
     getAllRestaurant,
     getAllBars,
@@ -18,7 +19,9 @@ import {
     getMenuById,
     getMenusByVenueId,
     getSetById,
-    getSetsByVenueId
+    getSetsByVenueId,
+
+    getPaymentMethods
 } from "../controllers/feature4.controller";
 
 const feature4Router = Router();
@@ -32,6 +35,7 @@ feature4Router.post("/saved-location", saveUserLocation);
 feature4Router.get("/saved-location", GetAllsaveUserLocation);
 feature4Router.put("/saved-location", updateSavedLocation);
 feature4Router.delete("/saved-location/:savedLocId/:userId", deleteSavedLocation);
+feature4Router.get("/saved-location/:savedLocId", GetUserLocationById);
 
 feature4Router.get("/restaurants",getAllRestaurant );
 feature4Router.get("/bars",getAllBars );
@@ -41,5 +45,6 @@ feature4Router.get("/menu/:id", getMenuById);
 feature4Router.get("/menus/:venueId", getMenusByVenueId);
 feature4Router.get("/set/:id", getSetById);
 feature4Router.get("/sets/:venueId", getSetsByVenueId);
+feature4Router.get("/payment/:userId", getPaymentMethods)
 
 export default feature4Router;

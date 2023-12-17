@@ -29,7 +29,11 @@ export const mapsLocation = async (req: Request, res: Response) => {
 
 export const GetAllMapsLocation = async (req: Request, res: Response) => {
   try {
-    const savedLocation = await feature4Client.location.findMany();
+    const savedLocation = await feature4Client.location.findMany({
+      include: {
+        Venue: true
+      }
+    });
 
     res.status(201).json({
       message: "fetch data successfully",
@@ -64,19 +68,22 @@ export const deleteLocation = async (req: Request, res: Response) => {
 
 
 
-//store user saved location
+//========================================================================store user saved location
 export const saveUserLocation = async (req: Request, res: Response) => {
   try {
     const {userId, name, address, province, district, subdistrict, postcode } = req.body;
 
     // Concatenate the address components into a single string
-    const fullAddress = `${address} ${province} ${district} ${subdistrict} ${postcode}`;
 
     const savedLocation = await feature4Client.userSaved_location.create({
       data: {
         userId: parseInt(userId),
         name: name,
-        address: fullAddress,
+        address: address,
+        province: province,
+        district: district,
+        sub_district: subdistrict,
+        postcode: postcode,
         createdAt: new Date(), 
       },
     });
@@ -106,11 +113,32 @@ export const GetAllsaveUserLocation = async (req: Request, res: Response) => {
   }
 };
 
+export const GetUserLocationById = async (req: Request, res: Response) => {
+  try {
+    const { savedLocId } = req.params; // Use params to get the savedLocId from the URL
+    const parsedSavedLocId = parseInt(savedLocId, 10);
+
+    const savedLocation = await feature4Client.userSaved_location.findUnique({
+      where: {
+        savedLocId: parsedSavedLocId,
+      },
+    });
+
+    res.status(201).json({
+      message: "User's saved location data fetch successfully",
+      location: savedLocation,
+    });
+  } catch (error) {
+    console.error("Error fetching user's location data:", error);
+    res.status(500).json({ error: "An error occurred while fetching user's location data" });
+  }
+};
+
+
 export const updateSavedLocation = async (req: Request, res: Response) => {
   try {
     const { savedLocId, userId, name, address, province, district, subdistrict, postcode } = req.body;
 
-    const fullAddress = `${address} ${province} ${district} ${subdistrict} ${postcode}`;
 
     const updatedLocation = await feature4Client.userSaved_location.update({
       where: {
@@ -119,7 +147,11 @@ export const updateSavedLocation = async (req: Request, res: Response) => {
       },
       data: {
         name: name,
-        address: fullAddress,
+        address: address,
+        province: province,
+        district: district,
+        sub_district: subdistrict,
+        postcode: postcode,
       },
     });
 
@@ -157,7 +189,8 @@ export const deleteSavedLocation = async (req: Request, res: Response) => {
     });
   }
 };
-//get all restaurant
+
+//===========================================================get all restaurant
 
 export const getAllRestaurant = async (req: Request, res: Response) => {
   try {
@@ -184,7 +217,7 @@ export const getAllRestaurant = async (req: Request, res: Response) => {
   }
 };
 
-//get all bars
+//===========================================================get all bars
 export const getAllBars = async (req: Request, res: Response) => {
   try {
 
@@ -212,7 +245,7 @@ export const getAllBars = async (req: Request, res: Response) => {
 
 
 
-//get all cinemas
+//===========================================================get all cinemas
 export const getAllCinema = async (req: Request, res: Response) => {
   try {
 
@@ -232,10 +265,7 @@ export const getAllCinema = async (req: Request, res: Response) => {
 
 
 
-
-
-
-//Online Orders
+//===========================================================Online Orders
 
 export const getMenusByVenueId = async (req: Request, res: Response) => {
   try {
@@ -301,6 +331,187 @@ export const getSetById = async (req: Request, res: Response) => {
           }
       );
       return res.status(200).json(set);
+  }
+  catch (e) {
+      console.log(e);
+  }
+}
+
+export const getPaymentMethods = async (req: Request, res: Response) => {
+  try {
+    // Get user ID from request parameters or authentication token
+    const userId = req.params.userId; // adjust this based on your authentication method
+
+    // Fetch payment methods for the user
+    const paymentMethods = await feature4Client.payment_method.findMany({
+      where: { userId: parseInt(userId) },
+      include: { user: true },
+    });
+
+    res.status(200).json({
+      message: 'Payment methods fetched successfully',
+      paymentMethods,
+    });
+  } catch (error) {
+    console.error('Error fetching payment methods:', error);
+    res.status(500).json({ error: 'An error occurred while fetching payment methods' });
+  }
+};
+
+export const checkMenuAvailability = async (req: Request, res: Response) => {
+  try {
+      const menuId = req.params.menuId;
+      const venueId = req.params.venueId;
+      const branchId = req.params.branchId;
+      const stockRecord = await feature4Client.stocks.findFirst({
+          where: {
+              venueId: parseInt(venueId),
+              branchId: parseInt(branchId),
+              menuId: parseInt(menuId),
+          },
+      });
+
+      return res.status(200).json(stockRecord?.availability);
+  }
+  catch (e) {
+      console.error('Error checking stock availability:', e);
+  }
+}
+
+export const checkSetAvailability = async (req: Request, res: Response) => {
+  try {
+      const setItems = await feature4Client.set_items.findMany({
+          where: {
+              setId: parseInt(req.params.setId),
+          },
+      });
+      const menuIds = setItems.map((setItem) => setItem.menuId);
+      const stockRecords = await feature4Client.stocks.findMany({
+          where: {
+              menuId: {
+                  in: menuIds,
+              },
+              venueId: parseInt(req.params.venueId),
+              branchId: parseInt(req.params.branchId),
+          },
+      });
+      return res.status(200).json(stockRecords.every((stockRecord) => stockRecord.availability));
+  }
+  catch (e) {
+      console.log(e);
+  }
+}
+
+export const showOnGoingOrderDetails = async (req: any, res: Response) => {
+  try {
+      const userId = parseInt(req.userId);
+      const venueId = parseInt(req.params.venueId);
+      const orderId = await feature4Client.orders.findFirst({
+          where: {
+              userId: userId,
+              venueId: venueId,
+              // status: "On_going",
+          },
+      });
+      const orderDetails = await feature4Client.order_detail.findMany({
+          where: {
+              orderId: orderId?.orderId,
+              status: "On_going",
+          },
+      });
+      if (orderDetails.length !== 0) {
+          const menuDetails = await feature4Client.menu.findMany({
+              where: {
+                  menuId: {
+                      in: orderDetails
+                          .map((orderDetail) => orderDetail.menuId)
+                          .filter((menuId) => menuId !== null) as number[],
+                  },
+              },
+          });
+          const setDetails = await feature4Client.sets.findMany({
+              where: {
+                  setId: {
+                      in: orderDetails
+                          .map((orderDetail) => orderDetail.setId)
+                          .filter((setId) => setId !== null) as number[],
+                  },
+              },
+          });
+          const orderDetailsWithDetails = orderDetails.map((orderDetail) => {
+              const menu = menuDetails.find((menu) => menu.menuId === orderDetail.menuId);
+              const set = setDetails.find((set) => set.setId === orderDetail.setId);
+
+              return {
+                  ...orderDetail,
+                  menu: menu,
+                  set: set,
+              };
+          });
+          return res.status(200).json(orderDetailsWithDetails);
+      }
+      else {
+          res.status(404).json({ error: "No ongoing order found." });
+      }
+      // res.status(200).json(orderDetails);
+  }
+  catch (e) {
+      console.log(e);
+  }
+}
+
+export const showCompletedOrderDetails = async (req: any, res: Response) => {
+  try {
+      const userId = parseInt(req.userId);
+      const venueId = parseInt(req.params.venueId);
+      const orderId = await feature4Client.orders.findFirst({
+          where: {
+              userId: userId,
+              venueId: venueId,
+              // status: "Completed",
+          },
+      });
+      const orderDetails = await feature4Client.order_detail.findMany({
+          where: {
+              orderId: orderId?.orderId,
+              status: "Completed",
+          },
+      });
+      if (orderDetails.length !== 0) {
+          const menuDetails = await feature4Client.menu.findMany({
+              where: {
+                  menuId: {
+                      in: orderDetails
+                          .map((orderDetail) => orderDetail.menuId)
+                          .filter((menuId) => menuId !== null) as number[],
+                  },
+              },
+          });
+          const setDetails = await feature4Client.sets.findMany({
+              where: {
+                  setId: {
+                      in: orderDetails
+                          .map((orderDetail) => orderDetail.setId)
+                          .filter((setId) => setId !== null) as number[],
+                  },
+              },
+          });
+          const orderDetailsWithDetails = orderDetails.map((orderDetail) => {
+              const menu = menuDetails.find((menu) => menu.menuId === orderDetail.menuId);
+              const set = setDetails.find((set) => set.setId === orderDetail.setId);
+
+              return {
+                  ...orderDetail,
+                  menu: menu,
+                  set: set,
+              };
+          });
+          return res.status(200).json(orderDetailsWithDetails);
+      }
+      else {
+          res.status(404).json({ error: "No ongoing order found." });
+      }
+      // res.status(200).json(orderDetails);
   }
   catch (e) {
       console.log(e);
