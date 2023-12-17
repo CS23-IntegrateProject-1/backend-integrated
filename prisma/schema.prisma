@@ -241,11 +241,11 @@ model Opening_day {
 }
 
 model Venue_photo {
-  venuePhotoId Int     @id @default(autoincrement())
-  venueId    Int      
-  image_url  String?  @db.Text
-  date_added DateTime @default(now())
-  venue      Venue    @relation(fields: [venueId], references: [venueId])
+  venuePhotoId Int      @id @default(autoincrement())
+  venueId      Int
+  image_url    String?  @db.Text
+  date_added   DateTime @default(now())
+  venue        Venue    @relation(fields: [venueId], references: [venueId])
 }
 
 model Search_history {
@@ -804,6 +804,8 @@ model Like {
 
 model Reservation {
   venueId                  Int
+  name                     String?
+  phone                    String?                     @db.VarChar(10)
   guest_amount             Int
   reserved_time            DateTime                   @default(now())
   status                   Status
