@@ -588,6 +588,7 @@ interface VenueInfo {
     locationId:  number;
     website_url: string;
     rating:      string;
+  
 }
 
 
@@ -761,9 +762,9 @@ export const getVenDetail = async (req: Request, res: Response) => {
 export const getReviewsBranch = async (req: Request, res: Response) => {
   try {
     const { branchId } = req.params;
-    const reviewStars = String(req.query.reviewStars || "").split(",").filter(v => v !== "");
-    const reviewTypes = String(req.query.reviewTypes || "").split(',').filter(v => v !== "");;
     const branchIdInt = parseInt(branchId);
+    const reviewStars = String(req.query.reviewStars || "").split(",").filter(v => v !== "");
+    const reviewTypes = String(req.query.reviewTypes || "").split(',').filter(v => v !== "");
 
     const reviewsBranch: { review_type: string, rating: number}[] = await feature3Client.$queryRaw`
     SELECT U.userId, U.username, VR.branchId, VR.venueReviewId, VR.rating, VR.review, VR.date_added, VR.review_type
@@ -876,47 +877,67 @@ export const getStarGraph = async (req: Request, res: Response) => {
 export const getMyReviews = async (req: Request, res: Response) => {
   try {
     const userId = authService.decodeToken(req.cookies.authToken).userId;
-    const myReviews = await feature3Client.venue.findMany({
-      where: {
-        Venue_branch: {
-          some: {
-            Venue_reviews: {
-              some: {
-                userId: userId,
-              },
-            },
-          },
-        },
-      },
-      include: {
-        Venue_branch: {
-          where: {
-            Venue_reviews: {
-              some: {
-                userId: userId,
-              },
-            },
-          },
-          include: {
-            Venue_reviews: {
-              where: {
-                userId: userId,
-              },
-              orderBy: {
-                date_added: "desc",
-              },
-            },
-          },
-        },
-      },
+
+    const reviewStars = String(req.query.reviewStars || "").split(",").filter(v => v !== "");
+    const reviewTypes = String(req.query.reviewTypes || "").split(',').filter(v => v !== "");
+
+    // const myReviews = await feature3Client.venue.findMany({
+    //   where: {
+    //     Venue_branch: {
+    //       some: {
+    //         Venue_reviews: {
+    //           some: {
+    //             userId: userId,
+    //           },
+    //         },
+    //       },
+    //     },
+    //   },
+    //   include: {
+    //     Venue_branch: {
+    //       where: {
+    //         Venue_reviews: {
+    //           some: {
+    //             userId: userId,
+    //           },
+    //         },
+    //       },
+    //       include: {
+    //         Venue_reviews: {
+    //           where: {
+    //             userId: userId,
+    //           },
+    //           orderBy: {
+    //             date_added: "desc",
+    //           },
+    //         },
+    //       },
+    //     },
+    //   },
+    // });
+
+    const myReviews: { review_type: string, rating: number}[] = await feature3Client.$queryRaw`
+    SELECT branchId, venueReviewId, AVG(VR.rating) as rating, count(review) as total_reviews
+    FROM Venue_reviews VR
+    GROUP BY branchId;
+    `;
+
+    const filteredReviews = myReviews.filter((review) => {
+      console.log(reviewTypes, reviewStars)
+      const reviewTypeMatch = reviewTypes.length === 0 ? true : reviewTypes.includes(review.review_type);
+      const reviewStarMatch = reviewStars.length === 0 ? true : reviewStars.includes(String(review.rating));
+      return reviewTypeMatch && reviewStarMatch;
     });
 
-    res.status(200).json(myReviews);
+    res.status(200).json(filteredReviews);
   } catch (error) {
     console.error("Error from getMyReviews Backend: ", error);
     return res.status(500).json(error);
   }
 };
+
+
+
 
 export const postReviewDelivery = async (req: Request, res: Response) => {
   try {

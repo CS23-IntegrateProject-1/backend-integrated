@@ -42,7 +42,6 @@ import {
     postReviewDelivery,
     postReviewReservation,
     getVenBranchPage,
-    // getReviewPerUser,
     getMyReviews,
     getReviewsBranchOverAll,
     getRecommendedPlaces,
