@@ -18,11 +18,13 @@ import { AboutController } from "../controllers/feature1/AboutController";
 import FriendController from "../controllers/feature1/FriendController";
 import ProfileController from "../controllers/feature1/ProfileController";
 import SearchController from "../controllers/feature1/SearchController";
+import VenueController from "../controllers/feature1/VenueController";
 
 const aboutController = new AboutController();
 const friendController = new FriendController();
 const profileController = new ProfileController();
 const searchController = new SearchController();
+const venueController = new VenueController();
 
 const feature1Router = Router();
 
@@ -99,5 +101,11 @@ feature1Router.put(
 feature1Router.get("/group", groupHandler);
 feature1Router.get("/group/:id", groupInfoHandler);
 feature1Router.post("/group/add", groupHandler);
+
+feature1Router.put(
+  "/venue",
+  businessAuthMiddleware,
+  venueController.update.bind(venueController),
+);
 
 export default feature1Router;
