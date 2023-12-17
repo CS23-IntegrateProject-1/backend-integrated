@@ -10,7 +10,10 @@ import {
   groupHandler,
   groupInfoHandler,
 } from "../controllers/feature1.controller";
-import { authMiddleware } from "../middlewares/feature1.middleware";
+import {
+  userAuthMiddleware,
+  businessAuthMiddleware,
+} from "../middlewares/feature1.middleware";
 import { AboutController } from "../controllers/feature1/AboutController";
 import FriendController from "../controllers/feature1/FriendController";
 import ProfileController from "../controllers/feature1/ProfileController";
@@ -28,22 +31,22 @@ feature1Router.get("/", getfeature1);
 
 feature1Router.get(
   "/about",
-  authMiddleware,
+  userAuthMiddleware,
   aboutController.show.bind(aboutController),
 );
 feature1Router.post(
   "/about",
-  authMiddleware,
+  userAuthMiddleware,
   aboutController.store.bind(aboutController),
 );
 feature1Router.put(
   "/about",
-  authMiddleware,
+  userAuthMiddleware,
   aboutController.update.bind(aboutController),
 );
 feature1Router.delete(
   "/about",
-  authMiddleware,
+  userAuthMiddleware,
   aboutController.destroy.bind(aboutController),
 );
 
@@ -67,29 +70,29 @@ feature1Router.put("/promptpay", promptPayHandler);
 
 feature1Router.get(
   "/search/friends",
-  authMiddleware,
+  userAuthMiddleware,
   searchController.show.bind(searchController),
 );
 
 feature1Router.get(
   "/friend",
-  authMiddleware,
+  userAuthMiddleware,
   friendController.index.bind(friendController),
 );
 feature1Router.post(
   "/friend/add",
-  authMiddleware,
+  userAuthMiddleware,
   friendController.addFriend.bind(friendController),
 );
 
 feature1Router.get(
   "/profile",
-  authMiddleware,
+  userAuthMiddleware,
   profileController.show.bind(profileController),
 );
 feature1Router.put(
   "/profile",
-  authMiddleware,
+  userAuthMiddleware,
   profileController.update.bind(profileController),
 );
 
