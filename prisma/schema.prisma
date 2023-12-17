@@ -440,7 +440,7 @@ model Orders {
   address            Saved_address?       @relation(fields: [addressId], references: [addressId])
   branch             Venue_branch         @relation(fields: [branchId], references: [branchId])
   driver             Driver_list?         @relation(fields: [driverId], references: [driverId])
-  reserve            Reservation?         @relation(fields: [reservedId], references: [reservationId])
+  reserve            Reservation?         @relation(fields: [reservedId], references: [reservationId], onDelete: Cascade)
   user               User?                @relation(fields: [userId], references: [userId])
   venue              Venue                @relation(fields: [venueId], references: [venueId])
 
