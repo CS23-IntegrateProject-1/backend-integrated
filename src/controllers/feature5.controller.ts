@@ -404,7 +404,7 @@ export const CollectVoucher = async (req: Request, res: Response) => {
       data: {
         userId: userId,
         voucherId: parseInt(id),
-        isUsed: false,
+        //isUsed: false,
       },
     });
     res.json(voucher);
@@ -440,7 +440,7 @@ export const UpdateUsedVoucher = async (req: Request, res: Response) => {
         },
       },
       data: {
-        isUsed: true,
+        //isUsed: true,
       },
     });
 
@@ -709,7 +709,7 @@ export const getAllPromotion = async (req: Request, res: Response) => {
       try {
         const result = feature5Client.promotion.findMany({
           where: {
-            isApprove: "Completed",
+            //isApprove: "Completed",
           },
         });
         return res.status(200).send(result);
