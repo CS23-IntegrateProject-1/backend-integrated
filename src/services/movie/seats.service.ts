@@ -24,6 +24,16 @@ class seatService{
     //     });
     //     return data;
     // }
+    getSeatByScreenId = async (screenId: number) => {
+        const prisma = new PrismaClient();
+        const data = await prisma.seats.findMany({
+            where: {
+                screenId: screenId
+            }
+        });
+        return data;
+    }
+
 }
 
 export default new seatService();

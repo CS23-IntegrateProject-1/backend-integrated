@@ -3,6 +3,7 @@ import { Response, Request } from "express";
 import filmService from "../services/movie/films.service";
 import  theaterService  from "../services/movie/theaters.service";
 import showService from "../services/movie/shows.service";
+import seatsService from "../services/movie/seats.service";
 
 const prisma = new PrismaClient();
 
@@ -88,6 +89,12 @@ export const getSeatsTypeByScreenId = async (req: Request, res: Response) => {
         res.status(500).json({error: error.message});
     }
     
+}
+
+export const getSeatByScreenId = async (req: Request, res: Response) => {
+    const id = Number(req.params.id);
+    const data = await seatsService.getSeatByScreenId(id);
+    res.json(data);
 }
 
 //page4
