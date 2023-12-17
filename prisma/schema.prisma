@@ -241,7 +241,8 @@ model Opening_day {
 }
 
 model Venue_photo {
-  venueId    Int      @id
+  venuePhotoId Int     @id @default(autoincrement())
+  venueId    Int      
   image_url  String?  @db.Text
   date_added DateTime @default(now())
   venue      Venue    @relation(fields: [venueId], references: [venueId])
