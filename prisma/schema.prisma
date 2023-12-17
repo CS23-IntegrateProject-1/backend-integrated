@@ -168,7 +168,7 @@ model Venue {
   Venue_credit_card Venue_credit_card[]
   Venue_keywords    Venue_keywords?
   Venue_managers    Venue_managers?
-  Venue_photo       Venue_photo?
+  Venue_photo       Venue_photo[]
   Venue_promptpay   Venue_promptpay?
   Venue_question    Venue_question[]
   Venue_transaction Venue_transaction[]
