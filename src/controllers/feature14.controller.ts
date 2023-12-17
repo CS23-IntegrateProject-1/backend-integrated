@@ -3,7 +3,6 @@ import { Response, Request } from "express";
 import DashboardService from "../services/admin/dashboard.service";
 
 const feature14Client = new PrismaClient();
-//=====================================ADMIN======================================
 
 //===============================Dashboard==============================
 export const getDashboardChart = async (req: Request, res: Response) => {
@@ -84,6 +83,25 @@ export const createHelpDesk = async( req:Request, res:Response) => {
 	}
 };
 //===============================Promotion Approval==============================
+export const createPromotionApproval = async(req:Request, res:Response) => {
+	const { isApprove ,promotionId} = req.body;
+	try {
+		const promotion_approval = await feature14Client.promotion_approval.create({
+			data: {
+				promotionId:promotionId,
+				isApprove: isApprove,
+			}
+		});
+		if (isApprove) {
+			return res.json({ result: 'accept', promotion_approval });
+			} else {
+			return res.json({ result: 'reject', promotion_approval });
+			}
+	}catch (error) {
+		console.log(error);
+		return res.status(500).json({ error });
+	}
+};
 
 //=====================================ADMIN======================================
 // export const createAdminUser = async (req: Request, res: Response) => {

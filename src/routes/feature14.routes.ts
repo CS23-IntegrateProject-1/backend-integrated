@@ -7,6 +7,7 @@ import {
 	createReportTicket,
 	getAllReportTicket,
 	createHelpDesk,
+	createPromotionApproval,
 
 } from "../controllers/feature14.controller";
 
@@ -17,5 +18,6 @@ feature14Router.get("/getDashboard", getDashboardChart);
 feature14Router.post("/createReportTicket", createReportTicket);
 feature14Router.post("/createHelpDesk",createHelpDesk);
 feature14Router.get("/getAllReportTicket",getAllReportTicket);
+feature14Router.post("/createPromotionApproval",createPromotionApproval);
 
 export default feature14Router;
