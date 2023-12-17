@@ -1,10 +1,11 @@
 import { Prisma, PrismaClient } from "@prisma/client";
 import { DefaultArgs } from "@prisma/client/runtime/library";
 import {
-  //GroupRawDBResponse,
+  GroupRawDBResponse,
   GroupIndexDBResponse,
   GroupCreateDBResponse,
 } from "../../controllers/feature1/models/group.model";
+import { map } from "ramda";
 
 export interface IGroupRepository {
   createGroup(
@@ -18,18 +19,19 @@ export interface IGroupRepository {
   listGroupsByUserId(userId: number): Promise<GroupIndexDBResponse>;
 }
 
-//const transform = (data: GroupRawDBResponse) => {
-//  return {
-//    userId: data.group.userId,
-//    username: data.group.username,
-//    fname: data.group.fname,
-//    lname: data.group.lname,
-//    profile_picture: data.group.profile_picture,
-//    since: data.since,
-//    status: data.status,
-//  };
-//};
+const transform = (data: GroupRawDBResponse) => {
+  return {
+    userId: data.group.userId,
+    username: data.group.username,
+    fname: data.group.fname,
+    lname: data.group.lname,
+    profile_picture: data.group.profile_picture,
+    since: data.since,
+    status: data.status,
+  };
+};
 
+const stripUserIdsAndStatus = map(transform);
 
 export default class GroupRepository {
   private prismaClient: PrismaClient<
@@ -71,8 +73,7 @@ export default class GroupRepository {
     return result as GroupCreateDBResponse;
   }
 
-  //async listGroupsByUserId(userId: number): Promise<GroupIndexDBResponse> {
-  async listGroupsByUserId(): Promise<GroupIndexDBResponse> {
+  async listGroupsByUserId(userId: number): Promise<GroupIndexDBResponse> {
     /*
     const result = await this.prismaClient.group.findMany({
       where: {
@@ -97,8 +98,8 @@ export default class GroupRepository {
   }
 
   async addGroupByUserName(
-    //requesterId: number,
-    //requesteeId: number,
+    requesterId: number,
+    requesteeId: number,
   ): Promise<void> {
     /*
     await this.prismaClient.group.create({

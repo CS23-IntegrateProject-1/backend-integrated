@@ -29,7 +29,11 @@ export default class PrivacyPolicyService implements IPrivacyPolicyService {
   async getPrivacyPolicyOfUser(
     userId: number,
   ): Promise<PrivacyPolicyShowDBResponse> {
-    return this.repository.getPrivacyPolicyByUserId(userId);
+    try {
+      return this.repository.getPrivacyPolicyByUserId(userId);
+    } catch (e) {
+      throw e;
+    }
   }
 
   async updatePrivacyPolicyOfUser(

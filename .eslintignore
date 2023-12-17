@@ -1,0 +1,4 @@
+src/controllers/feature1.controller.ts
+src/routes/feature1.routes.ts
+src/controllers/feature1/**/*.ts
+src/services/feature1/*.ts

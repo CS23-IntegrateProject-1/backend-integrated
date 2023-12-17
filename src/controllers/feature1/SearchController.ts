@@ -20,7 +20,7 @@ export default class SearchController implements ISearchController {
       return res.status(400).json(makeErrorResponse("Malformed request"));
     }
 
-    if (username !== undefined) {
+    if (!!username) {
       try {
         const response = await this.service.searchByUserName(
           username.toString(),
@@ -34,7 +34,7 @@ export default class SearchController implements ISearchController {
       }
     }
 
-    if (phone !== undefined) {
+    if (!!phone) {
       try {
         const response = await this.service.searchByPhone(phone.toString());
 

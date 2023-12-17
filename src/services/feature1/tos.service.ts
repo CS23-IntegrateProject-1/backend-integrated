@@ -22,7 +22,11 @@ export default class TosService implements ITosService {
   constructor(readonly repository: ITosRepository) {}
 
   async getTosOfUser(userId: number): Promise<TosShowDBResponse> {
-    return this.repository.getTosByUserId(userId);
+    try {
+      return this.repository.getTosByUserId(userId);
+    } catch (e) {
+      throw e;
+    }
   }
 
   async updateTosOfUser(

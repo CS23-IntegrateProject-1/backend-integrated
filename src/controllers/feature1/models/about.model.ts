@@ -1,4 +1,4 @@
-export type AboutIndexWebRequest = any;
+export type AboutIndexWebRequest = {};
 
 export type AboutShowWebRequest = {
   aboutId: number;
@@ -15,17 +15,17 @@ export type AboutUpdateWebRequest = {
   detail: string;
 };
 
-export type AboutDestroyWebRequest = any;
+export type AboutDestroyWebRequest = {};
 
-export type AboutIndexWebResponse = any;
+export type AboutIndexWebResponse = {};
 
-export type AboutShowWebResponse = any;
+export type AboutShowWebResponse = {};
 
-export type AboutStoreWebResponse = any;
+export type AboutStoreWebResponse = {};
 
-export type AboutUpdateWebResponse = any;
+export type AboutUpdateWebResponse = {};
 
-export type AboutDestroyWebResponse = any;
+export type AboutDestroyWebResponse = {};
 
 export type AboutIndexDBResponse = [AboutShowDBResponse];
 
@@ -40,14 +40,14 @@ export type AboutStoreDBResponse = AboutShowDBResponse;
 
 export type AboutUpdateDBResponse = AboutShowDBResponse;
 
-export type AboutDestroyDBResponse = any;
+export type AboutDestroyDBResponse = {};
 
 export function makeAboutShowWebResponse(
   data: AboutShowDBResponse,
 ): AboutShowWebResponse {
   return {
     version: data.version,
-    detail: data.detail !== undefined ? data.detail : "",
+    detail: !!data.detail ? data.detail : "",
     last_update: data.last_update,
     id: data.aboutAppId,
   };
@@ -58,7 +58,7 @@ export function makeAboutIndexWebResponse(
 ): AboutIndexWebResponse {
   return data.map((d: AboutShowDBResponse) => ({
     version: d.version,
-    detail: d.detail !== undefined ? d.detail : "",
+    detail: !!d.detail ? d.detail : "",
     last_update: d.last_update,
     id: d.aboutAppId,
   }));
@@ -70,7 +70,7 @@ export function makeAboutStoreWebResponse(
   return {
     id: data.aboutAppId,
     version: data.version,
-    detail: data.detail !== undefined ? data.detail : "",
+    detail: !!data.detail ? data.detail : "",
     last_update: data.last_update,
   };
 }
@@ -81,7 +81,7 @@ export function makeAboutUpdateWebResponse(
   return {
     id: data.aboutAppId,
     version: data.version,
-    detail: data.detail !== undefined ? data.detail : "",
+    detail: !!data.detail ? data.detail : "",
     last_update: data.last_update,
   };
 }
