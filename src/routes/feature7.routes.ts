@@ -34,10 +34,13 @@ import {
     completedOrderDetailsInBusiness,
     changeOrderDetailStatusCompleted,
     getReceipt,
+    deleteMenuFromCookie,
+    deleteSetFromCookie,
 } from "../controllers/feature7.controller";
 import { customVerifyCookie } from "../middlewares/verifyCookies";
 import { clear } from "console";
 import { get } from "http";
+import { checkIn } from "../controllers/feature6.controller";
 
 const feature7Router = Router();
 
@@ -54,10 +57,14 @@ feature7Router.get("/getMenuById/:id",getMenuById);
 feature7Router.get("/getSetById/:id",getSetById);
 //add menu to cart
 feature7Router.post("/addMenuToCookie/:menuId/", customVerifyCookie,addMenuToCookie);
+//delete menu from cart
+feature7Router.delete("/deleteMenuFromCookie/:menuId/",deleteMenuFromCookie);
 //add set to cart
 feature7Router.post("/addSetToCookie/:setId/", customVerifyCookie,addSetToCookie);
+//delete set from cart
+feature7Router.delete("/deleteSetFromCookie/:setId/",deleteSetFromCookie);
 //show cart of user
-feature7Router.get("/showCart",customVerifyCookie,showCart);
+feature7Router.get("/showCart",customVerifyCookie,checkIn,showCart);
 //Show menu detail from cart
 feature7Router.get("/showMenuDetailFromCart/:menuId",customVerifyCookie,showMenuDetailFromCart);
 //Show set detail from cart

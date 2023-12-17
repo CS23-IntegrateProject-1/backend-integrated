@@ -158,6 +158,25 @@ export const addMenuToCookie = async (req: any, res: Response) => {
         console.log(error);
     }
 }
+export const deleteMenuFromCookie = async (req: Request, res: Response) => {
+    try {
+        const reservationId =240;
+        const menuId = req.params.menuId;
+        // Retrieve existing cart from the 'cart' cookie or initialize an empty array
+        const existingCartString = req.cookies.cart || '[]';
+        const existingCart = JSON.parse(existingCartString);
+
+        // Check if the menu item is already in the cart
+        const existingCartItem = existingCart.find((item) => item.menuId === menuId);
+        existingCart.pop(existingCartItem);
+        const updatedCart = existingCart.filter(item => item.reservationId == reservationId && item.menuId == menuId);
+        // Update the 'cart' cookie with the modified cart
+        res.cookie('cart', JSON.stringify(updatedCart));
+        res.status(200).json({ success: true, message: 'Deleted menu from cart' });
+    } catch (error) {
+        console.log(error);
+    }
+}
 export const addSetToCookie = async (req: any, res: Response) => {
     try {
         const userId = req.userId;
@@ -241,10 +260,30 @@ export const addSetToCookie = async (req: any, res: Response) => {
         console.log(error);
     }
 }
+export const deleteSetFromCookie = async (req: Request, res: Response) => {
+    try {
+        const reservationId =240;
+        const setId = req.params.setId;
+        // Retrieve existing cart from the 'cart' cookie or initialize an empty array
+        const existingCartString = req.cookies.cart || '[]';
+        const existingCart = JSON.parse(existingCartString);
+
+        // Check if the menu item is already in the cart
+        const existingCartItem = existingCart.find((item) => item.setId === setId);
+        existingCart.pop(existingCartItem);
+        const updatedCart = existingCart.filter(item => item.reservationId == reservationId && item.setId == setId);
+        // Update the 'cart' cookie with the modified cart
+        res.cookie('cart', JSON.stringify(updatedCart));
+        res.status(200).json({ success: true, message: 'Deleted set from cart' });
+    } catch (error) {
+        console.log(error);
+    }
+}
 export const showCart = async (req: any, res: Response) => {
     try {
         const userId = parseInt(req.userId);
         const reservationId =240;
+        // const reservationId =parseInt(req.reservationToken);
         const cartString = req.cookies.cart || '[]';
         // console.log(cartString);
         const cart = JSON.parse(cartString);
