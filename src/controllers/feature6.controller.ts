@@ -9,7 +9,6 @@ import { getOfflineAvailableTables } from "../services/reservation/getOfflineAva
 import { findSuitableTable } from "../services/reservation/findSuitable.service";
 import qr from "qr-image";
 
-import jwt, { JwtPayload } from "jsonwebtoken";
 
 const feature6Client = new PrismaClient();
 
@@ -200,7 +199,7 @@ export const createReservation = async (req: Request, res: Response) => {
                 .json({ error: "This user is not customer user" });
         }
 
-        const { venueId, guest_amount, reserve_date, time, branchId } =
+        const { venueId, guest_amount, reserve_date, time, branchId, name, phone_num } =
             req.body;
 
         const concatDatetime = `${reserve_date} ${time}`;
@@ -279,6 +278,8 @@ export const createReservation = async (req: Request, res: Response) => {
                     isReview: false,
                     depositId: depositId?.depositId,
                     branchId: branchId,
+                    name: name,
+                    phone: phone_num,
                 },
             });
 
@@ -527,7 +528,6 @@ export const createTableType = async (req: Request, res: Response) => {
     }
 };
 
-// ! new Dashboard 1
 // In Progress
 // Some problem about time can't find
 export const getCountPerDay = async (req: Request, res: Response) => {
@@ -824,7 +824,7 @@ export const createOfflineReservation = async (req: Request, res: Response) => {
             return res.status(400).json({ error: "Venue is undefined" });
         }
 
-        const { guest_amount, branchId } = req.body;
+        const { guest_amount, branchId, phone_num, name } = req.body;
 
         const Reserve_date = new Date();
         const Time = Reserve_date.toLocaleTimeString();
@@ -908,6 +908,8 @@ export const createOfflineReservation = async (req: Request, res: Response) => {
                     isReview: false,
                     depositId: depositId[0].depositId,
                     branchId: branchId,
+                    phone: phone_num,
+                    name: name,
                 },
             });
 
@@ -920,7 +922,6 @@ export const createOfflineReservation = async (req: Request, res: Response) => {
                     },
                 });
 
-            // ! new
             //  Checkin for offline reservation
             await feature6Client.tables.update({
                 where: {
@@ -965,8 +966,7 @@ export const createOfflineReservation = async (req: Request, res: Response) => {
     }
 };
 
-// In Progress
-// Waiting for QR-CODE
+// Finished
 export const checkIn = async (req: Request, res: Response) => {
     try {
         const reservationId = parseInt(req.params.reservationId);
@@ -1065,7 +1065,8 @@ export const checkIn = async (req: Request, res: Response) => {
     }
 };
 
-// QR code SOLUTION 2
+// Finished
+// Generate QR Code
 export const qrCode = async (req: Request, res: Response) => {
     try {
         const { reservationId } = req.params;
@@ -1081,9 +1082,6 @@ export const qrCode = async (req: Request, res: Response) => {
         const qrCode = qr.image(qrCodeText, {
             type: "png",
         });
-        // const qrCode = qr.image(`Reservation ID: ${reservationId}`, {
-        //     type: "png",
-        // });
         res.type("png");
         return qrCode.pipe(res);
     } catch (e) {
