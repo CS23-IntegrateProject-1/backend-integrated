@@ -68,6 +68,7 @@ export const createCheckoutSession = async (req: Request, res: any) => {
   
       res.redirect(303, session.url);
     } catch (e:any) {
+        console.log(e);
       res.status(400);
       return res.send({
         error: {
