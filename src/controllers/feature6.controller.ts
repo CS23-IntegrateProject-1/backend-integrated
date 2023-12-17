@@ -1,7 +1,6 @@
 import { Day, PrismaClient } from "@prisma/client";
 import { Response, Request } from "express";
 import {
-    addMinutes,
     addHours,
     startOfDay,
     endOfDay,
@@ -179,7 +178,7 @@ export const getVenueAndReservationsById = async (
 
 //POST METHOD
 
-var isResponse = true;
+let isResponse = true;
 
 // create Reservation
 // Finished
@@ -283,7 +282,6 @@ export const createReservation = async (req: Request, res: Response) => {
 
 let availabilityResponse: any;
 let getAvailableTablesResponse: any;
-let getSuitableTableResponse: any;
 
 export const getAvailableTables = async (req: Request, res: Response) => {
     try {
@@ -339,13 +337,13 @@ export const getAvailableTables = async (req: Request, res: Response) => {
                     return open.day;
                 })
             ).then((nestedArrays) => nestedArrays.flat());
-            var pos;
+            let pos;
             for (let index = 0; index < daysOfWeek.length; index++) {
                 if (openday[openday.length - 1] == daysOfWeek[index])
                     pos = index;
             }
             openday.push(daysOfWeek[pos + 1]);
-            var canreserve = 0;
+            let canreserve = 0;
             for (let index = 0; index < openday.length; index++) {
                 if (daysOfWeek[day] == openday[index]) canreserve++;
             }
@@ -360,7 +358,7 @@ export const getAvailableTables = async (req: Request, res: Response) => {
                     day: dayName as Day,
                 },
             });
-            var notOpen = false;
+            let notOpen = false;
             const dayBefore = daysOfWeek[day - 1];
             if (opening.length === 0) {
                 const openBefore = await feature6Client.opening_day.findMany({
@@ -383,7 +381,7 @@ export const getAvailableTables = async (req: Request, res: Response) => {
                     notOpen = true;
                 }
             }
-            var open, close;
+            let open, close;
             if (notOpen) {
                 const openBefore = await feature6Client.opening_day.findMany({
                     where: {
@@ -894,7 +892,7 @@ export const deleteTable = async (req: Request, res: Response) => {
 };
 
 // OFFLINE RESERVATION
-var isResponse = true;
+isResponse = true;
 export const createOfflineReservation = async (req: Request, res: Response) => {
     isResponse = true;
     try {
@@ -997,7 +995,6 @@ export const createOfflineReservation = async (req: Request, res: Response) => {
 
 let offlineAvailabilityResponse: any;
 let getOfflineAvailableTablesResponse: any;
-let getOfflineSuitableTableResponse: any;
 
 // // Function for find reservation that is in the same time
 // export const checkOfflineAvailability = async (req: Request, res: Response) => {
@@ -1210,13 +1207,13 @@ export const getOfflineAvailableTables = async (
                     return open.day;
                 })
             ).then((nestedArrays) => nestedArrays.flat());
-            var pos;
+            let pos;
             for (let index = 0; index < daysOfWeek.length; index++) {
                 if (openday[openday.length - 1] == daysOfWeek[index])
                     pos = index;
             }
             openday.push(daysOfWeek[pos + 1]);
-            var canreserve = 0;
+            let canreserve = 0;
             for (let index = 0; index < openday.length; index++) {
                 if (daysOfWeek[day] == openday[index]) canreserve++;
             }
@@ -1232,7 +1229,7 @@ export const getOfflineAvailableTables = async (
                 },
             });
 
-            var notOpen = false;
+            let notOpen = false;
             const dayBefore = daysOfWeek[day - 1];
             if (opening.length === 0) {
                 const openBefore = await feature6Client.opening_day.findMany({
@@ -1255,7 +1252,7 @@ export const getOfflineAvailableTables = async (
                     notOpen = true;
                 }
             }
-            var open, close;
+            let open, close;
             if (notOpen) {
                 const openBefore = await feature6Client.opening_day.findMany({
                     where: {
