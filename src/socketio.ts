@@ -1,11 +1,8 @@
-import cookie from 'cookie';
-import jwt, { JsonWebTokenError } from "jsonwebtoken";
-import { Server, Socket } from "socket.io";
+import { Server } from "socket.io";
 import { createServer, Server as HttpServer } from "http";
 import express from "express";
 import loadEnv from "./configs/dotenvConfig";
 import { PrismaClient } from "@prisma/client";
-import { makeErrorResponse } from "./controllers/feature1/models/payment_method.model";
 const feature12Client = new PrismaClient();
 
 loadEnv();
@@ -24,8 +21,7 @@ type Client = {
 };
 
 interface Recipient {
-  id: number;
-  username: string;
+  memberId: number;
   avatar: string;
 }
 const connectedClients: Array<Client> = [];
@@ -45,13 +41,10 @@ io.on("connection", (socket) => {
   // console.log(id + " join room 1");
 
   socket.on("join-room", (data) => {
-
-    // console.log("join-room", conversationName );
-    console.log("recipients", data);
-
+    // console.log("recipients", data);
     data.recipients.forEach((recipient: Recipient) => {
       socket.join(data.group_id);
-      console.log(recipient.username + " Join Room " + data.group_id);
+      console.log(recipient.memberId + " Join Room " + data.group_id);
     });
   });
 

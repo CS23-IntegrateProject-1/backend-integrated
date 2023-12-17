@@ -329,7 +329,6 @@ export const getPrivateChatList = async (req: any, res: Response) => {
 
   try {
     const userId = req.userId;
-    console.log("userId", userId);
     const groupList = await feature12Client.group_user.findMany({
       where: {
         memberId: parseInt(userId),
@@ -339,18 +338,45 @@ export const getPrivateChatList = async (req: any, res: Response) => {
       },
     });
 
-    // Get the second user's details from the user table
     const groupDetail = await Promise.all(
       groupList.map(async (group) => {
-        return await feature12Client.group.findUnique({
+        const id = group.groupId;
+        const groupInfo = await feature12Client.group.findUnique({
           where: {
-            groupId: group.groupId,
+            groupId: id,
           },
           select: {
             group_name: true,
             group_profile: true,
           },
         });
+
+        const members = await feature12Client.group_user.findMany({
+          where: {
+            groupId: id,
+          },
+          select: {
+            memberId: true,
+          },
+        });
+        
+        const messages = await feature12Client.chat_message.findMany({
+          where: {
+            roomId: id,
+          },
+          select: {
+            userId: true,
+            message: true,
+            date_time: true,
+            messageId: true,
+          },
+        });
+
+        return {
+          ...groupInfo,
+          members,
+          messages,
+        };
       })
     );
     
@@ -359,7 +385,6 @@ export const getPrivateChatList = async (req: any, res: Response) => {
     return res.status(500).json({ error });
   }
 };
-
 
 //Get the secondUserID from friendship table of specific user who has login
 export const getFriendList = async (req: any, res: Response) => {
