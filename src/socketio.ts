@@ -21,8 +21,13 @@ type Client = {
 };
 
 interface Recipient {
+  member: {
+    username: string;
+    userId: number;
+    addId: string;
+    profile_picture: string | null;
+  },
   memberId: number;
-  avatar: string;
 }
 const connectedClients: Array<Client> = [];
 
@@ -41,16 +46,15 @@ io.on("connection", (socket) => {
   // console.log(id + " join room 1");
 
   socket.on("join-room", (data) => {
-    // console.log("recipients", data);
+    console.log("recipients", data.recipients, "and", "group_id", data.group_id);
     data.recipients.forEach((recipient: Recipient) => {
       socket.join(data.group_id);
-      console.log(recipient.memberId + " Join Room " + data.group_id);
+      console.log(recipient.member.username + " Join Room " + data.group_id);
     });
   });
 
   socket.on("send-message", async ({ recipients, text }) => {
     console.log("recipient", recipients, "and", "text", text);
-
     try {
       // Insert this text message into Prisma DB along with the sender, recipients, and timestamp
       await feature12Client.message.create({

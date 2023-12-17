@@ -357,6 +357,15 @@ export const getPrivateChatList = async (req: any, res: Response) => {
           },
           select: {
             memberId: true,
+            member: {
+              select: {
+                username: true,
+                userId: true,
+                addId: true,
+                profile_picture: true,
+              },
+            },
+            
           },
         });
         
@@ -374,6 +383,7 @@ export const getPrivateChatList = async (req: any, res: Response) => {
 
         return {
           ...groupInfo,
+          id,
           members,
           messages,
         };
