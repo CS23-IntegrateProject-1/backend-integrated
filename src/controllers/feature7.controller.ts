@@ -1338,6 +1338,10 @@ export const onGoingOrderDetailsInBusiness = async (req: any, res: Response) => 
                 ],
             },
         });
+        const tablesWithOrderDetails = getTable.filter((table) => {
+            const reservationId = table.reserveId;
+            return getOrderDetailsOfOngoingOrder.some((orderDetail) => orderDetail.orderId === reservationId);
+        });
         const orderIds = getOrderDetailsOfOngoingOrder.map((orderDetail) => orderDetail.orderId);
 
         // Fetch order dates based on orderIds
@@ -1425,11 +1429,11 @@ export const onGoingOrderDetailsInBusiness = async (req: any, res: Response) => 
             tableOrderDetailsMap[reservationId].push(orderDetailWithNames);
         });
 
-        const response = getTable.map((table) => {
+        const response = tablesWithOrderDetails.map((table) => {
             const reservationId = table.reserveId;
             const orderDetails = tableOrderDetailsMap[reservationId] || [];
             const orderDate = orderDateMap[reservationId];
-        
+
             return {
                 table: {
                     ...table,
@@ -1693,6 +1697,28 @@ export const getReceipt = async (req: any, res: Response) => {
          res.status(200).json(finalResponse);
     }
     catch (e) {
+        console.log(e);
+    }
+}
+export const addMenuMIK = async (req: any, res: Response) => {
+    try{
+        const venueId =2;
+        const menuNo=req.body.menu_id;
+        const name=req.body.Menus.menu_name;
+        const price=req.body.Menus.menu_price;
+        const img=req.body.Menus.menu_picture;
+        const iinsertMenu = await feature7Client.menu.createMany({
+            data: {
+                venueId:venueId,
+                menu_no:menuNo,
+                name:name,
+                price:price,
+                image:img,
+            },
+        });
+        return res.status(200).json(iinsertMenu);
+    }
+    catch (e) { 
         console.log(e);
     }
 }

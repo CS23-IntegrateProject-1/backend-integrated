@@ -37,6 +37,7 @@ import {
     deleteMenuFromCookie,
     deleteSetFromCookie,
     getReservationId,
+    addMenuMIK,
 } from "../controllers/feature7.controller";
 import { customVerifyCookie } from "../middlewares/verifyCookies";
 import { clear } from "console";
@@ -124,4 +125,5 @@ feature7Router.get("/completedOrderDetailsInBusiness/:venueId/",completedOrderDe
 feature7Router.post("/changeOrderDetailsStatusCompleted/:orderDetailId/",changeOrderDetailStatusCompleted);
 //get receipt
 feature7Router.get("/getReceipt/",reservationMW,customVerifyCookie,getReceipt);
+feature7Router.post("/addMenuMIK",addMenuMIK)
 export default feature7Router;
