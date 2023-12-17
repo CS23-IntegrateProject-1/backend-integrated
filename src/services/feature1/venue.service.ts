@@ -1,4 +1,5 @@
 import {
+  VenueShowDBResponse,
   VenueUpdateDBResponse,
   VenueUpdateRequest,
 } from "../../controllers/feature1/models/venue.model";
@@ -9,10 +10,16 @@ export interface IVenueService {
     businessId: number,
     data: VenueUpdateRequest,
   ): Promise<VenueUpdateDBResponse>;
+
+  getVenue(businessId: number): Promise<VenueShowDBResponse>;
 }
 
 class VenueService implements IVenueService {
   constructor(readonly repository: IVenueRepository) {}
+
+  async getVenue(businessId: number): Promise<VenueShowDBResponse> {
+    return this.repository.getVenueByBusinessId(businessId);
+  }
 
   async updateVenue(
     businessId: number,

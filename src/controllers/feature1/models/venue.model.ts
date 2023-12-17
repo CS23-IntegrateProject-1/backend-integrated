@@ -44,3 +44,9 @@ export function makeVenueUpdateWebResponse(
     website: data.website_url,
   };
 }
+
+export const makeVenueShowWebResponse = makeVenueUpdateWebResponse;
+
+export type VenueShowDBResponse = VenueUpdateDBResponse;
+
+export type VenueShowWebResponse = VenueUpdateWebResponse;

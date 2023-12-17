@@ -102,6 +102,11 @@ feature1Router.get("/group", groupHandler);
 feature1Router.get("/group/:id", groupInfoHandler);
 feature1Router.post("/group/add", groupHandler);
 
+feature1Router.get(
+  "/venue",
+  businessAuthMiddleware,
+  venueController.show.bind(venueController),
+);
 feature1Router.put(
   "/venue/info",
   businessAuthMiddleware,

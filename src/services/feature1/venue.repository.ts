@@ -1,5 +1,6 @@
 import { prismaClient } from "../../controllers/feature1.controller";
 import {
+  VenueShowDBResponse,
   VenueUpdateDBResponse,
   VenueUpdateRequest,
 } from "../../controllers/feature1/models/venue.model";
@@ -9,9 +10,30 @@ interface IVenueRepository {
     businessId: number,
     data: VenueUpdateRequest,
   ): Promise<VenueUpdateDBResponse>;
+
+  getVenueByBusinessId(businessId: number): Promise<VenueShowDBResponse>;
 }
 
 class VenueRepository implements IVenueRepository {
+  async getVenueByBusinessId(businessId: number): Promise<VenueShowDBResponse> {
+    const venueId = await this.getVenueId(businessId);
+
+    const result = await prismaClient.venue.findFirst({
+      where: {
+        venueId,
+      },
+      include: {
+        location: {
+          select: {
+            address: true,
+          },
+        },
+      },
+    });
+
+    return result as VenueShowDBResponse;
+  }
+
   async updateVenue(
     businessId: number,
     data: VenueUpdateRequest,
