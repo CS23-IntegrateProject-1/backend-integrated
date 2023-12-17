@@ -1431,6 +1431,7 @@ const YOUR_DOMAIN = 'http://localhost:4000';
 const stripe = new Stripe(process.env.STRIP_KEY ?? '');
 export const createCheckoutSession = async (req: Request, res: Response) => {
     try{
+        
         const session = await stripe.checkout.sessions.create({
             line_items: [
                 {
@@ -1440,8 +1441,8 @@ export const createCheckoutSession = async (req: Request, res: Response) => {
                 },
             ],
             mode: 'payment',
-            success_url: `${YOUR_DOMAIN}?success=true`,
-            cancel_url: `${YOUR_DOMAIN}?canceled=true`,
+            success_url: `${YOUR_DOMAIN}/checkout-success`,
+            cancel_url: `${YOUR_DOMAIN}/checkout-cancel`,
         });
         res.status(200).json({url: session.url})
 
