@@ -1,52 +1,26 @@
+// This is your test secret API key.
+const stripe = require('stripe')('sk_test_51OFf98BCLtNTpQNyJKiknfWUhqRZoF6SJa6zymmaQAVCtwnSoydmxZ6PzYg5OkyniCJe9GIrlxB8J1l0sYeqCEY400mOZap4J5');
 const express = require('express');
-const Stripe = require('stripe');
-const cors = require('cors');
-require('dotenv').config();
+const app = express();
+app.use(express.static('public'));
 
-const stripe = Stripe(process.env.STRIPE_KEY);
-const router = express.Router();
+const YOUR_DOMAIN = 'http://localhost:4242';
 
-router.use(cors());
-
-router.post('/create-checkout-session', async (req, res) => {
-  const cartItems = req.body.cartItems;
-
-  const lineItems = cartItems.map(item => ({
-    price_data: {
-      currency: 'usd',
-      product_data: {
-        name: item.name,
-      },
-      unit_amount: Math.round(item.price * 100),
-    },
-    quantity: 1,
-  }));
-
-  try {
-    // Inside the try block in stripe.js (routes)
-const session = await stripe.checkout.sessions.create({
+app.post('/create-checkout-session', async (req, res) => {
+  const session = await stripe.checkout.sessions.create({
     line_items: [
       {
-        price_data: {
-          currency: 'usd',
-          product_data: {
-            name: 'Sample Product',
-          },
-          unit_amount: 1000, // Sample price in cents
-        },
+        // Provide the exact Price ID (for example, pr_1234) of the product you want to sell
+        price: 'price_1OFtzuBCLtNTpQNy5d50ybcQ',
         quantity: 1,
       },
     ],
     mode: 'payment',
-    success_url: `${process.env.CLIENT_URL}/checkout-success`,
-    cancel_url: `${process.env.CLIENT_URL}/cart`,
+    success_url: `${YOUR_DOMAIN}?success=true`,
+    cancel_url: `${YOUR_DOMAIN}?canceled=true`,
   });
-  
-    res.send({ url: session.url });
-  } catch (error) {
-    console.error('Error creating checkout session:', error);
-    res.status(500).send({ error: 'Internal Server Error' });
-  }
+
+  res.redirect(303, session.url);
 });
 
-module.exports = router;
+app.listen(4242, () => console.log('Running on port 4242'));
