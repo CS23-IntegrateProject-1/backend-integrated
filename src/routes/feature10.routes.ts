@@ -32,7 +32,7 @@ feature10Router.get("/getSeatsTypeByScreenId/:id", getSeatsTypeByScreenId);
 feature10Router.get("/getShowsByTheaterId/:id/:date", getShowsByTheaterId);
 feature10Router.post("/getFilmsByTheaterId", getFilmsByTheaterId);
 feature10Router.get("/getTheaterById/:id", getTheaterById);
-feature10Router.get("/getSeatByScreenId/:id", getSeatByScreenId);
+feature10Router.post("/getSeatByScreenId", getSeatByScreenId);
 
 feature10Router.get("/getTestTest", getTestTest);
 

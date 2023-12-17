@@ -92,7 +92,7 @@ export const getSeatsTypeByScreenId = async (req: Request, res: Response) => {
 }
 
 export const getSeatByScreenId = async (req: Request, res: Response) => {
-    const id = Number(req.params.id);
+    const id = req.body.id;
     const data = await seatsService.getSeatByScreenId(id);
     res.json(data);
 }
