@@ -106,8 +106,8 @@ class DashboardService {
 		}
 	}
 	async getAllTransaction() {
-		try{
-			const getAppTransaction = this.prisma.transaction_detail.groupBy({
+		try {
+			const AppTransaction = this.prisma.transaction_detail.groupBy({
 				by: ['total_amount'],
 				_sum: {
 					total_amount: true,
@@ -116,9 +116,32 @@ class DashboardService {
 					status: "Completed"
 				}
 			});
-			return (await getAppTransaction);
-			
-		}catch (e) {
+			// const appTransactionResult = await AppTransaction;
+			// const firstTransaction = appTransactionResult[0];
+			// const AllTransactionCount = firstTransaction?._sum?.total_amount;
+			// return (await AllTransactionCount);
+			const appTransactionResult = await AppTransaction;
+
+			// Summing up total_amount across all elements in the array
+			const totalAmountSum = appTransactionResult.reduce((sum, transaction) => {
+				// Use optional chaining to handle potential null or undefined values
+				const transactionAmount = transaction?._sum?.total_amount;
+
+				// Convert Decimal to number if necessary
+				const amountToAdd = typeof transactionAmount === 'number'
+					? transactionAmount
+					: transactionAmount?.toNumber() ?? 0;
+
+				// Add the current transaction amount to the sum
+				return sum + amountToAdd;
+			}, 0);
+
+			return {
+				Revenue: totalAmountSum,
+				Partner: totalAmountSum*90/100,
+				NetProfit: totalAmountSum*10/100,
+			}
+		} catch (e) {
 			console.log(e);
 			throw new Error("Error in getting number of transaction");
 		}
