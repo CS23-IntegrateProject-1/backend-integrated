@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE `Saved_place` MODIFY `id` INTEGER NOT NULL AUTO_INCREMENT;
