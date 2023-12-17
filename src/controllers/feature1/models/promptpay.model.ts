@@ -1,13 +1,9 @@
-type PromptPayUpdateWebRequest = {};
-
 export type PromptPayUpdateWebResponse = {
   user_id: number;
   username: string;
   promptpay_number: number;
   phone_number: string;
 };
-
-type PromptPayUpdateDBRequest = {};
 
 export type PromptPayUpdateDBResponse = {
   userId: number;
@@ -27,16 +23,12 @@ export function makePromptPayUpdateWebResponse(
   };
 }
 
-type PromptPayShowWebRequest = {};
-
 export type PromptPayShowWebResponse = {
   user_id: number;
   username: string;
   promptpay_number: number;
   phone_number: string;
 };
-
-type PromptPayShowDBRequest = {};
 
 export type PromptPayShowDBResponse = {
   userId: number;

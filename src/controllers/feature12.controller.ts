@@ -42,10 +42,10 @@ const sessionClient = new dialogflow.SessionsClient(CONFIGURATION);
 // Detect intent function
 const detectIntent = async (languageCode, queryText, sessionId) => {
 
-    let sessionPath = sessionClient.projectAgentSessionPath(PROJECID, sessionId);
+    const sessionPath = sessionClient.projectAgentSessionPath(PROJECID, sessionId);
 
     // The text query request.
-    let request = {
+    const request = {
         session: sessionPath,
         queryInput: {
             text: {
@@ -76,11 +76,11 @@ const detectIntent = async (languageCode, queryText, sessionId) => {
 
 //Post request for dialogflow with body parameters
 export const forDialogflow = async (req: Request, res: Response) => {
-  let languageCode = req.body.languageCode;
-    let queryText = req.body.queryText;
-    let sessionId = req.body.sessionId;
+  const languageCode = req.body.languageCode;
+    const queryText = req.body.queryText;
+    const sessionId = req.body.sessionId;
 
-    let responseData = await detectIntent(languageCode, queryText, sessionId);
+    const responseData = await detectIntent(languageCode, queryText, sessionId);
 
     if (responseData) {
       if(responseData.result.intent?.displayName === 'ShowingVenues'){
@@ -129,7 +129,6 @@ export const forDialogflow = async (req: Request, res: Response) => {
       } else if (
         responseData.result.intent?.displayName === "Ask Restaurant"
       ) {
-        const category =
           responseData.result?.outputContexts?.[0]?.parameters?.fields?.category
             ?.stringValue;
         // console.log(category);
