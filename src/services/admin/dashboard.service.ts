@@ -105,6 +105,24 @@ class DashboardService {
 			throw new Error("Error in getting number of reciept");
 		}
 	}
+	async getAllTransaction() {
+		try{
+			const getAppTransaction = this.prisma.transaction_detail.groupBy({
+				by: ['total_amount'],
+				_sum: {
+					total_amount: true,
+				},
+				where: {
+					status: "Completed"
+				}
+			});
+			return (await getAppTransaction);
+			
+		}catch (e) {
+			console.log(e);
+			throw new Error("Error in getting number of transaction");
+		}
+	}
 }
 
 export default new DashboardService();

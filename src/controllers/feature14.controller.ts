@@ -10,6 +10,7 @@ export const getDashboardChart = async (req: Request, res: Response) => {
 		const userTiers = await DashboardService.getAllUsersTier();
 		const venueTypes = await DashboardService.getVenueTypes();
 		const businessCount = await DashboardService.getBusinessCount();
+		const revenue = await DashboardService.getAllTransaction();
 		const numberOfReciept = await DashboardService.getNumberOfReciept();
 
 		return res.status(200).json({
@@ -17,6 +18,7 @@ export const getDashboardChart = async (req: Request, res: Response) => {
 			venueTypes: venueTypes,
 			businessCount: businessCount.businessCount,
 			numberOfReciept: numberOfReciept,
+			revenue: revenue,
 		});
 	} catch (e) {
 		console.log(e);
