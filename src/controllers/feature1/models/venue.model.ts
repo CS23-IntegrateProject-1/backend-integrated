@@ -50,3 +50,24 @@ export const makeVenueShowWebResponse = makeVenueUpdateWebResponse;
 export type VenueShowDBResponse = VenueUpdateDBResponse;
 
 export type VenueShowWebResponse = VenueUpdateWebResponse;
+
+export type OpeningHourUpdateDBResponse = {};
+
+type OpeningHour = {
+  open: string;
+  close: string;
+};
+
+export enum Day {
+  "Mon" = "Mon",
+  "Tue" = "Tue",
+  "Wed" = "Wed",
+  "Thu" = "Thu",
+  "Fri" = "Fri",
+  "Sat" = "Sat",
+  "Sun" = "Sun",
+}
+
+export type OpeningHourUpdateRequest = {
+  [day in Day]: OpeningHour;
+};

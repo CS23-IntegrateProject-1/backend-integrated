@@ -112,5 +112,10 @@ feature1Router.put(
   businessAuthMiddleware,
   venueController.update.bind(venueController),
 );
+feature1Router.put(
+  "/venue/opening_hours",
+  businessAuthMiddleware,
+  venueController.updateOpeningHours.bind(venueController),
+);
 
 export default feature1Router;

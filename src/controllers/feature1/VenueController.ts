@@ -4,7 +4,7 @@ import VenueService, {
   IVenueService,
 } from "../../services/feature1/venue.service";
 import VenueRepository from "../../services/feature1/venue.repository";
-import { z } from "zod";
+import { string, z } from "zod";
 import {
   makeVenueUpdateWebResponse,
   makeVenueShowWebResponse,
@@ -13,6 +13,7 @@ import {
 export interface IVenueController {
   update: (req: Request, res: Response) => unknown;
   show: (req: Request, res: Response) => unknown;
+  updateOpeningHours: (req: Request, res: Response) => unknown;
 }
 
 const VenueUpdatePayload = z.object({
@@ -24,8 +25,44 @@ const VenueUpdatePayload = z.object({
   website: z.string().url(),
 });
 
+const daysEnum = z.enum(["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]);
+
+type DayToString = { [K in z.infer<typeof daysEnum>]: string };
+
+const OpeningHourPayload: z.ZodType<DayToString> = z.object({
+  ...Object.keys(daysEnum.enum).reduce(
+    (obj, key) => ({
+      ...obj,
+      [key]: z.object({ open: z.string(), close: z.string() }),
+    }),
+    {},
+  ),
+}) as z.ZodTypeAny;
+
 class VenueController implements IVenueController {
   private service: IVenueService = new VenueService(new VenueRepository());
+
+  async updateOpeningHours(req: Request, res: Response) {
+    const openingHours = req.body;
+
+    const result = await OpeningHourPayload.safeParseAsync(openingHours);
+
+    if (!result.success) {
+      return res.status(400).json(makeErrorResponse('Invalid request'));
+    }
+
+    try {
+      await this.service.updateOpeningHours(
+        Number(req.params.businessId),
+        openingHours,
+      );
+
+      return res.status(200).send();
+    } catch (e) {
+      console.log(e);
+      return res.status(500).json(makeErrorResponse("Internal Server Error"));
+    }
+  }
 
   async show(req: Request, res: Response) {
     try {

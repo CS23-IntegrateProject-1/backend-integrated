@@ -1,5 +1,8 @@
 import { prismaClient } from "../../controllers/feature1.controller";
 import {
+  Day,
+  OpeningHourUpdateDBResponse,
+  OpeningHourUpdateRequest,
   VenueShowDBResponse,
   VenueUpdateDBResponse,
   VenueUpdateRequest,
@@ -11,10 +14,35 @@ interface IVenueRepository {
     data: VenueUpdateRequest,
   ): Promise<VenueUpdateDBResponse>;
 
+  updateOpeningHours(
+    businessId: number,
+    data: OpeningHourUpdateRequest,
+  );
+
   getVenueByBusinessId(businessId: number): Promise<VenueShowDBResponse>;
 }
 
 class VenueRepository implements IVenueRepository {
+  async updateOpeningHours(
+    businessId: number,
+    data: OpeningHourUpdateRequest,
+  ) {
+    const venueId = await this.getVenueId(businessId);
+    
+    for (const elem in data) {
+      await prismaClient.opening_day.updateMany({
+        where: {
+          venueId,
+          day: elem as Day,
+        },
+        data: {
+          opening_hours: `0001-01-01T${data[elem].open}Z`,
+          closing_hours: `0001-01-01T${data[elem].close}Z`,
+        },
+      })
+    }
+  }
+
   async getVenueByBusinessId(businessId: number): Promise<VenueShowDBResponse> {
     const venueId = await this.getVenueId(businessId);
 
