@@ -1428,7 +1428,8 @@ export const getTransactionReserveIdByVenueIdAndEqualToStatusCompleted = async (
 const YOUR_DOMAIN = 'http://localhost:4000';
 const stripe = new Stripe(process.env.STRIP_KEY ?? '');
 export const createCheckoutSession = async (req: Request, res: Response) => {
-    const session = await stripe.checkout.sessions.create({
+    try{
+        const session = await stripe.checkout.sessions.create({
             line_items: [
                 {
                     // Provide the exact Price ID (for example, pr_1234) of the product you want to sell
@@ -1440,6 +1441,11 @@ export const createCheckoutSession = async (req: Request, res: Response) => {
             success_url: `${YOUR_DOMAIN}?success=true`,
             cancel_url: `${YOUR_DOMAIN}?canceled=true`,
         });
+        res.status(200).json({url: session.url})
+
+    } catch (error) {
+        res.status(400).json({error: 'Failed to create checkout session'})
+    }
     
-        res.redirect(session.url!);
+        // res.redirect(303,session.url!);
 }
