@@ -57,11 +57,11 @@ import {
     getTransactionDetailsByVenueAndDateForOrder,
     getTransactionDetailForDelivery,
     getTransactionDetailsByVenueAndDateForDelivery,
-    getTransactionReserveIdByVenueIdAndEqualToStatusCompleted
-
+    getTransactionReserveIdByVenueIdAndEqualToStatusCompleted,
+    createCheckoutSession
+    ,
 } from "../controllers/feature8.controller";
 
-import {createCheckoutSession} from './Stripe'
 const feature8Router = Router();
 
 // here define your routes

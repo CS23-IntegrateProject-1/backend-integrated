@@ -1,79 +1,25 @@
-// server.js
+// import { Request, Response } from 'express';
+// import stripe from 'stripe';
 
-const express = require('express');
-const app = express();
-const stripe = require('stripe')(process.env.STRIP_KEY);
+// // Replace 'sk_test_...' with your actual secret key
+// const stripeSecretKey = 'sk_test_51OFf98BCLtNTpQNyJKiknfWUhqRZoF6SJa6zymmaQAVCtwnSoydmxZ6PzYg5OkyniCJe9GIrlxB8J1l0sYeqCEY400mOZap4J5';
+// const stripeInstance = stripe(stripeSecretKey);
 
-// app.use(express.json());
+// const YOUR_DOMAIN = 'https://your-domain.com'; // Replace with your actual domain
 
-// app.post('/create-checkout-session', async (req, res) => {
-//     try {
-        
-//         const session = await stripe.checkout.sessions.create({
-//             payment_method_types: ['card'],
-//       line_items: [
-//         {
-//           price_data: {
-//             currency: 'usd',
-//             product_data: {
-//               name: 'Stubborn Attachments',
-//               images: ['https://i.imgur.com/EHyR2nP.png'],
-//             },
-//             unit_amount: 2000,
-//           },
-//           quantity: 1,
-//         },
-//       ],
-//       mode: 'payment',
-//       success_url: 'http://localhost:3000/success?success=true',
-//       cancel_url: 'http://localhost:3000/cancel?canceled=true',
-//         });
+// app.post('/create-checkout-session', async (req: Request, res: Response) => {
+//   const session = await stripeInstance.checkout.sessions.create({
+//     line_items: [
+//       {
+//         // Provide the exact Price ID (for example, pr_1234) of the product you want to sell
+//         price: '{{PRICE_ID}}',
+//         quantity: 1,
+//       },
+//     ],
+//     mode: 'payment',
+//     success_url: `${YOUR_DOMAIN}?success=true`,
+//     cancel_url: `${YOUR_DOMAIN}?canceled=true`,
+//   });
 
-//         res.json({ id: session.id });
-//     } catch (error: any) {
-//         console.error('Error creating checkout session:', error.message);
-//         res.status(500).send('Internal Server Error');
-//     }
+//   res.redirect(303, session.url);
 // });
-
-// const PORT = 4000;
-// app.listen(PORT, () => {
-//   console.log(`Server is running on http://localhost:${PORT}`);
-// });
-
-
-export const createCheckoutSession = async (req: Request, res: any) => {
-    
-    // const { priceId } = req.body;
-    const priceId = 'price_1OFtzuBCLtNTpQNy5d50ybcQ';
-    // See https://stripe.com/docs/api/checkout/sessions/create
-    // for additional parameters to pass.
-    try {
-      const session = await stripe.checkout.sessions.create({
-        mode: 'payment',
-        payment_method_types: ['card'],
-        line_items: [
-          {
-            price: priceId,
-            // For metered billing, do not pass quantity
-            quantity: 1,
-          },
-        ],
-        // {CHECKOUT_SESSION_ID} is a string literal; do not change it!
-        // the actual Session ID is returned in the query parameter when your customer
-        // is redirected to the success page.
-        success_url: 'https://example.com/success.html?session_id={CHECKOUT_SESSION_ID}',
-        cancel_url: 'https://example.com/canceled.html',
-      });
-  
-      res.redirect(303, session.url);
-    } catch (e:any) {
-        console.log(e);
-      res.status(400);
-      return res.send({
-        error: {
-          message: e.message,
-        }
-      });
-    }
-  }
