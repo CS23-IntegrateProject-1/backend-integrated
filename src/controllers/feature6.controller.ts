@@ -9,6 +9,8 @@ import { getOfflineAvailableTables } from "../services/reservation/getOfflineAva
 import { findSuitableTable } from "../services/reservation/findSuitable.service";
 import qr from "qr-image";
 
+import jwt, { JwtPayload } from "jsonwebtoken";
+
 const feature6Client = new PrismaClient();
 
 //GET METHOD
@@ -748,7 +750,6 @@ export const deleteTable = async (req: Request, res: Response) => {
     }
 };
 
-// ! new function 2
 // Finished
 export const cancelReservation = async (req: Request, res: Response) => {
     try {
@@ -977,18 +978,26 @@ export const checkIn = async (req: Request, res: Response) => {
         });
 
         if (userType !== "user") {
-            return res
-                .status(401)
-                .json({ error: "This user is not customer user" });
+            // return res
+            //     .status(401)
+            //     .json({ error: "This user is not customer user" });
+            return res.status(200).send(401);
         }
         if (!reservation) {
-            return res.status(404).json({ error: "Reservation not found" });
+            // return res.status(404).json({ error: "Reservation not found" });
+            return res.status(200).send(404);
         }
         if (
             reservation.status === "Cancel" ||
             reservation.status === "Check_out"
         ) {
-            return res.status(400).json({ error: "Check-In not success" });
+            // return res.status(400).json({ error: "Check-In not success" });
+            return res.status(200).send(400);
+        }
+
+        if (reservation.status === "Check_in") {
+            // return res.status(402).json({ error: "You have already checked in" });
+            return res.status(200).send(402);
         }
 
         const existingCheckInLog = await feature6Client.check_in_log.findFirst({
@@ -997,9 +1006,10 @@ export const checkIn = async (req: Request, res: Response) => {
             },
         });
         if (existingCheckInLog) {
-            return res
-                .status(400)
-                .json({ error: "You have already checked in" });
+            // return res
+            //     .status(400)
+            //     .json({ error: "You have already checked in" });
+            return res.status(200).send(400);
         }
 
         const defaultCheckoutTime = new Date();
@@ -1042,23 +1052,13 @@ export const checkIn = async (req: Request, res: Response) => {
                 },
             });
 
-            // !new for Scaning QR code
-            // const qrCodeData = {
-            //     reservationId: reservationId,
-            //     // Other data
-            // };
-
-            // const qrCodeText = JSON.stringify(qrCodeData);
-            // const qrCodeImage = await qr.toDataURL(qrCodeText);
-
-            // return res.json({ checkInLog, qrCodeImage  });
             const reservationToken = genToken(reservationId);
             res.cookie("reservationToken", reservationToken, {
                 httpOnly: true,
                 secure: true,
                 sameSite: "none",
             });
-            return res.json({ checkInLog });
+            return res.send(200);
         }
     } catch (e) {
         return res.status(500).json(e);

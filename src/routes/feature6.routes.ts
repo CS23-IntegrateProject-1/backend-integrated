@@ -7,7 +7,6 @@ import { getMyReservationByStatus } from "../controllers/feature6.controller";
 import { getVenueAndReservationsById } from "../controllers/feature6.controller";
 import { createReservation } from "../controllers/feature6.controller";
 
-
 //IMPORT FOR BUSINESS SIDE
 import { getAllTableTypeByVenueId } from "../controllers/feature6.controller";
 import { getAllTableByVenueId } from "../controllers/feature6.controller";
@@ -31,7 +30,10 @@ feature6Router.get("/MyReservation/:reservationId", getReservationById);
 
 //Finished
 feature6Router.post("/MyReservation", getMyReservationByStatus);
-feature6Router.get("/MyReservation/:venueId/:reservationId", getVenueAndReservationsById);
+feature6Router.get(
+    "/MyReservation/:venueId/:reservationId",
+    getVenueAndReservationsById
+);
 
 //POST METHOD
 feature6Router.post("/createReservation", createReservation);
@@ -39,7 +41,7 @@ feature6Router.post("/createReservation", createReservation);
 //Business Side Part
 // GET METHOD
 //Finished
-feature6Router.get("/allTableType",getAllTableTypeByVenueId);
+feature6Router.get("/allTableType", getAllTableTypeByVenueId);
 feature6Router.get("/allTableByVenueId", getAllTableByVenueId);
 feature6Router.get("/MyTable/:tableId", getTableByTableId);
 feature6Router.get("/Dashboard/", getCountPerDay);
@@ -58,6 +60,7 @@ import { checkIn } from "../controllers/feature6.controller";
 import { qrCode } from "../controllers/feature6.controller";
 // import { checkinQR } from "../controllers/feature6.controller";
 import { checkOut } from "../controllers/feature6.controller";
+import { reservationMW } from "../middlewares/reservationMW";
 // import { sharelink } from "../controllers/feature6.controller";
 
 // Check In
