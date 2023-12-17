@@ -487,34 +487,34 @@ export const deleteFoodReview = async (req: Request, res: Response) => {
 
 
 
-
-
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 interface VenueInfo {
-    venueId:     number;
-    branchId:    number;
-    name:        string;
-    description: string;
-    category:    string;
-    capacity:    number;
-    chatRoomId:  number;
-    locationId:  number;
-    website_url: string;
-    rating:      string;
-    venue_picture: string;
+  venueId: number;
+  branchId: number;
+  name: string;
+  description: string;
+  category: string;
+  capacity: number;
+  chatRoomId: number;
+  locationId: number;
+  website_url: string;
+  rating: string;
+  venue_picture: string;
 }
 
-
 export const getVenuesPage = async (req: Request, res: Response) => {
-
   const search = String(req.query.search || "");
   const priceMin = Number(req.query.priceMin || 0);
   const priceMax = Number(req.query.priceMax || 1000);
-  const capacity = String(req.query.capacity || "").split(",").filter(v => v !== "");
+  const capacity = String(req.query.capacity || "")
+    .split(",")
+    .filter((v) => v !== "");
 
   try {
-    const [VenuesPage, menus,tables] = await Promise.all([feature3Client.$queryRaw<VenueInfo[]>`
+    const [VenuesPage, menus, tables] = await Promise.all([
+      feature3Client.$queryRaw<VenueInfo[]>`
     SELECT
       V.venueId,
       VB.branchId,
@@ -535,65 +535,162 @@ export const getVenuesPage = async (req: Request, res: Response) => {
       V.venueId
     ORDER BY
       V.venueId;
-  `,feature3Client.menu.findMany({}), feature3Client.table_type_detail.findMany({})])
+  `,
+      feature3Client.menu.findMany({}),
+      feature3Client.table_type_detail.findMany({}),
+    ]);
 
-    const filteredVenues = VenuesPage
-    .filter(v => String(v.name).trim().toLowerCase().includes(String(search).trim().toLowerCase()))
-    .filter(v => {
-      const venueMenus = menus.filter(m => m.venueId === v.venueId);
-      const statements: boolean[] = []
-      if(priceMin === 0 && priceMax === 1000){
-        return true;
-      }
-      statements.push(venueMenus.some(m => m.price.greaterThanOrEqualTo(priceMin) && m.price.lessThanOrEqualTo(priceMax)))
-      return statements.some(v => v === true);
-    })
-    .filter(v => {
-      const venueTables = tables.filter(t => t.venueId === v.venueId);
-      const statements: boolean[] = []
+    const filteredVenues = VenuesPage.filter((v) =>
+      String(v.name)
+        .trim()
+        .toLowerCase()
+        .includes(String(search).trim().toLowerCase())
+    )
+      .filter((v) => {
+        const venueMenus = menus.filter((m) => m.venueId === v.venueId);
+        const statements: boolean[] = [];
+        if (priceMin === 0 && priceMax === 1000) {
+          return true;
+        }
+        statements.push(
+          venueMenus.some(
+            (m) =>
+              m.price.greaterThanOrEqualTo(priceMin) &&
+              m.price.lessThanOrEqualTo(priceMax)
+          )
+        );
+        return statements.some((v) => v === true);
+      })
+      .filter((v) => {
+        const venueTables = tables.filter((t) => t.venueId === v.venueId);
+        const statements: boolean[] = [];
 
-      if(capacity.length === 0){
-        return true;
-      }
-      
-      if(capacity.includes("1-4")){
-        statements.push(venueTables.some(t => t.capacity >= 1 && t.capacity <= 4))
-      }
+        if (capacity.length === 0) {
+          return true;
+        }
 
-      if(capacity.includes("4-6")){
-        statements.push(venueTables.some(t => t.capacity >= 4 && t.capacity <= 6))
-      }
+        if (capacity.includes("1-4")) {
+          statements.push(
+            venueTables.some((t) => t.capacity >= 1 && t.capacity <= 4)
+          );
+        }
 
-      if(capacity.includes("6-10")){
-        statements.push(venueTables.some(t => t.capacity >= 6 && t.capacity <= 10))
-      }
+        if (capacity.includes("4-6")) {
+          statements.push(
+            venueTables.some((t) => t.capacity >= 4 && t.capacity <= 6)
+          );
+        }
 
-      if(capacity.includes("10M")){
-        console.log('10M')
-        statements.push(venueTables.some(t => t.capacity >= 10))
-      }
-      return statements.some(v => v === true);
-    })
+        if (capacity.includes("6-10")) {
+          statements.push(
+            venueTables.some((t) => t.capacity >= 6 && t.capacity <= 10)
+          );
+        }
+
+        if (capacity.includes("10M")) {
+          console.log("10M");
+          statements.push(venueTables.some((t) => t.capacity >= 10));
+        }
+        return statements.some((v) => v === true);
+      });
     return res.json(filteredVenues);
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ error: 'Internal Server Error' });
+    return res.status(500).json({ error: "Internal Server Error" });
   }
 };
 
+interface RPVenueInfo {
+  venueId: number;
+  branchId: number;
+  name: string;
+  description: string;
+  category: string;
+  capacity: number;
+  chatRoomId: number;
+  locationId: number;
+  website_url: string;
+  rating: string;
+  venue_picture: string;
+}
+
 export const getRecommendedPlaces = async (req: Request, res: Response) => {
+  const search = String(req.query.search || "");
+  const priceMin = Number(req.query.priceMin || 0);
+  const priceMax = Number(req.query.priceMax || 1000);
+  const capacity = String(req.query.capacity || "")
+    .split(",")
+    .filter((v) => v !== "");
+
   try {
-    const RecommendedPlaces = await feature3Client.$queryRaw`
+    const [RecommendedPlaces, menus, tables] = await Promise.all([
+      feature3Client.$queryRaw<RPVenueInfo[]>`
             SELECT V.venueId, VB.branchId, name, description, category, capacity,
-            chatRoomId, locationId, website_url, COALESCE(AVG(VR.rating) , 0) as rating
+            chatRoomId, locationId, website_url, COALESCE(AVG(VR.rating) , 0) as rating, venue_picture
             FROM Venue V, Venue_branch VB, Venue_reviews VR
             WHERE V.venueId = VB.venueId AND VB.branchId = VR.branchId
             GROUP BY V.venueId
             HAVING AVG(VR.rating) >= 4
             ORDER BY V.venueId;
-          `;
+          `,
+      feature3Client.menu.findMany({}),
+      feature3Client.table_type_detail.findMany({}),
+    ]);
 
-    return res.json(RecommendedPlaces);
+    const filteredVenues = RecommendedPlaces.filter((v) =>
+      String(v.name)
+        .trim()
+        .toLowerCase()
+        .includes(String(search).trim().toLowerCase())
+    )
+      .filter((v) => {
+        const venueMenus = menus.filter((m) => m.venueId === v.venueId);
+        const statements: boolean[] = [];
+        if (priceMin === 0 && priceMax === 1000) {
+          return true;
+        }
+        statements.push(
+          venueMenus.some(
+            (m) =>
+              m.price.greaterThanOrEqualTo(priceMin) &&
+              m.price.lessThanOrEqualTo(priceMax)
+          )
+        );
+        return statements.some((v) => v === true);
+      })
+      .filter((v) => {
+        const venueTables = tables.filter((t) => t.venueId === v.venueId);
+        const statements: boolean[] = [];
+
+        if (capacity.length === 0) {
+          return true;
+        }
+
+        if (capacity.includes("1-4")) {
+          statements.push(
+            venueTables.some((t) => t.capacity >= 1 && t.capacity <= 4)
+          );
+        }
+
+        if (capacity.includes("4-6")) {
+          statements.push(
+            venueTables.some((t) => t.capacity >= 4 && t.capacity <= 6)
+          );
+        }
+
+        if (capacity.includes("6-10")) {
+          statements.push(
+            venueTables.some((t) => t.capacity >= 6 && t.capacity <= 10)
+          );
+        }
+
+        if (capacity.includes("10M")) {
+          console.log("10M");
+          statements.push(venueTables.some((t) => t.capacity >= 10));
+        }
+        return statements.some((v) => v === true);
+      });
+    return res.json(filteredVenues);
   } catch (error) {
     console.error(error);
     return res.status(500).json(error);
@@ -629,8 +726,6 @@ export const getVenBranchPage = async (req: Request, res: Response) => {
     return res.status(500).json(error);
   }
 };
-
-
 
 export const getVenDetail = async (req: Request, res: Response) => {
   const { branchId } = req.params;
@@ -675,15 +770,19 @@ export const getVenDetail = async (req: Request, res: Response) => {
 //   }
 // };
 
-
 export const getReviewsBranch = async (req: Request, res: Response) => {
   try {
     const { branchId } = req.params;
     const branchIdInt = parseInt(branchId);
-    const reviewStars = String(req.query.reviewStars || "").split(",").filter(v => v !== "");
-    const reviewTypes = String(req.query.reviewTypes || "").split(',').filter(v => v !== "");
+    const reviewStars = String(req.query.reviewStars || "")
+      .split(",")
+      .filter((v) => v !== "");
+    const reviewTypes = String(req.query.reviewTypes || "")
+      .split(",")
+      .filter((v) => v !== "");
 
-    const reviewsBranch: { review_type: string, rating: number}[] = await feature3Client.$queryRaw`
+    const reviewsBranch: { review_type: string; rating: number }[] =
+      await feature3Client.$queryRaw`
     SELECT U.userId, U.username, VR.branchId, VR.venueReviewId, VR.rating, VR.review, VR.date_added, VR.review_type
     FROM Venue_reviews VR, User U
     WHERE VR.branchId = ${branchIdInt} AND VR.userId = U.userId
@@ -691,9 +790,15 @@ export const getReviewsBranch = async (req: Request, res: Response) => {
     `;
 
     const filteredReviews = reviewsBranch.filter((review) => {
-      console.log(reviewTypes, reviewStars)
-      const reviewTypeMatch = reviewTypes.length === 0 ? true : reviewTypes.includes(review.review_type);
-      const reviewStarMatch = reviewStars.length === 0 ? true : reviewStars.includes(String(review.rating));
+      console.log(reviewTypes, reviewStars);
+      const reviewTypeMatch =
+        reviewTypes.length === 0
+          ? true
+          : reviewTypes.includes(review.review_type);
+      const reviewStarMatch =
+        reviewStars.length === 0
+          ? true
+          : reviewStars.includes(String(review.rating));
       return reviewTypeMatch && reviewStarMatch;
     });
 
@@ -719,9 +824,8 @@ export const getReviewsBranch = async (req: Request, res: Response) => {
 //   } catch (error) {
 //     console.error("Error fetching reviews:", error);
 //     res.status(500).json(error);
-//   } 
+//   }
 // };
-
 
 interface ReviewsBranchOverAll_Interface {
   branchId: number;
@@ -735,17 +839,20 @@ export const getReviewsBranchOverAll = async (req: Request, res: Response) => {
     const { branchId } = req.params;
     const branchIdInt = Number(branchId);
 
-    const ReviewsBranchOverAll: ReviewsBranchOverAll_Interface[] = await feature3Client.$queryRaw`
+    const ReviewsBranchOverAll: ReviewsBranchOverAll_Interface[] =
+      await feature3Client.$queryRaw`
       SELECT branchId, venueReviewId, AVG(VR.rating) as rating, count(review) as total_reviews
       FROM Venue_reviews VR
       WHERE branchId = ${branchIdInt}
       GROUP BY branchId;
 `;
 
-    ReviewsBranchOverAll.forEach((RBOAObject: ReviewsBranchOverAll_Interface) => {
-      RBOAObject.rating = Number(RBOAObject.rating);
-      RBOAObject.total_reviews = Number(RBOAObject.total_reviews);
-    });
+    ReviewsBranchOverAll.forEach(
+      (RBOAObject: ReviewsBranchOverAll_Interface) => {
+        RBOAObject.rating = Number(RBOAObject.rating);
+        RBOAObject.total_reviews = Number(RBOAObject.total_reviews);
+      }
+    );
 
     return res.json(ReviewsBranchOverAll);
   } catch (error) {
@@ -753,7 +860,6 @@ export const getReviewsBranchOverAll = async (req: Request, res: Response) => {
     res.status(500).json(error);
   }
 };
-
 
 interface StarGraph_Interface {
   branchId: number;
@@ -778,9 +884,11 @@ export const getStarGraph = async (req: Request, res: Response) => {
       ORDER BY B.branchId, R.rating;
       `;
 
-      StarGraph.forEach((SGObject: StarGraph_Interface) => {
+    StarGraph.forEach((SGObject: StarGraph_Interface) => {
       SGObject.total_per_rating = Number(SGObject.total_per_rating);
-      SGObject.total_ratings_per_branch = Number(SGObject.total_ratings_per_branch);
+      SGObject.total_ratings_per_branch = Number(
+        SGObject.total_ratings_per_branch
+      );
     });
 
     return res.json(StarGraph);
@@ -790,13 +898,16 @@ export const getStarGraph = async (req: Request, res: Response) => {
   }
 };
 
-
 export const getMyReviews = async (req: Request, res: Response) => {
   try {
     const userId = authService.decodeToken(req.cookies.authToken).userId;
 
-    const reviewStars = String(req.query.reviewStars || "").split(",").filter(v => v !== "");
-    const reviewTypes = String(req.query.reviewTypes || "").split(',').filter(v => v !== "");
+    const reviewStars = String(req.query.reviewStars || "")
+      .split(",")
+      .filter((v) => v !== "");
+    const reviewTypes = String(req.query.reviewTypes || "")
+      .split(",")
+      .filter((v) => v !== "");
 
     // const myReviews = await feature3Client.venue.findMany({
     //   where: {
@@ -833,7 +944,8 @@ export const getMyReviews = async (req: Request, res: Response) => {
     //   },
     // });
 
-    const myReviews: { review_type: string, rating: number}[] = await feature3Client.$queryRaw`
+    const myReviews: { review_type: string; rating: number }[] =
+      await feature3Client.$queryRaw`
     SELECT V.name, V.description, V.category, V.venueId, VB.branchId, VB.branch_name, VR.rating, VR.review, VR.date_added, VR.venueReviewId, VR.review_type
     FROM Venue V, Venue_branch VB, Venue_reviews VR
     WHERE V.venueId = VB.venueId AND VB.branchId = VR.branchId AND userId = ${userId}
@@ -842,8 +954,14 @@ export const getMyReviews = async (req: Request, res: Response) => {
 
     const filteredReviews = myReviews.filter((review) => {
       // console.log(reviewTypes, reviewStars)
-      const reviewTypeMatch = reviewTypes.length === 0 ? true : reviewTypes.includes(review.review_type);
-      const reviewStarMatch = reviewStars.length === 0 ? true : reviewStars.includes(String(review.rating));
+      const reviewTypeMatch =
+        reviewTypes.length === 0
+          ? true
+          : reviewTypes.includes(review.review_type);
+      const reviewStarMatch =
+        reviewStars.length === 0
+          ? true
+          : reviewStars.includes(String(review.rating));
       return reviewTypeMatch && reviewStarMatch;
     });
 
@@ -853,9 +971,6 @@ export const getMyReviews = async (req: Request, res: Response) => {
     return res.status(500).json(error);
   }
 };
-
-
-
 
 export const postReviewDelivery = async (req: Request, res: Response) => {
   try {
@@ -907,7 +1022,9 @@ export const postReviewReservation = async (req: Request, res: Response) => {
 
 export const postVenuesFavourites = async (req: Request, res: Response) => {
   try {
-    const userId = Number(authService.decodeToken(req.cookies.authToken).userId);
+    const userId = Number(
+      authService.decodeToken(req.cookies.authToken).userId
+    );
     const { venueId } = req.params;
     const venueIdInt = Number(venueId);
 
@@ -915,28 +1032,28 @@ export const postVenuesFavourites = async (req: Request, res: Response) => {
       where: {
         userId,
         venueId: venueIdInt,
-      }
-    })
+      },
+    });
 
-    if(foundVenue) {
+    if (foundVenue) {
       await feature3Client.saved_place.deleteMany({
         where: {
           userId,
           venueId: venueIdInt,
-        }
-      })
+        },
+      });
       const toggledFavourite = await feature3Client.saved_place.findFirst({
         where: {
           userId,
           venueId: venueIdInt,
-        }
-      })
+        },
+      });
 
       return res.status(200).json(toggledFavourite);
-    }else{
+    } else {
       const newFavourite = await feature3Client.user.update({
         where: {
-          userId
+          userId,
         },
         data: {
           // Saved_place: {
@@ -944,8 +1061,8 @@ export const postVenuesFavourites = async (req: Request, res: Response) => {
           //     venueId: venueIdInt
           //   }
           // }
-        }
-      })
+        },
+      });
       return res.status(201).json(newFavourite);
     }
   } catch (error) {
