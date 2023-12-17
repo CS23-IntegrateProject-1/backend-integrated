@@ -58,9 +58,10 @@ import {
     getTransactionDetailForDelivery,
     getTransactionDetailsByVenueAndDateForDelivery,
     getTransactionReserveIdByVenueIdAndEqualToStatusCompleted
+
 } from "../controllers/feature8.controller";
 
-
+import {createCheckoutSession} from './Stripe'
 const feature8Router = Router();
 
 // here define your routes
@@ -129,7 +130,7 @@ feature8Router.post("/create_transaction_detail", createTransactionDetail);
 feature8Router.post("/add_creditcard", addCreditCard);
 feature8Router.post("/add_venue_creditcard", addVenueCreditCard);
 feature8Router.post("/add_venue_promptpay", addVenuePromptpay);
-
+feature8Router.post("/create-checkout-session", createCheckoutSession);
 // patch method
 feature8Router.patch("/update_creditcard/:creditCardId", updateCreditCard);
 feature8Router.patch("/update_venue_creditcard/:venueId", updateVenueCreditCard);
