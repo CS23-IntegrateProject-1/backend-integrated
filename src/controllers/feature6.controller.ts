@@ -61,15 +61,9 @@ export const getVenueById = async (req: Request, res: Response) => {
 
 export const getReservationById = async (req: Request, res: Response) => {
     try {
-        const token = req.cookies.authToken;
-        if (!token) {
-            return res.status(401).json({ error: "No auth token" });
-        }
-        const decodedToken = authService.decodeToken(token);
-        const { userId } = decodedToken;
         const reservations = await feature6Client.reservation.findMany({
             where: {
-                userId: userId,
+                userId: parseInt(req.body.userId),
                 reservationId: parseInt(req.params.reservationId),
             },
             include: {
@@ -87,7 +81,10 @@ export const getReservationById = async (req: Request, res: Response) => {
 //Start from here
 //My Reservation Page (4 status)
 //Finished
-export const getMyReservationByStatus = async (req: Request, res: Response) => {
+export const getMyReservationByStatus = async (
+    req: Request,
+    res: Response
+) => {
     try {
         const token = req.cookies.authToken;
         if (!token) {
@@ -149,6 +146,7 @@ export const getVenueAndReservationsById = async (
                 Venue_photo: true,
             },
         });
+        // console.log(venue)
 
         const location = await feature6Client.location.findUnique({
             where: {
@@ -187,8 +185,6 @@ export const getVenueAndReservationsById = async (
 // Finished
 var isResponse = true;
 export const createReservation = async (req: Request, res: Response) => {
-    isResponse = true;
-
     try {
         const token = req.cookies.authToken;
         if (!token) {
@@ -302,6 +298,43 @@ export const createReservation = async (req: Request, res: Response) => {
             };
             res.status(200).json(responseData);
         }
+        const depositId = await feature6Client.deposit.findMany({
+            where: {
+                venueId: venueId,
+            },
+            select: {
+                depositId: true,
+            },
+        });
+        // Create the reservation
+        // console.log(depositId);
+        const newReservation = await feature6Client.reservation.create({
+            data: {
+                venueId,
+                userId: userId,
+                guest_amount,
+                reserved_time: new Date(reserved_time),
+                entry_time,
+                status: "Pending",
+                isPaidDeposit: "Pending",
+                isReview: false,
+                depositId: depositId[0].depositId,
+                branchId: branchId,
+            },
+        });
+        // Create the reservation table entry for the selected table
+        const reservationTableEntry =
+            await feature6Client.reservation_table.create({
+                data: {
+                    reserveId: newReservation.reservationId,
+                    tableId: selectedTable[0].tableId,
+                },
+            });
+        res.status(200).json({
+            // newReservation,
+            reservationTableEntry,
+        });
+        // res.status(200).json(newReservation);
     } catch (e) {
         console.log(e);
         return res.status(500).json(e);
@@ -1179,6 +1212,93 @@ export const checkInStatus = async (req: Request, res: Response) => {
         }
         res.json(status?.status);
        
+    } catch (e) {
+        return res.status(500).json(e);
+    }
+};
+
+// BUSINESS SIDE PART
+// GET METHOD
+
+// In-progress
+// Stil error userId
+// export const getAllTableTypeByVenueId = async (req: Request, res: Response) => {
+//     try {
+//         const { venueId } = req.params;
+//         const { userId } = req.body;
+
+//         const tableTypeDetails =
+//             await feature6Client.table_type_detail.findMany({
+//                 where: {
+//                     userId: parseInt(userId),
+//                     venueId: parseInt(venueId),
+//                 },
+//                 include: {
+//                     venue: true,
+//                 },
+//             });
+
+//         return res.status(200).json(tableTypeDetails);
+//     } catch (e) {
+//         return res.status(500).json(e);
+//     }
+// };
+
+// In-progress
+export const getTableByTableId = async (req: Request, res: Response) => {
+    try {
+        const { tableId } = req.params;
+        const venueId = req.body.venueId;
+        const table = await feature6Client.tables.findUnique({
+            where: {
+                tableId: parseInt(tableId),
+                venueId: parseInt(venueId),
+                tableTypeDetailId: venueId.tableTypeDetailId,
+            },
+        });
+
+        return res.status(200).json(table);
+    } catch (e) {
+        return res.status(500).json(e);
+    }
+};
+
+//POST METHOD
+// In-progress
+export const createTable = async (req: Request, res: Response) => {
+    try {
+        const { venueId, information, tableTypeDetailId, tableNo, branchId } = req.body;
+        const newTable = await feature6Client.tables.create({
+            data: {
+                venueId: venueId,
+                information: information,
+                tableTypeDetailId: tableTypeDetailId,
+                table_no: tableNo,
+                branchId: branchId,
+                status: "Available",
+            },
+        });
+
+        return res.json(newTable);
+    } catch (e) {
+        return res.status(500).json(e);
+    }
+};
+
+export const createTableType = async (req: Request, res: Response) => {
+    try {
+        const { capacity, detail, name, venueId, image_url } = req.body;
+        const newTableType = await feature6Client.table_type_detail.create({
+            data: {
+                capacity: capacity,
+                detail: detail,
+                name: name,
+                venueId: venueId,
+                image_url: image_url
+            },
+        });
+
+        return res.json(newTableType);
     } catch (e) {
         return res.status(500).json(e);
     }
