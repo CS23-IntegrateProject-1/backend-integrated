@@ -54,21 +54,11 @@ export default class GroupRepository {
         group_name: groupName,
       },
       include: {
-        Group_user: {
-          include: {
-            member: {
-              select: {
-                userId: true,
-                username: true,
-                profile_picture: true,
-              },
-            },
-          },
-        },
+        Group_user: true,
       },
     });
 
-    return result as GroupCreateDBResponse;
+    return result as unknown as GroupCreateDBResponse;
   }
 
   //async listGroupsByUserId(userId: number): Promise<GroupIndexDBResponse> {
