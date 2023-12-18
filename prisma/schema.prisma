@@ -1437,8 +1437,8 @@ model Reservation_logs {
   seatId        Int
   userId        Int
   Payments      Payments?
-  Seats         Seats     @relation(fields: [seatId], references: [seatId])
   user          User      @relation(fields: [userId], references: [userId])
+  Seats         Seats     @relation(fields: [seatId], references: [seatId])
 
   @@index([seatId], map: "Reservation_logs_seatId_fkey")
   @@index([userId], map: "Reservation_logs_userId_fkey")
