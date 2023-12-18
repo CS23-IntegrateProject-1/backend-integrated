@@ -1,5 +1,5 @@
 import { Server } from "socket.io";
-import { createServer, Server as HttpServer } from "http";
+import { createServer} from "http";
 import express from "express";
 import loadEnv from "./configs/dotenvConfig";
 import { PrismaClient } from "@prisma/client";
@@ -46,33 +46,39 @@ io.on("connection", (socket) => {
   // console.log(id + " join room 1");
 
   socket.on("join-room", (data) => {
-    console.log("recipients", data.recipients, "and", "group_id", data.group_id);
+    // console.log("recipients", data.recipients, "and", "group_id", data.group_id);
     data.recipients.forEach((recipient: Recipient) => {
-      socket.join(data.group_id);
-      console.log(recipient.member.username + " Join Room " + data.group_id);
+      const room = data.id.toString();
+      socket.join(room);
+      console.log(recipient.member.username + " Join Room " + room);
     });
   });
 
-  socket.on("send-message", async ({ recipients, text }) => {
-    console.log("recipient", recipients, "and", "text", text);
-    try {
-      // Insert this text message into Prisma DB along with the sender, recipients, and timestamp
-      await feature12Client.message.create({
+  socket.on("send-message", async ({ recipients, text, id, sender }) => {
+    try {  
+      const user = await feature12Client.user.findFirst({
+      where: { username: sender },
+    });
+    if (user) {
+      await feature12Client.chat_message.create({
         data: {
-          roomId: 1,
-          userId: 1,
+          roomId: parseInt(id),
+          userId: user.userId,
           message: text,
           date_time: new Date(),
-        },
-      });
+      },
+    });
+} else {
+  console.error(`No user found with username: ${sender}`);
+}
     } catch (error) {
       console.error("Error storing message in the database:", error);
     }
-
+      const room = id.toString();
     // Broadcast to all clients in room A without sender
-    socket.broadcast.to("1").emit("receive-message", {
+    socket.broadcast.to(room).emit("receive-message", {
       recipients: recipients,
-      sender: id,
+      sender: sender,
       text,
     });
   });
