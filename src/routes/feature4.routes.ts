@@ -19,8 +19,9 @@ import {
   getSetsByVenueId,
   getPaymentMethods,
   addItemToCookie,
+  showCart,
 } from "../controllers/feature4.controller";
-
+import { customVerifyCookie } from "../middlewares/verifyCookies";
 const feature4Router = Router();
 
 // here define your routes
@@ -46,5 +47,10 @@ feature4Router.get("/menus/:venueId", getMenusByVenueId);
 feature4Router.get("/set/:id", getSetById);
 feature4Router.get("/sets/:venueId", getSetsByVenueId);
 feature4Router.get("/payment/:userId", getPaymentMethods);
-feature4Router.post("/cart/:itemId", addItemToCookie);
+feature4Router.post(
+  "/addItemToCookie/:itemId",
+  customVerifyCookie,
+  addItemToCookie
+);
+feature4Router.get("/showOrderCart", customVerifyCookie, showCart);
 export default feature4Router;

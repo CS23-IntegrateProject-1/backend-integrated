@@ -211,7 +211,16 @@ export const getAllRestaurant = async (req: Request, res: Response) => {
     const restaurants = await feature4Client.venue.findMany({
       where: {
         category: {
-          in: ["restaurant", "Restaurant","Restaurants","restaurants","A LaCarte","a la carte","A la carte","a La Carte"]
+          in: [
+            "restaurant",
+            "Restaurant",
+            "Restaurants",
+            "restaurants",
+            "A LaCarte",
+            "a la carte",
+            "A la carte",
+            "a La Carte",
+          ],
         },
       },
       include: {
@@ -237,9 +246,10 @@ export const getAllBars = async (req: Request, res: Response) => {
     const bars = await feature4Client.venue.findMany({
       where: {
         category: {
-          in: ["bar", "Bar","Bars","bars","Club","club","Clubs","clubs"]
-        }
-      },include: {
+          in: ["bar", "Bar", "Bars", "bars", "Club", "club", "Clubs", "clubs"],
+        },
+      },
+      include: {
         location: true, // Include the location related to each venue
       },
     });
@@ -516,54 +526,61 @@ export const showCompletedOrderDetails = async (req: any, res: Response) => {
   }
 };
 
-export const addItemToCookie = async (req: Request, res: Response) => {
+export const addItemToCookie = async (req: any, res: Response) => {
   try {
+    const userId = req.userId;
     const quantity = req.body.quantity;
-    const menuId = req.params.itemId;
-    console.log(quantity);
-    console.log(menuId);
+    const name = req.body.name;
+    const price = req.body.price;
+    const itemId = req.params.itemId;
     // Retrieve existing cart from the 'cart' cookie or initialize an empty array
-    //   const existingCartString = req.cookies.cart || "[]";
-    //   const existingCart = JSON.parse(existingCartString);
-    //   // Check if the menu item is already in the cart
-    //   const existingCartItemIndex = existingCart.findIndex(
-    //     (item) => item.menuId === menu.menuId
-    //   );
-    //   if (
-    //     existingCartItemIndex !== -1 &&
-    //     userId == existingCart[existingCartItemIndex].userId
-    //   ) {
-    //     // If the item is already in the cart, update the quantity
-    //     existingCart[existingCartItemIndex].quantity = quantity;
-    //   } else {
-    //     // If the item is not in the cart, add it
-    //     existingCart.push({
-    //       userId: parseInt(userId),
-    //       menuId: menu.menuId,
-    //       setId: null,
-    //       name: menu.name,
-    //       price: menu.price,
-    //       quantity: quantity,
-    //       image: menu.image,
-    //       description: menu.description,
-    //     });
-    //   }
-    //   // Remove the item if the quantity is 0
-    //   if (quantity === 0) {
-    //     existingCart.splice(existingCartItemIndex, 1);
-    //   }
-    //   // If nothing in the cart, delete the 'cart' cookie
-    //   if (existingCart.length === 0) {
-    //     res.clearCookie("cart");
-    //   } else {
-    //     // Update the 'cart' cookie with the modified cart
-    //     res.cookie("cart", JSON.stringify(existingCart));
-    //   }
-    //   res.status(200).json({ success: true, message: "Added to cart" });
+    const existingCartString = req.cookies.orderItemCart || "[]";
+    const existingCart = JSON.parse(existingCartString);
+
+    // Check if the menu item is already in the cart
+    const existingCartItem = existingCart.find(
+      (item) => item.itemId === itemId
+    );
+
+    if (existingCartItem && userId == existingCartItem.userId) {
+      // If the item is already in the cart, update the quantity
+      existingCartItem.quantity = quantity;
+    } else {
+      // If the item is not in the cart, add it
+      existingCart.push({
+        userId: parseInt(userId),
+        itemId: itemId,
+        name: name,
+        quantity: quantity,
+        price: price,
+      });
+    }
+    if (quantity == 0) {
+      existingCart.pop();
+    }
+    //if nothing in cart delete cookie
+    if (existingCart.length == 0) {
+      res.clearCookie("cart");
+    }
+    // Update the 'cart' cookie with the modified cart
+    res.cookie("orderItemCart", JSON.stringify(existingCart));
+    res.status(200).json({ success: true, message: "Added to cart" });
   } catch (error) {
-    //   console.log(error);
-    //   res
-    //     .status(500)
-    //     .json({ success: false, message: "Failed to add item to cart" });
+    console.log(error);
+  }
+};
+
+export const showCart = async (req: any, res: Response) => {
+  try {
+    const userId = parseInt(req.userId);
+    const cartString = req.cookies.orderItemCart || "[]";
+    console.log(cartString);
+    const cart = JSON.parse(cartString);
+    console.log(cart);
+    const userCart = cart.filter((item: any) => item.userId === userId);
+    console.log(userCart);
+    res.status(200).json(userCart);
+  } catch (e) {
+    console.log(e);
   }
 };
