@@ -26,7 +26,9 @@ class MajorAPIController {
       majorAPIService.deleteOutdatedFilms(deletedDataMajor);
 
       res.status(200).send(majorData);
-    } catch (e: any) {}
+    } catch (e: any) {
+        console.log(e);
+    }
   }
 
   async getTheaterFromMajor(req: Request, res: Response) {
@@ -46,14 +48,27 @@ class MajorAPIController {
       majorAPIService.deleteOutdatedTheaters(deletedDataMajor);
 
       res.status(200).send(majorData);
-    } catch (e: any) {}
+    } catch (e: any) {
+        console.log(e);
+    }
+  }
+
+  async getScreenFromMajor(req: Request, res: Response) {
+    try {
+      const response = await majorAPIService.getScreenFromMajor();
+      res.status(200).send(response);
+    } catch (e: any) {
+        console.log(e);
+    }
   }
 
   async getSeatTypeFromMajor(req: Request, res: Response) {
     try {
       const response = await majorAPIService.getSeatTypeFromMajor();
       res.status(200).send(response);
-    } catch (e: any) {}
+    } catch (e: any) {
+        console.log(e);
+    }
   }
 }
 

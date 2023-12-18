@@ -6,6 +6,7 @@ import theatersService from "./theaters.service";
 
 class MajorAPIService {
   prisma = new PrismaClient();
+
   async getFilmsFromMajor() {
     try {
       const response = await Axios.get("/film/getFilm");
@@ -95,13 +96,18 @@ class MajorAPIService {
     }
   }
 
+  async getScreenFromMajor() {
+    try {
+      const response = await Axios.get("/screen/getScreens");
+      return response.data;
+    } catch (e: any) {
+      console.log(e);
+    }
+  }
+
   async getSeatTypeFromMajor() {
     try {
-      const id = 1;
-      const showId = 3;
-      const response = await Axios.get(
-        `/seat/getUniqueSeatTypeByScreenId/${id}/${showId}`
-      );
+      const response = await Axios.get("/seatType/getSeatTypes");
       return response.data;
     } catch (e: any) {
       console.log(e);
