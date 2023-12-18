@@ -55,8 +55,7 @@ io.on("connection", (socket) => {
   });
 
   socket.on("send-message", async ({ recipients, text, id, sender }) => {
-    try {  
-      const user = await feature12Client.user.findFirst({
+    const user = await feature12Client.user.findFirst({
       where: { username: sender },
     });
     if (user) {
@@ -68,17 +67,16 @@ io.on("connection", (socket) => {
           date_time: new Date(),
       },
     });
-} else {
-  console.error(`No user found with username: ${sender}`);
-}
-    } catch (error) {
-      console.error("Error storing message in the database:", error);
+    } else {
+      console.error(`No user found with username: ${sender}`);
     }
-      const room = id.toString();
+
+    const room = id.toString();
     // Broadcast to all clients in room A without sender
     socket.broadcast.to(room).emit("receive-message", {
       recipients: recipients,
       sender: sender,
+      senderId: user?.userId,
       text,
     });
   });

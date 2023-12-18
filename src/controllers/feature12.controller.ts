@@ -323,6 +323,57 @@ createChatRooms();
 //   const { userId } = decodedToken;
 //   return res.status(200).json({ userId });
 // };
+
+//get userId from username
+export const getUserId = async (req: Request, res: Response) => {
+  const { sender } = req.params;
+  try {
+    const user = await feature12Client.user.findUnique({
+      where: {
+        username: sender,
+      },
+      select: {
+        userId: true,
+      },
+    });
+    return res.status(200).json(user);
+  } catch (error) {
+    return res.status(500).json({ error });
+  }
+};
+//reterieve all message from specific roomId in ascending order
+export const getAllMessage = async (req: Request, res: Response) => {
+  const { id } = req.params;
+  try {
+    const messages = await feature12Client.chat_message.findMany({
+      where: {
+        roomId: parseInt(id),
+      },
+      select: {
+        userId: true,
+        user:{
+          select:{
+            username:true,
+            fname:true,
+            lname:true,
+            profile_picture:true,
+          }
+        },
+        message: true,
+        date_time: true,
+      },
+      orderBy: {
+        messageId: "asc",
+      },
+    });
+    return res.status(200).json(messages);
+  } catch (error) {
+    return res.status(500).json({ error });
+  }
+};
+
+
+
 //One Group Chat Detail
 export const getGroupChatDetail = async (req: Request, res: Response) => {
   const { id } = req.params;
