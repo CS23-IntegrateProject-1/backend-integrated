@@ -367,7 +367,7 @@ export const GetAllVoucherForUser = async (req: Request, res: Response) => {
 export const GetVoucherIncludeIsused = async (req: Request, res: Response) => {
   try {
     const {id} = req.params
-    const getvoucher = await feature5Client.voucher.findMany({
+    const getvouchers = await feature5Client.voucher.findFirst({
       where: {
         voucherId: parseInt(id),
         isApprove: "Completed",
@@ -380,7 +380,7 @@ export const GetVoucherIncludeIsused = async (req: Request, res: Response) => {
         },
       },
     });
-    res.json(getvoucher);
+    res.json(getvouchers);
   } catch (err) {
     const error = err as Error;
     res.status(500).json({ error: error.message });

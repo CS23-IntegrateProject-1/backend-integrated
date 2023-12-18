@@ -67,7 +67,7 @@ feature5Router.patch("/VoucherApprove/:id", VoucherApprove); //for approve statu
 feature5Router.get("/AllVoucher", GetAllVoucherForBusiness); //for show all voucher are created
 feature5Router.get("/AllVoucherForUser/", GetAllVoucherForUser); //for show all voucher are created
 feature5Router.get("/AllVoucher/:id", getVoucherById); //for show voucher for updaten  
-feature5Router.get(" /AllVoucherForUser/:id", GetVoucherIncludeIsused);
+feature5Router.get("/AllVoucherForUser/:id", GetVoucherIncludeIsused);
 //MyReward
 feature5Router.get("/AllCollectedVoucher/",customVerifyCookie, getCollectedVoucher); //for show collected voucher for update
 feature5Router.post("/CollectVoucher/:id", multerConfig.single("image"),customVerifyCookie, CollectVoucher); //for collect voucher
