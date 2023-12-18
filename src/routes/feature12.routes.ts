@@ -11,7 +11,7 @@ import {
   getAllUsers,
   getFriendList,
   forDialogflow,
-  fetchData,
+  // fetchData,
   getPrivateChatList,
   getGroupChatDetail,
   getAllMessage,
