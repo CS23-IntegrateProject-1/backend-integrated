@@ -1,4 +1,3 @@
-import { User } from "@prisma/client";
 import { map } from "ramda";
 
 export type GroupCreateDBResponse = {
@@ -31,7 +30,7 @@ type Status = "Group" | "Pending";
 export type GroupCreateWebResponse = {
   group_name: string;
   group_id: number;
-  members: Array<{ user_id: number; username: string; avatar: string | null }>;
+  members: Array<number>;
 };
 
 export type GroupDBResponse = {
@@ -90,10 +89,6 @@ export function makeGroupCreateWebResponse(
   return {
     group_name: data.group_name,
     group_id: data.groupId,
-    members: data.Group_user.map((user) => ({
-      user_id: user.member.userId,
-      username: user.member.username,
-      avatar: user.member.profile_picture,
-    })),
+    members: data.Group_user.map((user) => user.memberId),
   };
 }

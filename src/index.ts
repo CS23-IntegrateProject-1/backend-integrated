@@ -33,6 +33,9 @@ app.use(cookieParser());
 app.use(addressTracker);
 
 // const routes = new Routes(app);
+//stripe
+// const stripe = require("./routes/stripe");
+// app.use("/stripe", stripe);
 
 const port = process.env.PORT || 8080;
 const socketIoPort = process.env.SOCKET_IO_PORT || 8000;
