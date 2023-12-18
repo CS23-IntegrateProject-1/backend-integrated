@@ -437,21 +437,20 @@ export const getVoucherById = async (req: Request, res: Response) => {
     if (Discountvoucher) {
       console.log({ ...Discountvoucher, voucherType: "Discount" });
       const voucher = await feature5Client.voucher.findFirst({
-          where: {
-            voucherId: parseInt(id),
+        where: {
+          voucherId: parseInt(id),
+        },
+        include: {
+          Discount_voucher: {
+            select: {
+              limitation: true,
+              fix_discount: true,
+              minimum_spend: true,
+              percent_discount: true,
+            },
           },
-          include:{
-            Discount_voucher:{
-              select:{
-                limitation: true,
-                fix_discount:true,
-                minimum_spend: true,
-                percent_discount: true
-
-              }
-            }
-          }
-        });
+        },
+      });
       res.json({ ...voucher, voucherType: "Discount" });
     }
     const Foodvoucher = await feature5Client.food_voucher.findFirst({
@@ -463,18 +462,18 @@ export const getVoucherById = async (req: Request, res: Response) => {
     if (Foodvoucher) {
       console.log({ ...Foodvoucher, voucherType: "Food" });
       const voucher = await feature5Client.voucher.findFirst({
-          where: {
-            voucherId: parseInt(id),
+        where: {
+          voucherId: parseInt(id),
+        },
+        include: {
+          Food_voucher: {
+            select: {
+              limitation: true,
+              minimum_spend: true,
+            },
           },
-          include:{
-            Food_voucher:{
-              select:{
-                limitation: true,
-                minimum_spend: true,
-              }
-            }
-          }
-        });
+        },
+      });
       res.json({ ...voucher, voucherType: "Gift" });
     }
   } catch (e) {
@@ -700,12 +699,42 @@ export const Promotion = async (req: Request, res: Response) => {
   try {
     // const isApprove = "In_progress"
     // const menuIds : number[] = req.body.menuIds;
-    const newAd: Promotioninfo = req.body;
-    const { name, description, start_date, end_date, discount_price } = newAd;
+    // const newAd: Promotioninfo = req.body;
+    const token = req.cookies.authToken;
+    if (!token) {
+      return res.status(401).json({ error: "No auth token" });
+    }
+    const decodedToken = authService.decodeToken(token);
+    if (decodedToken.userType != "business") {
+      return res.status(401).json({ error: "This user is not business user" });
+    }
+    const businessId = decodedToken.businessId;
 
+    const getVenueId = await feature5Client.property.findFirst({
+      where: {
+        businessId: businessId,
+      },
+      select: {
+        venueId: true,
+      },
+    });
+
+    const venueId = getVenueId?.venueId;
+    if (venueId == undefined || !venueId) {
+      return res.status(400).json({ error: "Venue is undefined" });
+    }
+
+    const discount_price = parseInt(req.body.discount_price);
+    const menuId = parseInt(req.body.menuId);
+    const { name, description } = req.body;
+
+    // const { name, description, start_date, end_date, discount_price } = newAd;
+    const start_date = new Date(req.body.start_date);
+    const end_date = new Date(req.body.end_date);
+    // console.log(start);
+    console.log(start_date);
     const image_url =
       "/uploads/" + req.file.path.substring(req.file.path.lastIndexOf("/") + 1);
-    const { menuId, venueId } = req.body;
 
     const newPromotion = await feature5Client.promotion.create({
       data: {
@@ -714,7 +743,7 @@ export const Promotion = async (req: Request, res: Response) => {
         image_url,
         start_date,
         end_date,
-        discount_price,
+        discount_price: discount_price,
         menuId,
         venueId,
       },

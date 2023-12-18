@@ -50,7 +50,7 @@ const feature5Router = Router();
 // feature5Router.get("/", getfeature5);
 
 //Advertisement
-feature5Router.post("/AdBSN", multerConfig.single("image"), customVerifyCookie, AdBusiness); // for create Business advertisement
+feature5Router.post("/AdBSN", multerConfig.single("file"), customVerifyCookie, AdBusiness); // for create Business advertisement
 feature5Router.patch("/AdminApprove/:id", AdminApprove); //for approve advertisement
 feature5Router.delete("/DeleteAdBSN/:id", DeleteAdvertisement); // for delete advertisement
 feature5Router.get("/AllInprogressAdBSN", GetInprogressAdvertisement); //for show In_Progress or rejected status of advertisement
@@ -60,7 +60,7 @@ feature5Router.get("/AllAdBSN/", GetAllAdvertisement); //for show all advertisem
 feature5Router.get("/AllTag", GetAllTags); //for show all tag that business can choose to advert in user side
 
 //Voucher
-feature5Router.post("/Voucher/", multerConfig.single("image"), Voucher); // for create voucher
+feature5Router.post("/Voucher/", multerConfig.single("file"), Voucher); // for create voucher
 feature5Router.get("/AllVenue/", GetallVenue); //for show all venues of business to choose their venue that can use voucher
 feature5Router.delete("/DeleteVoucher/:id", DeleteVoucher); // for delete voucher
 feature5Router.patch("/VoucherApprove/:id", VoucherApprove); //for approve status of voucher
@@ -70,7 +70,7 @@ feature5Router.get("/AllVoucher/:id", getVoucherById); //for show voucher for up
 feature5Router.get("/AllVoucherForUser/:id", GetVoucherIncludeIsused);
 //MyReward
 feature5Router.get("/AllCollectedVoucher/",customVerifyCookie, getCollectedVoucher); //for show collected voucher for update
-feature5Router.post("/CollectVoucher/:id", multerConfig.single("image"),customVerifyCookie, CollectVoucher); //for collect voucher
+feature5Router.post("/CollectVoucher/:id", multerConfig.single("file"),customVerifyCookie, CollectVoucher); //for collect voucher
 feature5Router.patch("/UpdateUsedVoucher/:id",customVerifyCookie, UpdateUsedVoucher); //for collect voucher for update
 
 //Membertier
@@ -81,7 +81,7 @@ feature5Router.get("/pointUsed/", customVerifyCookie, Getpointused); //for show 
 feature5Router.get("/ExpireDate/", customVerifyCookie, GetExpireDate);
 
 //Promotion
-feature5Router.post("/Promotion", multerConfig.single("image"), Promotion); // for create promotion
+feature5Router.post("/Promotion", multerConfig.single("file"), Promotion); // for create promotion
 feature5Router.delete("/DeletePromotion/:id", DeletePromotion); // for create promotion
 feature5Router.get("/Showbranch/", GetAllBranches); //show branch for select in create proomotion
 feature5Router.get("/Showmenu/", GetMenuforSelect); //show menu for select in create proomotion
