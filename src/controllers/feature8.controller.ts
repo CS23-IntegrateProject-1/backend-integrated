@@ -91,7 +91,7 @@ export const getTableIdsByVenueId = async (req: Request, res: Response) => {
 };
 
 export const getTableNosByVenueId = async (req: Request, res: Response) => {
-    const venueId = parseInt(req.params.venueId, 10);
+    
 
     try {
         const response = await getTableIdsByVenueId(req, res);
