@@ -7,10 +7,10 @@ export const getAvailableTables = async (req: Request) => {
     try {
         const prisma = new PrismaClient();
         const { venueId, reserve_date, branchId, time } = req.body;
-        const token = req.cookies.authToken;
-        if (!token) {
-            throw new Error("No auth token");
-        }
+        // const token = req.cookies.authToken;
+        // if (!token) {
+        //     throw new Error("No auth token");
+        // }
 
         const concatDatetime = `${reserve_date} ${time}`;
         const reservedTimeStart = new Date(concatDatetime);
@@ -19,7 +19,7 @@ export const getAvailableTables = async (req: Request) => {
             5
         );
         const tables = await prisma.tables.findMany({
-            where: { venueId, branchId, isUsing: true},
+            where: { venueId, branchId, isUsing: true },
         });
         if (tables.length === 0) {
             return { error: "No tables found in this venue" };
@@ -148,7 +148,9 @@ export const getAvailableTables = async (req: Request) => {
         const reservedTableIds: number[] = await Promise.all(
             overlappingReservations.map(async (reservation) => {
                 const tables = await prisma.reservation_table.findMany({
-                    where: { reserveId: reservation.reservationId },
+                    where: {
+                        reserveId: reservation.reservationId,
+                    },
                 });
 
                 return tables.map((table) => table.tableId);
@@ -176,7 +178,7 @@ export const getAvailableTables = async (req: Request) => {
         };
         return availableTables2;
         // res.status(200).json({ availableTables });
-    } catch (e: any) {
+    } catch (e) {
         return error(e);
     }
 };

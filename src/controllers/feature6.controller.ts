@@ -9,9 +9,7 @@ import { getOfflineAvailableTables } from "../services/reservation/getOfflineAva
 import { findSuitableTable } from "../services/reservation/findSuitable.service";
 import qr from "qr-image";
 
-
 const feature6Client = new PrismaClient();
-
 
 //GET METHOD
 export const getAllTable = async (req: Request, res: Response) => {
@@ -41,7 +39,7 @@ export const getVenueById = async (req: Request, res: Response) => {
             where: {
                 venueId: parseInt(venueId),
                 branchId: parseInt(branchId),
-            }
+            },
         });
         const venue = await feature6Client.venue.findUnique({
             where: {
@@ -114,6 +112,7 @@ export const getMyReservationByStatus = async (req: Request, res: Response) => {
                             },
                             take: 1,
                         },
+                        Venue_branch: true,
                     },
                 },
             },
@@ -177,7 +176,7 @@ export const getVenueAndReservationsById = async (
 
         return res.json({ venue, location, reservations });
     } catch (e) {
-        console.log(e)
+        console.log(e);
         return res.status(500).json(e);
     }
 };
@@ -202,8 +201,15 @@ export const createReservation = async (req: Request, res: Response) => {
                 .json({ error: "This user is not customer user" });
         }
 
-        const { venueId, guest_amount, reserve_date, time, branchId, name, phone_num } =
-            req.body;
+        const {
+            venueId,
+            guest_amount,
+            reserve_date,
+            time,
+            branchId,
+            name,
+            phone_num,
+        } = req.body;
 
         const concatDatetime = `${reserve_date} ${time}`;
         const reserved_time = new Date(concatDatetime);
@@ -232,7 +238,9 @@ export const createReservation = async (req: Request, res: Response) => {
             getAvailableTablesResponse.error ==
             "Reservation time is not within valid hours"
         ) {
-            return res.status(400).json({ error: "Reservation time is not within valid hours" });
+            return res
+                .status(400)
+                .json({ error: "Reservation time is not within valid hours" });
         } else if (
             getAvailableTablesResponse.error == "No more Available Table"
         ) {
@@ -300,7 +308,7 @@ export const createReservation = async (req: Request, res: Response) => {
                 reservationTableEntry,
             };
             res.status(200).json(responseData);
-        }
+        } // res.status(200).json(newReservation);
     } catch (e) {
         console.log(e);
         return res.status(500).json(e);
@@ -1164,7 +1172,7 @@ export const checkInStatus = async (req: Request, res: Response) => {
                 status: true,
             },
         });
-        console.log(getstatus?.status)
+
         if (getstatus?.status == "Check_in") {
             const reservationToken = genToken(parseInt(reservationId));
             res.cookie("reservationToken", reservationToken, {
@@ -1172,11 +1180,18 @@ export const checkInStatus = async (req: Request, res: Response) => {
                 secure: true,
                 sameSite: "none",
             });
-            
         }
         res.json(getstatus);
-       
     } catch (e) {
         return res.status(500).json(e);
+    }
+};
+
+//Upload Image
+export const uploadTableTypeImage = async (req: Request, res: Response) => {
+    try {
+        res.status(200).json({ payload: "oh yeaaa" });
+    } catch (err) {
+        res.status(500).json({ err: "sorry something wrong" });
     }
 };
