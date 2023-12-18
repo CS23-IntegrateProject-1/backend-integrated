@@ -41,6 +41,7 @@ model User {
   Rate_venue_question    Rate_venue_question[]
   Recommendation         Recommendation[]
   Reservation            Reservation[]
+  Reservation_logs       Reservation_logs[]
   Saved_location         Saved_location[]
   Saved_place            Saved_place[]
   Search_history         Search_history[]
@@ -52,7 +53,6 @@ model User {
   User_voucher           User_voucher[]
   Venue_reviews          Venue_reviews[]
   userSaved_location     userSaved_location[]
-  Reservation_logs       Reservation_logs[]
 
   @@index([tierId], map: "User_tierId_fkey")
 }
@@ -1366,6 +1366,7 @@ model Screens {
   capacity    Int
   screen_type Screen_type
   screen_no   Int
+  price       Decimal?
   theater     Theaters    @relation(fields: [theaterId], references: [theaterId])
   Seats       Seats[]
   Shows       Shows[]
@@ -1391,7 +1392,7 @@ model Shows {
   date       DateTime @db.Date
   start_time DateTime @db.Timestamp(0)
   end_time   DateTime @db.Timestamp(0)
-  price      Decimal
+  price      Decimal?
   film       Films    @relation(fields: [filmId], references: [filmId])
   screen     Screens  @relation(fields: [screenId], references: [screenId])
 
@@ -1426,11 +1427,12 @@ model Reservation_logs {
   showId        Int
   seatId        Int
   userId        Int
-  user          User      @relation(fields: [userId], references: [userId])
   Payments      Payments?
   Seats         Seats     @relation(fields: [seatId], references: [seatId])
+  user          User      @relation(fields: [userId], references: [userId])
 
   @@index([seatId], map: "Reservation_logs_seatId_fkey")
+  @@index([userId], map: "Reservation_logs_userId_fkey")
 }
 
 model Payments {
@@ -1456,6 +1458,11 @@ model userSaved_location {
   user         User     @relation(fields: [userId], references: [userId])
 
   @@index([userId], map: "userSaved_location_userId_fkey")
+}
+
+model Promotion_approval {
+  promotionId Int     @id
+  isApprove   Boolean @default(false)
 }
 
 enum Review_type {
