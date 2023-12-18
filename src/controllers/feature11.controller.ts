@@ -206,32 +206,30 @@ export const editArticle = async (req: Request, res: Response) => {
     })
 
     let updatedTag
-    let newTag;
     for (const tag of tags) {
       let tagUse;
       // * if we already have that tag in tag db
       // * if not --> it's a new tag
-      const tagExisted = await prisma.tag.findMany({
+      const thisTag = await prisma.tag.findMany({
         where: {
           tag_name: tag
         }
       })
 
-      if (!tagExisted) {
-        await prisma.article_tags.create({
-          data: {
-            articleId,
-            tagId: newTag.tagId,
-          },
-        })
-      }
-      else {
+      //await prisma.article_tags.create({
+      //    data: {
+      //      articleId,
+      //      tagId: newTag.tagId,
+      //    },
+      //})
+
+      if (thisTag) {
         // * if alr have that tag
-        const thisTag = await prisma.tag.findMany({
-          where: {
-            tag_name: tag
-          }
-        })
+        //const thisTag = await prisma.tag.findMany({
+        //  where: {
+        //    tag_name: tag
+        //  }
+        //})
 
         // * check whether tag is use by the other article
         tagUse = await prisma.article_tags.findMany({
@@ -268,6 +266,20 @@ export const editArticle = async (req: Request, res: Response) => {
             },
           })
         }
+      }
+      else {
+        const TagDB = await prisma.tag.create({
+          data: {
+            tag_name: tag
+          }
+        })
+
+        await prisma.article_tags.create({
+          data: {
+            articleId,
+            tagId: TagDB.tagId
+          }
+        })
       }
     }
 
