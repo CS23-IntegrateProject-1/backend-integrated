@@ -132,7 +132,7 @@ export const addArticle = async (req: Request, res: Response) => {
 export const editArticle = async (req: Request, res: Response) => {
   try {
     const { articleId, topic, content, category, author_name } = req.body;
-    const venueIds: number[] = req.body.venueIds;
+    const venueIds: string[] = req.body.venueIds;
     const tags: string[] = req.body.tags;
     //const imageDetails: ImageInput[] = req.body.images;
 
@@ -164,7 +164,7 @@ export const editArticle = async (req: Request, res: Response) => {
       newVenue = await prisma.article_venue.create({
         data: {
           articleId: parseInt(articleId),
-          venueId
+          venueId: parseInt(venueId)
         }
       })
     }
