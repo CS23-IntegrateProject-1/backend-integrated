@@ -13,6 +13,7 @@ const feature7Client = new PrismaClient();
 
 export const getfeature7 = async (req: Request, res: Response) => {
 };
+//----------------Customer-Side-------------------//
 export const getReservationId = async (req: any, res: Response) => {
     try{
         const reservationId=req.reservationId;
@@ -707,14 +708,145 @@ export const showCompletedOrderDetails = async (req: any, res: Response) => {
         console.log(e);
     }
 }
+//get receipt
+export const getReceipt = async (req: any, res: Response) => {
+    try {
+        const reservationId = req.reservationId;
+        const orderId = reservationId;
+        const orderInfo= await feature7Client.orders.findUnique({
+            where: {
+                orderId: orderId,
+            },
+        });
+        const orderDetails = await feature7Client.order_detail.findMany({
+            where: {
+                orderId: orderId,
+            },
+        });
+        //menu name
+        const menuIds = orderDetails
+            .map((orderDetail) => orderDetail.menuId)
+            .filter((menuId) => menuId !== null) as number[];
+        const menu = await feature7Client.menu.findMany({
+            where: {
+                menuId: {
+                    in: menuIds,
+                },
+            },
+        });
+        //set name
+        const setIds = orderDetails
+            .map((orderDetail) => orderDetail.setId)
+            .filter((setId) => setId !== null) as number[];
+        const set = await feature7Client.sets.findMany({
+            where: {
+                setId: {
+                    in: setIds,
+                },
+            },
+        });
+         // Calculate item count, total count, and total amount only once
+         const itemCount = orderDetails.length;
+         const totalCount = orderDetails.reduce((total, orderDetail) => total + orderDetail.quantity, 0);
+         const totalAmount = orderInfo?.total_amount;
+ 
+         // Process order details and add calculated values
+         const orderDetailsWithDetails = orderDetails.map((orderDetail) => {
+             const quantity = orderDetail.quantity;
+             const menuName = menu.find((menu) => menu.menuId === orderDetail.menuId)?.name;
+             const menuPrice= menu.find((menu) => menu.menuId === orderDetail.menuId)?.price;
+             const setPrice= set.find((set) => set.setId === orderDetail.setId)?.price;
+             const setName = set.find((set) => set.setId === orderDetail.setId)?.name;
+             return {
+                 
+                 menuName: menuName,
+                 setName: setName,
+                 quantity: quantity,
+                menuPrice: menuPrice,
+                setPrice: setPrice,
+
+             };
+         });
+ 
+         // Add calculated values to the response
+         const finalResponse = {
+            orderId: orderInfo?.orderId,
+             orderDate: orderInfo?.order_date,
+             orderDetails: orderDetailsWithDetails,
+             itemCount: itemCount,
+             totalCount: totalCount,
+             totalAmount: totalAmount,
+         };
+ 
+         res.status(200).json(finalResponse);
+    }
+    catch (e) {
+        console.log(e);
+    }
+}
+
+//--------------Business side---------------//
+//get all menus of venue 
+export const getAllMenus = async (req: any, res: Response) => {
+    try {
+        const businessId = req.businessId;
+        const getVenueId = await feature7Client.property.findFirst({
+            where: {
+                businessId: businessId,
+            },
+        });
+        const venueId=getVenueId?.venueId;
+        const allMenus = await feature7Client.menu.findMany(
+            {
+                where: {
+                    venueId: venueId
+                }
+            }
+        );
+
+        res.status(200).json(allMenus);
+    }
+    catch (e) {
+        console.log(e);
+    }
+}
+export const getAllSets = async (req: any, res: Response) => {
+    try {
+        const businessId = req.businessId;
+        const getVenueId = await feature7Client.property.findFirst({
+            where: {
+                businessId: businessId,
+            },
+        });
+        const venueId=getVenueId?.venueId;
+        const allSets = await feature7Client.sets.findMany(
+            {
+                where: {
+                    venueId: venueId
+                }
+            }
+        );
+
+        res.status(200).json(allSets);
+    }
+    catch (e) {
+        console.log(e);
+    }
+}
 //show availability of menu of all branches
-export const checkMenuAvailabilityOfAllBranches = async (req: Request, res: Response) => {
+export const checkMenuAvailabilityOfAllBranches = async (req: any, res: Response) => {
     try {
         const menuId = req.params.menuId;
-        const venueId = req.params.venueId;
+        const businessId = req.businessId;
+        const getVenueId = await feature7Client.property.findFirst({
+            where: {
+                businessId: businessId,
+            },
+        });
+        const venueId=getVenueId?.venueId;
         const stockRecord = await feature7Client.stocks.findMany({
             where: {
-                venueId: parseInt(venueId),
+                venueId: venueId,
                 menuId: parseInt(menuId),
             },
         });
@@ -724,7 +856,7 @@ export const checkMenuAvailabilityOfAllBranches = async (req: Request, res: Resp
         // Query the venue_branch table to get branch names
         const branchNames = await feature7Client.venue_branch.findMany({
             where: {
-                venueId: parseInt(venueId),
+                venueId: venueId,
                 branchId: { in: branchIds },
             },
             select: {
@@ -755,15 +887,21 @@ export const checkMenuAvailabilityOfAllBranches = async (req: Request, res: Resp
     }
 }
 //Change menu availability
-export const changeMenuAvailability = async (req: Request, res: Response) => {
+export const changeMenuAvailability = async (req: any, res: Response) => {
     try {
         const menuId = req.params.menuId;
-        const venueId = req.params.venueId;
+        const businessId = req.businessId;
+        const getVenueId = await feature7Client.property.findFirst({
+            where: {
+                businessId: businessId,
+            },
+        });
+        const venueId=getVenueId?.venueId;
         const branchId = req.params.branchId;
         console.log(branchId);
         const availability = await feature7Client.stocks.findFirst({
             where: {
-                venueId: parseInt(venueId),
+                venueId: venueId,
                 branchId: parseInt(branchId),
                 menuId: parseInt(menuId),
             },
@@ -824,7 +962,13 @@ export const editMenu = async (req: any, res: Response) => {
 //add menu
 export const addMenu = async (req: any, res: Response) => {
     try {
-        const venueId = req.params.venueId;
+        const businessId = req.businessId;
+        const getVenueId = await feature7Client.property.findFirst({
+            where: {
+                businessId: businessId,
+            },
+        });
+        const venueId=getVenueId?.venueId;
 
         // const image = "menuImage.jpg";
 
@@ -845,13 +989,13 @@ export const addMenu = async (req: any, res: Response) => {
                         price: price,
                         description: description,
                         image: image,
-                        venueId: parseInt(venueId),
+                        venueId: venueId!,
                         menu_no: 0,
                     },
                 });
                 const branchIds = await feature7Client.venue_branch.findMany({
                     where: {
-                        venueId: parseInt(venueId),
+                        venueId: venueId,
                     },
                     select: {
                         branchId: true,
@@ -862,7 +1006,7 @@ export const addMenu = async (req: any, res: Response) => {
                         const createdStock = await feature7Client.stocks.create({
                             data: {
                                 menuId: menu.menuId,
-                                venueId: parseInt(venueId),
+                                venueId: venueId!,
                                 branchId: branchId.branchId,
                             },
                         });
@@ -956,7 +1100,13 @@ export const addSetWithMenuItems = async (req: any, res: Response) => {
                 return res.status(400).json({ error: err.message });
             }
             const { name, price, description } = req.body;
-            const venueId = req.params.venueId;
+            const businessId = req.businessId;
+            const getVenueId = await feature7Client.property.findFirst({
+                where: {
+                    businessId: businessId,
+                },
+            });
+            const venueId=getVenueId?.venueId;
             const selectedMenuItem = req.cookies.setItems || [];
             const selectedMenuItems = JSON.parse(selectedMenuItem);
             const menuIds = selectedMenuItems.filter(item => item.setId === 0);
@@ -970,7 +1120,7 @@ export const addSetWithMenuItems = async (req: any, res: Response) => {
                         price,
                         description,
                         image_url: image,
-                        venueId: parseInt(venueId),
+                        venueId: venueId!,
                     },
                 });
                 const menuItems = selectedMenuItems.filter(item => item.setId === 0);
@@ -1111,7 +1261,13 @@ export const editSet = async (req: any, res: Response) => {
             const setId = req.params.setId;
             const imageFile = await feature7Client.sets.findUnique({ where: { setId: parseInt(setId) } });
             const { name, price, description } = req.body;
-            const venueId = req.params.venueId;
+            const businessId = req.businessId;
+            const getVenueId = await feature7Client.property.findFirst({
+                where: {
+                    businessId: businessId,
+                },
+            });
+            const venueId=getVenueId?.venueId;
             const selectedMenuItem = req.cookies.setItems || [];
             const selectedMenuItems = JSON.parse(selectedMenuItem);
             const image = req.file?.filename || imageFile?.image_url; // Use the filename generated by multer
@@ -1126,7 +1282,7 @@ export const editSet = async (req: any, res: Response) => {
                         price,
                         description,
                         image_url: image,
-                        venueId: parseInt(venueId),
+                        venueId: venueId!,
                     },
                 });
                 const menuItems = selectedMenuItems.filter(item => item.setId === parseInt(setId));
@@ -1155,9 +1311,15 @@ export const editSet = async (req: any, res: Response) => {
     }
 };
 //get menu by venue which are not included in specific set
-export const getMenuByVenueNotInSet = async (req: Request, res: Response) => {
+export const getMenuByVenueNotInSet = async (req: any, res: Response) => {
     try {
-        const venueId = req.params.venueId;
+        const businessId = req.businessId;
+        const getVenueId = await feature7Client.property.findFirst({
+            where: {
+                businessId: businessId,
+            },
+        });
+        const venueId=getVenueId?.venueId;
         const setId = req.params.setId;
         const menuItems = await feature7Client.set_items.findMany({
             where: {
@@ -1167,7 +1329,7 @@ export const getMenuByVenueNotInSet = async (req: Request, res: Response) => {
         const menuIds = menuItems.map((item) => item.menuId);
         const menu = await feature7Client.menu.findMany({
             where: {
-                venueId: parseInt(venueId),
+                venueId: venueId,
                 menuId: {
                     notIn: menuIds,
                 },
@@ -1303,6 +1465,8 @@ export const showMenuItemsInSet = async (req: Request, res: Response) => {
 //         console.log(e);
 //     }
 // }
+
+//Show ongoing order in business
 export const onGoingOrderDetailsInBusiness = async (req: any, res: Response) => {
     try {
         const venueId = req.params.venueId;
@@ -1619,82 +1783,7 @@ export const changeOrderDetailStatusCompleted = async (req: any, res: Response) 
         console.log(e);
     }
 }
-//get receipt
-export const getReceipt = async (req: any, res: Response) => {
-    try {
-        const reservationId = req.reservationId;
-        const orderId = reservationId;
-        const orderInfo= await feature7Client.orders.findUnique({
-            where: {
-                orderId: orderId,
-            },
-        });
-        const orderDetails = await feature7Client.order_detail.findMany({
-            where: {
-                orderId: orderId,
-            },
-        });
-        //menu name
-        const menuIds = orderDetails
-            .map((orderDetail) => orderDetail.menuId)
-            .filter((menuId) => menuId !== null) as number[];
-        const menu = await feature7Client.menu.findMany({
-            where: {
-                menuId: {
-                    in: menuIds,
-                },
-            },
-        });
-        //set name
-        const setIds = orderDetails
-            .map((orderDetail) => orderDetail.setId)
-            .filter((setId) => setId !== null) as number[];
-        const set = await feature7Client.sets.findMany({
-            where: {
-                setId: {
-                    in: setIds,
-                },
-            },
-        });
-         // Calculate item count, total count, and total amount only once
-         const itemCount = orderDetails.length;
-         const totalCount = orderDetails.reduce((total, orderDetail) => total + orderDetail.quantity, 0);
-         const totalAmount = orderInfo?.total_amount;
- 
-         // Process order details and add calculated values
-         const orderDetailsWithDetails = orderDetails.map((orderDetail) => {
-             const quantity = orderDetail.quantity;
-             const menuName = menu.find((menu) => menu.menuId === orderDetail.menuId)?.name;
-             const menuPrice= menu.find((menu) => menu.menuId === orderDetail.menuId)?.price;
-             const setPrice= set.find((set) => set.setId === orderDetail.setId)?.price;
-             const setName = set.find((set) => set.setId === orderDetail.setId)?.name;
-             return {
-                 
-                 menuName: menuName,
-                 setName: setName,
-                 quantity: quantity,
-                menuPrice: menuPrice,
-                setPrice: setPrice,
-
-             };
-         });
- 
-         // Add calculated values to the response
-         const finalResponse = {
-            orderId: orderInfo?.orderId,
-             orderDate: orderInfo?.order_date,
-             orderDetails: orderDetailsWithDetails,
-             itemCount: itemCount,
-             totalCount: totalCount,
-             totalAmount: totalAmount,
-         };
- 
-         res.status(200).json(finalResponse);
-    }
-    catch (e) {
-        console.log(e);
-    }
-}
+//------------------MIK------------------//
 export const addMenuMIK = async (req: any, res: Response) => {
     try{
         const venueId =2;
