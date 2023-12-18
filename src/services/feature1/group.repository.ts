@@ -37,17 +37,7 @@ export default class GroupRepository {
         group_profile: filename,
       },
       include: {
-        Group_user: {
-          include: {
-            member: {
-              select: {
-                userId: true,
-                username: true,
-                profile_picture: true,
-              },
-            },
-          },
-        },
+        Group_user: true,
       },
     });
 

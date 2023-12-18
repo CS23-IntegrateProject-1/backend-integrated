@@ -26,7 +26,9 @@ import jwt, { JwtPayload } from "jsonwebtoken";
 //   }
 // };
 
-import { Response, NextFunction } from "express";
+import { Response, NextFunction, response } from "express";
+import authService from "../services/auth/auth.service";
+
 // import jwt, { JwtPayload } from "jsonwebtoken";
 
 const secretKey = process.env.JWT_SECRET as string;
@@ -40,11 +42,10 @@ export const customVerifyCookie = (
   const token = req.cookies.authToken; // token stored in authToken
 
   if (!token) {
-    // Handle when no token is found
-    req.userId = "demoUserId"; // Pass a demo userId
-    next();
-    return; // Add this return statement to exit the middleware
+    response.write('not verify');
   }
+  const decodetoken = authService.decodeToken(token);
+  const userid = decodetoken.userId;
 
   try {
     // Verify using the jwt.verify
