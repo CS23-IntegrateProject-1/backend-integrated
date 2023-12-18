@@ -3,7 +3,15 @@ import { map } from "ramda";
 export type GroupCreateDBResponse = {
   groupId: number;
   group_name: string;
-  Group_user: Array<{ groupId: number; memberId: number; member: User }>;
+  Group_user: Array<{
+    groupId: number;
+    memberId: number;
+    member: {
+      userId: number;
+      username: string;
+      profile_picture: string | null;
+    };
+  }>;
 };
 
 export type GroupIndexDBResponse = Array<GroupDBResponse>;

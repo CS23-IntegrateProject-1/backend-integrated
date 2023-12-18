@@ -67,30 +67,30 @@ export interface IGroupController {
 //       return res.status(401).json(makeErrorResponse("Unauthorized"));
 //     }
 
-//     try {
-//       jwt.verify(
-//         token as string,
-//         process.env.JWT_SECRET as string,
-//       );
-//       const client = new PrismaClient();
-//       const result = await client.group.findFirst({
-//         where: {
-//           groupId,
-//         },
-//         include: {
-//           Group_user: {
-//             include: {
-//               member: {
-//                 select: {
-//                   userId: true,
-//                   username: true,
-//                   profile_picture: true,
-//                 },
-//               },
-//             },
-//           },
-//         },
-//       });
+    try {
+      jwt.verify(
+        token as string,
+        process.env.JWT_SECRET as string,
+      );
+      const client = new PrismaClient();
+      const result = await client.group.findFirst({
+        where: {
+          groupId,
+        },
+        include: {
+          Group_user: {
+            include: {
+              member: {
+                select: {
+                  userId: true,
+                  username: true,
+                  profile_picture: true,
+                },
+              },
+            },
+          },
+        },
+      });
 
 //       const groups = await this.service.listGroupsOfUser(userId);
 

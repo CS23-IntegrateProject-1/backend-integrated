@@ -2,7 +2,7 @@ import { PrismaClient } from "@prisma/client";
 import { Response, Request } from "express";
 import crypto from "crypto";
 import authService from "../services/auth/auth.service";
-import Stripe from "stripe";
+import { Stripe } from "stripe";
 
 const feature8Client = new PrismaClient();
 
@@ -1415,6 +1415,141 @@ export const getTransactionReserveIdByVenueIdAndEqualToStatusCompleted = async (
       res.status(500).json({ error: 'Failed to retrieve transactions' });
     }
   };
+
+
+  export const getReceipt = async (req: any, res: Response) => {
+    try {
+        const orderId = parseInt(req.params.orderId, 10);
+        // const reservationId = req.reservationId;
+        const orderInfo= await feature8Client.orders.findUnique({
+            where: {
+                orderId: orderId,
+            },
+        });
+        const orderDetails = await feature8Client.order_detail.findMany({
+            where: {
+                orderId: orderId,
+            },
+        });
+        //menu name
+        const menuIds = orderDetails
+            .map((orderDetail) => orderDetail.menuId)
+            .filter((menuId) => menuId !== null) as number[];
+        const menu = await feature8Client.menu.findMany({
+            where: {
+                menuId: {
+                    in: menuIds,
+                },
+            },
+        });
+        //set name
+        const setIds = orderDetails
+            .map((orderDetail) => orderDetail.setId)
+            .filter((setId) => setId !== null) as number[];
+        const set = await feature8Client.sets.findMany({
+            where: {
+                setId: {
+                    in: setIds,
+                },
+            },
+        });
+         // Calculate item count, total count, and total amount only once
+         const itemCount = orderDetails.length;
+         const totalCount = orderDetails.reduce((total, orderDetail) => total + orderDetail.quantity, 0);
+         const totalAmount = orderInfo?.total_amount;
+ 
+         // Process order details and add calculated values
+         const orderDetailsWithDetails = orderDetails.map((orderDetail) => {
+             const quantity = orderDetail.quantity;
+             const menuName = menu.find((menu) => menu.menuId === orderDetail.menuId)?.name;
+             const menuPrice= menu.find((menu) => menu.menuId === orderDetail.menuId)?.price;
+             const setPrice= set.find((set) => set.setId === orderDetail.setId)?.price;
+             const setName = set.find((set) => set.setId === orderDetail.setId)?.name;
+             return {
+                 
+                 menuName: menuName,
+                 setName: setName,
+                 quantity: quantity,
+                menuPrice: menuPrice,
+                setPrice: setPrice,
+
+             };
+         });
+ 
+         // Add calculated values to the response
+         const finalResponse = {
+            orderId: orderInfo?.orderId,
+             orderDate: orderInfo?.order_date,
+             orderDetails: orderDetailsWithDetails,
+             itemCount: itemCount,
+             totalCount: totalCount,
+             totalAmount: totalAmount,
+         };
+ 
+         res.status(200).json(finalResponse);
+    }
+    catch (e) {
+        console.log(e);
+    }
+}
+
+export const getOrderIdByAppTransactionDetailId = async (req: Request, res: Response) => {
+    const appTransactionDetailId = parseInt(req.params.appTransactionDetailId, 10);
+
+    try {
+        // Get appTransactionId from app_transaction_detail table
+        const appTransactionDetail = await feature8Client.app_transaction_detail.findUnique({
+            where: {
+                appTransactionDetailId: appTransactionDetailId,
+            },
+        });
+
+        if (!appTransactionDetail) {
+            return res.status(404).json({ error: 'No app transaction detail found for the specified id' });
+        }
+
+        // Get transactionId from App_transaction table
+        const appTransaction = await feature8Client.app_transaction.findUnique({
+            where: {
+                appTransactionId: appTransactionDetail.appTransactionId,
+            },
+        });
+
+        if (!appTransaction) {
+            return res.status(404).json({ error: 'No app transaction found for the specified id' });
+        }
+
+        // Get reserveId from Transaction table
+        const transaction = await feature8Client.transaction.findUnique({
+            where: {
+                transactionId: appTransaction.transactionId,
+            },
+        });
+
+        if (!transaction) {
+            return res.status(404).json({ error: 'No transaction found for the specified id' });
+        }
+
+        // Get orderId from Orders table
+        const order = await feature8Client.orders.findUnique({
+            where: {
+                reservedId: transaction.reserveId,
+            },
+            select: {
+                orderId: true
+            }
+        });
+
+        if (!order) {
+            return res.status(404).json({ error: 'No order found for the specified reserve id' });
+        }
+
+        res.status(200).json(order);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Failed to retrieve order' });
+    }
+};
 
 
 //token function
