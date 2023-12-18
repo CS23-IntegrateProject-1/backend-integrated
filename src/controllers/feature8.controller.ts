@@ -1,6 +1,8 @@
 import { PrismaClient } from "@prisma/client";
 import { Response, Request } from "express";
 import crypto from "crypto";
+import authService from "../services/auth/auth.service";
+import Stripe from "stripe";
 
 const feature8Client = new PrismaClient();
 
