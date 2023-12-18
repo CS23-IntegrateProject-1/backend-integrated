@@ -91,7 +91,7 @@ export const getOfflineAvailableTables = async (req: Request) => {
         const opening = await prisma.opening_day.findMany({
             where: {
                 venueId,
-                day: dayName as Day
+                day: dayName as Day,
             },
         });
 
@@ -155,19 +155,18 @@ export const getOfflineAvailableTables = async (req: Request) => {
             return { error: "Reservation time is not within valid hours." };
         }
 
-        const overlappingReservations =
-            await prisma.reservation.findMany({
-                where: {
-                    venueId,
-                    reserved_time: {
-                        gte: isoStartTime,
-                        lte: isoEndTime,
-                    },
-                    status: {
-                        not: "Cancel",
-                    },
+        const overlappingReservations = await prisma.reservation.findMany({
+            where: {
+                venueId,
+                reserved_time: {
+                    gte: isoStartTime,
+                    lte: isoEndTime,
                 },
-            });
+                status: {
+                    not: "Cancel",
+                },
+            },
+        });
 
         const allTables = await prisma.tables.findMany({
             where: {
@@ -210,7 +209,7 @@ export const getOfflineAvailableTables = async (req: Request) => {
         };
 
         return availableTables2;
-    } catch (e:any) {
+    } catch (e) {
         return error(e);
     }
 };

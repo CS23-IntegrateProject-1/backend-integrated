@@ -1,8 +1,8 @@
 import { Request, Response} from "express";
 
-export const TestApiConnection = async (req: Request, res:Response) => {
 
-    const url = 'https://mik.harmoni.social/service/table';
+export const ApiConnection = async (req: Request, res:Response) => {
+    const url = 'https://mikserver.harmoni.social/showMenu';
 
     try {
         const response = await fetch(url, {
@@ -18,8 +18,8 @@ export const TestApiConnection = async (req: Request, res:Response) => {
         }
     
         const data = await response.json();
-        console.log('Response from other website:', data);
-        res.status(200).json({message: "Api message"});
+        // console.log('Response from other website:', data);
+        res.status(200).json(data);
       } catch (error) {
         console.error('Error:', error);
         throw new Error('Failed to fetch data from other website');
