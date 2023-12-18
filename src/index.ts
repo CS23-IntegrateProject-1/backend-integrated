@@ -20,6 +20,7 @@ import Feature14Routes from "./routes/feature14.routes";
 
 import { httpServer as socketIoServer } from "./socketio";
 import path from "path";
+import MIKAPIRouter from "./routes/MIKAPI.routes";
 
 loadEnv();
 
@@ -44,6 +45,7 @@ app.get("/", (req: Request, res: Response) => {
 	res.send("Hello, Express with TypeScript!");
 });
 
+app.use("/api/mik", MIKAPIRouter);
 app.use("/auth", AuthRoutes);
 app.use("/feature1", Feature1Routes);
 app.use("/feature3", Feature3Routes);
