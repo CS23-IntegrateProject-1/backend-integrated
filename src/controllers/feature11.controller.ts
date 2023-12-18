@@ -1210,10 +1210,10 @@ export const DeleteSavedPlace = async (req: Request, res: Response) => {
     })
 
     let deletedPlace
-    if (savedId && typeof savedId === 'number') {
+    if (savedId?.id && typeof savedId.id === 'number') {
       deletedPlace = await prisma.saved_place.delete({
         where: {
-          id: savedId
+          id: savedId.id
         },
       });
     }
