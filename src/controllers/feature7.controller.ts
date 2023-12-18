@@ -115,16 +115,32 @@ export const addMenuToCookie = async (req: any, res: Response) => {
         const menuId = req.params.menuId;
         const venueId = reservationInfo?.venueId;
         const branchId = reservationInfo?.branchId;
-        const stockRecord = await feature7Client.stocks.findFirst({
-            where: {
-                venueId: venueId,
-                branchId: branchId!,
-                menuId: parseInt(menuId),
-            },
-        });
-
-        if (stockRecord?.availability === false) {
-            return res.status(404).json({ error: 'Menu item not available' });
+        let stockRecord;
+        if(venueId !== 2){
+             stockRecord = await feature7Client.stocks.findFirst({
+                where: {
+                    venueId: venueId,
+                    branchId: branchId!,
+                    menuId: parseInt(menuId),
+                },
+            });
+            if (stockRecord?.availability === false) {
+                return res.status(404).json({ error: 'Menu item not available' });
+            }
+    
+        }
+        else{
+            const getMenoNo = await feature7Client.menu.findUnique({
+                where: {
+                    menuId: parseInt(menuId),
+                },
+            });
+            const menuNo = getMenoNo?.menu_no;
+            stockRecord = req.StockPass;
+            stockRecord = stockRecord.filter((item: any) => item.menu_no === menuNo && item.branch_id === branchId);
+            if (stockRecord?.availibility === false) {
+                return res.status(404).json({ error: 'Menu item not available' });
+            }
         }
         const menu = await feature7Client.menu.findUnique(
             {
@@ -1225,7 +1241,6 @@ export const deleteMenuItemFromSet = async (req: Request, res: Response) => {
     try {
         const menuId = req.params.menuId;
         const setId = req.params.setId;
-
         const setItems = await feature7Client.set_items.findFirst({
             where: {
                 setId: parseInt(setId),
@@ -1237,9 +1252,34 @@ export const deleteMenuItemFromSet = async (req: Request, res: Response) => {
                 setItemId: setItems?.setItemId,
             },
         });
+        const editSetCacheString = req.cookies.setCache || '[]';
+        const editSetCache = JSON.parse(editSetCacheString);
+        editSetCache.push({
+            setId: parseInt(setId),
+            menuId: parseInt(menuId),
+        });
         return res.status(200).json(toDelete);
     } catch (e) {
         console.error('Error deleting menu item from set:', e);
+        return res.status(500).json({ error: 'Internal Server Error' });
+    }
+}
+//cancel delete menu item from set
+export const cancelDeleteMenuItemFromSet = async (req: Request, res: Response) => {
+    try{
+        const editSetCacheString = req.cookies.setCache || '[]';
+        const editSetCache = JSON.parse(editSetCacheString);
+        const addCacheBack = await feature7Client.set_items.createMany({
+            data: editSetCache.map((item: any) => ({
+                setId: item.setId,
+                menuId: item.menuId,
+            })),
+        });
+        res.clearCookie('setCache');
+        return res.status(200).json(addCacheBack);
+    }
+    catch (e) {
+        console.error('Error cancel deleting menu item from set:', e);
         return res.status(500).json({ error: 'Internal Server Error' });
     }
 }
@@ -1289,6 +1329,7 @@ export const editSet = async (req: any, res: Response) => {
                 });
                 const updated = selectedMenuItems.filter(item => item.setId !== parseInt(setId));
                 res.cookie('setItems', JSON.stringify(updated));
+                res.clearCookie('setCache');
                 res.json({ editedSet, setItems });
 
             } catch (e) {
