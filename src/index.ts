@@ -13,11 +13,9 @@ import Feature5Routes from "./routes/feature5.routes";
 import Feature6Routes from "./routes/feature6.routes";
 import Feature7Routes from "./routes/feature7.routes";
 import Feature8Routes from "./routes/feature8.routes";
-import Feature9Routes from "./routes/feature9.routes";
 import Feature10Routes from "./routes/feature10.routes";
 import Feature11Routes from "./routes/feature11.routes";
 import Feature12Routes from "./routes/feature12.routes";
-import Feature13Routes from "./routes/feature13.routes";
 import Feature14Routes from "./routes/feature14.routes";
 
 import { httpServer as socketIoServer } from "./socketio";
@@ -54,11 +52,9 @@ app.use("/feature5", Feature5Routes);
 app.use("/feature6", Feature6Routes);
 app.use("/feature7", Feature7Routes);
 app.use("/feature8", Feature8Routes);
-app.use("/feature9", Feature9Routes);
 app.use("/feature10", Feature10Routes);
 app.use("/feature11", Feature11Routes);
 app.use("/feature12", Feature12Routes);
-app.use("/feature13", Feature13Routes);
 app.use("/feature14", Feature14Routes);
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 

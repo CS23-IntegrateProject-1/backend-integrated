@@ -1,5 +1,4 @@
 import {
-  AboutDestroyDBResponse,
   AboutShowDBResponse,
   AboutStoreDBResponse,
   AboutUpdateDBResponse,

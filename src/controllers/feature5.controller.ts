@@ -1,10 +1,8 @@
 import { PrismaClient } from "@prisma/client";
 import { Response, Request } from "express";
 import { adinfo } from "../interface/Auth/Advertisement";
-import { voucherinfo } from "../interface/Auth/Voucher";
 import { Promotioninfo } from "../interface/Auth/Promotion";
 import authService from "../services/auth/auth.service";
-import { and, includes } from "ramda";
 
 const feature5Client = new PrismaClient();
 
@@ -56,7 +54,6 @@ export const AdBusiness = async (req: Request, res: Response) => {
       },
     });
 
-    const Tag: number[] = req.body.Tags;
     if (!Array.isArray(Tags)) {
       return res.status(400).json({ error: "Tags must be an array" });
     }

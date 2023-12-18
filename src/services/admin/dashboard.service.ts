@@ -1,5 +1,4 @@
 import { PrismaClient } from "@prisma/client";
-import { th } from "date-fns/locale";
 
 class DashboardService {
 	prisma = new PrismaClient();

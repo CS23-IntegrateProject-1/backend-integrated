@@ -1,4 +1,5 @@
-import { Router, Request, Response } from "express";
+import { Router } from "express";
+import multerConfig from "../multerConfig";
 
 // here import your controllers(function)
 import {
@@ -23,9 +24,10 @@ import {
     getUserArticle,
     getCommentHistory,
     public_getAllArticle,
-    public_getArticleDetail
+    public_getArticleDetail,
+    editArticle,
+    getUserSavedPlace
 } from "../controllers/feature11.controller";
-import feature1Router from "./feature1.routes";
 
 const feature11Router = Router();
 
@@ -33,8 +35,8 @@ const feature11Router = Router();
 // feature11Router.get("/", getfeature11);
 
 // * POST
-feature11Router.post("/addArticle", addArticle);
-//feature11Router.post("/addArticle/:Id", addArticle);
+feature11Router.post("/addArticle", multerConfig.array('files', 10), addArticle);
+feature11Router.post("/editArticle", multerConfig.array('files', 10),editArticle);
 feature11Router.post("/writeComment", addComment);
 feature11Router.post("/addLike", addLike);
 feature11Router.post("/addCommentByCreator", CreatorLikeComment)
@@ -56,8 +58,10 @@ feature11Router.patch("/editComment", editComment);
 feature11Router.get("/fetchAllArticle", getAllArticle);
 feature11Router.get("/fetchAllArticle_nologin", public_getAllArticle);
 feature11Router.get("/fetchAllVenueName", getAllVenueName);
-feature11Router.get("/fetchArticleHistory", getArticleHistory)
-feature11Router.get("/fetchCommentHistory", getCommentHistory)
+feature11Router.get("/fetchArticleHistory", getArticleHistory);
+feature11Router.get("/fetchCommentHistory", getCommentHistory);
+
+feature11Router.get("/fetchUserSavedPlace", getUserSavedPlace);
 
 // parameter = article id
 feature11Router.get("/fetchArticleDetail/:articleId", getArticleDetail);

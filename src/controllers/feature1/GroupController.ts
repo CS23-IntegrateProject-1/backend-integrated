@@ -67,11 +67,29 @@ export default class GroupController implements IGroupController {
     }
 
     try {
-      const decoded = jwt.verify(
+      jwt.verify(
         token as string,
         process.env.JWT_SECRET as string,
       );
-      const userId = (decoded as jwt.JwtPayload).userId;
+      const client = new PrismaClient();
+      const result = await client.group.findFirst({
+        where: {
+          groupId,
+        },
+        include: {
+          Group_user: {
+            include: {
+              member: {
+                select: {
+                  userId: true,
+                  username: true,
+                  profile_picture: true,
+                },
+              },
+            },
+          },
+        },
+      });
 
       const groups = await this.service.listGroupsOfUser(userId);
 

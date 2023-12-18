@@ -1,5 +1,3 @@
-type PrivacyPolicyShowWebRequest = {};
-
 type PrivacyPolicyShowWebResponse = {
   user_id: number;
   consented_privacy: boolean;
@@ -11,8 +9,6 @@ export type PrivacyPolicyShowDBResponse = {
   privacy_consent: boolean;
   cookie_consent: boolean;
 };
-
-type PrivacyPolicy = PrivacyPolicyShowDBResponse;
 
 export type PrivacyPolicyUpdateDBResponse = PrivacyPolicyShowDBResponse;
 
