@@ -351,6 +351,21 @@ export const GetallVenue = async (req: Request, res: Response) => {
 
 export const GetAllVoucherForUser = async (req: Request, res: Response) => {
   try {
+    const getvoucher = await feature5Client.voucher.findMany({
+      where: {
+        isApprove: "Completed",
+      },
+      
+    });
+    res.json(getvoucher);
+  } catch (err) {
+    const error = err as Error;
+    res.status(500).json({ error: error.message });
+  }
+};
+
+export const GetVoucherIncludeIsused = async (req: Request, res: Response) => {
+  try {
     const {id} = req.params
     const getvoucher = await feature5Client.voucher.findMany({
       where: {
@@ -371,6 +386,7 @@ export const GetAllVoucherForUser = async (req: Request, res: Response) => {
     res.status(500).json({ error: error.message });
   }
 };
+
 
 export const GetAllVoucherForBusiness = async (req: Request, res: Response) => {
   try {
