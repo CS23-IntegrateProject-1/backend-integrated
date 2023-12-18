@@ -112,7 +112,7 @@ export const addArticle = async (req: Request, res: Response) => {
 
     let newTag;
     for (const tag of tags) {
-      const newTag = await prisma.tag.create({
+      newTag = await prisma.tag.create({
         data: {
           tag_name: tag,
         }
@@ -193,7 +193,7 @@ export const editArticle = async (req: Request, res: Response) => {
 
     let newVenue;
     for (const venueId of venueIds) {
-      const newVenue = await prisma.article_venue.create({
+      newVenue = await prisma.article_venue.create({
         data: {
           articleId,
           venueId
@@ -205,7 +205,7 @@ export const editArticle = async (req: Request, res: Response) => {
       where: { articleId: parseInt(articleId) }
     })
 
-    let updatedTag;
+    let updatedTag
     let newTag;
     for (const tag of tags) {
       let tagUse;
@@ -217,6 +217,7 @@ export const editArticle = async (req: Request, res: Response) => {
         }
       })
 
+      if (!tagExisted) {
         await prisma.article_tags.create({
           data: {
             articleId,
