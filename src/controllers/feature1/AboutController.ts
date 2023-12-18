@@ -38,12 +38,13 @@ export class AboutController implements IAboutController {
     }
 
     try {
-      const decoded = jwt.verify(
+      jwt.verify(
         token as string,
         process.env.JWT_SECRET as string,
       );
 
-      let { version, detail } = req.body;
+      const { version } = req.body;
+      let { detail } = req.body;
 
       if (typeof version !== "string") {
         return res.status(400).json(makeErrorResponse("Malformed request"));
@@ -92,7 +93,7 @@ export class AboutController implements IAboutController {
     }
 
     try {
-      const decoded = jwt.verify(
+      jwt.verify(
         token as string,
         process.env.JWT_SECRET as string,
       );
@@ -106,7 +107,7 @@ export class AboutController implements IAboutController {
         const webResponse = makeAboutShowWebResponse(response);
 
         res.json(webResponse);
-      } else if (req.query.hasOwnProperty("latest")) {
+      } else if ('latest' in req.query) {
         const response = await this.service.latestAbout();
         const webResponse = makeAboutShowWebResponse(response);
 
@@ -136,12 +137,13 @@ export class AboutController implements IAboutController {
     }
 
     try {
-      const decoded = jwt.verify(
+      jwt.verify(
         token as string,
         process.env.JWT_SECRET as string,
       );
 
-      let { id, version, detail } = req.body;
+      const { id, version } = req.body;
+      let { detail } = req.body;
 
       const idNum = Number(id);
 
@@ -186,7 +188,7 @@ export class AboutController implements IAboutController {
     }
 
     try {
-      const decoded = jwt.verify(
+      jwt.verify(
         token as string,
         process.env.JWT_SECRET as string,
       );

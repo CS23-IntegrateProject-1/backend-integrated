@@ -1,6 +1,6 @@
 // socketio.ts
 import { Server, Socket } from "socket.io";
-import { createServer, Server as HttpServer } from "http";
+import { createServer } from "http";
 import express from "express";
 import loadEnv from "./configs/dotenvConfig";
 

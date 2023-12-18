@@ -1,19 +1,12 @@
 import { PrismaClient } from "@prisma/client";
-import exp from "constants";
-import { set } from "date-fns";
-import { tr } from "date-fns/locale";
-import e, { Response, Request } from "express";
+import { Response, Request } from "express";
 // import { parse } from "path";
-import { customVerifyCookie } from "../middlewares/verifyCookies";
 // import { json } from "stream/consumers";
 import multerConfig from "../multerConfig";
-import { parse } from "path";
 
 
 const feature7Client = new PrismaClient();
 
-export const getfeature7 = async (req: Request, res: Response) => {
-};
 export const getMenusByVenueId = async (req: Request, res: Response) => {
     try {
         const venueId = req.params.id;
@@ -440,7 +433,7 @@ export const addCartToOrderDetailsOfDineIn = async (req: any, res: Response) => 
             const newOrderId = latestOrder?.orderId ? latestOrder.orderId + 1 : 1;
 
             // Create a new order
-            const newOrder = await feature7Client.orders.create({
+            await feature7Client.orders.create({
                 data: {
                     orderId: newOrderId,
                     userId: userId,
@@ -472,7 +465,7 @@ export const addCartToOrderDetailsOfDineIn = async (req: any, res: Response) => 
             },
         });
 
-        const menuOrderDetails = await feature7Client.order_detail.createMany({
+        await feature7Client.order_detail.createMany({
             data: userCart
                 .filter((item) => item.menuId !== null)
                 .map((item) => ({
@@ -498,7 +491,7 @@ export const addCartToOrderDetailsOfDineIn = async (req: any, res: Response) => 
             },
         });
 
-        const setOrderDetails = await feature7Client.order_detail.createMany({
+        await feature7Client.order_detail.createMany({
             data: userCart
                 .filter((item) => item.setId !== null)
                 .map((item) => ({
@@ -525,7 +518,7 @@ export const addCartToOrderDetailsOfDineIn = async (req: any, res: Response) => 
         );
 
         // Update order with total amount
-        const updatedOrder = await feature7Client.orders.update({
+        await feature7Client.orders.update({
             where: {
                 orderId: orderId,
             },
@@ -808,7 +801,7 @@ export const addMenu = async (req: any, res: Response) => {
                         branchId: true,
                     },
                 });
-                const stocks = await Promise.all(
+                await Promise.all(
                     branchIds.map(async (branchId) => {
                         const createdStock = await feature7Client.stocks.create({
                             data: {
@@ -910,7 +903,6 @@ export const addSetWithMenuItems = async (req: any, res: Response) => {
             const venueId = req.params.venueId;
             const selectedMenuItem = req.cookies.setItems || [];
             const selectedMenuItems = JSON.parse(selectedMenuItem);
-            const menuIds = selectedMenuItems.filter(item => item.setId === 0);
             const image = req.file.filename;
 
             try {
@@ -969,7 +961,7 @@ export const clearSetItemsInCookies = async (req: Request, res: Response) => {
 export const deleteMenu = async (req: Request, res: Response) => {
     try {
         const menuId = req.params.menuId;
-        const stockRecords = await feature7Client.stocks.deleteMany({
+        await feature7Client.stocks.deleteMany({
             where: {
                 menuId: parseInt(menuId),
             },
@@ -980,7 +972,7 @@ export const deleteMenu = async (req: Request, res: Response) => {
             },
         });
         console.log(setId);
-        const setItems = await feature7Client.set_items.deleteMany({
+        await feature7Client.set_items.deleteMany({
             where: {
                 setId: {
                     in: setId.map((id) => id.setId)
@@ -995,7 +987,7 @@ export const deleteMenu = async (req: Request, res: Response) => {
                 }
             },
         });
-        const menu = await feature7Client.menu.delete({
+        await feature7Client.menu.delete({
             where: {
                 menuId: parseInt(menuId),
             },
@@ -1010,7 +1002,7 @@ export const deleteMenu = async (req: Request, res: Response) => {
 export const deleteSet = async (req: Request, res: Response) => {
     try {
         const setId = req.params.setId;
-        const setItems = await feature7Client.set_items.deleteMany({
+        await feature7Client.set_items.deleteMany({
             where: {
                 setId: parseInt(setId),
             },
@@ -1064,7 +1056,6 @@ export const editSet = async (req: any, res: Response) => {
             const venueId = req.params.venueId;
             const selectedMenuItem = req.cookies.setItems || [];
             const selectedMenuItems = JSON.parse(selectedMenuItem);
-            const menuIds = selectedMenuItems.filter(item => item.setId === parseInt(setId));
             const image = req.file?.filename || imageFile?.image_url; // Use the filename generated by multer
 
             try {
