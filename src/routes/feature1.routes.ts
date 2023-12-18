@@ -1,5 +1,5 @@
 import { Router } from "express";
-import multerConfig from '../multerConfig';
+import multerConfig from "../multerConfig";
 
 // here import your controllers(function)
 import {
@@ -19,7 +19,7 @@ import FriendController from "../controllers/feature1/FriendController";
 import ProfileController from "../controllers/feature1/ProfileController";
 import SearchController from "../controllers/feature1/SearchController";
 import VenueController from "../controllers/feature1/VenueController";
-import GroupController from '../controllers/feature1/GroupController';
+import GroupController from "../controllers/feature1/GroupController";
 
 const aboutController = new AboutController();
 const friendController = new FriendController();
@@ -100,9 +100,18 @@ feature1Router.put(
   profileController.update.bind(profileController),
 );
 
-feature1Router.get("/group", userAuthMiddleware, groupController.index.bind(groupController));
+feature1Router.get(
+  "/group",
+  userAuthMiddleware,
+  groupController.index.bind(groupController),
+);
 feature1Router.get("/group/:id", groupInfoHandler);
-feature1Router.post("/group/add", userAuthMiddleware, multerConfig.single('avatar'), groupController.create.bind(groupController));
+feature1Router.post(
+  "/group/add",
+  userAuthMiddleware,
+  multerConfig.single("avatar"),
+  groupController.create.bind(groupController),
+);
 
 feature1Router.get(
   "/venue",

@@ -48,7 +48,7 @@ class VenueController implements IVenueController {
     const result = await OpeningHourPayload.safeParseAsync(openingHours);
 
     if (!result.success) {
-      return res.status(400).json(makeErrorResponse('Invalid request'));
+      return res.status(400).json(makeErrorResponse("Invalid request"));
     }
 
     try {

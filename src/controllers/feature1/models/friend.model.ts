@@ -12,14 +12,9 @@ export type UserDBResponse = {
 
 type Status = "Friend" | "Pending";
 
-export type FriendDBResponse = {
+export type FriendDBResponse = UserDBResponse & {
   since: Date;
   status: Status;
-  userId: number;
-  username: string;
-  fname: string;
-  lname: string;
-  profile_picture: string | null;
 };
 
 export type FriendRawDBResponse = {

@@ -14,10 +14,7 @@ export interface IVenueService {
 
   getVenue(businessId: number): Promise<VenueShowDBResponse>;
 
-  updateOpeningHours(
-    businessId: number,
-    data: OpeningHourUpdateRequest,
-  );
+  updateOpeningHours(businessId: number, data: OpeningHourUpdateRequest);
 }
 
 class VenueService implements IVenueService {
@@ -34,10 +31,7 @@ class VenueService implements IVenueService {
     return this.repository.updateVenue(businessId, data);
   }
 
-  async updateOpeningHours(
-    businessId: number,
-    data: OpeningHourUpdateRequest,
-  ) {
+  async updateOpeningHours(businessId: number, data: OpeningHourUpdateRequest) {
     await this.repository.updateOpeningHours(businessId, data);
   }
 }
