@@ -107,6 +107,33 @@ class MajorAPIService {
       console.log(e);
     }
   }
+  async getShowsFromMajor() {
+    try {
+      const response = await Axios.get("/show/getShows");
+      return response.data;
+    } catch (e: any) {
+      console.log(e);
+    }
+  }
+  async getSeatsFromMajor() {
+    try {
+      const response = await Axios.get("/seat/getSeats");
+      return response.data;
+    } catch (e: any) {
+      console.log(e);
+    }
+  }
+  async getPaymentFromMajor() {
+    try {
+      const response = await Axios.get("/payment/getPayments");
+      return response.data;
+    } catch (e: any) {
+      console.log(e);
+    }
+  }
+  
 }
+
+
 
 export default new MajorAPIService();
