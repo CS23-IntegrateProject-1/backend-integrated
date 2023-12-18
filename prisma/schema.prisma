@@ -41,6 +41,7 @@ model User {
   Rate_venue_question    Rate_venue_question[]
   Recommendation         Recommendation[]
   Reservation            Reservation[]
+  Reservation_logs       Reservation_logs[]
   Saved_location         Saved_location[]
   Saved_place            Saved_place[]
   Search_history         Search_history[]
@@ -332,7 +333,7 @@ model Food_voucher {
 model User_voucher {
   userId    Int
   voucherId Int
-  isUsed    Boolean
+  isUsed    Boolean @default(false)
   user      User    @relation(fields: [userId], references: [userId])
   vouchers  Voucher @relation(fields: [voucherId], references: [voucherId])
 
@@ -1424,10 +1425,13 @@ model Reservation_logs {
   reservationId Int       @id @default(autoincrement())
   showId        Int
   seatId        Int
+  userId        Int
   Payments      Payments?
   Seats         Seats     @relation(fields: [seatId], references: [seatId])
+  User          User      @relation(fields: [userId], references: [userId])
 
   @@index([seatId], map: "Reservation_logs_seatId_fkey")
+  @@index([userId], map: "Reservation_logs_userId_fkey")
 }
 
 model Payments {
