@@ -58,7 +58,7 @@ export default class GroupRepository {
       },
     });
 
-    return result as unknown as GroupCreateDBResponse;
+    return result as GroupCreateDBResponse;
   }
 
   //async listGroupsByUserId(userId: number): Promise<GroupIndexDBResponse> {
