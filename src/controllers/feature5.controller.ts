@@ -422,6 +422,17 @@ export const getVoucherById = async (req: Request, res: Response) => {
           where: {
             voucherId: parseInt(id),
           },
+          include:{
+            Discount_voucher:{
+              select:{
+                limitation: true,
+                fix_discount:true,
+                minimum_spend: true,
+                percent_discount: true
+
+              }
+            }
+          }
         });
       res.json({ ...voucher, voucherType: "Discount" });
     }
@@ -437,6 +448,14 @@ export const getVoucherById = async (req: Request, res: Response) => {
           where: {
             voucherId: parseInt(id),
           },
+          include:{
+            Food_voucher:{
+              select:{
+                limitation: true,
+                minimum_spend: true,
+              }
+            }
+          }
         });
       res.json({ ...voucher, voucherType: "Gift" });
     }
