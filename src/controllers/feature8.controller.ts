@@ -1907,8 +1907,8 @@ export const createCheckoutSession = async (req: Request, res: Response) => {
 
 const getDynamicPriceId = async () => {
   const product = await stripe.products.create({
-    name: "Dynamic Product",
-    description: "Dynamic product description",
+    name: "Checkout",
+    description: "Pay for checkout",
   });
 
   const totalAmount = await feature8Client.orders.findUnique({
@@ -1957,20 +1957,22 @@ export const createDepositSession = async (req: Request, res: Response) => {
   
   const getDepositDynamicPriceId = async () => {
     const product = await stripe.products.create({
-      name: "Dynamic Product",
-      description: "Dynamic product description",
+      name: "Deposit",
+      description: "Pay for Deposit",
     });
   
     const totalAmount = await feature8Client.deposit.findUnique({
-      where: { depositId: 240 },
+      where: { depositId: 2 },
     });
-    //   console.log(totalAmount)
-    //   const totalAmountString = (totalAmount?.total_amount * 100.toFixed(2);
-    //   console.log(totalAmountString)
+      //console.log(totalAmount+"test")
   
     const totalAmount2: any = totalAmount?.deposit_amount.toFixed(2);
-    const movedDecimalNumber = totalAmount2 * 100;
+        //console.log(totalAmount2+"test2")
+    const movedDecimalNumber = parseFloat(totalAmount2) * 100;
+        //console.log(movedDecimalNumber+"test3")
     const strPrice = movedDecimalNumber.toString();
+        //console.log(strPrice+"test4")
+    
     const price = await stripe.prices.create({
       unit_amount_decimal: strPrice,
       currency: "thb",
