@@ -61,7 +61,8 @@ import {
     createCheckoutSession,
     getTransactionReserveIdByVenueIdAndEqualToStatusCompletedAndFiltered,
     getReceipt,
-    getOrderIdByAppTransactionDetailId
+    getOrderIdByAppTransactionDetailId,
+    getlatestOrderMenuOrderUpdate
 } from "../controllers/feature8.controller";
 
 const feature8Router = Router();
@@ -127,6 +128,7 @@ feature8Router.get("/venuetransactions/:venuetransactionId", getVenuetransaction
 feature8Router.get("/venuetransaction_details", getVenuetransactiondetail);
 feature8Router.get("/venuetransaction_details/:venuetransactionId", getVenuetransactiondetailById);
 feature8Router.get("/venue/:venueId", getVenueByVenueId);
+feature8Router.get("/venue/orderchecklatest/:orderId", getlatestOrderMenuOrderUpdate)
 
 // feature8Router.get("/updateorder", ShowUpdateOrder);
     // post method

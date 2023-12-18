@@ -91,7 +91,6 @@ export const getTableIdsByVenueId = async (req: Request, res: Response) => {
 };
 
 export const getTableNosByVenueId = async (req: Request, res: Response) => {
-    
 
     try {
         const response = await getTableIdsByVenueId(req, res);
@@ -1550,6 +1549,107 @@ export const getOrderIdByAppTransactionDetailId = async (req: Request, res: Resp
         res.status(500).json({ error: 'Failed to retrieve order' });
     }
 };
+
+
+export const getAllOrdersByVenueId = async (req: Request, res: Response) => {
+    const { venueId } = req.params;
+  
+    try {
+  
+      const orders = await feature8Client.orders.findMany({
+        where: {
+          venueId: parseInt(venueId),
+        },
+        orderBy: {
+            order_date: 'desc',
+        },
+        select : {
+            order_date: true,
+            orderId: true,
+            total_amount: true,
+            isDelivery: true
+        }
+      });
+  
+      if (!orders || orders.length === 0) {
+        return res.status(404).json({ error: 'No orders found for the specified venue' });
+      }
+  
+      return res.json(orders);
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ error: 'An error occurred while fetching orders.' });
+    }
+  };
+
+
+  export const getlatestOrderMenuOrderUpdate = async (req: Request, res: Response) => {
+    const orderId = parseInt(req.params.orderId, 10);
+  
+    try {
+      const order = await feature8Client.orders.findUnique({
+        where: { orderId: orderId },
+        select: { reservedId: true }
+      });
+  
+      const orderdetail = await feature8Client.order_detail.findMany({
+        where: { 
+          orderId : orderId,
+          status: 'On_going',
+        },
+        select: {
+          menuId: true,
+          setId: true,
+          unit_price: true,
+          quantity: true,
+        },
+        orderBy: {
+          order_time: 'desc'
+        }
+      });
+  
+      const orderdetailWithNameAndTableNo = await Promise.all(orderdetail.map(async item => {
+        let name = '';
+        let tableNo = NaN;
+        if (item.menuId) {
+          const menu = await feature8Client.menu.findUnique({
+            where: { menuId: item.menuId },
+            select: { name: true }
+          });
+          name = menu?.name ?? '';
+        } else if (item.setId) {
+          const set = await feature8Client.sets.findUnique({
+            where: { setId: item.setId },
+            select: { name: true }
+          });
+          name = set?.name ?? '';
+        }
+  
+        if (order?.reservedId) {
+            const reservation = await feature8Client.reservation_table.findFirst({
+                where: { reserveId: order.reservedId },
+                    select: { tableId: true }
+            });
+            if (reservation?.tableId) {
+                const table = await feature8Client.tables.findUnique({
+                    where: { tableId: reservation.tableId },
+                    select: { table_no: true }
+                });
+                tableNo = Number(table?.table_no) ?? NaN;
+            }
+        }
+  
+        return { ...item, name, tableNo };
+      }));
+  
+      const sumOfAllPrice = orderdetail.reduce((total: number, item) => total + (Number(item.unit_price) * item.quantity), 0).toFixed(2);
+  
+      res.status(200).json({orderdetail: orderdetailWithNameAndTableNo, sumOfAllPrice});
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: 'Failed to retrieve order detail' });
+    }
+  }
 
 
 //token function
