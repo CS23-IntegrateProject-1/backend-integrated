@@ -71,14 +71,14 @@ export const getOfflineAvailableTables = async (req: Request) => {
             })
         ).then((nestedArrays) => nestedArrays.flat());
 
-        var pos;
+        let pos;
         for (let index = 0; index < daysOfWeek.length; index++) {
             if (openday[openday.length - 1] == daysOfWeek[index]) pos = index;
         }
 
         openday.push(daysOfWeek[pos + 1]);
 
-        var canreserve = 0;
+        let canreserve = 0;
         for (let index = 0; index < openday.length; index++) {
             if (daysOfWeek[day] == openday[index]) canreserve++;
         }
@@ -91,11 +91,11 @@ export const getOfflineAvailableTables = async (req: Request) => {
         const opening = await prisma.opening_day.findMany({
             where: {
                 venueId,
-                day: dayName as Day
+                day: dayName as Day,
             },
         });
 
-        var notOpen = false;
+        let notOpen = false;
         const dayBefore = daysOfWeek[day - 1];
         if (opening.length === 0) {
             const openBefore = await prisma.opening_day.findMany({
@@ -116,7 +116,7 @@ export const getOfflineAvailableTables = async (req: Request) => {
             }
         }
 
-        var open, close;
+        let open, close;
         if (notOpen) {
             const openBefore = await prisma.opening_day.findMany({
                 where: {
@@ -155,19 +155,18 @@ export const getOfflineAvailableTables = async (req: Request) => {
             return { error: "Reservation time is not within valid hours." };
         }
 
-        const overlappingReservations =
-            await prisma.reservation.findMany({
-                where: {
-                    venueId,
-                    reserved_time: {
-                        gte: isoStartTime,
-                        lte: isoEndTime,
-                    },
-                    status: {
-                        not: "Cancel",
-                    },
+        const overlappingReservations = await prisma.reservation.findMany({
+            where: {
+                venueId,
+                reserved_time: {
+                    gte: isoStartTime,
+                    lte: isoEndTime,
                 },
-            });
+                status: {
+                    not: "Cancel",
+                },
+            },
+        });
 
         const allTables = await prisma.tables.findMany({
             where: {
@@ -210,7 +209,7 @@ export const getOfflineAvailableTables = async (req: Request) => {
         };
 
         return availableTables2;
-    } catch (e:any) {
+    } catch (e) {
         return error(e);
     }
 };
