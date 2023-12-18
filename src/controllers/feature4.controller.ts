@@ -299,4 +299,216 @@ export const getSetById = async (req: Request, res: Response) => {
   catch (e) {
       console.log(e);
   }
-}
+};
+
+export const checkMenuAvailability = async (req: Request, res: Response) => {
+  try {
+    const menuId = req.params.menuId;
+    const venueId = req.params.venueId;
+    const branchId = req.params.branchId;
+    const stockRecord = await feature4Client.stocks.findFirst({
+      where: {
+        venueId: parseInt(venueId),
+        branchId: parseInt(branchId),
+        menuId: parseInt(menuId),
+      },
+    });
+
+    return res.status(200).json(stockRecord?.availability);
+  } catch (e) {
+    console.error("Error checking stock availability:", e);
+  }
+};
+
+export const checkSetAvailability = async (req: Request, res: Response) => {
+  try {
+    const setItems = await feature4Client.set_items.findMany({
+      where: {
+        setId: parseInt(req.params.setId),
+      },
+    });
+    const menuIds = setItems.map((setItem) => setItem.menuId);
+    const stockRecords = await feature4Client.stocks.findMany({
+      where: {
+        menuId: {
+          in: menuIds,
+        },
+        venueId: parseInt(req.params.venueId),
+        branchId: parseInt(req.params.branchId),
+      },
+    });
+    return res
+      .status(200)
+      .json(stockRecords.every((stockRecord) => stockRecord.availability));
+  } catch (e) {
+    console.log(e);
+  }
+};
+
+export const showOnGoingOrderDetails = async (req: any, res: Response) => {
+  try {
+    const userId = parseInt(req.userId);
+    const venueId = parseInt(req.params.venueId);
+    const orderId = await feature4Client.orders.findFirst({
+      where: {
+        userId: userId,
+        venueId: venueId,
+        // status: "On_going",
+      },
+    });
+    const orderDetails = await feature4Client.order_detail.findMany({
+      where: {
+        orderId: orderId?.orderId,
+        status: "On_going",
+      },
+    });
+    if (orderDetails.length !== 0) {
+      const menuDetails = await feature4Client.menu.findMany({
+        where: {
+          menuId: {
+            in: orderDetails
+              .map((orderDetail) => orderDetail.menuId)
+              .filter((menuId) => menuId !== null) as number[],
+          },
+        },
+      });
+      const setDetails = await feature4Client.sets.findMany({
+        where: {
+          setId: {
+            in: orderDetails
+              .map((orderDetail) => orderDetail.setId)
+              .filter((setId) => setId !== null) as number[],
+          },
+        },
+      });
+      const orderDetailsWithDetails = orderDetails.map((orderDetail) => {
+        const menu = menuDetails.find(
+          (menu) => menu.menuId === orderDetail.menuId
+        );
+        const set = setDetails.find((set) => set.setId === orderDetail.setId);
+
+        return {
+          ...orderDetail,
+          menu: menu,
+          set: set,
+        };
+      });
+      return res.status(200).json(orderDetailsWithDetails);
+    } else {
+      res.status(404).json({ error: "No ongoing order found." });
+    }
+    // res.status(200).json(orderDetails);
+  } catch (e) {
+    console.log(e);
+  }
+};
+
+export const showCompletedOrderDetails = async (req: any, res: Response) => {
+  try {
+    const userId = parseInt(req.userId);
+    const venueId = parseInt(req.params.venueId);
+    const orderId = await feature4Client.orders.findFirst({
+      where: {
+        userId: userId,
+        venueId: venueId,
+        // status: "Completed",
+      },
+    });
+    const orderDetails = await feature4Client.order_detail.findMany({
+      where: {
+        orderId: orderId?.orderId,
+        status: "Completed",
+      },
+    });
+    if (orderDetails.length !== 0) {
+      const menuDetails = await feature4Client.menu.findMany({
+        where: {
+          menuId: {
+            in: orderDetails
+              .map((orderDetail) => orderDetail.menuId)
+              .filter((menuId) => menuId !== null) as number[],
+          },
+        },
+      });
+      const setDetails = await feature4Client.sets.findMany({
+        where: {
+          setId: {
+            in: orderDetails
+              .map((orderDetail) => orderDetail.setId)
+              .filter((setId) => setId !== null) as number[],
+          },
+        },
+      });
+      const orderDetailsWithDetails = orderDetails.map((orderDetail) => {
+        const menu = menuDetails.find(
+          (menu) => menu.menuId === orderDetail.menuId
+        );
+        const set = setDetails.find((set) => set.setId === orderDetail.setId);
+
+        return {
+          ...orderDetail,
+          menu: menu,
+          set: set,
+        };
+      });
+      return res.status(200).json(orderDetailsWithDetails);
+    } else {
+      res.status(404).json({ error: "No ongoing order found." });
+    }
+    // res.status(200).json(orderDetails);
+  } catch (e) {
+    console.log(e);
+  }
+};
+
+export const addItemToCookie = async (req: Request) => {
+  try {
+    const quantity = req.body.quantity;
+    const menuId = req.params.itemId;
+    console.log(quantity);
+    console.log(menuId);
+    // Retrieve existing cart from the 'cart' cookie or initialize an empty array
+    //   const existingCartString = req.cookies.cart || "[]";
+    //   const existingCart = JSON.parse(existingCartString);
+    //   // Check if the menu item is already in the cart
+    //   const existingCartItemIndex = existingCart.findIndex(
+    //     (item) => item.menuId === menu.menuId
+    //   );
+    //   if (
+    //     existingCartItemIndex !== -1 &&
+    //     userId == existingCart[existingCartItemIndex].userId
+    //   ) {
+    //     // If the item is already in the cart, update the quantity
+    //     existingCart[existingCartItemIndex].quantity = quantity;
+    //   } else {
+    //     // If the item is not in the cart, add it
+    //     existingCart.push({
+    //       userId: parseInt(userId),
+    //       menuId: menu.menuId,
+    //       setId: null,
+    //       name: menu.name,
+    //       price: menu.price,
+    //       quantity: quantity,
+    //       image: menu.image,
+    //       description: menu.description,
+    //     });
+    //   }
+    //   // Remove the item if the quantity is 0
+    //   if (quantity === 0) {
+    //     existingCart.splice(existingCartItemIndex, 1);
+    //   }
+    //   // If nothing in the cart, delete the 'cart' cookie
+    //   if (existingCart.length === 0) {
+    //     res.clearCookie("cart");
+    //   } else {
+    //     // Update the 'cart' cookie with the modified cart
+    //     res.cookie("cart", JSON.stringify(existingCart));
+    //   }
+    //   res.status(200).json({ success: true, message: "Added to cart" });
+  } catch (error) {
+    //   console.log(error);
+    //   res
+    //     .status(500)
+    //     .json({ success: false, message: "Failed to add item to cart" });
+  }
+};
