@@ -211,20 +211,11 @@ export const getAllRestaurant = async (req: Request, res: Response) => {
     const restaurants = await feature4Client.venue.findMany({
       where: {
         category: {
-          in: [
-            "restaurant",
-            "Restaurant",
-            "Restaurants",
-            "restaurants",
-            "A LaCarte",
-            "a la carte",
-            "A la carte",
-            "a La Carte",
-          ],
+          in: ["restaurant", "Restaurant","Restaurants","restaurants","A LaCarte","a la carte","A la carte","a La Carte"]
         },
       },
       include: {
-        location: true, // Include the Location model
+        location: true, // Include the location related to each venue
       },
     });
 
@@ -246,11 +237,10 @@ export const getAllBars = async (req: Request, res: Response) => {
     const bars = await feature4Client.venue.findMany({
       where: {
         category: {
-          in: ["bar", "Bar", "Bars", "bars", "Club", "club", "Clubs", "clubs"],
-        },
-      },
-      include: {
-        location: true, // Include the Location model
+          in: ["bar", "Bar","Bars","bars","Club","club","Clubs","clubs"]
+        }
+      },include: {
+        location: true, // Include the location related to each venue
       },
     });
 
