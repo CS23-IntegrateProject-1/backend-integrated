@@ -1,18 +1,13 @@
 import { Request, Response } from "express";
 import authService from "../services/auth/auth.service";
 // import MIKAPIRouter from "../routes/MIKAPI.routes";
-import { prismaClient } from "./feature1.controller";
+import { PrismaClient } from "@prisma/client";
 import { getAvailableTables } from "../services/reservation/getAvailableTables.service";
 import { findSuitableTable } from "../services/reservation/findSuitable.service";
 import { addHours } from "date-fns";
 import { genToken } from "../services/reservation/genToken.service";
 
-
-
-
-// import { PrismaClient } from "@prisma/client";
-
-// const mikPrismaClient = new PrismaClient();
+const mikPrismaClient = new PrismaClient();
 
 export const ApiConnection = async (req: Request, res: Response) => {
     const url =
@@ -50,41 +45,39 @@ export const ApiConfirmReserve = async (req: Request, res: Response) => {
         const branchId = req.body.branchId;
         const guest_amount = req.body.guest_amount;
 
-        // console.log(venueId,branchId);
-        // console.log(tableId, reserved_time, reserved_date)
+        console.log(venueId,branchId);
+        console.log(tableId, reserved_time, reserved_date)
 
         let isResponse = true;
-        const getAvailableTablesResponse = await getAvailableTables(req);
-        // if (
-        //     getAvailableTablesResponse.error == "No tables found in this venue"
-        // ) {
-        //     return res
-        //         .status(400)
-        //         .json({ error: "No tables found in this venue" });
-        // } else if (
-        //     getAvailableTablesResponse.error == "Venue is closed today"
-        // ) {
-        //     return res.status(400).json({ error: "Venue is closed today" });
-        // } else if (
-        //     getAvailableTablesResponse.error ==
-        //     "Reservation time is not within valid hours"
-        // ) {
-        //     return res
-        //         .status(400)
-        //         .json({ error: "Reservation time is not within valid hours" });
-        // } else if (
-        //     getAvailableTablesResponse.error == "No more Available Table"
-        // ) {
-        //     return res.status(400).json({ error: "No more Available Table" });
-        // }
+        const getAvailableTablesResponse: any = await getAvailableTables(req);
+        if (
+            getAvailableTablesResponse.error == "No tables found in this venue"
+        ) {
+            return res
+                .status(400)
+                .json({ error: "No tables found in this venue" });
+        } else if (
+            getAvailableTablesResponse.error == "Venue is closed today"
+        ) {
+            return res.status(400).json({ error: "Venue is closed today" });
+        } else if (
+            getAvailableTablesResponse.error ==
+            "Reservation time is not within valid hours"
+        ) {
+            return res
+                .status(400)
+                .json({ error: "Reservation time is not within valid hours" });
+        } else if (
+            getAvailableTablesResponse.error == "No more Available Table"
+        ) {
+            return res.status(400).json({ error: "No more Available Table" });
+        }
 
         getAvailableTablesResponse + guest_amount;
-        // console.log(getAvailableTablesResponse + guest_amount);
 
         const selectedTable = await findSuitableTable(
             getAvailableTablesResponse
         );
-        console.log(selectedTable)
         if (isResponse) {
             if (
                 !selectedTable ||
@@ -99,7 +92,7 @@ export const ApiConfirmReserve = async (req: Request, res: Response) => {
             }
             console.log(reservationId)
         const reservationTableEntry =
-        await prismaClient.reservation_table.create({
+        await mikPrismaClient.reservation_table.create({
             data: {
                 reserveId: reservationId,
                 tableId: selectedTable[0].tableId,
@@ -107,7 +100,7 @@ export const ApiConfirmReserve = async (req: Request, res: Response) => {
         });
 
         const entry_time = addHours(new Date(), 7);
-        const updateReservation = await prismaClient.reservation.update({
+        const updateReservation = await mikPrismaClient.reservation.update({
             where: {
                 reservationId: reservationId,
             },
@@ -121,7 +114,7 @@ export const ApiConfirmReserve = async (req: Request, res: Response) => {
         const defaultCheckoutTime = new Date();
         defaultCheckoutTime.setHours(7, 0, 0, 0);
 
-        await prismaClient.check_in_log.create({
+        await mikPrismaClient.check_in_log.create({
             data: {
                 reserveId: reservationId,
                 check_in_time: checkInTime,
@@ -129,7 +122,7 @@ export const ApiConfirmReserve = async (req: Request, res: Response) => {
             },
         });
 
-        await prismaClient.tables.update({
+        await mikPrismaClient.tables.update({
             where: {
                 tableId: selectedTable[0].tableId,
                 isUsing: true,
@@ -172,20 +165,6 @@ export const ApiReserve = async (req: Request, res: Response) => {
             throw new Error("Invalid  auth token");
         }
 
-        // const userInfo = await mikPrismaClient.user.findFirst({
-        //     where: {
-        //         userId: decodedToken.userId,
-        //     },
-        //     select: {
-        //         fname: true,
-        //         lname: true,
-        //     }
-        // });
-
-        // console.log(phone);
-        // return res.status(200).json({fname, lname, phone, email, date, time, guest_amount});
-        
-        // const reserve_time = date + "T" + time + ":.000Z";
         const reserve_time = `${date}T${time}Z`;
 
         const {
@@ -194,7 +173,7 @@ export const ApiReserve = async (req: Request, res: Response) => {
         const { userId } = decodedToken;
         const venueId = 2;
 
-        const depositId = await prismaClient.deposit.findFirst({
+        const depositId = await mikPrismaClient.deposit.findFirst({
             where: {
                 venueId: venueId,
             },
@@ -207,7 +186,7 @@ export const ApiReserve = async (req: Request, res: Response) => {
             return res.status(400).json({ error: "No deposit found." });
         }
         const name = fname+" "+lname
-        const newReservation = await prismaClient.reservation.create({
+        const newReservation = await mikPrismaClient.reservation.create({
             data: {
                 venueId,
                 userId: userId,
@@ -225,8 +204,6 @@ export const ApiReserve = async (req: Request, res: Response) => {
         });
 
         const reservationID = newReservation.reservationId;
-
-        // console.log(newReservation.reservationId);
 
         const response = await fetch(url, {
             method: "POST",
@@ -250,7 +227,6 @@ export const ApiReserve = async (req: Request, res: Response) => {
             throw new Error(`HTTP error! Status: ${response.status}`);
         }
         const data = await response.json();
-        console.log(data.reservationId);
         res.status(200).json({
             data,
             fname,
@@ -273,18 +249,8 @@ export const ApiCheckOut = async (req: Request, res: Response) => {
         const reservationId = req.body.reservation_id;
         const checkOutTime = addHours(new Date(), 7);
 
-        // const reservation = await prismaClient.reservation.findUnique({
-        //     where: { reservationId },
-        // });
-        // if (!reservation) {
-        //     return res.status(404).json({ error: "Reservation not found" });
-        // }
-        // if (reservation.status !== "Check_in") {
-        //     return res.status(400).json({ error: "Check-Out not success" });
-        // }
-
         console.log(reservationId)
-        const checkOutLog = await prismaClient.check_in_log.update({
+        const checkOutLog = await mikPrismaClient.check_in_log.update({
             where: {
                 reserveId: reservationId,
             },
@@ -293,14 +259,14 @@ export const ApiCheckOut = async (req: Request, res: Response) => {
                 check_out_time: checkOutTime,
             },
         });
-        await prismaClient.reservation.update({
+        await mikPrismaClient.reservation.update({
             where: { reservationId },
             data: {
                 status: "Check_out",
             },
         });
 
-        const selectedTable = await prismaClient.reservation_table.findFirst({
+        const selectedTable = await mikPrismaClient.reservation_table.findFirst({
             where: {
                 reserveId: reservationId,
             },
@@ -308,7 +274,7 @@ export const ApiCheckOut = async (req: Request, res: Response) => {
                 tableId: true,
             },
         });
-        await prismaClient.tables.update({
+        await mikPrismaClient.tables.update({
             where: {
                 tableId: selectedTable?.tableId,
                 isUsing: true,
@@ -335,7 +301,7 @@ export const checkInStatus_MIK = async (req: Request, res: Response) => {
             return res.status(401).json({ error: "No auth token" });
         }
 
-        const getstatus = await prismaClient.reservation.findUnique({
+        const getstatus = await mikPrismaClient.reservation.findUnique({
             where: {
                 reservationId: parseInt(reservationId),
             },
