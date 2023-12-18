@@ -1,6 +1,4 @@
-import { defineDmmfProperty } from "@prisma/client/runtime/library";
-
-export type AboutIndexWebRequest = {};
+export type AboutIndexWebRequest = any;
 
 export type AboutShowWebRequest = {
   aboutId: number;
@@ -17,17 +15,17 @@ export type AboutUpdateWebRequest = {
   detail: string;
 };
 
-export type AboutDestroyWebRequest = {};
+export type AboutDestroyWebRequest = any;
 
-export type AboutIndexWebResponse = {};
+export type AboutIndexWebResponse = any;
 
-export type AboutShowWebResponse = {};
+export type AboutShowWebResponse = any;
 
-export type AboutStoreWebResponse = {};
+export type AboutStoreWebResponse = any;
 
-export type AboutUpdateWebResponse = {};
+export type AboutUpdateWebResponse = any;
 
-export type AboutDestroyWebResponse = {};
+export type AboutDestroyWebResponse = any;
 
 export type AboutIndexDBResponse = [AboutShowDBResponse];
 
@@ -42,14 +40,14 @@ export type AboutStoreDBResponse = AboutShowDBResponse;
 
 export type AboutUpdateDBResponse = AboutShowDBResponse;
 
-export type AboutDestroyDBResponse = {};
+export type AboutDestroyDBResponse = any;
 
 export function makeAboutShowWebResponse(
   data: AboutShowDBResponse,
 ): AboutShowWebResponse {
   return {
     version: data.version,
-    detail: !!data.detail ? data.detail : "",
+    detail: data.detail !== undefined ? data.detail : "",
     last_update: data.last_update,
     id: data.aboutAppId,
   };
@@ -60,7 +58,7 @@ export function makeAboutIndexWebResponse(
 ): AboutIndexWebResponse {
   return data.map((d: AboutShowDBResponse) => ({
     version: d.version,
-    detail: !!d.detail ? d.detail : "",
+    detail: d.detail !== undefined ? d.detail : "",
     last_update: d.last_update,
     id: d.aboutAppId,
   }));
@@ -72,7 +70,7 @@ export function makeAboutStoreWebResponse(
   return {
     id: data.aboutAppId,
     version: data.version,
-    detail: !!data.detail ? data.detail : "",
+    detail: data.detail !== undefined ? data.detail : "",
     last_update: data.last_update,
   };
 }
@@ -83,7 +81,7 @@ export function makeAboutUpdateWebResponse(
   return {
     id: data.aboutAppId,
     version: data.version,
-    detail: !!data.detail ? data.detail : "",
+    detail: data.detail !== undefined ? data.detail : "",
     last_update: data.last_update,
   };
 }

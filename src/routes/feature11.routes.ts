@@ -1,4 +1,5 @@
-import { Router, Request, Response } from "express";
+import { Router } from "express";
+import multerConfig from "../multerConfig";
 
 // here import your controllers(function)
 import {
@@ -16,7 +17,16 @@ import {
     editComment,
     deleteImage,
     deleteVenue,
-    deleteTag
+    deleteTag,
+    getArticleHistory,
+    CreatorLikeComment,
+    deleteCommentLikeByCreator,
+    getUserArticle,
+    getCommentHistory,
+    public_getAllArticle,
+    public_getArticleDetail,
+    editArticle,
+    getUserSavedPlace
 } from "../controllers/feature11.controller";
 
 const feature11Router = Router();
@@ -25,10 +35,12 @@ const feature11Router = Router();
 // feature11Router.get("/", getfeature11);
 
 // * POST
-feature11Router.post("/addArticle", addArticle);
-//feature11Router.post("/addArticle/:Id", addArticle);
+feature11Router.post("/addArticle", multerConfig.array('files', 10), addArticle);
+feature11Router.post("/editArticle", multerConfig.array('files', 10),editArticle);
 feature11Router.post("/writeComment", addComment);
 feature11Router.post("/addLike", addLike);
+feature11Router.post("/addCommentByCreator", CreatorLikeComment)
+feature11Router.post("/fetchUserArticle", getUserArticle)
 
 // * DELETE
 feature11Router.delete("/deleteArticle", deleteArticle);
@@ -37,16 +49,23 @@ feature11Router.delete("/deleteLike", deleteLike);
 feature11Router.delete("/deleteImage", deleteImage);
 feature11Router.delete("/deleteVenue", deleteVenue);
 feature11Router.delete("/deleteTag", deleteTag);
+feature11Router.delete("/deleteCommentLikeByCreator", deleteCommentLikeByCreator)
 
 // * UPDATE
 feature11Router.patch("/editComment", editComment);
 
 // * READ
 feature11Router.get("/fetchAllArticle", getAllArticle);
+feature11Router.get("/fetchAllArticle_nologin", public_getAllArticle);
 feature11Router.get("/fetchAllVenueName", getAllVenueName);
+feature11Router.get("/fetchArticleHistory", getArticleHistory);
+feature11Router.get("/fetchCommentHistory", getCommentHistory);
+
+feature11Router.get("/fetchUserSavedPlace", getUserSavedPlace);
 
 // parameter = article id
 feature11Router.get("/fetchArticleDetail/:articleId", getArticleDetail);
+feature11Router.get("/fetchArticleDetail_nologin/:articleId", public_getArticleDetail);
 feature11Router.get("/fetchArticleComment/:id", getArticleComment);
 
 //feature11Router.get("/getAllUsers", getAllUsers);

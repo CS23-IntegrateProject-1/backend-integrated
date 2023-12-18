@@ -9,7 +9,11 @@ import {
   displayAllQuestionsWrtName,
   displayAnswerWrtVenueID,
   getAllUsers,
+  getFriendList,
+  forDialogflow,
+  fetchData,
 } from "../controllers/feature12.controller";
+import { customVerifyCookie } from "../middlewares/verifyCookies";
 
 const feature12Router = Router();
 //CRUD
@@ -32,4 +36,10 @@ feature12Router.get("/displayQuestion/:id", displayAllQuestionsWrtName);
 feature12Router.get("/displayAnswer/:id", displayAnswerWrtVenueID);
 //Get all user
 feature12Router.get("/displayUser", getAllUsers);
+//Get Friend List
+feature12Router.get("/displayFriendList",customVerifyCookie, getFriendList);
+
+//dialogflow route
+feature12Router.post("/dialogflow", forDialogflow);
+feature12Router.get("/fetchData", fetchData);
 export default feature12Router;

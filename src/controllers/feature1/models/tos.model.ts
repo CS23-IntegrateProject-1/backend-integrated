@@ -1,5 +1,3 @@
-type TosShowWebRequest = {};
-
 type TosShowWebResponse = {
   user_id: number;
   consented: boolean;
@@ -9,8 +7,6 @@ export type TosShowDBResponse = {
   userId: number;
   privacy_consent: boolean;
 };
-
-type Tos = TosShowDBResponse;
 
 export type TosUpdateDBResponse = TosShowDBResponse;
 

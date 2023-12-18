@@ -7,15 +7,6 @@ import seatsService from "../services/movie/seats.service";
 
 const prisma = new PrismaClient();
 
-// example of controller getAllAuthors
-// export const getAllAuthors = async (req: Request, res: Response) => {
-//   try {
-//     const allAuthors = await feature1Client.modelName.findMany({
-//   } catch (e) {
-//     console.log(e);
-//   }
-// };
-
 export const getfeature10 = async (req: Request, res: Response) => {};
 
 export const getAllFilms = async (req: Request, res: Response) => {

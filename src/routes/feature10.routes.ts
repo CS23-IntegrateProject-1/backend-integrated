@@ -2,7 +2,6 @@ import { Router } from "express";
 
 // here import your controllers(function)
 import {
-    getfeature10,
     getNowShowingFilms,
     getUpcomingFilms,
     getShowingFilms,
