@@ -185,9 +185,8 @@ export const getVenueAndReservationsById = async (
 //POST METHOD
 // create Reservation
 // Finished
-var isResponse = true;
 export const createReservation = async (req: Request, res: Response) => {
-    isResponse = true;
+    let isResponse = true;
 
     try {
         const token = req.cookies.authToken;
@@ -798,9 +797,8 @@ export const cancelReservation = async (req: Request, res: Response) => {
 
 // OFFLINE RESERVATION
 // Finished
-var isResponse = true;
 export const createOfflineReservation = async (req: Request, res: Response) => {
-    isResponse = true;
+    let isResponse = true;
     try {
         const token = req.cookies.authToken;
         if (!token) {
@@ -942,7 +940,7 @@ export const createOfflineReservation = async (req: Request, res: Response) => {
 
             const defaultCheckoutTime = new Date();
             defaultCheckoutTime.setHours(7, 0, 0, 0);
-            const checkInLog = await feature6Client.check_in_log.create({
+            await feature6Client.check_in_log.create({
                 data: {
                     reserveId: reservationId,
                     check_in_time: checkInTime,
@@ -1020,7 +1018,7 @@ export const checkIn = async (req: Request, res: Response) => {
         defaultCheckoutTime.setHours(7, 0, 0, 0);
         const isSuccess = true;
         if (isSuccess) {
-            const checkInLog = await feature6Client.check_in_log.create({
+            await feature6Client.check_in_log.create({
                 data: {
                     reserveId: reservationId,
                     check_in_time: checkInTime,
@@ -1158,8 +1156,7 @@ export const checkInStatus = async (req: Request, res: Response) => {
         if (!token) {
             return res.status(401).json({ error: "No auth token" });
         }
-
-        const status = await feature6Client.reservation.findUnique({
+        const getstatus = await feature6Client.reservation.findUnique({
             where: {
                 reservationId: parseInt(reservationId),
             },
@@ -1167,8 +1164,8 @@ export const checkInStatus = async (req: Request, res: Response) => {
                 status: true,
             },
         });
-        if (status?.status == "Check_in") {
-            // res.cookie("reservationToken")
+        console.log(getstatus?.status)
+        if (getstatus?.status == "Check_in") {
             const reservationToken = genToken(parseInt(reservationId));
             res.cookie("reservationToken", reservationToken, {
                 httpOnly: true,
@@ -1177,7 +1174,7 @@ export const checkInStatus = async (req: Request, res: Response) => {
             });
             
         }
-        res.json(status?.status);
+        res.json(getstatus);
        
     } catch (e) {
         return res.status(500).json(e);

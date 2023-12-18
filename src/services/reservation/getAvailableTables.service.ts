@@ -46,12 +46,12 @@ export const getAvailableTables = async (req: Request) => {
                 return open.day;
             })
         ).then((nestedArrays) => nestedArrays.flat());
-        var pos;
+        let pos;
         for (let index = 0; index < daysOfWeek.length; index++) {
             if (openday[openday.length - 1] == daysOfWeek[index]) pos = index;
         }
         openday.push(daysOfWeek[pos + 1]);
-        var canreserve = 0;
+        let canreserve = 0;
         for (let index = 0; index < openday.length; index++) {
             if (daysOfWeek[day] == openday[index]) canreserve++;
         }
@@ -65,7 +65,7 @@ export const getAvailableTables = async (req: Request) => {
                 day: dayName as Day,
             },
         });
-        var notOpen = false;
+        let notOpen = false;
         const dayBefore = daysOfWeek[day - 1];
         if (opening.length === 0) {
             const openBefore = await prisma.opening_day.findMany({
@@ -85,7 +85,7 @@ export const getAvailableTables = async (req: Request) => {
                 notOpen = true;
             }
         }
-        var open, close;
+        let open, close;
         if (notOpen) {
             const openBefore = await prisma.opening_day.findMany({
                 where: {

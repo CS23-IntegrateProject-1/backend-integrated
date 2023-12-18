@@ -1,9 +1,11 @@
-import { Request, Response } from 'express';
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import { NextFunction, Request, Response } from 'express';
 
 export function errorHandler(
   err: Error,
   req: Request,
   res: Response,
+  next: NextFunction,
 ) {
   console.error(err);
 
@@ -11,7 +13,7 @@ export function errorHandler(
     return res.status(err.statusCode).json({ error: err.message });
   }
 
-  return res.status(500).json({ error: 'Internal Server Error' });
+  return res.status(500).json({ error: 'Internal Server Error' }).end();
 }
 
 export class CustomError extends Error {
