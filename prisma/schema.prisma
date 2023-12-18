@@ -805,7 +805,7 @@ model Like {
 model Reservation {
   venueId                  Int
   name                     String?
-  phone                    String?                     @db.VarChar(10)
+  phone                    String?                    @db.VarChar(10)
   guest_amount             Int
   reserved_time            DateTime                   @default(now())
   status                   Status
@@ -1346,6 +1346,7 @@ model Screens {
   screenId    Int         @id @default(autoincrement())
   theaterId   Int
   capacity    Int
+  price       Decimal?
   screen_type Screen_type
   screen_no   Int
   theater     Theaters    @relation(fields: [theaterId], references: [theaterId])
