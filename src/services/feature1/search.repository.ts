@@ -1,4 +1,5 @@
-import { prismaClient } from "../../controllers/feature1.controller";
+import { Prisma, PrismaClient } from "@prisma/client";
+import { DefaultArgs } from "@prisma/client/runtime/library";
 import { SearchDBResponse } from "../../controllers/feature1/models/search.model";
 
 export interface ISearchRepository {
@@ -8,8 +9,18 @@ export interface ISearchRepository {
 }
 
 export default class SearchRepository implements ISearchRepository {
+  private prismaClient: PrismaClient<
+    Prisma.PrismaClientOptions,
+    never,
+    DefaultArgs
+  >;
+
+  constructor() {
+    this.prismaClient = new PrismaClient();
+  }
+
   async getUserByPhone(phone: string): Promise<SearchDBResponse> {
-    const result = await prismaClient.user.findFirst({
+    const result = await this.prismaClient.user.findFirst({
       where: {
         phone,
       },
@@ -30,7 +41,7 @@ export default class SearchRepository implements ISearchRepository {
   }
 
   async getUserByName(userName: string): Promise<SearchDBResponse> {
-    const result = await prismaClient.user.findFirst({
+    const result = await this.prismaClient.user.findFirst({
       where: {
         username: userName,
       },

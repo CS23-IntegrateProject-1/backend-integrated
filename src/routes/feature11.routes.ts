@@ -26,9 +26,7 @@ import {
     public_getAllArticle,
     public_getArticleDetail,
     editArticle,
-    getUserSavedPlace,
-    CreateSavedPLace,
-    DeleteSavedPlace
+    getUserSavedPlace
 } from "../controllers/feature11.controller";
 
 const feature11Router = Router();
@@ -44,8 +42,6 @@ feature11Router.post("/addLike", addLike);
 feature11Router.post("/addCommentByCreator", CreatorLikeComment)
 feature11Router.post("/fetchUserArticle", getUserArticle)
 
-feature11Router.post("/addSavedPlace", CreateSavedPLace)
-
 // * DELETE
 feature11Router.delete("/deleteArticle", deleteArticle);
 feature11Router.delete("/deleteComment", deleteComment);
@@ -54,8 +50,6 @@ feature11Router.delete("/deleteImage", deleteImage);
 feature11Router.delete("/deleteVenue", deleteVenue);
 feature11Router.delete("/deleteTag", deleteTag);
 feature11Router.delete("/deleteCommentLikeByCreator", deleteCommentLikeByCreator)
-
-feature11Router.delete("/deleteSavedPlace", DeleteSavedPlace)
 
 // * UPDATE
 feature11Router.patch("/editComment", editComment);

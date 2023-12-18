@@ -3,7 +3,9 @@ import { ProfileRepository } from "../../services/feature1/profile.repository";
 import ProfileService, {
   IProfileService,
 } from "../../services/feature1/profile.service";
+import { extractToken } from "./utils";
 import { makeErrorResponse } from "./models/payment_method.model";
+import jwt, { JsonWebTokenError } from "jsonwebtoken";
 import { z } from "zod";
 
 export interface IProfileController {
@@ -25,35 +27,72 @@ export default class ProfileController implements IProfileController {
   );
 
   async update(req: Request, res: Response) {
-    const profile = req.body;
+    let token: string;
 
-    const result = await ProfilePayload.safeParseAsync(profile);
-
-    if (!result.success) {
-      return res.status(400).json(makeErrorResponse("Invalid request"));
+    try {
+      token = extractToken(req);
+    } catch (e) {
+      return res.status(401).json(makeErrorResponse("Unauthorized"));
     }
 
     try {
-      const response = await this.service.updateUserProfile(
-        Number(req.params.userId),
-        result.data,
+      const decoded = jwt.verify(
+        token as string,
+        process.env.JWT_SECRET as string,
       );
+      const userId = (decoded as jwt.JwtPayload).userId;
+      const profile = req.body;
 
-      return res.json(response);
+      const result = await ProfilePayload.safeParseAsync(profile);
+
+      if (!result.success) {
+        return res.status(400).json(makeErrorResponse("Invalid request"));
+      }
+
+      try {
+        const response = await this.service.updateUserProfile(
+          userId,
+          result.data,
+        );
+
+        return res.json(response);
+      } catch (e) {
+        return res.status(404).json(makeErrorResponse("User not found"));
+      }
     } catch (e) {
-      return res.status(404).json(makeErrorResponse("User not found"));
+      if (e instanceof JsonWebTokenError) {
+        return res.status(401).json(makeErrorResponse("Invalid token"));
+      }
     }
   }
 
   async show(req: Request, res: Response) {
-    try {
-      const response = await this.service.getUserProfile(
-        Number(req.params.userId),
-      );
+    let token: string;
 
-      return res.json(response);
+    try {
+      token = extractToken(req);
     } catch (e) {
-      return res.status(404).json(makeErrorResponse("User not found"));
+      return res.status(401).json(makeErrorResponse("Unauthorized"));
+    }
+
+    try {
+      const decoded = jwt.verify(
+        token as string,
+        process.env.JWT_SECRET as string,
+      );
+      const userId = (decoded as jwt.JwtPayload).userId;
+
+      try {
+        const response = await this.service.getUserProfile(userId);
+
+        return res.json(response);
+      } catch (e) {
+        return res.status(404).json(makeErrorResponse("User not found"));
+      }
+    } catch (e) {
+      if (e instanceof JsonWebTokenError) {
+        return res.status(401).json(makeErrorResponse("Invalid token"));
+      }
     }
   }
 }

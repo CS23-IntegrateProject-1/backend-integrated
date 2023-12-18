@@ -1,9 +1,10 @@
+import { Prisma, PrismaClient } from "@prisma/client";
+import { DefaultArgs } from "@prisma/client/runtime/library";
 import {
   FriendRawDBResponse,
   FriendIndexDBResponse,
 } from "../../controllers/feature1/models/friend.model";
 import { map } from "ramda";
-import { prismaClient } from "../../controllers/feature1.controller";
 
 export interface IFriendRepository {
   addFriendByUserName(requesterId: number, requesteeId: number): void;
@@ -26,8 +27,18 @@ const transform = (data: FriendRawDBResponse) => {
 const stripUserIdsAndStatus = map(transform);
 
 export default class FriendRepository {
+  private prismaClient: PrismaClient<
+    Prisma.PrismaClientOptions,
+    never,
+    DefaultArgs
+  >;
+
+  constructor() {
+    this.prismaClient = new PrismaClient();
+  }
+
   async listFriendsByUserId(userId: number): Promise<FriendIndexDBResponse> {
-    const result = await prismaClient.friendship.findMany({
+    const result = await this.prismaClient.friendship.findMany({
       where: {
         firstUserId: userId,
       },
@@ -51,7 +62,7 @@ export default class FriendRepository {
     requesterId: number,
     requesteeId: number,
   ): Promise<void> {
-    await prismaClient.friendship.create({
+    await this.prismaClient.friendship.create({
       data: {
         firstUserId: requesterId,
         sencondUserId: requesteeId,

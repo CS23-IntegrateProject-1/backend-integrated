@@ -5,7 +5,6 @@ import SearchRepository from "../../services/feature1/search.repository";
 import SearchService, {
   ISearchService,
 } from "../../services/feature1/search.service";
-import { isNil } from 'ramda';
 
 interface ISearchController {
   show: (req: Request, res: Response) => unknown;
@@ -21,7 +20,7 @@ export default class SearchController implements ISearchController {
       return res.status(400).json(makeErrorResponse("Malformed request"));
     }
 
-    if (!isNil(username)) {
+    if (username !== undefined) {
       try {
         const response = await this.service.searchByUserName(
           username.toString(),
@@ -35,7 +34,7 @@ export default class SearchController implements ISearchController {
       }
     }
 
-    if (!isNil(phone)) {
+    if (phone !== undefined) {
       try {
         const response = await this.service.searchByPhone(phone.toString());
 

@@ -1,13 +1,14 @@
-import { JsonWebTokenError } from "jsonwebtoken";
+import jwt, { JsonWebTokenError } from "jsonwebtoken";
 import { Request, Response } from "express";
 
 import GroupRepository from "../../services/feature1/group.repository";
 import GroupService, {
   IGroupService,
 } from "../../services/feature1/group.service";
+import { extractToken } from "./utils";
 import { makeErrorResponse } from "./models/payment_method.model";
 import { makeGroupCreateWebResponse } from "./models/group.model";
-import { prismaClient } from "../feature1.controller";
+import { PrismaClient } from "@prisma/client";
 
 export interface IGroupController {
   index(req: Request, res: Response): unknown;
@@ -19,22 +20,32 @@ export default class GroupController implements IGroupController {
   private service: IGroupService = new GroupService(new GroupRepository());
 
   async create(req: Request, res: Response) {
+    let token: string;
+
     try {
+      token = extractToken(req);
+    } catch (e) {
+      return res.status(401).json(makeErrorResponse("Unauthorized"));
+    }
+
+    try {
+      const decoded = jwt.verify(
+        token as string,
+        process.env.JWT_SECRET as string,
+      );
+      const userId = (decoded as jwt.JwtPayload).userId;
       const { group_name: groupName, members } = req.body;
-      let fileName: string|null;
 
-      if (req['file']) {
-        fileName = req['file'].filename;
-      } else {
-        fileName = null;
-      }
-
-      const groups = await this.service.createGroup(Number(req.params.userId), groupName, members.map((m: string) => Number(m)), fileName);
+      const groups = await this.service.createGroup(userId, groupName, members);
 
       const webResponse = makeGroupCreateWebResponse(groups);
 
       return res.status(200).json(webResponse);
     } catch (e) {
+      if (e instanceof JsonWebTokenError) {
+        return res.status(401).json(makeErrorResponse("Invalid token"));
+      }
+
       return res
         .status(500)
         .json(makeErrorResponse("Unknown Error Encountered"));
@@ -47,8 +58,21 @@ export default class GroupController implements IGroupController {
     const { id } = req.params;
     const groupId = Number(id);
 
+    let token: string;
+
     try {
-      const result = await prismaClient.group.findFirst({
+      token = extractToken(req);
+    } catch (e) {
+      return res.status(401).json(makeErrorResponse("Unauthrozied"));
+    }
+
+    try {
+      jwt.verify(
+        token as string,
+        process.env.JWT_SECRET as string,
+      );
+      const client = new PrismaClient();
+      const result = await client.group.findFirst({
         where: {
           groupId,
         },
@@ -74,7 +98,6 @@ export default class GroupController implements IGroupController {
       const response = {
         group_id: result.groupId,
         group_name: result.group_name,
-        group_avatar: result.group_profile,
         members: result.Group_user.map((user) => ({
           user_id: user.member.userId,
           username: user.member.username,
@@ -96,21 +119,36 @@ export default class GroupController implements IGroupController {
 
   // TODO @SoeThandarLwin: Refactor to follow proper structure later
   async index(req: Request, res: Response) {
+    let token: string;
+
     try {
-      const result = await prismaClient.group_user.findMany({
+      token = extractToken(req);
+    } catch (e) {
+      return res.status(401).json(makeErrorResponse("Unauthrozied"));
+    }
+
+    try {
+      const decoded = jwt.verify(
+        token as string,
+        process.env.JWT_SECRET as string,
+      );
+      const userId = (decoded as jwt.JwtPayload).userId;
+      const client = new PrismaClient();
+      const result = await client.group_user.findMany({
         where: {
-          memberId: Number(req.params.userId),
+          memberId: userId,
         },
         include: {
           group: true,
         },
       });
 
+      client.$disconnect();
+
       const response = result.map((r) => {
         return {
           group_id: r.group.groupId,
           group_name: r.group.group_name,
-          group_avatar: r.group.group_profile,
         };
       });
 

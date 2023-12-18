@@ -1,4 +1,8 @@
-import { prismaClient } from "../../controllers/feature1.controller";
+import { PrismaClient } from "@prisma/client";
+import {
+  DefaultArgs,
+  PrismaClientOptions,
+} from "@prisma/client/runtime/library";
 import {
   AboutShowDBResponse,
   AboutStoreDBResponse,
@@ -24,8 +28,14 @@ export interface IAboutRepository {
 }
 
 export default class AboutRepository implements IAboutRepository {
+  private prismaClient: PrismaClient<PrismaClientOptions, never, DefaultArgs>;
+
+  constructor() {
+    this.prismaClient = new PrismaClient();
+  }
+
   async getAllAbouts(): Promise<[AboutShowDBResponse]> {
-    const result = await prismaClient.about_app.findMany({});
+    const result = await this.prismaClient.about_app.findMany({});
 
     if (result === null) {
       throw new Error("No About found");
@@ -35,7 +45,7 @@ export default class AboutRepository implements IAboutRepository {
   }
 
   async getLatestAbout(): Promise<AboutShowDBResponse> {
-    const result = await prismaClient.about_app.findFirst({
+    const result = await this.prismaClient.about_app.findFirst({
       orderBy: [{ last_update: "desc" }],
       take: 1,
     });
@@ -48,7 +58,7 @@ export default class AboutRepository implements IAboutRepository {
   }
 
   async getAboutById(id: number): Promise<AboutShowDBResponse> {
-    const result = await prismaClient.about_app.findFirst({
+    const result = await this.prismaClient.about_app.findFirst({
       where: {
         aboutAppId: id,
       },
@@ -61,11 +71,8 @@ export default class AboutRepository implements IAboutRepository {
     }
   }
 
-  async storeAbout(
-    version: string,
-    detail: string,
-  ): Promise<AboutStoreDBResponse> {
-    return await prismaClient.about_app.create({
+  storeAbout(version: string, detail: string): Promise<AboutStoreDBResponse> {
+    return this.prismaClient.about_app.create({
       data: {
         version,
         detail,
@@ -79,7 +86,7 @@ export default class AboutRepository implements IAboutRepository {
     version: string,
     detail: string,
   ): Promise<AboutUpdateDBResponse> {
-    return prismaClient.about_app.update({
+    return this.prismaClient.about_app.update({
       where: {
         aboutAppId: id,
       },
@@ -91,7 +98,7 @@ export default class AboutRepository implements IAboutRepository {
   }
 
   async deleteAboutById(id: number): Promise<void> {
-    await prismaClient.about_app.delete({
+    await this.prismaClient.about_app.delete({
       where: {
         aboutAppId: id,
       },

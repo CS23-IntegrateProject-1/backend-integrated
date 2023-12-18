@@ -4,6 +4,7 @@ import AboutService, {
 } from "../../services/feature1/about.service";
 import AboutRepository from "../../services/feature1/about.repository";
 import { makeErrorResponse } from "./models/payment_method.model";
+import jwt, { JsonWebTokenError } from "jsonwebtoken";
 import {
   makeAboutShowWebResponse,
   makeAboutIndexWebResponse,
@@ -15,8 +16,9 @@ import {
   PrismaClientValidationError,
 } from "@prisma/client/runtime/library";
 import { Prisma } from "@prisma/client";
+import { extractToken } from "./utils";
 
-export interface IAboutController {
+interface IAboutController {
   store: (req: Request, res: Response) => unknown;
   show: (req: Request, res: Response) => unknown;
   update: (req: Request, res: Response) => unknown;
@@ -27,7 +29,20 @@ export class AboutController implements IAboutController {
   private service: IAboutService = new AboutService(new AboutRepository());
 
   async store(req: Request, res: Response) {
+    let token: string;
+
     try {
+      token = extractToken(req);
+    } catch (e) {
+      return res.status(401).json(makeErrorResponse("Unauthorized"));
+    }
+
+    try {
+      jwt.verify(
+        token as string,
+        process.env.JWT_SECRET as string,
+      );
+
       const { version } = req.body;
       let { detail } = req.body;
 
@@ -60,12 +75,29 @@ export class AboutController implements IAboutController {
         }
       }
     } catch (e) {
-      return res.status(404).json(makeErrorResponse("About not found"));
+      if (e instanceof JsonWebTokenError) {
+        return res.status(401).json(makeErrorResponse("Invalid token"));
+      } else {
+        return res.status(404).json(makeErrorResponse("About not found"));
+      }
     }
   }
 
   async show(req: Request, res: Response) {
+    let token: string;
+
     try {
+      token = extractToken(req);
+    } catch (e) {
+      return res.status(401).json(makeErrorResponse("Unauthorized"));
+    }
+
+    try {
+      jwt.verify(
+        token as string,
+        process.env.JWT_SECRET as string,
+      );
+
       const { id } = req.query;
 
       const idNum: number = Number(id);
@@ -75,7 +107,7 @@ export class AboutController implements IAboutController {
         const webResponse = makeAboutShowWebResponse(response);
 
         res.json(webResponse);
-      } else if (Object.prototype.hasOwnProperty.call(req.query, "latest")) {
+      } else if ('latest' in req.query) {
         const response = await this.service.latestAbout();
         const webResponse = makeAboutShowWebResponse(response);
 
@@ -87,63 +119,104 @@ export class AboutController implements IAboutController {
         return res.json(webResponse);
       }
     } catch (e) {
-      return res.status(404).json(makeErrorResponse("About not found"));
-    }
-  }
-
-  async update(req: Request, res: Response) {
-    const { id, version } = req.body;
-    let { detail } = req.body;
-
-    const idNum = Number(id);
-
-    if (isNaN(idNum) || typeof version !== "string") {
-      return res.status(400).json(makeErrorResponse("Malformed request"));
-    }
-
-    if (typeof detail !== "string") {
-      detail = "";
-    }
-
-    try {
-      const response = await this.service.updateAbout(idNum, version, detail);
-
-      const webResponse = makeAboutUpdateWebResponse(response);
-
-      return res.json(webResponse);
-    } catch (e) {
-      if (e instanceof PrismaClientValidationError) {
-        return res
-          .status(400)
-          .json(makeErrorResponse("Invalid request"))
-          .send();
+      if (e instanceof JsonWebTokenError) {
+        return res.status(401).json(makeErrorResponse("Invalid token"));
       } else {
         return res.status(404).json(makeErrorResponse("About not found"));
       }
     }
   }
 
-  async destroy(req: Request, res: Response) {
-    const { id } = req.query;
-    const idNum: number = Number(id);
+  async update(req: Request, res: Response) {
+    let token: string;
 
-    if (isNaN(idNum)) {
-      return res.status(400).json(makeErrorResponse("Malformed request"));
+    try {
+      token = extractToken(req);
+    } catch (e) {
+      return res.status(401).json(makeErrorResponse("Unauthorized"));
     }
 
     try {
-      await this.service.deleteAbout(idNum);
+      jwt.verify(
+        token as string,
+        process.env.JWT_SECRET as string,
+      );
 
-      return res.status(200).send();
-    } catch (e) {
-      if (e instanceof Prisma.PrismaClientKnownRequestError) {
-        if (e.code === "P2025") {
+      const { id, version } = req.body;
+      let { detail } = req.body;
+
+      const idNum = Number(id);
+
+      if (isNaN(idNum) || typeof version !== "string") {
+        return res.status(400).json(makeErrorResponse("Malformed request"));
+      }
+
+      if (typeof detail !== "string") {
+        detail = "";
+      }
+
+      try {
+        const response = await this.service.updateAbout(idNum, version, detail);
+
+        const webResponse = makeAboutUpdateWebResponse(response);
+
+        return res.json(webResponse);
+      } catch (e) {
+        if (e instanceof PrismaClientValidationError) {
           return res
-            .status(404)
-            .json(makeErrorResponse(e.meta!.cause as string));
+            .status(400)
+            .json(makeErrorResponse("Invalid request"))
+            .send();
+        } else {
+          return res.status(404).json(makeErrorResponse("About not found"));
         }
-      } else {
-        return res.status(500).send();
+      }
+    } catch (e) {
+      if (e instanceof JsonWebTokenError) {
+        return res.status(401).json(makeErrorResponse("Invalid token"));
+      }
+    }
+  }
+
+  async destroy(req: Request, res: Response) {
+    let token: string;
+
+    try {
+      token = extractToken(req);
+    } catch (e) {
+      return res.status(401).json(makeErrorResponse("Unauthorized"));
+    }
+
+    try {
+      jwt.verify(
+        token as string,
+        process.env.JWT_SECRET as string,
+      );
+      const { id } = req.query;
+      const idNum: number = Number(id);
+
+      if (isNaN(idNum)) {
+        return res.status(400).json(makeErrorResponse("Malformed request"));
+      }
+
+      try {
+        await this.service.deleteAbout(idNum);
+
+        return res.status(200).send();
+      } catch (e) {
+        if (e instanceof Prisma.PrismaClientKnownRequestError) {
+          if (e.code === "P2025") {
+            return res
+              .status(404)
+              .json(makeErrorResponse(e.meta!.cause as string));
+          }
+        } else {
+          return res.status(500).send();
+        }
+      }
+    } catch (e) {
+      if (e instanceof JsonWebTokenError) {
+        return res.status(401).json(makeErrorResponse("Invalid token"));
       }
     }
   }
