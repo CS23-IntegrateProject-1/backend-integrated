@@ -46,6 +46,7 @@ export const ApiConfirmReserve = async (req: Request, res: Response) => {
         const guest_amount = req.body.guest_amount;
 
         console.log(venueId,branchId);
+        console.log(tableId, reserved_time, reserved_date)
 
         let isResponse = true;
         const getAvailableTablesResponse = await getAvailableTables(req);
