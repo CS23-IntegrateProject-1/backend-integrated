@@ -20,6 +20,7 @@ import Feature14Routes from "./routes/feature14.routes";
 
 import { httpServer as socketIoServer } from "./socketio";
 import path from "path";
+import { MajorAPIRoutes } from "./routes/MajorAPI.routes";
 
 loadEnv();
 
@@ -53,6 +54,7 @@ app.use("/feature10", Feature10Routes);
 app.use("/feature11", Feature11Routes);
 app.use("/feature12", Feature12Routes);
 app.use("/feature14", Feature14Routes);
+app.use("/MajorAPI/", MajorAPIRoutes);
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 app.listen(port, () => {
