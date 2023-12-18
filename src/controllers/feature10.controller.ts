@@ -9,6 +9,7 @@ const prisma = new PrismaClient();
 
 export const getfeature10 = async (req: Request, res: Response) => {};
 
+
 export const getAllFilms = async (req: Request, res: Response) => {
     const data = await filmService.getAllFilms();
     res.json(data);
@@ -57,8 +58,6 @@ export const getUpcomingFilms = async (req: Request, res: Response) => {
     res.json(data);
 };
 
-
-
 export const getShowsByFilmId = async (req: Request, res: Response) => {
     const id = Number(req.params.id);
     const date = req.params.date;
@@ -66,6 +65,10 @@ export const getShowsByFilmId = async (req: Request, res: Response) => {
     const data = await showService.getShowsByFilmId(id, date);
     res.json(data);
 };
+
+
+
+
 
 //make it distinct????????????????????????????????????????????????
 export const getSeatsTypeByScreenId = async (req: Request, res: Response) => {
@@ -82,14 +85,21 @@ export const getSeatsTypeByScreenId = async (req: Request, res: Response) => {
     
 }
 
+
+
+
+
 export const getSeatByScreenId = async (req: Request, res: Response) => {
     const id = req.body.id;
     const data = await seatsService.getSeatByScreenId(id);
     res.json(data);
 }
 
+
+
+
+
 //page4
-//
 
 export const getShowsByTheaterId = async (req: Request, res: Response) => {
     const id = Number(req.params.id);
@@ -98,7 +108,7 @@ export const getShowsByTheaterId = async (req: Request, res: Response) => {
     const data = await showService.getShowsByTheaterId(id, date);
     res.json(data);
 }
-//
+
 export const getFilmsByTheaterId = async (req: Request, res: Response) => {
     const id = req.body.id;
     const date = req.body.date;
@@ -108,12 +118,16 @@ export const getFilmsByTheaterId = async (req: Request, res: Response) => {
     const data = await filmService.getFilmsByTheaterId(id, date,month,year);
     res.json(data);
 }  
-//
+
 export const getTheaterById = async (req: Request, res: Response) => {
     const id = Number(req.params.id);
     const data = await theaterService.getTheaterById(id);
     res.status(200).json(data);
 }
+
+
+
+
 
 //test
 export const getTestTest = async (req: Request, res: Response) => {

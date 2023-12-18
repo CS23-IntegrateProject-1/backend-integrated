@@ -124,21 +124,6 @@ class filmService{
 		return data;
 	}
 
-	// getFilmsByTheaterId(id: number, date: string): Promise<any[]> {
-	// 	const prisma = new PrismaClient();
-	// 	const data = prisma.films.findMany({
-	// 		//distinct: ["filmId"],
-	// 		where: {
-	// 			Shows: {
-	// 				every: {
-	// 					date: new Date(date)
-	// 				}
-	// 			},
-	// 		},
-	// 	});
-	// 	return data;
-	// }
-
 	async getFilmsByTheaterId(id: number, date: number, month:number, year:number): Promise<any[]> {
 		const prisma = new PrismaClient();
 		const dateString = date<10 ? "0"+date : date.toString()
