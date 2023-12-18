@@ -4,6 +4,7 @@ import filmService from "../services/movie/films.service";
 import  theaterService  from "../services/movie/theaters.service";
 import showService from "../services/movie/shows.service";
 import seatsService from "../services/movie/seats.service";
+import reservationService from "../services/movie/reservation.service";
 
 const prisma = new PrismaClient();
 
@@ -127,34 +128,8 @@ export const getTheaterById = async (req: Request, res: Response) => {
 
 
 
-
-
-//test
-export const getTestTest = async (req: Request, res: Response) => {
-    try {
-        const data = await prisma.shows.findMany({
-            where: {
-                showId: 1,
-            },
-            include: {
-                screen:{
-                    include:{
-                        theater:true
-                    }
-                },
-                film:true
-            }    
-        });
-        res.json(data); 
-
-    } catch (err) {
-        const error = err as Error;
-        res.status(500).json({error: error.message});
-    }
-}    
-
-
-
-
-
-
+export const getTotalPriceByReservationId = async (req: Request, res: Response) => {
+    const id = req.body.id;
+    const data = await reservationService.getTotalPriceByReservationId(id);
+    res.json(data);
+}
