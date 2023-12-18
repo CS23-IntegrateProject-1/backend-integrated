@@ -351,8 +351,10 @@ export const GetallVenue = async (req: Request, res: Response) => {
 
 export const GetAllVoucherForUser = async (req: Request, res: Response) => {
   try {
+    const {id} = req.params
     const getvoucher = await feature5Client.voucher.findMany({
       where: {
+        voucherId: parseInt(id),
         isApprove: "Completed",
       },
       include: {
