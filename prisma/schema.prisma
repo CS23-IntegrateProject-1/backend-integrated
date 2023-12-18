@@ -21,7 +21,6 @@ model User {
   prompt_pay             Int?
   Article                Article[]
   Chat_Room_Logs         Chat_Room_Logs[]
-  Chat_message           Chat_message[]
   Comments               Comments[]
   Complain_ticket        Complain_ticket[]
   Credit_card            Credit_card[]
@@ -41,7 +40,6 @@ model User {
   Rate_venue_question    Rate_venue_question[]
   Recommendation         Recommendation[]
   Reservation            Reservation[]
-  Reservation_logs       Reservation_logs[]
   Saved_location         Saved_location[]
   Saved_place            Saved_place[]
   Search_history         Search_history[]
@@ -118,10 +116,9 @@ model Group_user {
 }
 
 model Group {
-  groupId       Int            @id @default(autoincrement())
+  groupId       Int          @id @default(autoincrement())
   group_name    String
-  group_profile String?        @db.Text
-  Chat_message  Chat_message[]
+  group_profile String?      @db.Text
   Group_user    Group_user[]
 }
 
@@ -147,7 +144,6 @@ model Venue {
   score             Decimal
   venueId           Int                 @id @default(autoincrement())
   website_url       String              @db.Text
-  venue_picture     String?             @db.Text
   App_transaction   App_transaction[]
   Article_venue     Article_venue[]
   Business_finance  Business_finance[]
@@ -428,19 +424,6 @@ model Message {
 
   @@index([roomId], map: "Message_roomId_fkey")
   @@index([userId], map: "Message_userId_fkey")
-}
-
-model Chat_message {
-  roomId    Int
-  userId    Int
-  message   String
-  date_time DateTime @default(now())
-  messageId Int      @id @default(autoincrement())
-  room      Group    @relation(fields: [roomId], references: [groupId])
-  user      User     @relation(fields: [userId], references: [userId])
-
-  @@index([roomId], map: "Chat_message_roomId_fkey")
-  @@index([userId], map: "Chat_message_userId_fkey")
 }
 
 model Orders {
@@ -1366,6 +1349,7 @@ model Screens {
   capacity    Int
   screen_type Screen_type
   screen_no   Int
+  price       Decimal?
   theater     Theaters    @relation(fields: [theaterId], references: [theaterId])
   Seats       Seats[]
   Shows       Shows[]
@@ -1425,13 +1409,10 @@ model Reservation_logs {
   reservationId Int       @id @default(autoincrement())
   showId        Int
   seatId        Int
-  userId        Int
   Payments      Payments?
   Seats         Seats     @relation(fields: [seatId], references: [seatId])
-  user          User      @relation(fields: [userId], references: [userId])
 
   @@index([seatId], map: "Reservation_logs_seatId_fkey")
-  @@index([userId], map: "Reservation_logs_userId_fkey")
 }
 
 model Payments {
@@ -1457,6 +1438,11 @@ model userSaved_location {
   user         User     @relation(fields: [userId], references: [userId])
 
   @@index([userId], map: "userSaved_location_userId_fkey")
+}
+
+model Promotion_approval {
+  promotionId Int     @id
+  isApprove   Boolean @default(false)
 }
 
 enum Review_type {

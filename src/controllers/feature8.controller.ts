@@ -1885,7 +1885,7 @@ const stripe = new Stripe(process.env.STRIP_KEY ?? "");
 
 export const createCheckoutSession = async (req: Request, res: Response) => {
   try {
-    const dynamicPriceId = await getDynamicPriceId();
+    const dynamicPriceId = await getDynamicPriceId(req);
 
     const session = await stripe.checkout.sessions.create({
       line_items: [
@@ -1905,18 +1905,16 @@ export const createCheckoutSession = async (req: Request, res: Response) => {
   }
 };
 
-const getDynamicPriceId = async () => {
+const getDynamicPriceId = async (req) => {
   const product = await stripe.products.create({
     name: "Checkout",
     description: "Pay for checkout",
   });
+  const reservationId = req.body.reservationId;
 
   const totalAmount = await feature8Client.orders.findUnique({
-    where: { reservedId: 240 },
+    where: { reservedId: reservationId },
   });
-  //   console.log(totalAmount)
-  //   const totalAmountString = (totalAmount?.total_amount * 100.toFixed(2);
-  //   console.log(totalAmountString)
 
   const totalAmount2: any = totalAmount?.total_amount.toFixed(2);
   const movedDecimalNumber = totalAmount2 * 100;
@@ -1982,3 +1980,49 @@ export const createDepositSession = async (req: Request, res: Response) => {
     return price.id;
   };
   
+
+  //For Seat
+export const createSeatSession = async (req: Request, res: Response) => {
+  try {
+    const dynamicPriceId = await getSeatDynamicPriceId(req);
+
+    const session = await stripe.checkout.sessions.create({
+      line_items: [
+        {
+          price: dynamicPriceId,
+          quantity: 1,
+        },
+      ],
+      mode: "payment",
+      success_url: `${YOUR_DOMAIN}/`,
+      cancel_url: `${YOUR_DOMAIN}/`,
+    });
+
+    res.status(200).json({ url: session.url });
+  } catch (error) {
+    res.status(400).json(error);
+  }
+};
+
+const getSeatDynamicPriceId = async (req) => {
+  const product = await stripe.products.create({
+    name: "Seat",
+    description: "Pay for seat",
+  });
+  const reservationId = req.body.reservationId;
+
+  const totalAmount = await feature8Client.screens.findUnique({
+    where: { screenId: reservationId },
+  });
+
+  const totalAmount2: any = totalAmount?.price?.toFixed(2);
+  const movedDecimalNumber = totalAmount2 * 100;
+  const strPrice = movedDecimalNumber.toString();
+  const price = await stripe.prices.create({
+    unit_amount_decimal: strPrice,
+    currency: "thb",
+    product: product.id,
+  });
+
+  return price.id;
+};
