@@ -1805,6 +1805,8 @@ export const getOrderIdByAppTransactionDetailId = async (
 //   }
 // };
 
+
+// Stripe Code payment v1
 // const YOUR_DOMAIN = 'http://localhost:4000';
 // const stripe = new Stripe(process.env.STRIP_KEY ?? '');
 // export const createCheckoutSession = async (req: Request, res: Response) => {
@@ -1831,9 +1833,10 @@ export const getOrderIdByAppTransactionDetailId = async (
 //         // res.redirect(303,session.url!);
 // }
 
+
+// Stripe code payment v2
 // const YOUR_DOMAIN = 'http://localhost:4000';
 // const stripe = new Stripe(process.env.STRIP_KEY ?? '');
-
 // export const createCheckoutSession = async (req: Request, res: Response) => {
 //     try {
 //         // Determine the price dynamically based on your logic
@@ -1873,6 +1876,10 @@ export const getOrderIdByAppTransactionDetailId = async (
 //     return price.id;
 // };
 
+
+
+// Stripe code payment v3
+//For Checkout
 const YOUR_DOMAIN = "http://localhost:4000";
 const stripe = new Stripe(process.env.STRIP_KEY ?? "");
 
@@ -1923,6 +1930,9 @@ const getDynamicPriceId = async () => {
   return price.id;
 };
 
+
+
+//For Deposit
 export const createDepositSession = async (req: Request, res: Response) => {
     try {
       const dynamicPriceId = await getDepositDynamicPriceId();
@@ -1935,8 +1945,8 @@ export const createDepositSession = async (req: Request, res: Response) => {
           },
         ],
         mode: "payment",
-        success_url: `${YOUR_DOMAIN}/checkout-success`,
-        cancel_url: `${YOUR_DOMAIN}/checkout-cancel`,
+        success_url: `${YOUR_DOMAIN}/deposit-success`,
+        cancel_url: `${YOUR_DOMAIN}/deposit-cancel`,
       });
   
       res.status(200).json({ url: session.url });
