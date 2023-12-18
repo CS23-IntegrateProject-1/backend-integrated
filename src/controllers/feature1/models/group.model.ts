@@ -1,10 +1,21 @@
 import { User } from "@prisma/client";
 import { map } from "ramda";
 
+type UserMinimalInfo = {
+  userId: number;
+  username: string;
+  profile_picture: string|null;
+};
+
 export type GroupCreateDBResponse = {
   groupId: number;
   group_name: string;
-  Group_user: Array<{ groupId: number; memberId: number; member: User }>;
+  group_profile: string|null;
+  Group_user: Array<{
+    groupId: number;
+    memberId: number;
+    member: UserMinimalInfo;
+  }>;
 };
 
 export type GroupIndexDBResponse = Array<GroupDBResponse>;
@@ -22,6 +33,7 @@ type Status = "Group" | "Pending";
 export type GroupCreateWebResponse = {
   group_name: string;
   group_id: number;
+  group_avatar: string|null;
   members: Array<{ user_id: number; username: string; avatar: string | null }>;
 };
 
@@ -81,6 +93,7 @@ export function makeGroupCreateWebResponse(
   return {
     group_name: data.group_name,
     group_id: data.groupId,
+    group_avatar: data.group_profile,
     members: data.Group_user.map((user) => ({
       user_id: user.member.userId,
       username: user.member.username,
