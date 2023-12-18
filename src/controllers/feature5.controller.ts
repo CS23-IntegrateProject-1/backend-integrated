@@ -91,9 +91,9 @@ export const AdBusiness = async (req: Request, res: Response) => {
 };
 
 export const DeleteAdvertisement = async (req: Request, res: Response) => {
+  const { id } = req.params;
+  console.log("Deleting advertisement with ID:", id);
   try {
-    const { id } = req.params;
-
     await feature5Client.ad_tag.deleteMany({
       where: { adId: parseInt(id) },
     });
@@ -104,6 +104,7 @@ export const DeleteAdvertisement = async (req: Request, res: Response) => {
     res.json(DeleteAd);
   } catch (err) {
     const error = err as Error;
+    console.log(err);
     res.status(500).json({ error: error.message });
   }
 };
@@ -350,8 +351,15 @@ export const GetallVenue = async (req: Request, res: Response) => {
 export const GetAllVoucherForUser = async (req: Request, res: Response) => {
   try {
     const getvoucher = await feature5Client.voucher.findMany({
-      where:{
-        isApprove: "Completed"
+      where: {
+        isApprove: "Completed",
+      },
+      include:{
+        User_voucher:{
+          select:{
+            isUsed: true
+          }
+        }
       }
     });
     res.json(getvoucher);
@@ -548,7 +556,7 @@ export const GetExpireDate = async (req: Request, res: Response) => {
         pointId: userId,
       },
       select: {
-        month_created: true
+        month_created: true,
       },
     });
 
@@ -569,7 +577,6 @@ export const GetExpireDate = async (req: Request, res: Response) => {
     res.status(500).json({ error: error.message });
   }
 };
-
 
 // export const GetTodayPrivillage = async (req: Request, res: Response) => {
 // 	const { userId } = authService.decodeToken(req.cookies.authToken);
@@ -611,12 +618,11 @@ export const Getpointused = async (req: Request, res: Response) => {
       },
     });
 
-    if(Getpointused?.amount_used != null){
-      const Getpoint = Getpointused?.amount- Getpointused?.amount_used
+    if (Getpointused?.amount_used != null) {
+      const Getpoint = Getpointused?.amount - Getpointused?.amount_used;
       res.json(Getpoint);
-    }
-    else{
-      const Getpoint = Getpointused?.amount
+    } else {
+      const Getpoint = Getpointused?.amount;
       res.json(Getpoint);
     }
     // res.json(Getpointused);
@@ -760,11 +766,10 @@ export const PromotionApprove = async (req: Request, res: Response) => {
   }
 };
 
-
 export const GetCompletePromotion = async (req: Request, res: Response) => {
   try {
     const ApproveVoucher = await feature5Client.promotion.findMany({
-      where: { isApprove: "Completed"},
+      where: { isApprove: "Completed" },
     });
     res.json(ApproveVoucher);
   } catch (err) {
@@ -772,7 +777,6 @@ export const GetCompletePromotion = async (req: Request, res: Response) => {
     res.status(500).json({ error: error.message });
   }
 };
-
 
 export const getAllPromotion = async (req: Request, res: Response) => {
   //For Business
@@ -904,13 +908,11 @@ export const GetRedeembyId = async (req: Request, res: Response) => {
     const { id } = req.params;
     const GetRedeembyId = await feature5Client.redeem_privilege.findFirst({
       where: {
-       redeemId: parseInt(id)
+        redeemId: parseInt(id),
       },
-      
     });
 
     res.json(GetRedeembyId);
-    
   } catch (err) {
     const error = err as Error;
     res.status(500).json({ error: error.message });
