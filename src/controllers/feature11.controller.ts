@@ -225,12 +225,6 @@ export const editArticle = async (req: Request, res: Response) => {
 
       if (thisTag) {
         // * if alr have that tag
-        //const thisTag = await prisma.tag.findMany({
-        //  where: {
-        //    tag_name: tag
-        //  }
-        //})
-
         // * check whether tag is use by the other article
         tagUse = await prisma.article_tags.findMany({
           where: {
