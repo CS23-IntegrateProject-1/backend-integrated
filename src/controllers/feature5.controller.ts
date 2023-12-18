@@ -6,7 +6,7 @@ import { Promotioninfo } from "../interface/Auth/Promotion";
 import authService from "../services/auth/auth.service";
 
 import { MulterFile } from "multer";
-import { tr } from "date-fns/locale";
+// import { tr } from "date-fns/locale";
 
 const feature5Client = new PrismaClient();
 
@@ -355,13 +355,13 @@ export const GetAllVoucherForUser = async (req: Request, res: Response) => {
       where: {
         isApprove: "Completed",
       },
-      include:{
-        User_voucher:{
-          select:{
-            isUsed: true
-          }
-        }
-      }
+      include: {
+        User_voucher: {
+          select: {
+            isUsed: true,
+          },
+        },
+      },
     });
     res.json(getvoucher);
   } catch (err) {
@@ -410,12 +410,36 @@ export const GetAllVoucherForBusiness = async (req: Request, res: Response) => {
 export const getVoucherById = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const voucher = await feature5Client.voucher.findFirst({
+
+    const Discountvoucher = await feature5Client.discount_voucher.findFirst({
       where: {
         voucherId: parseInt(id),
       },
     });
-    res.json(voucher);
+    if (Discountvoucher) {
+      console.log({ ...Discountvoucher, voucherType: "Discount" });
+      const voucher = await feature5Client.voucher.findFirst({
+          where: {
+            voucherId: parseInt(id),
+          },
+        });
+      res.json({ ...voucher, voucherType: "Discount" });
+    }
+    const Foodvoucher = await feature5Client.food_voucher.findFirst({
+      where: {
+        voucherId: parseInt(id),
+      },
+    });
+
+    if (Foodvoucher) {
+      console.log({ ...Foodvoucher, voucherType: "Food" });
+      const voucher = await feature5Client.voucher.findFirst({
+          where: {
+            voucherId: parseInt(id),
+          },
+        });
+      res.json({ ...voucher, voucherType: "Gift" });
+    }
   } catch (e) {
     console.log(e);
     res.status(500).json(e);
@@ -683,8 +707,7 @@ export const GetAllBranches = async (req: Request, res: Response) => {
       select: {
         branch_name: true,
         venueId: true,
-        branchId: true
-        
+        branchId: true,
       },
       where: {
         venue: {
@@ -720,7 +743,7 @@ export const GetMenuforSelect = async (req: Request, res: Response) => {
     const result = await feature5Client.menu.findMany({
       select: {
         name: true,
-        menuId: true
+        menuId: true,
       },
       where: {
         venue: {
