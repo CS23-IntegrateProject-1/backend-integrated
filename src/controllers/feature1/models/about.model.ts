@@ -1,4 +1,6 @@
-export type AboutIndexWebRequest = any;
+import { isNil } from 'ramda';
+
+export type AboutIndexWebRequest = unknown;
 
 export type AboutShowWebRequest = {
   aboutId: number;
@@ -15,17 +17,17 @@ export type AboutUpdateWebRequest = {
   detail: string;
 };
 
-export type AboutDestroyWebRequest = any;
+export type AboutDestroyWebRequest = unknown;
 
-export type AboutIndexWebResponse = any;
+export type AboutIndexWebResponse = unknown;
 
-export type AboutShowWebResponse = any;
+export type AboutShowWebResponse = unknown;
 
-export type AboutStoreWebResponse = any;
+export type AboutStoreWebResponse = unknown;
 
-export type AboutUpdateWebResponse = any;
+export type AboutUpdateWebResponse = unknown;
 
-export type AboutDestroyWebResponse = any;
+export type AboutDestroyWebResponse = unknown;
 
 export type AboutIndexDBResponse = [AboutShowDBResponse];
 
@@ -40,14 +42,14 @@ export type AboutStoreDBResponse = AboutShowDBResponse;
 
 export type AboutUpdateDBResponse = AboutShowDBResponse;
 
-export type AboutDestroyDBResponse = any;
+export type AboutDestroyDBResponse = unknown;
 
 export function makeAboutShowWebResponse(
   data: AboutShowDBResponse,
 ): AboutShowWebResponse {
   return {
     version: data.version,
-    detail: data.detail !== undefined ? data.detail : "",
+    detail: !isNil(data.detail) ? data.detail : "",
     last_update: data.last_update,
     id: data.aboutAppId,
   };
@@ -58,7 +60,7 @@ export function makeAboutIndexWebResponse(
 ): AboutIndexWebResponse {
   return data.map((d: AboutShowDBResponse) => ({
     version: d.version,
-    detail: d.detail !== undefined ? d.detail : "",
+    detail: !isNil(d.detail) ? d.detail : "",
     last_update: d.last_update,
     id: d.aboutAppId,
   }));
@@ -70,7 +72,7 @@ export function makeAboutStoreWebResponse(
   return {
     id: data.aboutAppId,
     version: data.version,
-    detail: data.detail !== undefined ? data.detail : "",
+    detail: !isNil(data.detail) ? data.detail : "",
     last_update: data.last_update,
   };
 }
@@ -81,7 +83,7 @@ export function makeAboutUpdateWebResponse(
   return {
     id: data.aboutAppId,
     version: data.version,
-    detail: data.detail !== undefined ? data.detail : "",
+    detail: !isNil(data.detail) ? data.detail : "",
     last_update: data.last_update,
   };
 }
