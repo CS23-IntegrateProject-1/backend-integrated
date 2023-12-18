@@ -37,19 +37,14 @@ import {
     deleteSetFromCookie,
     getReservationId,
     addMenuMIK,
-    getfeature7,
 } from "../controllers/feature7.controller";
 import { customVerifyCookie } from "../middlewares/verifyCookies";
-import { clear } from "console";
-import { get } from "http";
-import { checkIn } from "../controllers/feature6.controller";
 import { reservationMW } from "../middlewares/reservationMW";
 
 const feature7Router = Router();
 
 // feature7Router.use("/addMenuToCookie/:userId/:menuId", customVerifyCookie );
 // here define your routes
-feature7Router.get("/", getfeature7);
 feature7Router.get("/getReservationId",reservationMW, getReservationId);
 //get all menus
 feature7Router.get("/getMenusByVenueId",reservationMW,getMenusByVenueId);
