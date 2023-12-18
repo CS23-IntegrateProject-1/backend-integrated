@@ -1131,6 +1131,8 @@ export const deleteCommentLikeByCreator = async (req: Request, res: Response) =>
   }
 }
 
+//-----------------------saved place---------------------------------------
+
 export const getUserSavedPlace = async (req: Request, res: Response) => {
   const token = req.cookies.authToken;
   if (!token) {
@@ -1157,6 +1159,38 @@ export const getUserSavedPlace = async (req: Request, res: Response) => {
       }
     })
 
+    const isLike = true;
+
+    const savedPlace_isLike = {
+      ...savedPlace,
+      isLike: isLike
+    };
+
+    res.json(savedPlace_isLike)
+  } catch (error) {
+    console.error(error);
+    res.status(400).json({ error: "Internal server error" });
+  }
+}
+
+export const CreateSavedPLace = async (req: Request, res: Response) => {
+  const token = req.cookies.authToken;
+  if (!token) {
+    return res.json({ error: "No auth token" })
+  }
+  const decodedToken = authService.decodeToken(token)
+  const userId = decodedToken.userId;
+
+  try {
+    const { venueId } = req.body;
+
+    const savedPlace = await prisma.saved_place.create({
+      data: {
+        userId,
+        venueId: parseInt(venueId)
+      }
+    })
+
     res.json(savedPlace)
   } catch (error) {
     console.error(error);
@@ -1164,3 +1198,36 @@ export const getUserSavedPlace = async (req: Request, res: Response) => {
   }
 }
 
+export const DeleteSavedPlace = async (req: Request, res: Response) => {
+  const token = req.cookies.authToken;
+  if (!token) {
+    return res.json({ error: "No auth token" })
+  }
+  const decodedToken = authService.decodeToken(token)
+  const userId = decodedToken.userId;
+
+  try {
+    const { venueId } = req.body;
+
+    const savedId = await prisma.saved_place.findFirst({
+      where: {
+        userId: userId,
+        venueId: parseInt(venueId)
+      }
+    })
+
+    let deletedPlace
+    if (savedId && typeof savedId === 'number') {
+      deletedPlace = await prisma.saved_place.delete({
+        where: {
+          id: savedId
+        },
+      });
+    }
+        
+    res.json(deletedPlace)
+  } catch (error) {
+    console.error(error);
+    res.status(400).json({ error: "Internal server error" });
+  }
+}
