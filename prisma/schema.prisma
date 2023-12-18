@@ -52,6 +52,7 @@ model User {
   User_voucher           User_voucher[]
   Venue_reviews          Venue_reviews[]
   userSaved_location     userSaved_location[]
+  Reservation_logs       Reservation_logs[]
 
   @@index([tierId], map: "User_tierId_fkey")
 }
@@ -1424,6 +1425,8 @@ model Reservation_logs {
   reservationId Int       @id @default(autoincrement())
   showId        Int
   seatId        Int
+  userId        Int
+  user          User      @relation(fields: [userId], references: [userId])
   Payments      Payments?
   Seats         Seats     @relation(fields: [seatId], references: [seatId])
 
