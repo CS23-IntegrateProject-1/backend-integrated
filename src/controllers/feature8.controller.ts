@@ -1,8 +1,9 @@
 import { PrismaClient } from "@prisma/client";
-import { Response, Request } from "express";
 import crypto from "crypto";
 import authService from "../services/auth/auth.service";
 import { Stripe } from "stripe";
+import jwt, { JwtPayload } from "jsonwebtoken";
+import { Request, Response } from "express";
 
 const feature8Client = new PrismaClient();
 
@@ -92,8 +93,6 @@ export const getTableIdsByVenueId = async (req: Request, res: Response) => {
 };
 
 export const getTableNosByVenueId = async (req: Request, res: Response) => {
-  
-
   try {
     const response = await getTableIdsByVenueId(req, res);
 
@@ -1805,7 +1804,6 @@ export const getOrderIdByAppTransactionDetailId = async (
 //   }
 // };
 
-
 // Stripe Code payment v1
 // const YOUR_DOMAIN = 'http://localhost:4000';
 // const stripe = new Stripe(process.env.STRIP_KEY ?? '');
@@ -1832,7 +1830,6 @@ export const getOrderIdByAppTransactionDetailId = async (
 
 //         // res.redirect(303,session.url!);
 // }
-
 
 // Stripe code payment v2
 // const YOUR_DOMAIN = 'http://localhost:4000';
@@ -1876,65 +1873,81 @@ export const getOrderIdByAppTransactionDetailId = async (
 //     return price.id;
 // };
 
-
-
 // Stripe code payment v3
 //For Checkout
-const YOUR_DOMAIN = "http://localhost:4000";
+
+// let getDynamicPriceIdResponse: any;
+
+let isNotError = true;
 const stripe = new Stripe(process.env.STRIP_KEY ?? "");
 
 export const createCheckoutSession = async (req: Request, res: Response) => {
   try {
-    const dynamicPriceId = await getDynamicPriceId(req);
+    const priceResponse = await getDynamicPriceId(req, res);
 
-    const session = await stripe.checkout.sessions.create({
-      line_items: [
-        {
-          price: dynamicPriceId,
-          quantity: 1,
-        },
-      ],
-      mode: "payment",
-      success_url: `${YOUR_DOMAIN}/checkout-success`,
-      cancel_url: `${YOUR_DOMAIN}/checkout-cancel`,
-    });
+    if (isNotError) {
+      const session = await stripe.checkout.sessions.create({
+        line_items: [
+          {
+            price: priceResponse,
+            quantity: 1,
+          },
+        ],
+        mode: "payment",
+        success_url: `${process.env.CLIENT_URL}/checkout-success`,
+        cancel_url: `${process.env.CLIENT_URL}/checkout-cancel`,
+      } as any);
 
-    res.status(200).json({ url: session.url });
+      return res.status(200).json({ url: session.url });
+    }
   } catch (error) {
-    res.status(400).json(error);
+    return res.json(error);
   }
 };
 
-const getDynamicPriceId = async (req) => {
+const getDynamicPriceId = async (req: Request, res: Response) => {
   const product = await stripe.products.create({
     name: "Checkout",
     description: "Pay for checkout",
   });
-  const reservationId = req.body.reservationId;
-
-  const totalAmount = await feature8Client.orders.findUnique({
-    where: { reservedId: reservationId },
-  });
-
-  const totalAmount2: any = totalAmount?.total_amount.toFixed(2);
-  const movedDecimalNumber = totalAmount2 * 100;
-  const strPrice = movedDecimalNumber.toString();
-  const price = await stripe.prices.create({
-    unit_amount_decimal: strPrice,
-    currency: "thb",
-    product: product.id,
-  });
-
-  return price.id;
+  const reservationToken = req.cookies.reservationToken;
+  const secretKey = process.env.JWT_SECRET as string;
+  if (!reservationToken) {
+    isNotError = false;
+    return res.status(401).json({ message: "Invalid reservation token." });
+  }
+  try {
+    const decoded = jwt.verify(reservationToken, secretKey) as JwtPayload;
+    const { reservationId } = decoded;
+    // const reservedId = 266
+    console.log(reservationId);
+    const totalAmount = await feature8Client.orders.findUnique({
+      where: { reservedId: reservationId },
+    });
+    console.log(totalAmount);
+    const totalAmount2: any = totalAmount?.total_amount.toFixed(2);
+    console.log(totalAmount2);
+    const movedDecimalNumber = totalAmount2 * 100;
+    console.log(movedDecimalNumber);
+    const strPrice = movedDecimalNumber.toString();
+    console.log(strPrice);
+    const price = await stripe.prices.create({
+      unit_amount_decimal: strPrice,
+      currency: "thb",
+      product: product.id,
+    });
+    return price.id;
+  } catch (e) {
+    console.log(e);
+    return res.status(500).json(e);
+  }
 };
-
-
 
 //For Deposit
 export const createDepositSession = async (req: Request, res: Response) => {
     try {
-      const dynamicPriceId = await getDepositDynamicPriceId();
-  
+      const dynamicPriceId = await getDepositDynamicPriceId(req);
+
       const session = await stripe.checkout.sessions.create({
         line_items: [
           {
@@ -1943,48 +1956,48 @@ export const createDepositSession = async (req: Request, res: Response) => {
           },
         ],
         mode: "payment",
-        success_url: `${YOUR_DOMAIN}/deposit-success`,
-        cancel_url: `${YOUR_DOMAIN}/deposit-cancel`,
+        success_url: `${process.env.CLIENT_URL}/deposit-success`,
+        cancel_url: `${process.env.CLIENT_URL}/deposit-cancel`,
       });
-  
+
       res.status(200).json({ url: session.url });
     } catch (error) {
       res.status(400).json(error);
     }
   };
-  
-  const getDepositDynamicPriceId = async () => {
+
+  const getDepositDynamicPriceId = async (req) => {
     const product = await stripe.products.create({
       name: "Deposit",
       description: "Pay for Deposit",
     });
-  
-    const totalAmount = await feature8Client.deposit.findUnique({
-      where: { depositId: 2 },
+    const venueId = req.params.venueId;
+
+    const totalAmount = await feature8Client.deposit.findFirst({
+      where: { venueId: parseInt(venueId) },
     });
       //console.log(totalAmount+"test")
-  
+
     const totalAmount2: any = totalAmount?.deposit_amount.toFixed(2);
         //console.log(totalAmount2+"test2")
     const movedDecimalNumber = parseFloat(totalAmount2) * 100;
         //console.log(movedDecimalNumber+"test3")
     const strPrice = movedDecimalNumber.toString();
         //console.log(strPrice+"test4")
-    
+
     const price = await stripe.prices.create({
       unit_amount_decimal: strPrice,
       currency: "thb",
       product: product.id,
     });
-  
+
     return price.id;
   };
-  
 
-  //For Seat
+//For Seat
 export const createSeatSession = async (req: Request, res: Response) => {
   try {
-    const dynamicPriceId = await getSeatDynamicPriceId(req);
+    const dynamicPriceId = await getSeatDynamicPriceId();
 
     const session = await stripe.checkout.sessions.create({
       line_items: [
@@ -1994,8 +2007,8 @@ export const createSeatSession = async (req: Request, res: Response) => {
         },
       ],
       mode: "payment",
-      success_url: `${YOUR_DOMAIN}/`,
-      cancel_url: `${YOUR_DOMAIN}/`,
+      success_url: `${process.env.CLIENT_URL}/`,
+      cancel_url: `${process.env.CLIENT_URL}/`,
     });
 
     res.status(200).json({ url: session.url });
@@ -2004,20 +2017,23 @@ export const createSeatSession = async (req: Request, res: Response) => {
   }
 };
 
-const getSeatDynamicPriceId = async (req) => {
+const getSeatDynamicPriceId = async () => {
   const product = await stripe.products.create({
     name: "Seat",
     description: "Pay for seat",
   });
-  const reservationId = req.body.reservationId;
+  //const reservationId = req.body.reservationId;
 
   const totalAmount = await feature8Client.screens.findUnique({
-    where: { screenId: reservationId },
+    where: { screenId: 1 },
   });
-
+  //const pricemo = req.seat_types.price_modifier;
   const totalAmount2: any = totalAmount?.price?.toFixed(2);
+    //console.log(totalAmount2+"test2")
   const movedDecimalNumber = totalAmount2 * 100;
+    //console.log(movedDecimalNumber+"test3")
   const strPrice = movedDecimalNumber.toString();
+    //console.log(strPrice+"test4")
   const price = await stripe.prices.create({
     unit_amount_decimal: strPrice,
     currency: "thb",
