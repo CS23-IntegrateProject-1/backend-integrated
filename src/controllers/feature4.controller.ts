@@ -516,7 +516,7 @@ export const showCompletedOrderDetails = async (req: any, res: Response) => {
   }
 };
 
-export const addItemToCookie = async (req: Request, res: Response) => {
+export const addItemToCookie = async (req: Request) => {
   try {
     const quantity = req.body.quantity;
     const menuId = req.params.itemId;

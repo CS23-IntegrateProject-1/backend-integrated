@@ -1,16 +1,19 @@
 import { map } from "ramda";
 
+type UserMinimalInfo = {
+  userId: number;
+  username: string;
+  profile_picture: string|null;
+};
+
 export type GroupCreateDBResponse = {
   groupId: number;
   group_name: string;
+  group_profile: string|null;
   Group_user: Array<{
     groupId: number;
     memberId: number;
-    member: {
-      userId: number;
-      username: string;
-      profile_picture: string | null;
-    };
+    member: UserMinimalInfo;
   }>;
 };
 
@@ -30,7 +33,8 @@ type Status = "Group" | "Pending";
 export type GroupCreateWebResponse = {
   group_name: string;
   group_id: number;
-  members: Array<number>;
+  group_avatar: string|null;
+  members: Array<{ user_id: number; username: string; avatar: string | null }>;
 };
 
 export type GroupDBResponse = {
@@ -89,6 +93,11 @@ export function makeGroupCreateWebResponse(
   return {
     group_name: data.group_name,
     group_id: data.groupId,
-    members: data.Group_user.map((user) => user.memberId),
+    group_avatar: data.group_profile,
+    members: data.Group_user.map((user) => ({
+      user_id: user.member.userId,
+      username: user.member.username,
+      avatar: user.member.profile_picture,
+    })),
   };
 }

@@ -59,6 +59,8 @@ import {
     getTransactionDetailsByVenueAndDateForDelivery,
     getTransactionReserveIdByVenueIdAndEqualToStatusCompleted,
     createCheckoutSession,
+    createDepositSession,
+    createSeatSession,
     getTransactionReserveIdByVenueIdAndEqualToStatusCompletedAndFiltered,
     getReceipt,
     getOrderIdByAppTransactionDetailId
@@ -135,6 +137,9 @@ feature8Router.post("/add_creditcard", addCreditCard);
 feature8Router.post("/add_venue_creditcard", addVenueCreditCard);
 feature8Router.post("/add_venue_promptpay", addVenuePromptpay);
 feature8Router.post("/create-checkout-session", createCheckoutSession);
+feature8Router.post("/create-deposit-session", createDepositSession);
+feature8Router.post("/create-seat-session", createSeatSession);
+
 // patch method
 feature8Router.patch("/update_creditcard/:creditCardId", updateCreditCard);
 feature8Router.patch("/update_venue_creditcard/:venueId", updateVenueCreditCard);
