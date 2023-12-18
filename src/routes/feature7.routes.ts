@@ -37,6 +37,7 @@ import {
     deleteSetFromCookie,
     getReservationId,
     addMenuMIK,
+    getfeature7,
 } from "../controllers/feature7.controller";
 import { customVerifyCookie } from "../middlewares/verifyCookies";
 import { clear } from "console";
