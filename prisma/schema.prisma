@@ -1347,7 +1347,7 @@ model Venue_promptpay {
 }
 
 model Films {
-  filmId       Int      @id @default(autoincrement())
+  filmId       Int      @id //@default(autoincrement())
   name         String
   genre        Genre
   language     String
@@ -1360,7 +1360,7 @@ model Films {
 }
 
 model Screens {
-  screenId    Int         @id @default(autoincrement())
+  screenId    Int         @id //@default(autoincrement())
   theaterId   Int
   capacity    Int
   price       Decimal?
@@ -1374,7 +1374,7 @@ model Screens {
 }
 
 model Theaters {
-  theaterId     Int       @id @default(autoincrement())
+  theaterId     Int       @id //@default(autoincrement())
   name          String
   address       String
   phone_num     String    @db.VarChar(10)
@@ -1385,22 +1385,23 @@ model Theaters {
 }
 
 model Shows {
-  showId     Int      @id @default(autoincrement())
-  screenId   Int
-  filmId     Int
-  date       DateTime @db.Date
-  start_time DateTime @db.Timestamp(0)
-  end_time   DateTime @db.Timestamp(0)
-  price      Decimal?
-  film       Films    @relation(fields: [filmId], references: [filmId])
-  screen     Screens  @relation(fields: [screenId], references: [screenId])
+  showId           Int                @id //@default(autoincrement())
+  screenId         Int
+  filmId           Int
+  date             DateTime           @db.Date
+  start_time       DateTime           @db.Timestamp(0)
+  end_time         DateTime           @db.Timestamp(0)
+  price            Decimal?
+  film             Films              @relation(fields: [filmId], references: [filmId])
+  screen           Screens            @relation(fields: [screenId], references: [screenId])
+  Reservation_logs Reservation_logs[]
 
   @@index([filmId], map: "Shows_filmId_fkey")
   @@index([screenId], map: "Shows_screenId_fkey")
 }
 
 model Seats {
-  seatId           Int                @id @default(autoincrement())
+  seatId           Int                @id //@default(autoincrement())
   screenId         Int
   seatTypeId       Int
   seat_row         Int
@@ -1414,7 +1415,7 @@ model Seats {
 }
 
 model Seat_types {
-  seatTypeId     Int     @id @default(autoincrement())
+  seatTypeId     Int     @id //@default(autoincrement())
   type_name      String
   description    String  @db.Text
   price_modifier Decimal
@@ -1427,6 +1428,7 @@ model Reservation_logs {
   seatId        Int
   Payments      Payments?
   userId        Int
+  show          Shows     @relation(fields: [showId], references: [showId])
   user          User      @relation(fields: [userId], references: [userId])
   Seats         Seats     @relation(fields: [seatId], references: [seatId])
 
