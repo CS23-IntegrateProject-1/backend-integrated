@@ -3,7 +3,7 @@ import { map } from "ramda";
 type UserMinimalInfo = {
   userId: number;
   username: string;
-  profile_picture: string;
+  profile_picture: string|null;
 };
 
 export type GroupCreateDBResponse = {
@@ -16,6 +16,7 @@ export type GroupCreateDBResponse = {
     member: UserMinimalInfo;
   }>;
 };
+
 
 export type GroupIndexDBResponse = Array<GroupDBResponse>;
 

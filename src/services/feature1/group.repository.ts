@@ -51,6 +51,6 @@ export default class GroupRepository {
       },
     });
 
-    return result as GroupCreateDBResponse;
+    return result as unknown as GroupCreateDBResponse;
   }
 }
