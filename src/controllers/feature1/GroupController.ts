@@ -12,6 +12,7 @@ import {
   makeGroupCreateWebResponse,
   makeGroupIndexWebResponse,
 } from "./models/group.model";
+import { PrismaClient } from "@prisma/client";
 
 export interface IGroupController {
   addGroup(req: Request, res: Response): unknown;
