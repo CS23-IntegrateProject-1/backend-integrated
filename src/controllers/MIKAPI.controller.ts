@@ -327,7 +327,7 @@ export const ApiCheckOut = async (req: Request, res: Response) => {
     }
 };
 
-export const checkInStatus = async (req: Request, res: Response) => {
+export const checkInStatus_MIK = async (req: Request, res: Response) => {
     try {
         const { reservationId } = req.params;
         const token = req.cookies.authToken;
