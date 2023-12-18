@@ -97,6 +97,7 @@ feature1Router.get(
 feature1Router.put(
   "/profile",
   userAuthMiddleware,
+  multerConfig.single("avatar"),
   profileController.update.bind(profileController),
 );
 

@@ -8,7 +8,7 @@ import { makeErrorResponse } from "./models/payment_method.model";
 import { makeGroupCreateWebResponse } from "./models/group.model";
 import { prismaClient } from "../feature1.controller";
 
-interface MulterRequest extends Request {
+export interface MulterRequest extends Request {
   file: any;
 }
 

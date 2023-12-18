@@ -13,6 +13,7 @@ export interface IProfileRepository {
   updateUserById(
     userId: number,
     data: ProfileUpdateRequest,
+    filename: string,
   ): Promise<ProfileUpdateDBResponse>;
 }
 
@@ -21,21 +22,28 @@ type Profile = {
   username: string;
   phone: string;
   email: string;
+  profile_picture: string | null;
   User_bio: null | User_bio;
 };
 
-type ExpandedProfile = {
-  userId: number;
-  username: string;
-  phone: string;
-  email: string;
+type ExpandedProfile = Profile & {
+  avatar: string | null;
   birthday: Date | null;
   gender: Gender | null;
 };
 
-const makeProfile = pick(["userId", "username", "phone", "email", "User_bio"]);
+const makeProfile = pick([
+  "userId",
+  "username",
+  "phone",
+  "email",
+  "User_bio",
+  "profile_picture",
+]);
 
 const expandBio = (profile: Profile): ExpandedProfile => {
+  profile["avatar"] = profile.profile_picture;
+
   if (!profile.User_bio) {
     profile["birthday"] = null;
     profile["gender"] = null;
@@ -44,13 +52,14 @@ const expandBio = (profile: Profile): ExpandedProfile => {
     profile["gender"] = profile.User_bio!.gender;
   }
 
-  return omit(["User_bio"])(profile) as ExpandedProfile;
+  return omit(["User_bio", "profile_picture"])(profile) as ExpandedProfile;
 };
 
 export class ProfileRepository implements IProfileRepository {
   async updateUserById(
     userId: number,
     data: ProfileUpdateRequest,
+    filename: string,
   ): Promise<ProfileShowDBResponse> {
     const result = await prismaClient.user.update({
       include: { User_bio: true },
@@ -60,6 +69,7 @@ export class ProfileRepository implements IProfileRepository {
       data: {
         phone: data.phone,
         email: data.email,
+        profile_picture: filename,
         userId,
         User_bio: {
           connectOrCreate: {
