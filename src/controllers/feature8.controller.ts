@@ -1493,6 +1493,64 @@ export const getTransactionReserveIdByVenueIdAndEqualToStatusCompleted = async (
     }
 }
 
+export const getOrderIdByAppTransactionDetailId = async (req: Request, res: Response) => {
+    const appTransactionDetailId = parseInt(req.params.appTransactionDetailId, 10);
+
+    try {
+        // Get appTransactionId from app_transaction_detail table
+        const appTransactionDetail = await feature8Client.app_transaction_detail.findUnique({
+            where: {
+                appTransactionDetailId: appTransactionDetailId,
+            },
+        });
+
+        if (!appTransactionDetail) {
+            return res.status(404).json({ error: 'No app transaction detail found for the specified id' });
+        }
+
+        // Get transactionId from App_transaction table
+        const appTransaction = await feature8Client.app_transaction.findUnique({
+            where: {
+                appTransactionId: appTransactionDetail.appTransactionId,
+            },
+        });
+
+        if (!appTransaction) {
+            return res.status(404).json({ error: 'No app transaction found for the specified id' });
+        }
+
+        // Get reserveId from Transaction table
+        const transaction = await feature8Client.transaction.findUnique({
+            where: {
+                transactionId: appTransaction.transactionId,
+            },
+        });
+
+        if (!transaction) {
+            return res.status(404).json({ error: 'No transaction found for the specified id' });
+        }
+
+        // Get orderId from Orders table
+        const order = await feature8Client.orders.findUnique({
+            where: {
+                reservedId: transaction.reserveId,
+            },
+            select: {
+                orderId: true
+            }
+        });
+
+        if (!order) {
+            return res.status(404).json({ error: 'No order found for the specified reserve id' });
+        }
+
+        res.status(200).json(order);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Failed to retrieve order' });
+    }
+};
+
 
 //token function
 // import jwt, { Secret } from 'jsonwebtoken';
