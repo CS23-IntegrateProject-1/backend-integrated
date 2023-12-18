@@ -23,37 +23,37 @@ const feature6Router = Router();
 
 // Customer side part
 //GET METHOD
-feature6Router.get("/allTable", getAllTable);
-feature6Router.get("/allReservation", getAllReservation);
-feature6Router.get("/venue/:venueId/:branchId", getVenueById);
-feature6Router.get("/MyReservation/:reservationId", getReservationById);
+// feature6Router.get("/allTable", getAllTable);
+// feature6Router.get("/allReservation", getAllReservation);
+// feature6Router.get("/venue/:venueId/:branchId", getVenueById);
+// feature6Router.get("/MyReservation/:reservationId", getReservationById);
 
 //Finished, Wait for Integration
-feature6Router.post("/MyReservation", getMyReservationByStatus);
-feature6Router.get(
-    "/MyReservation/:venueId/:reservationId",
-    getVenueAndReservationsById
-);
-feature6Router.get("/checkin/status/:reservationId", checkInStatus);
+// feature6Router.post("/MyReservation", getMyReservationByStatus);
+// feature6Router.get(
+//     "/MyReservation/:venueId/:reservationId",
+//     getVenueAndReservationsById
+// );
+// feature6Router.get("/checkin/status/:reservationId", checkInStatus);
 
 
 //Business Side Part
 // GET METHOD
 //Finished
-feature6Router.get("/allTableType", getAllTableTypeByVenueId);
-feature6Router.get("/allTableByVenueId", getAllTableByVenueId);
-feature6Router.get("/MyTable/:tableId", getTableByTableId);
-feature6Router.get("/Dashboard/", getCountPerDay);
-feature6Router.get("/allReservationOfVenue", getAllReservationOfVenue);
+// feature6Router.get("/allTableType", getAllTableTypeByVenueId);
+// feature6Router.get("/allTableByVenueId", getAllTableByVenueId);
+// feature6Router.get("/MyTable/:tableId", getTableByTableId);
+// feature6Router.get("/Dashboard/", getCountPerDay);
+// feature6Router.get("/allReservationOfVenue", getAllReservationOfVenue);
 
 //POST METHOD
-feature6Router.post("/createReservation", createReservation);
-feature6Router.post("/createTable", createTable);
-feature6Router.post("/createTableType", createTableType);
-feature6Router.post("/createOfflineReservation", createOfflineReservation);
+// feature6Router.post("/createReservation", createReservation);
+// feature6Router.post("/createTable", createTable);
+// feature6Router.post("/createTableType", createTableType);
+// feature6Router.post("/createOfflineReservation", createOfflineReservation);
 
 //DELETE METHOD
-feature6Router.delete("/deleteTable/:tableId", deleteTable);
+// feature6Router.delete("/deleteTable/:tableId", deleteTable);
 
 import { cancelReservation } from "../controllers/feature6.controller";
 import { checkIn } from "../controllers/feature6.controller";
@@ -62,8 +62,8 @@ import { checkOut } from "../controllers/feature6.controller";
 // import { reservationMW } from "../middlewares/reservationMW";
 
 // Check In
-feature6Router.post("/cancel/:reservationId", cancelReservation);
-feature6Router.post("/checkIn/:reservationId", checkIn);
-feature6Router.post("/checkOut/:reservationId", checkOut);
-feature6Router.get("/qrcode/:reservationId", qrCode);
+// feature6Router.post("/cancel/:reservationId", cancelReservation);
+// feature6Router.post("/checkIn/:reservationId", checkIn);
+// feature6Router.post("/checkOut/:reservationId", checkOut);
+// feature6Router.get("/qrcode/:reservationId", qrCode);
 export default feature6Router;
