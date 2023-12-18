@@ -4,8 +4,6 @@ import filmsService from "../services/movie/films.service";
 
 const prisma = new PrismaClient();
 
-export const getfeature10 = async (req: Request, res: Response) => {};
-
 export const getAllFilms = async (req: Request, res: Response) => {
     try {
         const allFilms = await prisma.films.findMany();

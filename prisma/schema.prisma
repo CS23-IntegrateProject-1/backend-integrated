@@ -51,6 +51,7 @@ model User {
   User_voucher           User_voucher[]
   Venue_reviews          Venue_reviews[]
   userSaved_location     userSaved_location[]
+  Chat_message           Chat_message[]
 
   @@index([tierId], map: "User_tierId_fkey")
 }
@@ -116,10 +117,11 @@ model Group_user {
 }
 
 model Group {
-  groupId       Int          @id @default(autoincrement())
+  groupId       Int            @id @default(autoincrement())
   group_name    String
-  group_profile String?      @db.Text
+  group_profile String?        @db.Text
   Group_user    Group_user[]
+  Chat_message  Chat_message[]
 }
 
 model Friendship {
@@ -144,6 +146,7 @@ model Venue {
   score             Decimal
   venueId           Int                 @id @default(autoincrement())
   website_url       String              @db.Text
+  venue_picture     String?             @db.Text
   App_transaction   App_transaction[]
   Article_venue     Article_venue[]
   Business_finance  Business_finance[]
@@ -168,7 +171,7 @@ model Venue {
   Venue_credit_card Venue_credit_card[]
   Venue_keywords    Venue_keywords?
   Venue_managers    Venue_managers?
-  Venue_photo       Venue_photo?
+  Venue_photo       Venue_photo[]
   Venue_promptpay   Venue_promptpay?
   Venue_question    Venue_question[]
   Venue_transaction Venue_transaction[]
@@ -241,10 +244,11 @@ model Opening_day {
 }
 
 model Venue_photo {
-  venueId    Int      @id
-  image_url  String?  @db.Text
-  date_added DateTime @default(now())
-  venue      Venue    @relation(fields: [venueId], references: [venueId])
+  venuePhotoId Int      @id @default(autoincrement())
+  venueId      Int
+  image_url    String?  @db.Text
+  date_added   DateTime @default(now())
+  venue        Venue    @relation(fields: [venueId], references: [venueId])
 }
 
 model Search_history {
@@ -258,7 +262,7 @@ model Search_history {
 }
 
 model Saved_place {
-  id      Int   @id
+  id      Int   @id @default(autoincrement())
   userId  Int
   venueId Int
   user    User  @relation(fields: [userId], references: [userId])
@@ -269,10 +273,11 @@ model Saved_place {
 }
 
 model Member_tier {
-  tier_name    String
-  tier_benefit String
-  tierId       Int    @id @default(autoincrement())
-  User         User[]
+  tier_name        String
+  tier_benefit     String
+  tierId           Int                @id @default(autoincrement())
+  User             User[]
+  Redeem_privilege Redeem_privilege[]
 }
 
 model Point {
@@ -325,7 +330,7 @@ model Food_voucher {
 model User_voucher {
   userId    Int
   voucherId Int
-  isUsed    Boolean
+  isUsed    Boolean @default(false)
   user      User    @relation(fields: [userId], references: [userId])
   vouchers  Voucher @relation(fields: [voucherId], references: [voucherId])
 
@@ -422,6 +427,16 @@ model Message {
   @@index([userId], map: "Message_userId_fkey")
 }
 
+model Chat_message {
+  roomId    Int
+  userId    Int
+  message   String
+  date_time DateTime @default(now())
+  messageId Int      @id @default(autoincrement())
+  room      Group    @relation(fields: [roomId], references: [groupId])
+  user      User     @relation(fields: [userId], references: [userId])
+}
+
 model Orders {
   userId             Int?
   venueId            Int
@@ -439,7 +454,7 @@ model Orders {
   address            Saved_address?       @relation(fields: [addressId], references: [addressId])
   branch             Venue_branch         @relation(fields: [branchId], references: [branchId])
   driver             Driver_list?         @relation(fields: [driverId], references: [driverId])
-  reserve            Reservation?         @relation(fields: [reservedId], references: [reservationId])
+  reserve            Reservation?         @relation(fields: [reservedId], references: [reservationId], onDelete: Cascade)
   user               User?                @relation(fields: [userId], references: [userId])
   venue              Venue                @relation(fields: [venueId], references: [venueId])
 
@@ -600,6 +615,7 @@ model Complain_ticket {
 model Ticket_responses {
   ticketResponseId Int             @id @default(autoincrement())
   complainTicketId Int
+  isApprove        Boolean         @default(false)
   response_title   String
   response_detail  String
   ticket           Complain_ticket @relation(fields: [complainTicketId], references: [ComplainTicketId])
@@ -731,6 +747,36 @@ model Article_tags {
   @@index([articleId], map: "Article_tags_articleId_fkey")
 }
 
+model Redeem_privilege {
+  redeemId    Int         @id @default(autoincrement())
+  title       String
+  description String
+  memberTier  Int
+  image_url   String?     @db.Text
+  member_tier Member_tier @relation(fields: [memberTier], references: [tierId])
+}
+
+model Report_ticket {
+  reportTicketId Int           @id @default(autoincrement())
+  title          String
+  Status         String
+  date           DateTime      @default(now()) @db.Date
+  time           DateTime      @default(now()) @db.Time()
+  description    String?       @db.Text
+  bussinessId    Int
+  business_user  Business_user @relation(fields: [bussinessId], references: [businessId])
+  Help_desk      Help_desk[]
+}
+
+model Help_desk {
+  reportTicketId Int           @id
+  assign_to      String
+  description    String?
+  isApprove      Boolean       @default(false)
+  report_ticket  Report_ticket @relation(fields: [reportTicketId], references: [reportTicketId])
+}
+
+
 model Comments {
   content                 String
   userId                  Int
@@ -767,6 +813,8 @@ model Like {
 
 model Reservation {
   venueId                  Int
+  name                     String?
+  phone                    String?                    @db.VarChar(10)
   guest_amount             Int
   reserved_time            DateTime                   @default(now())
   status                   Status
@@ -986,17 +1034,18 @@ model Influencer {
 }
 
 model Business_user {
-  businessId      Int           @id @default(autoincrement())
+  businessId      Int             @id @default(autoincrement())
   username        String
   hashed_password String
-  email           String?       @unique @db.VarChar(125)
+  email           String?         @unique @db.VarChar(125)
   fname           String?
   lname           String?
-  phone_num       String?       @unique @db.VarChar(10)
+  phone_num       String?         @unique @db.VarChar(10)
   profile_picture String?
   prompt_pay      Int?
   ad_business     Ad_business[]
   Property        Property[]
+  Report_ticket   Report_ticket[]
 }
 
 model Property {
@@ -1088,8 +1137,8 @@ model Route_details_cache {
 model Location {
   locationId     Int              @id @default(autoincrement())
   name           String
-  latitude       Decimal          @db.Decimal(10, 6)
-  longtitude     Decimal          @db.Decimal(10, 6)
+  latitude       Decimal?         @db.Decimal(10, 6)
+  longtitude     Decimal?         @db.Decimal(10, 6)
   address        String           @db.Text
   Saved_location Saved_location[]
   Venue          Venue?
@@ -1384,12 +1433,16 @@ model Payments {
 }
 
 model userSaved_location {
-  savedLocId Int      @id @default(autoincrement())
-  userId     Int
-  name       String
-  address    String   @db.Text
-  createdAt  DateTime @default(now()) @db.Timestamp(0)
-  user       User     @relation(fields: [userId], references: [userId])
+  savedLocId   Int      @id @default(autoincrement())
+  userId       Int
+  name         String
+  address      String   @db.Text
+  province     String?  @db.Text
+  district     String?  @db.Text
+  sub_district String?  @db.Text
+  postcode     String?  @db.Text
+  createdAt    DateTime @default(now()) @db.Timestamp(0)
+  user         User     @relation(fields: [userId], references: [userId])
 
   @@index([userId], map: "userSaved_location_userId_fkey")
 }

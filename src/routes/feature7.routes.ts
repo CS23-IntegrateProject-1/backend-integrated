@@ -4,7 +4,6 @@ import { Router } from "express";
 import {
     getMenuById,
     getMenusByVenueId,
-    getfeature7, 
     getSetsByVenueId,
     getSetById,
     addMenuToCookie,
