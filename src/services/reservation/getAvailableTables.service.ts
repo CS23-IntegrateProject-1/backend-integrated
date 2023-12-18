@@ -7,10 +7,10 @@ export const getAvailableTables = async (req: Request) => {
     try {
         const prisma = new PrismaClient();
         const { venueId, reserve_date, branchId, time } = req.body;
-        const token = req.cookies.authToken;
-        if (!token) {
-            throw new Error("No auth token");
-        }
+        // const token = req.cookies.authToken;
+        // if (!token) {
+        //     throw new Error("No auth token");
+        // }
 
         const concatDatetime = `${reserve_date} ${time}`;
         const reservedTimeStart = new Date(concatDatetime);
