@@ -18,29 +18,29 @@ import loadEnv from "../configs/dotenvConfig";
 loadEnv();
 
 // Your credentials
-// const CREDENTIALS = JSON.parse(process.env.CREDENTIALS || '');
+const CREDENTIALS = JSON.parse(process.env.CREDENTIALS || '');
 
 // Other way to read the credentials
 // import fs from 'fs';
 // const CREDENTIALS = JSON.parse(fs.readFileSync(''));
 
 // Your google dialogflow project-id
-// const PROJECID = CREDENTIALS.project_id;
+const PROJECID = CREDENTIALS.project_id;
 
 // // Configuration for the client
-// const CONFIGURATION = {
-//   credentials: {
-//     private_key: CREDENTIALS['private_key'],
-//     client_email: CREDENTIALS['client_email']
-//   }
-// }
+const CONFIGURATION = {
+  credentials: {
+    private_key: CREDENTIALS['private_key'],
+    client_email: CREDENTIALS['client_email']
+  }
+}
 
 //for dialogflow integration-2
 // Create a new session
-// const sessionClient = new dialogflow.SessionsClient(CONFIGURATION);
+const sessionClient = new dialogflow.SessionsClient(CONFIGURATION);
 
 // // Detect intent function
-// const detectIntent = async (languageCode, queryText, sessionId) => {
+const detectIntent = async (languageCode, queryText, sessionId) => {
 
     const sessionPath = sessionClient.projectAgentSessionPath(PROJECID, sessionId);
 
@@ -58,21 +58,21 @@ loadEnv();
     };
 
     // Send request and log result
-//     const responses = await sessionClient.detectIntent(request);
+    const responses = await sessionClient.detectIntent(request);
 //     // console.log(responses);
-//     const result = responses[0].queryResult;
+    const result = responses[0].queryResult;
 //     // result?.outputContexts?.forEach(context => console.log(context.parameters?.fields));
 
-//     if (result) {
+    if (result) {
 //     // Now you can safely access properties or methods on 'result'
-//         console.log(result);
-//         return {
-//           result: result,
-//         };
-//     } else {
-//     console.log('Result is null or undefined');
-//     }
-// }
+        console.log(result);
+        return {
+          result: result,
+        };
+    } else {
+    console.log('Result is null or undefined');
+    }
+}
 
 //Post request for dialogflow with body parameters
 export const forDialogflow = async (req: Request, res: Response) => {
@@ -189,49 +189,49 @@ async function fetchVenuesAndWriteToFile() {
   fs.writeFileSync('dialogflowData.json', JSON.stringify([venueData,categoryData], null, 2));
 }
 
-// async function updateEntityType() {
-//   const projectId = PROJECID; // Replace with your Dialogflow project ID
+async function updateEntityType() {
+  const projectId = PROJECID; // Replace with your Dialogflow project ID
 
-//   const client = new EntityTypesClient({
-//     projectId: projectId,
-//     credentials: {
-//       private_key: CREDENTIALS['private_key'],
-//       client_email: CREDENTIALS['client_email']
-//     }
-//   });
-//   const parent = `projects/${projectId}/agent`;
+  const client = new EntityTypesClient({
+    projectId: projectId,
+    credentials: {
+      private_key: CREDENTIALS['private_key'],
+      client_email: CREDENTIALS['client_email']
+    }
+  });
+  const parent = `projects/${projectId}/agent`;
 
-//   // Get the list of entity types
-//   const [entityTypes] = await client.listEntityTypes({ parent });
+  // Get the list of entity types
+  const [entityTypes] = await client.listEntityTypes({ parent });
 
-//   for (const entity of entities) {
-//     // Find the entity type with the display name 'venue'
-//     const entityType = entityTypes.find(et => et.displayName === entity.name);
+  for (const entity of entities) {
+    // Find the entity type with the display name 'venue'
+    const entityType = entityTypes.find(et => et.displayName === entity.name);
 
-//     if (entityType) {
-//       // Get the UUID of the entity type
-//       const entityTypePath = entityType.name;
+    if (entityType) {
+      // Get the UUID of the entity type
+      const entityTypePath = entityType.name;
 
-//       const request = {
-//         entityType: {
-//           name: entityTypePath,
-//           displayName: entity.name,
-//           kind: 'KIND_MAP',
-//           entities: entity.entries.map(entry => ({
-//             value: entry.value,
-//             synonyms: entry.synonyms,
-//           })),
-//         },
-//         updateMask: {
-//           paths: ['entities'],
-//         },
-//       } as { entityType: IEntityType };
+      const request = {
+        entityType: {
+          name: entityTypePath,
+          displayName: entity.name,
+          kind: 'KIND_MAP',
+          entities: entity.entries.map(entry => ({
+            value: entry.value,
+            synonyms: entry.synonyms,
+          })),
+        },
+        updateMask: {
+          paths: ['entities'],
+        },
+      } as { entityType: IEntityType };
 
-//       const [response] = await client.updateEntityType(request);
-//       console.log('Entity updated:', response);
-//     }
-//   }
-// }
+      const [response] = await client.updateEntityType(request);
+      console.log('Entity updated:', response);
+    }
+  }
+}
 
 // async function createEntityType() {
 //   const projectId = PROJECID; // Replace with your Dialogflow project ID
@@ -256,11 +256,11 @@ async function fetchVenuesAndWriteToFile() {
 //   }
 // }
 
-// export const fetchData = async (req: Request, res: Response) => {
-//   await fetchVenuesAndWriteToFile().catch(err => console.error(err));
-//   await updateEntityType().catch(err => console.error(err));
-//   console.log('Data written to file');
-//   res.send('Data written to file');
+export const fetchData = async (req: Request, res: Response) => {
+  await fetchVenuesAndWriteToFile().catch(err => console.error(err));
+  await updateEntityType().catch(err => console.error(err));
+  console.log('Data written to file');
+  res.send('Data written to file');
 }
 
 // const existingChatRoom = await feature12Client.chat_room.findUnique({
@@ -323,6 +323,178 @@ createChatRooms();
 //   return res.status(200).json({ userId });
 // };
 
+//get userId from username
+export const getUserId = async (req: Request, res: Response) => {
+  const { sender } = req.params;
+  try {
+    const user = await feature12Client.user.findUnique({
+      where: {
+        username: sender,
+      },
+      select: {
+        userId: true,
+      },
+    });
+    return res.status(200).json(user);
+  } catch (error) {
+    return res.status(500).json({ error });
+  }
+};
+//reterieve all message from specific roomId in ascending order
+export const getAllMessage = async (req: Request, res: Response) => {
+  const { id } = req.params;
+  try {
+    const messages = await feature12Client.chat_message.findMany({
+      where: {
+        roomId: parseInt(id),
+      },
+      select: {
+        userId: true,
+        user:{
+          select:{
+            username:true,
+            fname:true,
+            lname:true,
+            profile_picture:true,
+          }
+        },
+        message: true,
+        date_time: true,
+      },
+      orderBy: {
+        messageId: "asc",
+      },
+    });
+    return res.status(200).json(messages);
+  } catch (error) {
+    return res.status(500).json({ error });
+  }
+};
+
+
+
+//One Group Chat Detail
+export const getGroupChatDetail = async (req: Request, res: Response) => {
+  const { id } = req.params;
+  try{
+    const groupdetail = await feature12Client.group.findMany({
+      where: {
+        groupId: parseInt(id),
+      },
+      select: {
+        group_name: true,
+        group_profile: true,
+      },
+    });
+    const group_name=groupdetail[0].group_name;
+    const group_profile=groupdetail[0].group_profile;
+
+    const members = await feature12Client.group_user.findMany({
+      where: {
+        groupId: parseInt(id),
+      },
+      select: {
+        memberId: true,
+        member: {
+          select: {
+            username: true,
+            userId: true,
+            addId: true,
+            profile_picture: true,
+          },
+        },
+      },
+    });
+    const messages = await feature12Client.chat_message.findMany({
+      where: {
+        roomId: parseInt(id),
+      },
+      select: {
+        userId: true,
+        message: true,
+        date_time: true,
+        messageId: true,
+      },
+    });
+    
+    return res.status(200).json({ group_name,group_profile,id,members, messages });
+  } catch (error) {
+    return res.status(500).json({ error });
+  }
+};
+
+// PrivateChat
+export const getPrivateChatList = async (req: any, res: Response) => {
+
+  try {
+    const userId = req.userId;
+    const groupList = await feature12Client.group_user.findMany({
+      where: {
+        memberId: parseInt(userId),
+      },
+      select: {
+        groupId: true,
+      },
+    });
+
+    const groupDetail = await Promise.all(
+      groupList.map(async (group) => {
+        const id = group.groupId;
+        const groupInfo = await feature12Client.group.findUnique({
+          where: {
+            groupId: id,
+          },
+          select: {
+            group_name: true,
+            group_profile: true,
+          },
+        });
+
+        const members = await feature12Client.group_user.findMany({
+          where: {
+            groupId: id,
+          },
+          select: {
+            memberId: true,
+            member: {
+              select: {
+                username: true,
+                userId: true,
+                addId: true,
+                profile_picture: true,
+              },
+            },
+            
+          },
+        });
+        
+        const messages = await feature12Client.chat_message.findMany({
+          where: {
+            roomId: id,
+          },
+          select: {
+            userId: true,
+            // message: true,
+            date_time: true,
+            messageId: true,
+          },
+        });
+
+        return {
+          ...groupInfo,
+          id,
+          members,
+          messages,
+        };
+      })
+    );
+    
+    return res.status(200).json(groupDetail);
+  } catch (error) {
+    return res.status(500).json({ error });
+  }
+};
+
 //Get the secondUserID from friendship table of specific user who has login
 export const getFriendList = async (req: any, res: Response) => {
 
@@ -347,6 +519,8 @@ export const getFriendList = async (req: any, res: Response) => {
           select: {
             username: true,
             userId: true,
+            addId: true,
+            profile_picture: true,
           },
         });
       })
