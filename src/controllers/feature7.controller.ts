@@ -23,6 +23,7 @@ export const getReservationId = async (req: any, res: Response) => {
 export const getMenusByVenueId = async (req: any, res: Response) => {
     try {
         const reservationId=req.reservationId;
+        console.log(reservationId);
         const reservationInfo = await feature7Client.reservation.findUnique({
             where: {
                 reservationId: reservationId,
@@ -1338,7 +1339,7 @@ export const getMenuByVenueNotInSet = async (req: any, res: Response) => {
 export const deleteMenuItemBeforeAddingToSet = async (req: Request, res: Response) => {
     try {
         const menuId = req.body.menuId;
-        const setId = "0";
+        const setId = "0" || req.params.setId;
         const selectedMenuItem = req.cookies.setItems || [];
         console.log(selectedMenuItem);
         const selectedMenuItems = JSON.parse(selectedMenuItem);
@@ -1644,6 +1645,10 @@ export const completedOrderDetailsInBusiness = async (req: any, res: Response) =
                 ],
             },
         });
+        const tablesWithOrderDetails = getTable.filter((table) => {
+            const reservationId = table.reserveId;
+            return getOrderDetailsOfCompletedOrder.some((orderDetail) => orderDetail.orderId === reservationId);
+        });
         const orderIds = getOrderDetailsOfCompletedOrder.map((orderDetail) => orderDetail.orderId);
 
         // Fetch order dates based on orderIds
@@ -1731,11 +1736,11 @@ export const completedOrderDetailsInBusiness = async (req: any, res: Response) =
             tableOrderDetailsMap[reservationId].push(orderDetailWithNames);
         });
 
-        const response = getTable.map((table) => {
+        const response = tablesWithOrderDetails.map((table) => {
             const reservationId = table.reserveId;
             const orderDetails = tableOrderDetailsMap[reservationId] || [];
             const orderDate = orderDateMap[reservationId];
-        
+
             return {
                 table: {
                     ...table,
