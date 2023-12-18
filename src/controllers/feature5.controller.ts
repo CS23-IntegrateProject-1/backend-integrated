@@ -716,6 +716,7 @@ export const GetMenuforSelect = async (req: Request, res: Response) => {
     const result = await feature5Client.menu.findMany({
       select: {
         name: true,
+        menuId: true
       },
       where: {
         venue: {
