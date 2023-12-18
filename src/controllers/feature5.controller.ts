@@ -6,6 +6,7 @@ import { Promotioninfo } from "../interface/Auth/Promotion";
 import authService from "../services/auth/auth.service";
 
 import { MulterFile } from "multer";
+import { tr } from "date-fns/locale";
 
 const feature5Client = new PrismaClient();
 
@@ -681,6 +682,9 @@ export const GetAllBranches = async (req: Request, res: Response) => {
     const result = await feature5Client.venue_branch.findMany({
       select: {
         branch_name: true,
+        venueId: true,
+        branchId: true
+        
       },
       where: {
         venue: {
