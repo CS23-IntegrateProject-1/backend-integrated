@@ -163,7 +163,7 @@ export const editArticle = async (req: Request, res: Response) => {
     for (const venueId of venueIds) {
       newVenue = await prisma.article_venue.create({
         data: {
-          articleId,
+          articleId: parseInt(articleId),
           venueId
         }
       })
@@ -204,14 +204,14 @@ export const editArticle = async (req: Request, res: Response) => {
 
           await prisma.article_tags.create({
             data: {
-              articleId,
+              articleId: parseInt(articleId),
               tagId: updatedTag.tagId,
             },
           })
         } else {
           await prisma.article_tags.create({
             data: {
-              articleId,
+              articleId: parseInt(articleId),
               tagId: thisTag[0].tagId,
             },
           })
@@ -226,7 +226,7 @@ export const editArticle = async (req: Request, res: Response) => {
 
         await prisma.article_tags.create({
           data: {
-            articleId,
+            articleId: parseInt(articleId),
             tagId: TagDB.tagId
           }
         })
@@ -1159,14 +1159,7 @@ export const getUserSavedPlace = async (req: Request, res: Response) => {
       }
     })
 
-    const isLike = true;
-
-    const savedPlace_isLike = {
-      ...savedPlace,
-      isLike: isLike
-    };
-
-    res.json(savedPlace_isLike)
+    res.json(savedPlace)
   } catch (error) {
     console.error(error);
     res.status(400).json({ error: "Internal server error" });
