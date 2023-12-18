@@ -58,8 +58,8 @@ import {
     getTransactionDetailForDelivery,
     getTransactionDetailsByVenueAndDateForDelivery,
     getTransactionReserveIdByVenueIdAndEqualToStatusCompleted,
-    createCheckoutSession
-    ,
+    createCheckoutSession,
+    getTransactionReserveIdByVenueIdAndEqualToStatusCompletedAndFiltered
 } from "../controllers/feature8.controller";
 
 const feature8Router = Router();
@@ -101,6 +101,7 @@ feature8Router.get("/transactionsbyvenueId/:venueId", getTransactionByVenueId);
 feature8Router.get("/transactiondetailbyvenueId/:venueId", getTransactionDetailsByVenueId);
 feature8Router.get("/transactiondetailbyvenueIdandTime/:venueId", getTransactionDetailsByVenueAndDate);
 feature8Router.get("/getTransactionReserveIdByVenueIdAndEqualToStatusCompleted/:venueId", getTransactionReserveIdByVenueIdAndEqualToStatusCompleted)
+feature8Router.get("/getTransactionReserveIdByVenueIdAndEqualToStatusCompletedAndFiltered/:venueId", getTransactionReserveIdByVenueIdAndEqualToStatusCompletedAndFiltered)
 
 
     //admin
