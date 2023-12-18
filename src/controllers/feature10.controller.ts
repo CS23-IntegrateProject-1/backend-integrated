@@ -8,7 +8,7 @@ import reservationService from "../services/movie/reservation.service";
 
 const prisma = new PrismaClient();
 
-export const getfeature10 = async (req: Request, res: Response) => {};
+// export const getfeature10 = async (req: Request, res: Response) => {};
 
 
 export const getAllFilms = async (req: Request, res: Response) => {

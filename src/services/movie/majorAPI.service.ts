@@ -1,8 +1,8 @@
-import { Genre, PrismaClient } from "@prisma/client";
+import { Films_genre, PrismaClient } from "@prisma/client";
 import { Axios } from "../../configs/MajorAxiosInstance";
 import { Film } from "../../interface/movie/film.interface";
-import { Theater } from "../../interface/movie/theater.interface";
-import theatersService from "./theaters.service";
+// import { Theater } from "../../interface/movie/theater.interface";
+// import theatersService from "./theaters.service";
 
 class MajorAPIService {
   prisma = new PrismaClient();
@@ -30,7 +30,7 @@ class MajorAPIService {
             duration: film.duration,
             poster_img: film.poster_img,
             rate: film.rate,
-            genre: Genre[genre],
+            genre: Films_genre[genre],
           },
         });
       }

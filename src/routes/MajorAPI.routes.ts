@@ -1,5 +1,5 @@
 import { Router } from "express";
-import MajorAPIController from "../controllers/MajorAPI.controller";
+// import MajorAPIController from "../controllers/MajorAPI.controller";
 
 // here import your controllers(function)
 const router = Router();
