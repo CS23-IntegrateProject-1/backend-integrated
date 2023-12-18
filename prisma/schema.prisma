@@ -51,6 +51,8 @@ model User {
   User_voucher           User_voucher[]
   Venue_reviews          Venue_reviews[]
   userSaved_location     userSaved_location[]
+  Reservation_logs       Reservation_logs[]
+  Chat_message           Chat_message[]
 
   @@index([tierId], map: "User_tierId_fkey")
 }
@@ -116,10 +118,11 @@ model Group_user {
 }
 
 model Group {
-  groupId       Int          @id @default(autoincrement())
+  groupId       Int            @id @default(autoincrement())
   group_name    String
-  group_profile String?      @db.Text
+  group_profile String?        @db.Text
   Group_user    Group_user[]
+  Chat_message  Chat_message[]
 }
 
 model Friendship {
@@ -144,6 +147,7 @@ model Venue {
   score             Decimal
   venueId           Int                 @id @default(autoincrement())
   website_url       String              @db.Text
+  venue_picture     String?             @db.Text
   App_transaction   App_transaction[]
   Article_venue     Article_venue[]
   Business_finance  Business_finance[]
@@ -246,8 +250,6 @@ model Venue_photo {
   image_url    String?  @db.Text
   date_added   DateTime @default(now())
   venue        Venue    @relation(fields: [venueId], references: [venueId])
-
-  @@index([venueId], map: "Venue_photo_venueId_fkey")
 }
 
 model Search_history {
@@ -275,8 +277,8 @@ model Member_tier {
   tier_name        String
   tier_benefit     String
   tierId           Int                @id @default(autoincrement())
-  Redeem_privilege Redeem_privilege[]
   User             User[]
+  Redeem_privilege Redeem_privilege[]
 }
 
 model Point {
@@ -424,6 +426,16 @@ model Message {
 
   @@index([roomId], map: "Message_roomId_fkey")
   @@index([userId], map: "Message_userId_fkey")
+}
+
+model Chat_message {
+  roomId    Int
+  userId    Int
+  message   String
+  date_time DateTime @default(now())
+  messageId Int      @id @default(autoincrement())
+  room      Group    @relation(fields: [roomId], references: [groupId])
+  user      User     @relation(fields: [userId], references: [userId])
 }
 
 model Orders {
@@ -604,9 +616,9 @@ model Complain_ticket {
 model Ticket_responses {
   ticketResponseId Int             @id @default(autoincrement())
   complainTicketId Int
+  isApprove        Boolean         @default(false)
   response_title   String
   response_detail  String
-  isApprove        Boolean         @default(false)
   ticket           Complain_ticket @relation(fields: [complainTicketId], references: [ComplainTicketId])
 
   @@index([complainTicketId], map: "Ticket_responses_complainTicketId_fkey")
@@ -743,8 +755,6 @@ model Redeem_privilege {
   memberTier  Int
   image_url   String?     @db.Text
   member_tier Member_tier @relation(fields: [memberTier], references: [tierId])
-
-  @@index([memberTier], map: "Redeem_privilege_memberTier_fkey")
 }
 
 model Report_ticket {
@@ -752,13 +762,11 @@ model Report_ticket {
   title          String
   Status         String
   date           DateTime      @default(now()) @db.Date
-  time           DateTime      @default(now()) @db.Time(0)
+  time           DateTime      @default(now()) @db.Time()
   description    String?       @db.Text
   bussinessId    Int
-  Help_desk      Help_desk?
   business_user  Business_user @relation(fields: [bussinessId], references: [businessId])
-
-  @@index([bussinessId], map: "Report_ticket_bussinessId_fkey")
+  Help_desk      Help_desk[]
 }
 
 model Help_desk {
@@ -767,6 +775,11 @@ model Help_desk {
   description    String?
   isApprove      Boolean       @default(false)
   report_ticket  Report_ticket @relation(fields: [reportTicketId], references: [reportTicketId])
+}
+
+model Promotion_approval {
+  promotionId Int     @id
+  isApprove   Boolean @default(false)
 }
 
 model Comments {
@@ -805,6 +818,8 @@ model Like {
 
 model Reservation {
   venueId                  Int
+  name                     String?
+  phone                    String?                    @db.VarChar(10)
   guest_amount             Int
   reserved_time            DateTime                   @default(now())
   status                   Status
@@ -815,8 +830,6 @@ model Reservation {
   isPaidDeposit            Deposit_status
   depositId                Int
   branchId                 Int?
-  name                     String?
-  phone                    String?                    @db.VarChar(10)
   Check_in_log             Check_in_log?
   Notes                    Notes?
   Notification_reservation Notification_reservation[]
@@ -1347,9 +1360,9 @@ model Screens {
   screenId    Int         @id @default(autoincrement())
   theaterId   Int
   capacity    Int
+  price       Decimal?
   screen_type Screen_type
   screen_no   Int
-  price       Decimal?
   theater     Theaters    @relation(fields: [theaterId], references: [theaterId])
   Seats       Seats[]
   Shows       Shows[]
@@ -1375,7 +1388,7 @@ model Shows {
   date       DateTime @db.Date
   start_time DateTime @db.Timestamp(0)
   end_time   DateTime @db.Timestamp(0)
-  price      Decimal
+  price      Decimal?
   film       Films    @relation(fields: [filmId], references: [filmId])
   screen     Screens  @relation(fields: [screenId], references: [screenId])
 
@@ -1410,6 +1423,8 @@ model Reservation_logs {
   showId        Int
   seatId        Int
   Payments      Payments?
+  userId        Int
+  user          User      @relation(fields: [userId], references: [userId])
   Seats         Seats     @relation(fields: [seatId], references: [seatId])
 
   @@index([seatId], map: "Reservation_logs_seatId_fkey")
@@ -1430,19 +1445,14 @@ model userSaved_location {
   userId       Int
   name         String
   address      String   @db.Text
-  createdAt    DateTime @default(now()) @db.Timestamp(0)
-  district     String?  @db.Text
-  postcode     String?  @db.Text
   province     String?  @db.Text
+  district     String?  @db.Text
   sub_district String?  @db.Text
+  postcode     String?  @db.Text
+  createdAt    DateTime @default(now()) @db.Timestamp(0)
   user         User     @relation(fields: [userId], references: [userId])
 
   @@index([userId], map: "userSaved_location_userId_fkey")
-}
-
-model Promotion_approval {
-  promotionId Int     @id
-  isApprove   Boolean @default(false)
 }
 
 enum Review_type {
