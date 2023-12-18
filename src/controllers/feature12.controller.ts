@@ -412,7 +412,7 @@ export const getGroupChatDetail = async (req: Request, res: Response) => {
       },
       select: {
         userId: true,
-        // message: true,
+        message: true,
         date_time: true,
         messageId: true,
       },
