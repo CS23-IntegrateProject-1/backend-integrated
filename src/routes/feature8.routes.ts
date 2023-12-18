@@ -20,7 +20,35 @@ import {
     addCreditCard,
     addVenueCreditCard,
     addVenuePromptpay,
-    updateCreditCard
+    updateCreditCard,
+    updateVenueCreditCard,
+    getAllApptransactionByVenueId,
+    getApptransactiondetailByTransactionId,
+    getAllNotificationReservation,
+    getAllNotificationOrder,
+    getAllNotificationAdBusiness,
+    getNotiReservationByReserveId,
+    getBusinessIdByVenueId,
+    getBusinessIdByVenueIdForReal,
+    getAllNotificationAdBusinessByBusinessId,
+    getAllNotificationAdBusinessMain,
+    getTransactionByVenueId,
+    getTransactionDetailsByVenueId,
+    getTransactionDetailsByVenueAndDate,
+    getVenueByVenueId,
+    getTransactionDetailByReservationIsPayForTable,
+    getTransactionDetailsByVenueAndDateForReservation,
+    checkTransactionDetailForOrder,
+    getTransactionDetailsByVenueAndDateForOrder,
+    getTransactionDetailForDelivery,
+    getTransactionDetailsByVenueAndDateForDelivery,
+    getTransactionReserveIdByVenueIdAndEqualToStatusCompleted,
+    createCheckoutSession,
+    createDepositSession,
+    createSeatSession,
+    getTransactionReserveIdByVenueIdAndEqualToStatusCompletedAndFiltered,
+    getReceipt,
+    getOrderIdByAppTransactionDetailId
 } from "../controllers/feature8.controller";
 
 const feature8Router = Router();
@@ -47,6 +75,9 @@ feature8Router.post("/create_transaction_detail", createTransactionDetail);
 feature8Router.post("/add_creditcard", addCreditCard);
 feature8Router.post("/add_venue_creditcard", addVenueCreditCard);
 feature8Router.post("/add_venue_promptpay", addVenuePromptpay);
+feature8Router.post("/create-checkout-session", createCheckoutSession);
+feature8Router.post("/create-deposit-session", createDepositSession);
+feature8Router.post("/create-seat-session", createSeatSession);
 
 // patch method
 feature8Router.patch("/update_creditcard/:creditCardId", updateCreditCard);
