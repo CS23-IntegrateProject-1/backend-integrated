@@ -4,8 +4,6 @@ type ErrorResponse = {
   message: string;
 };
 
-type PaymentMethodShowWebRequest = {};
-
 type PaymentMethodShowWebResponse = {
   user_id: number;
   method: Method;
@@ -15,8 +13,6 @@ export type PaymentMethodShowDBResponse = {
   userId: number;
   method: Method;
 };
-
-type PaymentMethod = PaymentMethodShowDBResponse;
 
 export type PaymentMethodUpdateDBResponse = PaymentMethodShowDBResponse;
 

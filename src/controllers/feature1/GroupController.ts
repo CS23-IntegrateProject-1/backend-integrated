@@ -1,11 +1,10 @@
-import jwt, { JsonWebTokenError } from "jsonwebtoken";
+import { JsonWebTokenError } from "jsonwebtoken";
 import { Request, Response } from "express";
 
 import GroupRepository from "../../services/feature1/group.repository";
 import GroupService, {
   IGroupService,
 } from "../../services/feature1/group.service";
-import { extractToken } from "./utils";
 import { makeErrorResponse } from "./models/payment_method.model";
 import { makeGroupCreateWebResponse } from "./models/group.model";
 import { prismaClient } from "../feature1.controller";

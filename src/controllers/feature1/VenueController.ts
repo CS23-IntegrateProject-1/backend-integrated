@@ -4,7 +4,7 @@ import VenueService, {
   IVenueService,
 } from "../../services/feature1/venue.service";
 import VenueRepository from "../../services/feature1/venue.repository";
-import { string, z } from "zod";
+import { z } from "zod";
 import {
   makeVenueUpdateWebResponse,
   makeVenueShowWebResponse,

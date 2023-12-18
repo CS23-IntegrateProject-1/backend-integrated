@@ -1,5 +1,4 @@
 import {
-  OpeningHourUpdateDBResponse,
   OpeningHourUpdateRequest,
   VenueShowDBResponse,
   VenueUpdateDBResponse,

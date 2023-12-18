@@ -28,7 +28,8 @@ export class AboutController implements IAboutController {
 
   async store(req: Request, res: Response) {
     try {
-      let { version, detail } = req.body;
+      const { version } = req.body;
+      let { detail } = req.body;
 
       if (typeof version !== "string") {
         return res.status(400).json(makeErrorResponse("Malformed request"));
@@ -74,7 +75,7 @@ export class AboutController implements IAboutController {
         const webResponse = makeAboutShowWebResponse(response);
 
         res.json(webResponse);
-      } else if (req.query.hasOwnProperty("latest")) {
+      } else if (Object.prototype.hasOwnProperty.call(req.query, "latest")) {
         const response = await this.service.latestAbout();
         const webResponse = makeAboutShowWebResponse(response);
 
@@ -91,7 +92,8 @@ export class AboutController implements IAboutController {
   }
 
   async update(req: Request, res: Response) {
-    let { id, version, detail } = req.body;
+    const { id, version } = req.body;
+    let { detail } = req.body;
 
     const idNum = Number(id);
 

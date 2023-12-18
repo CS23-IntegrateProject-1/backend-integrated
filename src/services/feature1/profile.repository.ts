@@ -1,5 +1,4 @@
-import { PrismaClient, Prisma, Gender, User_bio } from "@prisma/client";
-import { DefaultArgs } from "@prisma/client/runtime/library";
+import { Gender, User_bio } from "@prisma/client";
 import {
   ProfileShowDBResponse,
   ProfileUpdateDBResponse,

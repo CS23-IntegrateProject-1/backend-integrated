@@ -1,6 +1,6 @@
 type VenueCateogry = "club" | "bar" | "restaurant";
 
-export type VenueDBResponse = {};
+export type VenueDBResponse = unknown;
 
 export type VenueUpdateDBResponse = {
   capacity: number;
@@ -51,7 +51,7 @@ export type VenueShowDBResponse = VenueUpdateDBResponse;
 
 export type VenueShowWebResponse = VenueUpdateWebResponse;
 
-export type OpeningHourUpdateDBResponse = {};
+export type OpeningHourUpdateDBResponse = unknown;
 
 type OpeningHour = {
   open: string;

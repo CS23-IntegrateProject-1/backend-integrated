@@ -6,7 +6,6 @@ import { PrivacyPolicyController } from "./feature1/PrivacyPolicyController";
 import { PromptPayController } from "./feature1/PromptPayController";
 import GroupController from "./feature1/GroupController";
 import { PrismaClient } from "@prisma/client";
-import VenueController from "./feature1/VenueController";
 
 export const prismaClient = new PrismaClient();
 

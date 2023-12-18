@@ -1,7 +1,6 @@
 import { prismaClient } from "../../controllers/feature1.controller";
 import {
   Day,
-  OpeningHourUpdateDBResponse,
   OpeningHourUpdateRequest,
   VenueShowDBResponse,
   VenueUpdateDBResponse,
