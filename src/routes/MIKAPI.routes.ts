@@ -1,7 +1,10 @@
 import { Router } from "express";
-import { ApiConnection } from "../controllers/MIKAPI.controller";
+import { ApiConnection, ApiReserve } from "../controllers/MIKAPI.controller";
 const MIKAPIRouter = Router();
 
 MIKAPIRouter.get("/test", ApiConnection);
+MIKAPIRouter.post("/reserve", ApiReserve);
+
+
 
 export default MIKAPIRouter;
