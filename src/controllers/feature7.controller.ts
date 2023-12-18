@@ -1469,10 +1469,16 @@ export const showMenuItemsInSet = async (req: Request, res: Response) => {
 //Show ongoing order in business
 export const onGoingOrderDetailsInBusiness = async (req: any, res: Response) => {
     try {
-        const venueId = req.params.venueId;
+        const businessId = req.businessId;
+        const getVenueId = await feature7Client.property.findFirst({
+            where: {
+                businessId: businessId,
+            },
+        });
+        const venueId=getVenueId?.venueId;
         const getReservations = await feature7Client.orders.findMany({
             where: {
-                venueId: parseInt(venueId),
+                venueId: venueId,
             },
         });
 
@@ -1611,10 +1617,16 @@ export const onGoingOrderDetailsInBusiness = async (req: any, res: Response) => 
 //show completed order in business
 export const completedOrderDetailsInBusiness = async (req: any, res: Response) => {
     try {
-        const venueId = req.params.venueId;
+        const businessId = req.businessId;
+        const getVenueId = await feature7Client.property.findFirst({
+            where: {
+                businessId: businessId,
+            },
+        });
+        const venueId=getVenueId?.venueId;
         const getReservations = await feature7Client.orders.findMany({
             where: {
-                venueId: parseInt(venueId),
+                venueId: venueId,
             },
         });
 

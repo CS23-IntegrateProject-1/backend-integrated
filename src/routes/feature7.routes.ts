@@ -131,9 +131,9 @@ feature7Router.post("/deleteMenuItemBeforeAddingToSet/:setId",deleteMenuItemBefo
 //show menu items in set
 feature7Router.get("/showMenuItemsInSet/:setId",showMenuItemsInSet);
 //show ongoing order in business
-feature7Router.get("/onGoingOrderDetailsInBusiness/:venueId",onGoingOrderDetailsInBusiness);
+feature7Router.get("/onGoingOrderDetailsInBusiness/",businessVerifyCookie,onGoingOrderDetailsInBusiness);
 //show ongoing order in business
-feature7Router.get("/completedOrderDetailsInBusiness/:venueId/",completedOrderDetailsInBusiness);
+feature7Router.get("/completedOrderDetailsInBusiness/",businessVerifyCookie,completedOrderDetailsInBusiness);
 //change orderdetails status completed
 feature7Router.post("/changeOrderDetailsStatusCompleted/:orderDetailId/",changeOrderDetailStatusCompleted);
 //get receipt
