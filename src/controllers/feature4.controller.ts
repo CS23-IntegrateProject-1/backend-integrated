@@ -1,6 +1,5 @@
 import { PrismaClient } from "@prisma/client";
 import { Response, Request } from "express";
-
 const feature4Client = new PrismaClient();
 
 //store location data in the database
@@ -23,13 +22,19 @@ export const mapsLocation = async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error("Error saving location data:", error);
-    res.status(500).json({ error: "An error occurred while saving location data" });
+    res
+      .status(500)
+      .json({ error: "An error occurred while saving location data" });
   }
 };
 
 export const GetAllMapsLocation = async (req: Request, res: Response) => {
   try {
-    const savedLocation = await feature4Client.location.findMany();
+    const savedLocation = await feature4Client.location.findMany({
+      include: {
+        Venue: true,
+      },
+    });
 
     res.status(201).json({
       message: "fetch data successfully",
@@ -37,7 +42,9 @@ export const GetAllMapsLocation = async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error("Error fetching location data:", error);
-    res.status(500).json({ error: "An error occurred while fetch location data" });
+    res
+      .status(500)
+      .json({ error: "An error occurred while fetch location data" });
   }
 };
 
@@ -57,27 +64,30 @@ export const deleteLocation = async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error("Error deleting location:", error);
-    res.status(500).json({ error: "An error occurred while deleting location" });
+    res
+      .status(500)
+      .json({ error: "An error occurred while deleting location" });
   }
 };
 
-
-
-
-//store user saved location
+//========================================================================store user saved location
 export const saveUserLocation = async (req: Request, res: Response) => {
   try {
-    const {userId, name, address, province, district, subdistrict, postcode } = req.body;
+    const { userId, name, address, province, district, subdistrict, postcode } =
+      req.body;
 
     // Concatenate the address components into a single string
-    const fullAddress = `${address} ${province} ${district} ${subdistrict} ${postcode}`;
 
     const savedLocation = await feature4Client.userSaved_location.create({
       data: {
         userId: parseInt(userId),
         name: name,
-        address: fullAddress,
-        createdAt: new Date(), 
+        address: address,
+        province: province,
+        district: district,
+        sub_district: subdistrict,
+        postcode: postcode,
+        createdAt: new Date(),
       },
     });
 
@@ -87,13 +97,14 @@ export const saveUserLocation = async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error("Error saving user's location data:", error);
-    res.status(500).json({ error: "An error occurred while saving user's location data" });
+    res
+      .status(500)
+      .json({ error: "An error occurred while saving user's location data" });
   }
 };
 
 export const GetAllsaveUserLocation = async (req: Request, res: Response) => {
   try {
-
     const savedLocation = await feature4Client.userSaved_location.findMany();
 
     res.status(201).json({
@@ -102,15 +113,47 @@ export const GetAllsaveUserLocation = async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error("Error fetching user's location data:", error);
-    res.status(500).json({ error: "An error occurred while fetching user's location data" });
+    res
+      .status(500)
+      .json({ error: "An error occurred while fetching user's location data" });
+  }
+};
+
+export const GetUserLocationById = async (req: Request, res: Response) => {
+  try {
+    const { savedLocId } = req.params; // Use params to get the savedLocId from the URL
+    const parsedSavedLocId = parseInt(savedLocId, 10);
+
+    const savedLocation = await feature4Client.userSaved_location.findUnique({
+      where: {
+        savedLocId: parsedSavedLocId,
+      },
+    });
+
+    res.status(201).json({
+      message: "User's saved location data fetch successfully",
+      location: savedLocation,
+    });
+  } catch (error) {
+    console.error("Error fetching user's location data:", error);
+    res
+      .status(500)
+      .json({ error: "An error occurred while fetching user's location data" });
   }
 };
 
 export const updateSavedLocation = async (req: Request, res: Response) => {
   try {
-    const { savedLocId, userId, name, address, province, district, subdistrict, postcode } = req.body;
-
-    const fullAddress = `${address} ${province} ${district} ${subdistrict} ${postcode}`;
+    const {
+      savedLocId,
+      userId,
+      name,
+      address,
+      province,
+      district,
+      subdistrict,
+      postcode,
+    } = req.body;
 
     const updatedLocation = await feature4Client.userSaved_location.update({
       where: {
@@ -119,7 +162,11 @@ export const updateSavedLocation = async (req: Request, res: Response) => {
       },
       data: {
         name: name,
-        address: fullAddress,
+        address: address,
+        province: province,
+        district: district,
+        sub_district: subdistrict,
+        postcode: postcode,
       },
     });
 
@@ -134,7 +181,6 @@ export const updateSavedLocation = async (req: Request, res: Response) => {
     });
   }
 };
-
 
 export const deleteSavedLocation = async (req: Request, res: Response) => {
   try {
@@ -157,11 +203,11 @@ export const deleteSavedLocation = async (req: Request, res: Response) => {
     });
   }
 };
-//get all restaurant
+
+//===========================================================get all restaurant
 
 export const getAllRestaurant = async (req: Request, res: Response) => {
   try {
-
     const restaurants = await feature4Client.venue.findMany({
       where: {
         category: {
@@ -172,7 +218,6 @@ export const getAllRestaurant = async (req: Request, res: Response) => {
         location: true, // Include the location related to each venue
       },
     });
-    
 
     res.status(201).json({
       message: "restaurant data fetch successfully",
@@ -180,14 +225,15 @@ export const getAllRestaurant = async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error("Error fetching restaurant data:", error);
-    res.status(500).json({ error: "An error occurred while fetching restaurant data" });
+    res
+      .status(500)
+      .json({ error: "An error occurred while fetching restaurant data" });
   }
 };
 
-//get all bars
+//===========================================================get all bars
 export const getAllBars = async (req: Request, res: Response) => {
   try {
-
     const bars = await feature4Client.venue.findMany({
       where: {
         category: {
@@ -197,7 +243,6 @@ export const getAllBars = async (req: Request, res: Response) => {
         location: true, // Include the location related to each venue
       },
     });
-    
 
     res.status(201).json({
       message: "bar data fetch successfully",
@@ -205,18 +250,16 @@ export const getAllBars = async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error("Error fetching bar data:", error);
-    res.status(500).json({ error: "An error occurred while fetching bar data" });
+    res
+      .status(500)
+      .json({ error: "An error occurred while fetching bar data" });
   }
 };
 
-
-
-//get all cinemas
+//===========================================================get all cinemas
 export const getAllCinema = async (req: Request, res: Response) => {
   try {
-
     const cinemas = await feature4Client.theaters.findMany();
-    
 
     res.status(201).json({
       message: "cinemas data fetch successfully",
@@ -224,84 +267,303 @@ export const getAllCinema = async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error("Error fetching cinemas data:", error);
-    res.status(500).json({ error: "An error occurred while fetching cinemas data" });
+    res
+      .status(500)
+      .json({ error: "An error occurred while fetching cinemas data" });
   }
 };
 
-
-
-
-
-
-
-//Online Orders
+//===========================================================Online Orders
 
 export const getMenusByVenueId = async (req: Request, res: Response) => {
   try {
-      const venueId= req.params.venueId;
-      const allMenus = await feature4Client.menu.findMany(
-          {
-              where: {
-                  venueId: parseInt(venueId)
-              }
-          }
-      );
-      
-      res.status(200).json(allMenus);
+    const venueId = req.params.venueId;
+    const allMenus = await feature4Client.menu.findMany({
+      where: {
+        venueId: parseInt(venueId),
+      },
+    });
+
+    res.status(200).json(allMenus);
+  } catch (e) {
+    console.log(e);
   }
-  catch (e) {
-      console.log(e);
-  }
-}
+};
 
 export const getSetsByVenueId = async (req: Request, res: Response) => {
   try {
-      const venueId= req.params.venueId;
-      const allSets = await feature4Client.sets.findMany(
-          {
-              where: {
-                  venueId: parseInt(venueId)
-              }
-          }
-      );
-      
-      res.status(200).json(allSets);
+    const venueId = req.params.venueId;
+    const allSets = await feature4Client.sets.findMany({
+      where: {
+        venueId: parseInt(venueId),
+      },
+    });
+
+    res.status(200).json(allSets);
+  } catch (e) {
+    console.log(e);
   }
-  catch (e) {
-      console.log(e);
-  }
-}
+};
 
 export const getMenuById = async (req: Request, res: Response) => {
   try {
-      const menuId= req.params.id;
-      const menu = await feature4Client.menu.findUnique(
-          {
-              where: {
-                  menuId: parseInt(menuId)
-              }
-          }
-      );
-      return res.status(200).json(menu);
-  }
-  catch (e) {
-      console.log(e);
+    const menuId = req.params.id;
+    const menu = await feature4Client.menu.findUnique({
+      where: {
+        menuId: parseInt(menuId),
+      },
+    });
+    return res.status(200).json(menu);
+  } catch (e) {
+    console.log(e);
   }
 };
 
 export const getSetById = async (req: Request, res: Response) => {
   try {
-      const setId= req.params.id;
-      const set = await feature4Client.sets.findUnique(
-          {
-              where: {
-                  setId: parseInt(setId)
-              }
-          }
-      );
-      return res.status(200).json(set);
+    const setId = req.params.id;
+    const set = await feature4Client.sets.findUnique({
+      where: {
+        setId: parseInt(setId),
+      },
+    });
+    return res.status(200).json(set);
+  } catch (e) {
+    console.log(e);
   }
-  catch (e) {
-      console.log(e);
+};
+
+export const getPaymentMethods = async (req: Request, res: Response) => {
+  try {
+    // Get user ID from request parameters or authentication token
+    const userId = req.params.userId; // adjust this based on your authentication method
+
+    // Fetch payment methods for the user
+    const paymentMethods = await feature4Client.payment_method.findMany({
+      where: { userId: parseInt(userId) },
+      include: { user: true },
+    });
+
+    res.status(200).json({
+      message: "Payment methods fetched successfully",
+      paymentMethods,
+    });
+  } catch (error) {
+    console.error("Error fetching payment methods:", error);
+    res
+      .status(500)
+      .json({ error: "An error occurred while fetching payment methods" });
   }
-}
+};
+
+export const checkMenuAvailability = async (req: Request, res: Response) => {
+  try {
+    const menuId = req.params.menuId;
+    const venueId = req.params.venueId;
+    const branchId = req.params.branchId;
+    const stockRecord = await feature4Client.stocks.findFirst({
+      where: {
+        venueId: parseInt(venueId),
+        branchId: parseInt(branchId),
+        menuId: parseInt(menuId),
+      },
+    });
+
+    return res.status(200).json(stockRecord?.availability);
+  } catch (e) {
+    console.error("Error checking stock availability:", e);
+  }
+};
+
+export const checkSetAvailability = async (req: Request, res: Response) => {
+  try {
+    const setItems = await feature4Client.set_items.findMany({
+      where: {
+        setId: parseInt(req.params.setId),
+      },
+    });
+    const menuIds = setItems.map((setItem) => setItem.menuId);
+    const stockRecords = await feature4Client.stocks.findMany({
+      where: {
+        menuId: {
+          in: menuIds,
+        },
+        venueId: parseInt(req.params.venueId),
+        branchId: parseInt(req.params.branchId),
+      },
+    });
+    return res
+      .status(200)
+      .json(stockRecords.every((stockRecord) => stockRecord.availability));
+  } catch (e) {
+    console.log(e);
+  }
+};
+
+export const showOnGoingOrderDetails = async (req: any, res: Response) => {
+  try {
+    const userId = parseInt(req.userId);
+    const venueId = parseInt(req.params.venueId);
+    const orderId = await feature4Client.orders.findFirst({
+      where: {
+        userId: userId,
+        venueId: venueId,
+        // status: "On_going",
+      },
+    });
+    const orderDetails = await feature4Client.order_detail.findMany({
+      where: {
+        orderId: orderId?.orderId,
+        status: "On_going",
+      },
+    });
+    if (orderDetails.length !== 0) {
+      const menuDetails = await feature4Client.menu.findMany({
+        where: {
+          menuId: {
+            in: orderDetails
+              .map((orderDetail) => orderDetail.menuId)
+              .filter((menuId) => menuId !== null) as number[],
+          },
+        },
+      });
+      const setDetails = await feature4Client.sets.findMany({
+        where: {
+          setId: {
+            in: orderDetails
+              .map((orderDetail) => orderDetail.setId)
+              .filter((setId) => setId !== null) as number[],
+          },
+        },
+      });
+      const orderDetailsWithDetails = orderDetails.map((orderDetail) => {
+        const menu = menuDetails.find(
+          (menu) => menu.menuId === orderDetail.menuId
+        );
+        const set = setDetails.find((set) => set.setId === orderDetail.setId);
+
+        return {
+          ...orderDetail,
+          menu: menu,
+          set: set,
+        };
+      });
+      return res.status(200).json(orderDetailsWithDetails);
+    } else {
+      res.status(404).json({ error: "No ongoing order found." });
+    }
+    // res.status(200).json(orderDetails);
+  } catch (e) {
+    console.log(e);
+  }
+};
+
+export const showCompletedOrderDetails = async (req: any, res: Response) => {
+  try {
+    const userId = parseInt(req.userId);
+    const venueId = parseInt(req.params.venueId);
+    const orderId = await feature4Client.orders.findFirst({
+      where: {
+        userId: userId,
+        venueId: venueId,
+        // status: "Completed",
+      },
+    });
+    const orderDetails = await feature4Client.order_detail.findMany({
+      where: {
+        orderId: orderId?.orderId,
+        status: "Completed",
+      },
+    });
+    if (orderDetails.length !== 0) {
+      const menuDetails = await feature4Client.menu.findMany({
+        where: {
+          menuId: {
+            in: orderDetails
+              .map((orderDetail) => orderDetail.menuId)
+              .filter((menuId) => menuId !== null) as number[],
+          },
+        },
+      });
+      const setDetails = await feature4Client.sets.findMany({
+        where: {
+          setId: {
+            in: orderDetails
+              .map((orderDetail) => orderDetail.setId)
+              .filter((setId) => setId !== null) as number[],
+          },
+        },
+      });
+      const orderDetailsWithDetails = orderDetails.map((orderDetail) => {
+        const menu = menuDetails.find(
+          (menu) => menu.menuId === orderDetail.menuId
+        );
+        const set = setDetails.find((set) => set.setId === orderDetail.setId);
+
+        return {
+          ...orderDetail,
+          menu: menu,
+          set: set,
+        };
+      });
+      return res.status(200).json(orderDetailsWithDetails);
+    } else {
+      res.status(404).json({ error: "No ongoing order found." });
+    }
+    // res.status(200).json(orderDetails);
+  } catch (e) {
+    console.log(e);
+  }
+};
+
+export const addItemToCookie = async (req: Request, res: Response) => {
+  try {
+    const quantity = req.body.quantity;
+    const menuId = req.params.itemId;
+    console.log(quantity);
+    console.log(menuId);
+    // Retrieve existing cart from the 'cart' cookie or initialize an empty array
+    //   const existingCartString = req.cookies.cart || "[]";
+    //   const existingCart = JSON.parse(existingCartString);
+    //   // Check if the menu item is already in the cart
+    //   const existingCartItemIndex = existingCart.findIndex(
+    //     (item) => item.menuId === menu.menuId
+    //   );
+    //   if (
+    //     existingCartItemIndex !== -1 &&
+    //     userId == existingCart[existingCartItemIndex].userId
+    //   ) {
+    //     // If the item is already in the cart, update the quantity
+    //     existingCart[existingCartItemIndex].quantity = quantity;
+    //   } else {
+    //     // If the item is not in the cart, add it
+    //     existingCart.push({
+    //       userId: parseInt(userId),
+    //       menuId: menu.menuId,
+    //       setId: null,
+    //       name: menu.name,
+    //       price: menu.price,
+    //       quantity: quantity,
+    //       image: menu.image,
+    //       description: menu.description,
+    //     });
+    //   }
+    //   // Remove the item if the quantity is 0
+    //   if (quantity === 0) {
+    //     existingCart.splice(existingCartItemIndex, 1);
+    //   }
+    //   // If nothing in the cart, delete the 'cart' cookie
+    //   if (existingCart.length === 0) {
+    //     res.clearCookie("cart");
+    //   } else {
+    //     // Update the 'cart' cookie with the modified cart
+    //     res.cookie("cart", JSON.stringify(existingCart));
+    //   }
+    //   res.status(200).json({ success: true, message: "Added to cart" });
+  } catch (error) {
+    //   console.log(error);
+    //   res
+    //     .status(500)
+    //     .json({ success: false, message: "Failed to add item to cart" });
+  }
+};
