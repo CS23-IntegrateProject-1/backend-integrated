@@ -65,16 +65,6 @@ export const promptPayHandler = async (req: Request, res: Response) => {
   }
 };
 
-export const groupHandler = async (req: Request, res: Response) => {
-  switch (req.method) {
-    case "POST":
-      return new GroupController().create(req, res);
-    case "GET":
-    default:
-      return new GroupController().index(req, res);
-  }
-};
-
 export const groupInfoHandler = async (req: Request, res: Response) => {
   return new GroupController().show(req, res);
 };

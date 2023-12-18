@@ -1,4 +1,5 @@
 import { Router } from "express";
+import multerConfig from '../multerConfig';
 
 // here import your controllers(function)
 import {
@@ -7,19 +8,25 @@ import {
   tosHandler,
   privacyPolicyHandler,
   promptPayHandler,
-  groupHandler,
   groupInfoHandler,
 } from "../controllers/feature1.controller";
-import { authMiddleware } from "../middlewares/feature1.middleware";
+import {
+  userAuthMiddleware,
+  businessAuthMiddleware,
+} from "../middlewares/feature1.middleware";
 import { AboutController } from "../controllers/feature1/AboutController";
 import FriendController from "../controllers/feature1/FriendController";
 import ProfileController from "../controllers/feature1/ProfileController";
 import SearchController from "../controllers/feature1/SearchController";
+import VenueController from "../controllers/feature1/VenueController";
+import GroupController from '../controllers/feature1/GroupController';
 
 const aboutController = new AboutController();
 const friendController = new FriendController();
 const profileController = new ProfileController();
 const searchController = new SearchController();
+const venueController = new VenueController();
+const groupController = new GroupController();
 
 const feature1Router = Router();
 
@@ -28,22 +35,22 @@ feature1Router.get("/", getfeature1);
 
 feature1Router.get(
   "/about",
-  authMiddleware,
+  userAuthMiddleware,
   aboutController.show.bind(aboutController),
 );
 feature1Router.post(
   "/about",
-  authMiddleware,
+  userAuthMiddleware,
   aboutController.store.bind(aboutController),
 );
 feature1Router.put(
   "/about",
-  authMiddleware,
+  userAuthMiddleware,
   aboutController.update.bind(aboutController),
 );
 feature1Router.delete(
   "/about",
-  authMiddleware,
+  userAuthMiddleware,
   aboutController.destroy.bind(aboutController),
 );
 
@@ -67,34 +74,50 @@ feature1Router.put("/promptpay", promptPayHandler);
 
 feature1Router.get(
   "/search/friends",
-  authMiddleware,
+  userAuthMiddleware,
   searchController.show.bind(searchController),
 );
 
 feature1Router.get(
   "/friend",
-  authMiddleware,
+  userAuthMiddleware,
   friendController.index.bind(friendController),
 );
 feature1Router.post(
   "/friend/add",
-  authMiddleware,
+  userAuthMiddleware,
   friendController.addFriend.bind(friendController),
 );
 
 feature1Router.get(
   "/profile",
-  authMiddleware,
+  userAuthMiddleware,
   profileController.show.bind(profileController),
 );
 feature1Router.put(
   "/profile",
-  authMiddleware,
+  userAuthMiddleware,
   profileController.update.bind(profileController),
 );
 
-feature1Router.get("/group", groupHandler);
+feature1Router.get("/group", userAuthMiddleware, groupController.index.bind(groupController));
 feature1Router.get("/group/:id", groupInfoHandler);
-feature1Router.post("/group/add", groupHandler);
+feature1Router.post("/group/add", userAuthMiddleware, multerConfig.single('avatar'), groupController.create.bind(groupController));
+
+feature1Router.get(
+  "/venue",
+  businessAuthMiddleware,
+  venueController.show.bind(venueController),
+);
+feature1Router.put(
+  "/venue/info",
+  businessAuthMiddleware,
+  venueController.update.bind(venueController),
+);
+feature1Router.put(
+  "/venue/opening_hours",
+  businessAuthMiddleware,
+  venueController.updateOpeningHours.bind(venueController),
+);
 
 export default feature1Router;

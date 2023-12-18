@@ -37,7 +37,6 @@ import {
     // postReviewReservation,
 
 } from "../controllers/feature3.controller";
-import { get } from "http";
 
 const feature3Router = Router();
 

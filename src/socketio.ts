@@ -1,5 +1,6 @@
-import { Server } from "socket.io";
-import { createServer} from "http";
+// socketio.ts
+import { Server, Socket } from "socket.io";
+import { createServer } from "http";
 import express from "express";
 import loadEnv from "./configs/dotenvConfig";
 import { PrismaClient } from "@prisma/client";

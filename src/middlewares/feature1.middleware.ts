@@ -4,26 +4,45 @@ import { Request, Response, NextFunction } from "express";
 const secretKey = process.env.JWT_SECRET as string;
 const FRONTEND_URL = process.env.FRONTEND_URL || "";
 
-export const authMiddleware = (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  const token = req.cookies.authToken;
+enum AuthKind {
+  user = 'user',
+  business = 'business',
+}
 
-  if (!token) {
-    return res.status(401).json({ message: "No authentication token." });
+const makeAuthMiddleware = (kind: AuthKind) => {
+  if (kind !== AuthKind.user && kind !== AuthKind.business) {
+    throw new Error("Invalid user type");
   }
 
-  try {
-    const { userId } = jwt.verify(token, secretKey) as JwtPayload;
-    req.params.userId = userId;
+  return (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    const token = req.cookies.authToken;
 
-    next();
-    return;
-  } catch (error) {
-    res.clearCookie("authToken", { domain: FRONTEND_URL });
+    if (!token) {
+      return res.status(401).json({ message: "No authentication token." });
+    }
 
-    return res.status(401).json({ message: "Invalid authentication token." });
+    try {
+      const jwtPayload = jwt.verify(token, secretKey) as JwtPayload;
+
+      if (!(`${kind}Id` in jwtPayload)) {
+        throw new Error("Missing id in JWT payload");
+      }
+
+      req.params[`${kind}Id`] = jwtPayload[`${kind}Id`];
+
+      next();
+      return;
+    } catch (error) {
+      res.clearCookie("authToken", { domain: FRONTEND_URL });
+
+      return res.status(401).json({ message: "Invalid authentication token." });
+    }
   }
-};
+}
+  
+  export const userAuthMiddleware = makeAuthMiddleware(AuthKind.user);
+  export const businessAuthMiddleware = makeAuthMiddleware(AuthKind.business);

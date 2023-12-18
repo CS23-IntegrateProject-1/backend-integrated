@@ -1,4 +1,3 @@
-import { JwtPayload } from "jsonwebtoken";
 import { SentUser } from "./User.interface";
 import { SentAdminUser } from "./AdminUser.interface";
 import { SentBusisnessUser } from "./BusinessUser.interface";

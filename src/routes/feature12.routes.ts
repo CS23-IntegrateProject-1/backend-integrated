@@ -50,5 +50,5 @@ feature12Router.get("/displayUserId/:sender", getUserId);
 
 //dialogflow route
 feature12Router.post("/dialogflow", forDialogflow);
-feature12Router.get("/fetchData", fetchData);
+// feature12Router.get("/fetchData", fetchData);
 export default feature12Router;
