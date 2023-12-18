@@ -1350,22 +1350,6 @@ export const deleteMenuItemBeforeAddingToSet = async (req: Request, res: Respons
         console.log(e);
     }
 }
-//delete menu item before adding to set for edit
-export const deleteMenuItemBeforeAddingToSetForEdit = async (req: Request, res: Response) => {
-    try {
-        const menuId = req.body.menuId;
-        const setId =req.params.setId;
-        const selectedMenuItem = req.cookies.setItems || [];
-        console.log(selectedMenuItem);
-        const selectedMenuItems = JSON.parse(selectedMenuItem);
-        const updated = selectedMenuItems.filter(item => item.menuId !== parseInt(menuId) && item.setId !== parseInt(setId));
-        res.cookie('setItems', JSON.stringify(updated));
-        res.status(200).json({ success: true, message: 'Deleted' });
-    }
-    catch (e) {
-        console.log(e);
-    }
-}
 //show menu items in set
 export const showMenuItemsInSet = async (req: Request, res: Response) => {
     try {

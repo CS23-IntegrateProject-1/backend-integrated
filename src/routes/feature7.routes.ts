@@ -39,7 +39,6 @@ import {
     addMenuMIK,
     getAllMenus,
     getAllSets,
-    deleteMenuItemBeforeAddingToSetForEdit,
 } from "../controllers/feature7.controller";
 import { customVerifyCookie } from "../middlewares/verifyCookies";
 import { businessVerifyCookie } from "../middlewares/businessVerifyCookies";
@@ -123,7 +122,7 @@ feature7Router.get("/getMenuByVenueIdNotInSet/:setId",businessVerifyCookie,getMe
 //delete menu item before adding to set
 feature7Router.post("/deleteMenuItemBeforeAddingToSet",deleteMenuItemBeforeAddingToSet);
 //delete menu item before adding to set for edit set
-feature7Router.post("/deleteMenuItemBeforeAddingToSetForEdit/:setId",deleteMenuItemBeforeAddingToSetForEdit);
+feature7Router.post("/deleteMenuItemBeforeAddingToSet/:setId",deleteMenuItemBeforeAddingToSet);
 //show menu items in set
 feature7Router.get("/showMenuItemsInSet/:setId",showMenuItemsInSet);
 //show ongoing order in business
