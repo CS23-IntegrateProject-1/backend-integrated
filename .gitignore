@@ -1,6 +1,5 @@
 node_modules
 dist
-schema.prisma
 src/uploads/*
 .env.local
 .env
