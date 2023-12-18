@@ -508,9 +508,8 @@ export const getVenuesPage = async (req: Request, res: Response) => {
   const search = String(req.query.search || "");
   const priceMin = Number(req.query.priceMin || 0);
   const priceMax = Number(req.query.priceMax || 1000);
-  const capacity = String(req.query.capacity || "")
-    .split(",")
-    .filter((v) => v !== "");
+  const capacity = String(req.query.capacity || "").split(",").filter((v) => v !== "");
+  const categorys = String(req.query.category || "").split(",").filter((v) => v !== "");
 
   try {
     const [VenuesPage, menus, tables] = await Promise.all([
@@ -547,6 +546,10 @@ export const getVenuesPage = async (req: Request, res: Response) => {
         .includes(String(search).trim().toLowerCase())
     )
       .filter((v) => {
+        const venueCategoryMatch = categorys.length === 0 ? true : categorys.includes(v.category);
+        return venueCategoryMatch;
+      })
+      .filter((v) => {
         const venueMenus = menus.filter((m) => m.venueId === v.venueId);
         const statements: boolean[] = [];
         if (priceMin === 0 && priceMax === 1000) {
@@ -569,29 +572,32 @@ export const getVenuesPage = async (req: Request, res: Response) => {
           return true;
         }
 
-        if (capacity.includes("1-4")) {
+        if (capacity.includes("1TO4")) {
           statements.push(
             venueTables.some((t) => t.capacity >= 1 && t.capacity <= 4)
           );
         }
 
-        if (capacity.includes("4-6")) {
+        if (capacity.includes("5TO6")) {
           statements.push(
-            venueTables.some((t) => t.capacity >= 4 && t.capacity <= 6)
+            venueTables.some((t) => t.capacity >= 5 && t.capacity <= 6)
           );
         }
 
-        if (capacity.includes("6-10")) {
+        if (capacity.includes("7TO10")) {
           statements.push(
-            venueTables.some((t) => t.capacity >= 6 && t.capacity <= 10)
+            venueTables.some((t) => t.capacity >= 7 && t.capacity <= 10)
           );
         }
 
-        if (capacity.includes("10M")) {
-          statements.push(venueTables.some((t) => t.capacity >= 10));
+        if (capacity.includes("11M")) {
+          statements.push(
+            venueTables.some((t) => t.capacity >= 11)
+            );
         }
         return statements.some((v) => v === true);
-      });
+      })
+
     return res.json(filteredVenues);
   } catch (error) {
     console.error(error);
@@ -748,25 +754,27 @@ export const getVenDetail = async (req: Request, res: Response) => {
   }
 };
 
-// export const getReviewsBranch = async (req: Request, res: Response) => {
-//   try {
-//     const { branchId } = req.params;
+export const getVenDetailMenu = async (req: Request, res: Response) => {
+  const { branchId } = req.params;
+  const branchIdInt = parseInt(branchId);
 
-//     const reviewsBranch = await feature3Client.venue_reviews.findMany({
-//       where: {
-//         branchId: parseInt(branchId),
-//       },
-//       orderBy: {
-//         date_added: "desc",
-//       },
-//     });
+  try {
+    const VenDetailMenu = await feature3Client.$queryRaw`
+      SELECT DISTINCT M.venueId, M.menuId, M.name, M.description, M.price, M.image
+      FROM Venue V
+      JOIN Venue_branch VB ON V.venueId = VB.venueId
+      LEFT JOIN Menu M ON V.venueId = M.venueId
+      WHERE VB.branchId = ${branchIdInt}
+      ORDER BY V.venueId;
+    `;
 
-//     res.status(200).json(reviewsBranch);
-//   } catch (error) {
-//     console.error("Error fetching reviews:", error);
-//     res.status(500).json(error);
-//   }
-// };
+    return res.json(VenDetailMenu);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json(error);
+  }
+};
+
 
 export const getReviewsBranch = async (req: Request, res: Response) => {
   try {
@@ -807,23 +815,6 @@ export const getReviewsBranch = async (req: Request, res: Response) => {
   }
 };
 
-// export const getReviewsBranchOverAll = async (req: Request, res: Response) => {
-//   try {
-//     const { branchId } = req.params;
-//     const branchIdInt = parseInt(branchId);
-
-//     const reviewsBranchOverAll = await feature3Client.venue_reviews.groupBy({
-//       by: { branchId: branchIdInt },
-//       _avg: { rating: true },
-//       _count: { review: true },
-//     });
-
-//     return res.json(reviewsBranchOverAll);
-//   } catch (error) {
-//     console.error("Error fetching reviews:", error);
-//     res.status(500).json(error);
-//   }
-// };
 
 interface ReviewsBranchOverAll_Interface {
   branchId: number;

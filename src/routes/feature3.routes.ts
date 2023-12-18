@@ -44,6 +44,7 @@ import {
     getRecommendedPlaces,
     getVenuesPage,
     getVenDetail,
+    getVenDetailMenu,
     getStarGraph,
 
     
@@ -114,6 +115,7 @@ feature3Router.get("/RecommendedPlaces", getRecommendedPlaces) // Venue details 
 feature3Router.get("/VenBranchPage/:venueId", getVenBranchPage) // Branch with venue details
 
 feature3Router.get("/VenDetail/:branchId", getVenDetail) // Reviews of that branch
+feature3Router.get("/VenDetailMenu/:branchId", getVenDetailMenu) // Reviews of that branch
 
 feature3Router.get("/Reviews/:branchId", getReviewsBranch) // Reviews of that branch
 feature3Router.get("/ReviewsBranchOverAll/:branchId", getReviewsBranchOverAll) // Overall rating of that branch
