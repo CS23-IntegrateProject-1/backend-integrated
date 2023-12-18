@@ -332,7 +332,7 @@ model Food_voucher {
 model User_voucher {
   userId    Int
   voucherId Int
-  isUsed    Boolean
+  isUsed    Boolean @default(false)
   user      User    @relation(fields: [userId], references: [userId])
   vouchers  Voucher @relation(fields: [voucherId], references: [voucherId])
 
