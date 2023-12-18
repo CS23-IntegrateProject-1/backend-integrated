@@ -1351,9 +1351,9 @@ export const getTransactionReserveIdByVenueIdAndEqualToStatusCompleted = async (
         }).then(order => order ? { ...order, timestamp: transaction.Transaction_detail?.timestamp } : null)
     );
   
-      const ordersss = (await Promise.all(ordersPromises)).filter(order => order !== null);
+      const orders = (await Promise.all(ordersPromises)).filter(order => order !== null);
   
-      res.status(200).json({ ordersss });
+      res.status(200).json({ orders });
     } catch (error) {
       console.error(error);
       res.status(500).json({ error: 'Failed to retrieve transactions' });
@@ -1407,9 +1407,9 @@ export const getTransactionReserveIdByVenueIdAndEqualToStatusCompleted = async (
         }).then(order => order ? { ...order, timestamp: transaction.Transaction_detail?.timestamp } : null)
     );
   
-      const ordersss = (await Promise.all(ordersPromises)).filter(order => order !== null);
+      const orders = (await Promise.all(ordersPromises)).filter(order => order !== null);
   
-      res.status(200).json({ ordersss });
+      res.status(200).json({ orders });
     } catch (error) {
       console.error(error);
       res.status(500).json({ error: 'Failed to retrieve transactions' });
