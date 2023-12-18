@@ -7,15 +7,10 @@ import GroupService, {
 } from "../../services/feature1/group.service";
 import { extractToken } from "./utils";
 import { makeErrorResponse } from "./models/payment_method.model";
-import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
-import {
-  makeGroupCreateWebResponse,
-  makeGroupIndexWebResponse,
-} from "./models/group.model";
+import { makeGroupCreateWebResponse } from "./models/group.model";
+import { PrismaClient } from "@prisma/client";
 
 export interface IGroupController {
-  addGroup(req: Request, res: Response): unknown;
-
   index(req: Request, res: Response): unknown;
 
   create(req: Request, res: Response): unknown;
@@ -57,13 +52,18 @@ export default class GroupController implements IGroupController {
     }
   }
 
-  async index(req: Request, res: Response) {
+  // TODO @SoeThandarLwin: Refactor to follow proper structure later
+  // TODO @SoeThandarLwin: Refactor to follow proper error checking and formatting later
+  async show(req: Request, res: Response) {
+    const { id } = req.params;
+    const groupId = Number(id);
+
     let token: string;
 
     try {
       token = extractToken(req);
     } catch (e) {
-      return res.status(401).json(makeErrorResponse("Unauthorized"));
+      return res.status(401).json(makeErrorResponse("Unauthrozied"));
     }
 
     try {
@@ -91,11 +91,21 @@ export default class GroupController implements IGroupController {
         },
       });
 
-      const groups = await this.service.listGroupsOfUser(userId);
+      if (!result) {
+        return res.status(404).json(makeErrorResponse("Group does not exist"));
+      }
 
-      const webResponse = makeGroupIndexWebResponse(groups);
+      const response = {
+        group_id: result.groupId,
+        group_name: result.group_name,
+        members: result.Group_user.map((user) => ({
+          user_id: user.member.userId,
+          username: user.member.username,
+          avatar: user.member.profile_picture,
+        })),
+      };
 
-      return res.status(200).json(webResponse);
+      return res.status(200).send(response);
     } catch (e) {
       if (e instanceof JsonWebTokenError) {
         return res.status(401).json(makeErrorResponse("Invalid token"));
@@ -107,16 +117,15 @@ export default class GroupController implements IGroupController {
     }
   }
 
-  async addGroup(req: Request, res: Response) {
+  // TODO @SoeThandarLwin: Refactor to follow proper structure later
+  async index(req: Request, res: Response) {
     let token: string;
 
     try {
       token = extractToken(req);
     } catch (e) {
-      return res.status(401).json(makeErrorResponse("Unauthorized"));
+      return res.status(401).json(makeErrorResponse("Unauthrozied"));
     }
-
-    const { group_id } = req.body;
 
     try {
       const decoded = jwt.verify(
@@ -124,26 +133,29 @@ export default class GroupController implements IGroupController {
         process.env.JWT_SECRET as string,
       );
       const userId = (decoded as jwt.JwtPayload).userId;
+      const client = new PrismaClient();
+      const result = await client.group_user.findMany({
+        where: {
+          memberId: userId,
+        },
+        include: {
+          group: true,
+        },
+      });
 
-      if (userId === group_id) {
-        return res
-          .status(409)
-          .json(makeErrorResponse("Cannot add oneself as group"));
-      }
+      client.$disconnect();
 
-      await this.service.addGroupById(userId, group_id);
+      const response = result.map((r) => {
+        return {
+          group_id: r.group.groupId,
+          group_name: r.group.group_name,
+        };
+      });
 
-      return res.status(200).send();
+      return res.status(200).json(response);
     } catch (e) {
       if (e instanceof JsonWebTokenError) {
         return res.status(401).json(makeErrorResponse("Invalid token"));
-      } else if (e instanceof PrismaClientKnownRequestError) {
-        if (e.code === "P2002") {
-          return res
-            .status(409)
-            .json(makeErrorResponse("Already group with user"))
-            .send();
-        }
       }
 
       return res

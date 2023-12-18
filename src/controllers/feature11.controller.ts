@@ -96,7 +96,6 @@ export const addArticle = async (req: Request, res: Response) => {
         content,
         category,
         userId,
-        //userId: parseInt(Id),
         author_name,
       },
     });
@@ -112,18 +111,31 @@ export const addArticle = async (req: Request, res: Response) => {
 
     let newTag;
     for (const tag of tags) {
-      const newTag = await prisma.tag.create({
-        data: {
-          tag_name: tag,
-        }
+      const existed = await prisma.tag.findMany({
+        where: { tag_name: tag }
       })
 
-      await prisma.article_tags.create({
-        data: {
-          articleId: newArticle.articleId,
-          tagId: newTag.tagId,
-        },
-      });
+      if (existed.length === 0) {
+        newTag = await prisma.tag.create({
+          data: {
+            tag_name: tag,
+          }
+        })
+
+        await prisma.article_tags.create({
+          data: {
+            articleId: newArticle.articleId,
+            tagId: newTag.tagId,
+          },
+        });
+      } else {
+        await prisma.article_tags.create({
+          data: {
+            articleId: newArticle.articleId,
+            tagId: existed[0].tagId,
+          },
+        });
+      }
     }
 
     //for (const imageDetail of imageDetails) {
@@ -168,15 +180,6 @@ export const editArticle = async (req: Request, res: Response) => {
     const tags: string[] = req.body.tags;
     //const imageDetails: ImageInput[] = req.body.images;
 
-    //const userId = 1;
-    //const secret: Secret = 'fwjjpjegjwpjgwej' || "";
-    //const token = req.cookies.token;
-    //if (!token)
-    //  return res.json({ error: 'Unauthorized' });
-
-    //const decoded = jwt.verify(token, secret) as CustomJwtPayload;
-    //const userId = decoded.userId;
-
     const newArticle = await prisma.article.update({
       where: { articleId: parseInt(articleId) },
       data: {
@@ -193,7 +196,7 @@ export const editArticle = async (req: Request, res: Response) => {
 
     let newVenue;
     for (const venueId of venueIds) {
-      const newVenue = await prisma.article_venue.create({
+      newVenue = await prisma.article_venue.create({
         data: {
           articleId,
           venueId
@@ -216,6 +219,12 @@ export const editArticle = async (req: Request, res: Response) => {
           tag_name: tag
         }
       })
+      if (tagExisted.length === 0) {
+        newTag = await prisma.tag.create({
+          data: {
+            tag_name: tag
+          }
+        })
 
         await prisma.article_tags.create({
           data: {
