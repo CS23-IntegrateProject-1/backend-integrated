@@ -693,7 +693,7 @@ export const GetAllBranches = async (req: Request, res: Response) => {
       },
     });
 
-    res.json(result[0]);
+    res.json(result);
   } catch (err) {
     console.log(err);
     const error = err as Error;
@@ -728,7 +728,7 @@ export const GetMenuforSelect = async (req: Request, res: Response) => {
       },
     });
 
-    res.json(result[0]);
+    res.json(result);
   } catch (err) {
     console.log(err);
     const error = err as Error;
