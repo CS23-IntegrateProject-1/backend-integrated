@@ -1,10 +1,19 @@
 import { PrismaClient } from "@prisma/client";
 import { Response, Request } from "express";
 import { adinfo } from "../interface/Auth/Advertisement";
+import { Redeem } from "../interface/Auth/Redeem.interface";
 import { Promotioninfo } from "../interface/Auth/Promotion";
 import authService from "../services/auth/auth.service";
 
+import { MulterFile } from "multer";
+
 const feature5Client = new PrismaClient();
+
+declare module "express-serve-static-core" {
+  interface Request {
+    file?: MulterFile;
+  }
+}
 
 export const getfeature5 = async (req: Request, res: Response) => {
   res.status(200).json({ message: "This is Feature5" });
@@ -30,13 +39,16 @@ export const AdBusiness = async (req: Request, res: Response) => {
     const {
       name,
       description,
-      image_url,
       start_date,
       end_date,
       cost,
       customer_type,
       target_group,
     } = newAd;
+
+    const image_url =
+      "/uploads/" + req.file.path.substring(req.file.path.lastIndexOf("/") + 1);
+
     const formattedStartDate = new Date(start_date);
     const formattedEndDate = new Date(end_date);
     const newAdvertisement = await feature5Client.ad_business.create({
@@ -183,13 +195,15 @@ export const Voucher = async (req: Request, res: Response) => {
     // const newVch: voucherinfo = req.body;
     const {
       voucherName: voucher_name,
-      voucherImage: voucher_image,
       startDate: start_date,
       endDate: end_date,
       description,
       point_use,
       voucherType: Vouchertype,
     } = req.body;
+
+    const voucher_image =
+      "/uploads/" + req.file.path.substring(req.file.path.lastIndexOf("/") + 1);
 
     const isApprove = "In_progress";
 
@@ -260,16 +274,9 @@ export const Voucher = async (req: Request, res: Response) => {
           voucherId: newVoucher.voucherId,
         },
       });
-
-      // await feature5Client.user_voucher.create({
-
-      // })
     }
-
     res.json(newVoucher);
   } catch (err) {
-    // const error = err as Error;
-    // res.status(500).json({ error: error.message});
     const error = err as Error & { code?: string };
     console.error("Prisma error:", error);
     res.status(500).json({ err });
@@ -340,7 +347,21 @@ export const GetallVenue = async (req: Request, res: Response) => {
   }
 };
 
-export const GetAllVoucher = async (req: Request, res: Response) => {
+export const GetAllVoucherForUser = async (req: Request, res: Response) => {
+  try {
+    const getvoucher = await feature5Client.voucher.findMany({
+      where:{
+        isApprove: "Completed"
+      }
+    });
+    res.json(getvoucher);
+  } catch (err) {
+    const error = err as Error;
+    res.status(500).json({ error: error.message });
+  }
+};
+
+export const GetAllVoucherForBusiness = async (req: Request, res: Response) => {
   try {
     const token = req.cookies.authToken;
     if (!token) {
@@ -396,12 +417,12 @@ export const CollectVoucher = async (req: Request, res: Response) => {
   try {
     const { userId } = authService.decodeToken(req.cookies.authToken);
     const { id } = req.params;
- 
+
     const voucher = await feature5Client.user_voucher.create({
       data: {
         userId: userId,
         voucherId: parseInt(id),
-        //isUsed: false,
+        isUsed: false,
       },
     });
     res.json(voucher);
@@ -415,7 +436,7 @@ export const UpdateUsedVoucher = async (req: Request, res: Response) => {
   try {
     const { userId } = authService.decodeToken(req.cookies.authToken);
     const { id } = req.params;
-    
+
     const userVoucher = await feature5Client.user_voucher.findUnique({
       where: {
         userId_voucherId: {
@@ -426,7 +447,9 @@ export const UpdateUsedVoucher = async (req: Request, res: Response) => {
     });
 
     if (!userVoucher) {
-      return res.status(404).json({ message: 'User does not have this voucher.' });
+      return res
+        .status(404)
+        .json({ message: "User does not have this voucher." });
     }
 
     const updatedVoucher = await feature5Client.user_voucher.update({
@@ -453,9 +476,17 @@ export const getCollectedVoucher = async (req: Request, res: Response) => {
     const { userId } = authService.decodeToken(req.cookies.authToken);
     const voucher = await feature5Client.voucher.findMany({
       where: {
+        isApprove: "Completed",
         User_voucher: {
           some: {
             userId: userId,
+          },
+        },
+      },
+      include: {
+        User_voucher: {
+          select: {
+            isUsed: true,
           },
         },
       },
@@ -477,19 +508,18 @@ export const GettierName = async (req: Request, res: Response) => {
         tier: {
           select: {
             tier_name: true,
-            // tier_benefit: true,
           },
         },
       },
     });
-    res.json(gettierName);
+    res.json(gettierName?.tier);
   } catch (err) {
     const error = err as Error;
     res.status(500).json({ error: error.message });
   }
 };
 
-export const GetInfoMembertier = async (req: Request, res: Response) => {
+export const GetMembertierPrivilleges = async (req: Request, res: Response) => {
   const { userId } = authService.decodeToken(req.cookies.authToken);
   try {
     const GetInfoMembertier = await feature5Client.user.findUnique({
@@ -497,18 +527,49 @@ export const GetInfoMembertier = async (req: Request, res: Response) => {
       select: {
         tier: {
           select: {
-            tier_name: true,
             tier_benefit: true,
           },
         },
       },
     });
-    res.json(GetInfoMembertier);
+
+    res.json(GetInfoMembertier?.tier);
   } catch (err) {
     const error = err as Error;
     res.status(500).json({ error: error.message });
   }
 };
+
+export const GetExpireDate = async (req: Request, res: Response) => {
+  const { userId } = authService.decodeToken(req.cookies.authToken);
+  try {
+    const GetDate = await feature5Client.point.findUnique({
+      where: {
+        pointId: userId,
+      },
+      select: {
+        month_created: true
+      },
+    });
+
+    if (GetDate && GetDate.month_created) {
+      // Convert the fetched date string to a JavaScript Date object
+      const currentDate = new Date(GetDate.month_created);
+
+      // Increase the date by 1 year
+      currentDate.setFullYear(currentDate.getFullYear() + 1);
+
+      // Now, currentDate represents the date increased by 1 year
+      res.json({ currentDate });
+    } else {
+      res.status(404).json({ message: "Date not found" });
+    }
+  } catch (err) {
+    const error = err as Error;
+    res.status(500).json({ error: error.message });
+  }
+};
+
 
 // export const GetTodayPrivillage = async (req: Request, res: Response) => {
 // 	const { userId } = authService.decodeToken(req.cookies.authToken);
@@ -546,9 +607,19 @@ export const Getpointused = async (req: Request, res: Response) => {
       },
       select: {
         amount_used: true,
+        amount: true,
       },
     });
-    res.json(Getpointused);
+
+    if(Getpointused?.amount_used != null){
+      const Getpoint = Getpointused?.amount- Getpointused?.amount_used
+      res.json(Getpoint);
+    }
+    else{
+      const Getpoint = Getpointused?.amount
+      res.json(Getpoint);
+    }
+    // res.json(Getpointused);
   } catch (err) {
     const error = err as Error;
     res.status(500).json({ error: error.message });
@@ -562,15 +633,10 @@ export const Promotion = async (req: Request, res: Response) => {
     // const isApprove = "In_progress"
     // const menuIds : number[] = req.body.menuIds;
     const newAd: Promotioninfo = req.body;
-    const {
-      name,
-      description,
-      image_url,
-      start_date,
-      end_date,
-      discount_price,
-    } = newAd;
+    const { name, description, start_date, end_date, discount_price } = newAd;
 
+    const image_url =
+      "/uploads/" + req.file.path.substring(req.file.path.lastIndexOf("/") + 1);
     const { menuId, venueId } = req.body;
 
     const newPromotion = await feature5Client.promotion.create({
@@ -694,6 +760,20 @@ export const PromotionApprove = async (req: Request, res: Response) => {
   }
 };
 
+
+export const GetCompletePromotion = async (req: Request, res: Response) => {
+  try {
+    const ApproveVoucher = await feature5Client.promotion.findMany({
+      where: { isApprove: "Completed"},
+    });
+    res.json(ApproveVoucher);
+  } catch (err) {
+    const error = err as Error;
+    res.status(500).json({ error: error.message });
+  }
+};
+
+
 export const getAllPromotion = async (req: Request, res: Response) => {
   //For Business
   try {
@@ -704,7 +784,7 @@ export const getAllPromotion = async (req: Request, res: Response) => {
     const decodedToken = authService.decodeToken(token);
     if (decodedToken.userType != "business") {
       try {
-        const result = feature5Client.promotion.findMany({
+        const result = await feature5Client.promotion.findMany({
           where: {
             //isApprove: "Completed",
           },
@@ -758,39 +838,104 @@ export const getPromotionbyId = async (req: Request, res: Response) => {
   }
 };
 
-//------------------------------Redeem-----------------------------------
-export const Redeem = async (req: Request, res: Response) => {
+export const getDetailPromotion = async (req: Request, res: Response) => {
   try {
-    // const isApprove = "In_progress"
-    // const menuIds : number[] = req.body.menuIds;
-    const newAd: Promotioninfo = req.body;
-    const {
-      name,
-      description,
-      image_url,
-      start_date,
-      end_date,
-      discount_price,
-    } = newAd;
+    const { id } = req.params;
 
-    const { menuId, venueId } = req.body;
-
-    const newPromotion = await feature5Client.promotion.create({
-      data: {
-        name,
-        description,
-        image_url,
-        start_date,
-        end_date,
-        discount_price,
-        menuId,
-        venueId,
+    const getDetail = await feature5Client.promotion.findFirst({
+      where: {
+        promotionId: parseInt(id),
       },
     });
 
-    res.json(newPromotion);
+    const getVeuneList = await feature5Client.venue_branch.findMany({
+      where: {
+        venueId: getDetail?.venueId,
+      },
+      select: {
+        branch_name: true,
+      },
+    });
+
+    res.json({
+      getDetail,
+      getVeuneList,
+    });
   } catch (err) {
     console.log(err);
+    const error = err as Error;
+    res.status(500).json({ error: error.message });
+  }
+};
+
+//------------------------------Redeem-----------------------------------
+export const GetRedeem = async (req: Request, res: Response) => {
+  try {
+    const { userId } = authService.decodeToken(req.cookies.authToken);
+
+    const getMembertier = await feature5Client.user.findFirst({
+      where: {
+        userId: userId,
+      },
+      select: {
+        tierId: true,
+      },
+    });
+
+    if (getMembertier && getMembertier.tierId !== null) {
+      const tierId = getMembertier.tierId;
+
+      // Fetch tier_name from Member_tier table using tierId
+      const getRedeem = await feature5Client.redeem_privilege.findMany({
+        where: {
+          memberTier: Number(tierId),
+        },
+      });
+      res.json(getRedeem);
+    }
+  } catch (err) {
+    const error = err as Error;
+    res.status(500).json({ error: error.message });
+  }
+};
+
+export const GetRedeembyId = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const GetRedeembyId = await feature5Client.redeem_privilege.findFirst({
+      where: {
+       redeemId: parseInt(id)
+      },
+      
+    });
+
+    res.json(GetRedeembyId);
+    
+  } catch (err) {
+    const error = err as Error;
+    res.status(500).json({ error: error.message });
+  }
+};
+
+export const CreateRedeem = async (req: Request, res: Response) => {
+  try {
+    const Redeem: Redeem = req.body;
+    const { title, description, memberTier } = Redeem;
+
+    const image_url =
+      "/uploads/" + req.file.path.substring(req.file.path.lastIndexOf("/") + 1);
+
+    const newRedeem = await feature5Client.redeem_privilege.create({
+      data: {
+        title,
+        description,
+        image_url,
+        memberTier,
+      },
+    });
+
+    res.json(newRedeem);
+  } catch (err) {
     const error = err as Error;
     res.status(500).json({ error: error.message });
   }
