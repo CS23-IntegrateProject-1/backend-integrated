@@ -29,42 +29,6 @@ interface LikeCreateInput {
   articleId: number;
 }
 
-export const deleteTag = async (req: Request, res: Response) => {
-  try {
-    const { articleId, tagId } = req.body;
-    
-    const deletedTag = await prisma.article_tags.delete({
-      where: {
-        tagId_articleId: {
-          tagId: tagId,
-          articleId: articleId,
-        },
-      },
-    });
-    
-    const tags = await prisma.article_tags.findMany({
-      where: { tagId: tagId }
-    })
-    
-    let deleteWholeTag
-    if (tags.length === 0) {
-      deleteWholeTag = await prisma.tag.delete({
-        where: { tagId: tagId }
-      })
-    }
-    
-    const overAllDelteResult = {
-      ...deletedTag,
-      WholeTagDeleted: deleteWholeTag,
-    };
-    
-    res.json(overAllDelteResult)
-  }
-  catch (error) {
-    res.json(error);
-  }
-}
-
 // ! use for uploading multiple image
 // Create a custom type to extend Express's Request interface
 
@@ -74,7 +38,6 @@ declare module 'express-serve-static-core' {
   }
 }
 
-
 export const addArticle = async (req: Request, res: Response) => {
   try {      
     const article: ArticleCreateInput = req.body;
@@ -82,14 +45,14 @@ export const addArticle = async (req: Request, res: Response) => {
     // แก้แค่ตรงนี้ เพราะ frontend มีปัญหาการส่งรูป เลยเปลียนรูปแบบการส่งข้อมูลมาอยู๋ใน formData แล้วมันส่ง number[] มาไม่ได้ เลยส่งเป็น string[] มาก่อน แล้วมา convert ในนี้
     const venueIds: number[] = req.body.venueIds.map((id: string) =>  parseInt(id, 10));
     const tags: string[] = req.body.tags;
-
+    
     const token = req.cookies.authToken;
     if (!token) {
       return res.json({ error: "No auth token" })
     }
     const decodedToken = authService.decodeToken(token)
     const userId = decodedToken.userId;
-
+    
     const newArticle = await prisma.article.create({
       data: {
         topic,
@@ -109,7 +72,7 @@ export const addArticle = async (req: Request, res: Response) => {
         },
       });
     }
-
+    
     let newTag;
     for (const tag of tags) {
       newTag = await prisma.tag.create({
@@ -129,9 +92,9 @@ export const addArticle = async (req: Request, res: Response) => {
     //for (const imageDetail of imageDetails) {
     //  await prisma.images.create({
     //    data: {
-    //      url: imageDetail.url,
-    //      description: imageDetail.description,
-    //      articleId: newArticle.articleId,
+      //      url: imageDetail.url,
+      //      description: imageDetail.description,
+          //      articleId: newArticle.articleId,
     //    },
     //  });
     //}
@@ -161,12 +124,17 @@ export const addArticle = async (req: Request, res: Response) => {
   }
 };
 
+interface ImageInput {
+  url: string,
+  description: string
+}
+
 export const editArticle = async (req: Request, res: Response) => {
   try {
     const { articleId, topic, content, category, author_name } = req.body;
     const venueIds: number[] = req.body.venueIds;
     const tags: string[] = req.body.tags;
-    //const imageDetails: ImageInput[] = req.body.images;
+    const imageDetails: ImageInput[] = req.body.images;
 
     //const userId = 1;
     //const secret: Secret = 'fwjjpjegjwpjgwej' || "";
@@ -215,6 +183,8 @@ export const editArticle = async (req: Request, res: Response) => {
           tag_name: tag
         }
       })
+      console.log("tag name", tag)
+      console.log("this tag --> ", thisTag[0])
 
       //await prisma.article_tags.create({
       //    data: {
@@ -223,7 +193,8 @@ export const editArticle = async (req: Request, res: Response) => {
       //    },
       //})
 
-      if (thisTag) {
+      if (thisTag.length != 0) {
+        console.log("this case!!")
         // * if alr have that tag
         // * check whether tag is use by the other article
         tagUse = await prisma.article_tags.findMany({
@@ -248,15 +219,10 @@ export const editArticle = async (req: Request, res: Response) => {
             },
           })
         } else {
-          updatedTag = await prisma.tag.create({
-            data: {
-              tag_name: tag,
-            }
-          })
           await prisma.article_tags.create({
             data: {
               articleId,
-              tagId: updatedTag.tagId,
+              tagId: thisTag[0].tagId,
             },
           })
         }
@@ -281,26 +247,36 @@ export const editArticle = async (req: Request, res: Response) => {
       where: { articleId: parseInt(articleId) }
     })
 
-    const imageFiles = req.files as MulterFile[];
+    //const imageFiles = req.files as MulterFile[];
     let newImage;
 
-    if (imageFiles)
-    {
-      for (const file of imageFiles) {
-        const imagePath = "/uploads/" + file.path.substring(file.path.lastIndexOf('/') + 1);
-        const description = file.originalname
-        newImage = await prisma.images.create({
-          data: {
-            url: imagePath,
-            description: description,
-            articleId: parseInt(articleId),
-          },
-        });
-      }
-    }
-    else
-    {
-      newImage = "no change in image"
+    //if (imageFiles)
+    //{
+    //  for (const file of imageFiles) {
+    //    const imagePath = "/uploads/" + file.path.substring(file.path.lastIndexOf('/') + 1);
+    //    const description = file.originalname
+    //    newImage = await prisma.images.create({
+    //      data: {
+    //        url: imagePath,
+    //        description: description,
+    //        articleId: parseInt(articleId),
+    //      },
+    //    });
+    //  }
+    //}
+    //else
+    //{
+    //  newImage = "no change in image"
+    //}
+
+    for (const imageDetail of imageDetails) {
+      newImage = await prisma.images.create({
+        data: {
+            url: imageDetail.url,
+            description: imageDetail.description,
+                articleId: newArticle.articleId,
+        },
+      });
     }
 
     const editedArticle = {
@@ -364,6 +340,42 @@ export const deleteImage = async (req: Request, res: Response) => {
   } catch (error) {
     console.error(error);
     res.status(400).json({ error: "Internal server error" });
+  }
+}
+
+export const deleteTag = async (req: Request, res: Response) => {
+  try {
+    const { articleId, tagId } = req.body;
+    
+    const deletedTag = await prisma.article_tags.delete({
+      where: {
+        tagId_articleId: {
+          tagId: tagId,
+          articleId: articleId,
+        },
+      },
+    });
+    
+    const tags = await prisma.article_tags.findMany({
+      where: { tagId: tagId }
+    })
+    
+    let deleteWholeTag
+    if (tags.length === 0) {
+      deleteWholeTag = await prisma.tag.delete({
+        where: { tagId: tagId }
+      })
+    }
+    
+    const overAllDelteResult = {
+      ...deletedTag,
+      WholeTagDeleted: deleteWholeTag,
+    };
+    
+    res.json(overAllDelteResult)
+  }
+  catch (error) {
+    res.json(error);
   }
 }
 
