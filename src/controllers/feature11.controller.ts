@@ -183,8 +183,6 @@ export const editArticle = async (req: Request, res: Response) => {
           tag_name: tag
         }
       })
-      console.log("tag name", tag)
-      console.log("this tag --> ", thisTag[0])
 
       //await prisma.article_tags.create({
       //    data: {
@@ -194,7 +192,6 @@ export const editArticle = async (req: Request, res: Response) => {
       //})
 
       if (thisTag.length != 0) {
-        console.log("this case!!")
         // * if alr have that tag
         // * check whether tag is use by the other article
         tagUse = await prisma.article_tags.findMany({
