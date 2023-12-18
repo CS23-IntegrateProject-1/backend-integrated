@@ -189,6 +189,7 @@ model Venue_branch {
   Tables        Tables[]
   venue         Venue           @relation(fields: [venueId], references: [venueId])
   Venue_reviews Venue_reviews[]
+  Promotion     Promotion[]
 
   @@index([venueId], map: "Venue_branch_venueId_fkey")
 }
@@ -943,7 +944,9 @@ model Promotion {
   discount_price Float
   isApprove      Approve_status @default(In_progress)
   venueId        Int
+  branchId       Int?
   menuId         Int
+  branch         Venue_branch?  @relation(fields: [branchId], references: [branchId])
   menu           Menu           @relation(fields: [menuId], references: [menuId])
   venue          Venue          @relation(fields: [venueId], references: [venueId])
 
