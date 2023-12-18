@@ -45,8 +45,6 @@ import {
 import { customVerifyCookie } from "../middlewares/verifyCookies";
 import { businessVerifyCookie } from "../middlewares/businessVerifyCookies";
 import { reservationMW } from "../middlewares/reservationMW";
-import { getMikStock } from "../controllers/MIKORDER.controller";
-
 const feature7Router = Router();
 
 // feature7Router.use("/addMenuToCookie/:userId/:menuId", customVerifyCookie );
@@ -64,7 +62,7 @@ feature7Router.get("/getMenuById/:id",getMenuById);
 //get set by id
 feature7Router.get("/getSetById/:id",getSetById);
 //add menu to cart
-feature7Router.post("/addMenuToCookie/:menuId/", customVerifyCookie,reservationMW,getMikStock,addMenuToCookie);
+feature7Router.post("/addMenuToCookie/:menuId/", customVerifyCookie,reservationMW,addMenuToCookie);
 //delete menu from cart
 feature7Router.delete("/deleteMenuFromCookie/:menuId/",reservationMW,deleteMenuFromCookie);
 //add set to cart

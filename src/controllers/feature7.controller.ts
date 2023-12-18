@@ -115,6 +115,7 @@ export const addMenuToCookie = async (req: any, res: Response) => {
         const menuId = req.params.menuId;
         const venueId = reservationInfo?.venueId;
         const branchId = reservationInfo?.branchId;
+        console.log(branchId);
         let stockRecord;
         if(venueId !== 2){
              stockRecord = await feature7Client.stocks.findFirst({
@@ -127,6 +128,53 @@ export const addMenuToCookie = async (req: any, res: Response) => {
             if (stockRecord?.availability === false) {
                 return res.status(404).json({ error: 'Menu item not available' });
             }
+            else{
+                const menu = await feature7Client.menu.findUnique(
+                    {
+                        where: {
+                            menuId: parseInt(menuId)
+                        }
+                    }
+                );
+                if (!menu) {
+                    return res.status(404).json({ error: 'Menu item not found' });
+                }
+        
+                // Retrieve existing cart from the 'cart' cookie or initialize an empty array
+                const existingCartString = req.cookies.cart || '[]';
+                const existingCart = JSON.parse(existingCartString);
+        
+                // Check if the menu item is already in the cart
+                const existingCartItem = existingCart.find((item) => item.menuId === menu.menuId);
+        
+                if (existingCartItem && reservationId == existingCartItem.reservationId) {
+                    // If the item is already in the cart, update the quantity
+                    existingCartItem.quantity = quantity;
+                } else {
+                    // If the item is not in the cart, add it
+                    existingCart.push({
+                        userId: parseInt(userId),
+                        menuId: menu.menuId,
+                        reservationId: reservationId,
+                        setId: null,
+                        name: menu.name,
+                        price: menu.price,
+                        quantity: quantity,
+                        image: menu.image,
+                        description: menu.description,
+                    });
+                }
+                if (quantity == 0) {
+                    existingCart.pop();
+                }
+                //if nothing in cart delete cookie
+                if (existingCart.length == 0) {
+                    res.clearCookie('cart');
+                }
+                // Update the 'cart' cookie with the modified cart
+                res.cookie('cart', JSON.stringify(existingCart));
+                res.status(200).json({ success: true, message: 'Added to cart' });
+            }
     
         }
         else{
@@ -136,57 +184,71 @@ export const addMenuToCookie = async (req: any, res: Response) => {
                 },
             });
             const menuNo = getMenoNo?.menu_no;
-            stockRecord = req.StockPass;
-            stockRecord = stockRecord.filter((item: any) => item.menu_no === menuNo && item.branch_id === branchId);
-            if (stockRecord?.availibility === false) {
+            const url = process.env.MIKSERVER_URL || "http://localhost:11000";
+            const result = await fetch(`${url}/api/harmoniStock`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ branch_id : branchId }),
+            });
+            const data = await result.json();
+            console.log(data);
+            stockRecord = data.filter((item: any) => item.menu_id === menuNo && item.branch_id === branchId);
+            console.log(stockRecord);
+            console.log(stockRecord[0].availibility );
+            if (stockRecord[0].availibility == false) {
                 return res.status(404).json({ error: 'Menu item not available' });
             }
-        }
-        const menu = await feature7Client.menu.findUnique(
-            {
-                where: {
-                    menuId: parseInt(menuId)
+            else{
+                const menu = await feature7Client.menu.findUnique(
+                    {
+                        where: {
+                            menuId: parseInt(menuId)
+                        }
+                    }
+                );
+                if (!menu) {
+                    return res.status(404).json({ error: 'Menu item not found' });
                 }
+        
+                // Retrieve existing cart from the 'cart' cookie or initialize an empty array
+                const existingCartString = req.cookies.cart || '[]';
+                const existingCart = JSON.parse(existingCartString);
+        
+                // Check if the menu item is already in the cart
+                const existingCartItem = existingCart.find((item) => item.menuId === menu.menuId);
+        
+                if (existingCartItem && reservationId == existingCartItem.reservationId) {
+                    // If the item is already in the cart, update the quantity
+                    existingCartItem.quantity = quantity;
+                } else {
+                    // If the item is not in the cart, add it
+                    existingCart.push({
+                        userId: parseInt(userId),
+                        menuId: menu.menuId,
+                        reservationId: reservationId,
+                        setId: null,
+                        name: menu.name,
+                        price: menu.price,
+                        quantity: quantity,
+                        image: menu.image,
+                        description: menu.description,
+                    });
+                }
+                if (quantity == 0) {
+                    existingCart.pop();
+                }
+                //if nothing in cart delete cookie
+                if (existingCart.length == 0) {
+                    res.clearCookie('cart');
+                }
+                // Update the 'cart' cookie with the modified cart
+                res.cookie('cart', JSON.stringify(existingCart));
+                res.status(200).json({ success: true, message: 'Added to cart' });
             }
-        );
-        if (!menu) {
-            return res.status(404).json({ error: 'Menu item not found' });
         }
-
-        // Retrieve existing cart from the 'cart' cookie or initialize an empty array
-        const existingCartString = req.cookies.cart || '[]';
-        const existingCart = JSON.parse(existingCartString);
-
-        // Check if the menu item is already in the cart
-        const existingCartItem = existingCart.find((item) => item.menuId === menu.menuId);
-
-        if (existingCartItem && reservationId == existingCartItem.reservationId) {
-            // If the item is already in the cart, update the quantity
-            existingCartItem.quantity = quantity;
-        } else {
-            // If the item is not in the cart, add it
-            existingCart.push({
-                userId: parseInt(userId),
-                menuId: menu.menuId,
-                reservationId: reservationId,
-                setId: null,
-                name: menu.name,
-                price: menu.price,
-                quantity: quantity,
-                image: menu.image,
-                description: menu.description,
-            });
-        }
-        if (quantity == 0) {
-            existingCart.pop();
-        }
-        //if nothing in cart delete cookie
-        if (existingCart.length == 0) {
-            res.clearCookie('cart');
-        }
-        // Update the 'cart' cookie with the modified cart
-        res.cookie('cart', JSON.stringify(existingCart));
-        res.status(200).json({ success: true, message: 'Added to cart' });
+        
     } catch (error) {
         console.log(error);
     }
