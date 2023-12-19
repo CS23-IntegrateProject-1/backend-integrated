@@ -13,9 +13,10 @@ import {
     getFilmsByTheaterId,
     getTheaterById,
     getSeatByScreenId,
+    getTotalPriceByReservationId,
+    
 
-
-    getTestTest,
+    
 } from "../controllers/feature10.controller";
 
 const feature10Router = Router();
@@ -32,8 +33,9 @@ feature10Router.get("/getShowsByTheaterId/:id/:date", getShowsByTheaterId);
 feature10Router.post("/getFilmsByTheaterId", getFilmsByTheaterId);
 feature10Router.get("/getTheaterById/:id", getTheaterById);
 feature10Router.post("/getSeatByScreenId", getSeatByScreenId);
+feature10Router.post("/getTotalPriceByReservationId", getTotalPriceByReservationId);
 
-feature10Router.get("/getTestTest", getTestTest);
+
 
 export default feature10Router;
 
