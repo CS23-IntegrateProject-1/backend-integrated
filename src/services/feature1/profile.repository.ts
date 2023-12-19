@@ -13,7 +13,7 @@ export interface IProfileRepository {
   updateUserById(
     userId: number,
     data: ProfileUpdateRequest,
-    filename: string
+    filename: string,
   ): Promise<ProfileUpdateDBResponse>;
 }
 
@@ -69,7 +69,7 @@ const expandBio = (profile: Profile): ExpandedProfile => {
   }
 
   return omit(["User_bio", "profile_picture", "Member_tier", "Point"])(
-    profile
+    profile,
   ) as ExpandedProfile;
 };
 
@@ -77,7 +77,7 @@ export class ProfileRepository implements IProfileRepository {
   async updateUserById(
     userId: number,
     data: ProfileUpdateRequest,
-    filename: string
+    filename: string,
   ): Promise<ProfileShowDBResponse> {
     const result = await prismaClient.user.update({
       where: {

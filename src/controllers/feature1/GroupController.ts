@@ -1,21 +1,21 @@
 import { Request, Response } from "express";
 
-import GroupRepository from "../../services/feature1/group.repository";
-import GroupService, {
-  IGroupService,
-} from "../../services/feature1/group.service";
-import { makeErrorResponse } from "./models/payment_method.model";
-import { makeGroupCreateWebResponse } from "./models/group.model";
 import { prismaClient } from "../feature1.controller";
-
-export interface MulterRequest extends Request {
-  file: any;
-}
+import {
+  MulterRequest,
+  makeErrorResponse,
+  makeGroupCreateWebResponse,
+} from "./models";
+import {
+  GroupRepository,
+  GroupService,
+  IGroupService,
+} from "../../services/feature1";
 
 export interface IGroupController {
   index(req: Request, res: Response): unknown;
 
-  create(req: MulterRequest, res: Response): unknown;
+  create(req: Request, res: Response): unknown;
 }
 
 export default class GroupController implements IGroupController {
