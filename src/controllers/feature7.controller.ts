@@ -253,6 +253,7 @@ export const addMenuToCookie = async (req: any, res: Response) => {
         console.log(error);
     }
 }
+
 export const deleteMenuFromCookie = async (req: any, res: Response) => {
     try {
         const reservationId =req.reservationId;
@@ -262,9 +263,9 @@ export const deleteMenuFromCookie = async (req: any, res: Response) => {
         const existingCart = JSON.parse(existingCartString);
 
         // Check if the menu item is already in the cart
-        const existingCartItem = existingCart.find((item) => item.menuId === menuId);
-        existingCart.pop(existingCartItem);
-        const updatedCart = existingCart.filter(item => item.reservationId == reservationId && item.menuId !== menuId);
+        // const existingCartItem = existingCart.find((item) => item.menuId === menuId);
+        // existingCart.pop(existingCartItem);
+        const updatedCart = existingCart.filter(item => item.reservationId == reservationId && item.menuId !== parseInt(menuId));
         // Update the 'cart' cookie with the modified cart
         res.cookie('cart', JSON.stringify(updatedCart));
         res.status(200).json({ success: true, message: 'Deleted menu from cart' });
@@ -364,9 +365,9 @@ export const deleteSetFromCookie = async (req: any, res: Response) => {
         const existingCart = JSON.parse(existingCartString);
 
         // Check if the menu item is already in the cart
-        const existingCartItem = existingCart.find((item) => item.setId === setId);
-        existingCart.pop(existingCartItem);
-        const updatedCart = existingCart.filter(item => item.reservationId == reservationId && item.setId !== setId);
+        // const existingCartItem = existingCart.find((item) => item.setId === setId);
+        // existingCart.pop(existingCartItem);
+        const updatedCart = existingCart.filter(item => item.reservationId == reservationId && item.setId !== parseInt(setId));
         // Update the 'cart' cookie with the modified cart
         res.cookie('cart', JSON.stringify(updatedCart));
         res.status(200).json({ success: true, message: 'Deleted set from cart' });
@@ -431,6 +432,8 @@ export const showSetDetailFromCart = async (req: any, res: Response) => {
     }
 }
 export const addCartToOrderDetailsOfDineIn = async (req: any, res: Response) => {
+    const url = process.env.MIKSERVER_URL + "/api/orderHarmoni"||"http://localhost:11000";
+
     try{
         const reservationId = req.reservationId;
         const reservationInfo = await feature7Client.reservation.findUnique({
@@ -503,7 +506,9 @@ export const addCartToOrderDetailsOfDineIn = async (req: any, res: Response) => 
                 }
             } 
         });
-        await feature7Client.order_detail.createMany({
+        
+        
+            await feature7Client.order_detail.createMany({
             data: userCart
                 .filter((item) => item.setId !== null) // Filter out null setId values
                 .map((item) => ({
@@ -538,11 +543,46 @@ export const addCartToOrderDetailsOfDineIn = async (req: any, res: Response) => 
                 status: "On_going",
             },
         });
+        if(venueId == 2){
+        const lastOrderDetailId = await feature7Client.order_detail.findFirst({
+            orderBy: {
+                orderDetailId: 'desc',
+            },
+        });
+        const last=lastOrderDetailId!.orderDetailId;
+        console.log(lastOrderDetailId?.orderDetailId);
+        const sentToMIK = userCart.map((item: any, index: number) => {
+            const size = userCart.length;
+            return {
+                orderDetailId: last - size + index +1,
+                menu_id: menu.find((menu) => menu.menuId === item.menuId)?.menu_no,
+                quantity: item.quantity,
+                reservationId: reservationId,
+            };
+        });
+
+        console.log(sentToMIK);
+        const orderMIK = await fetch(url, {
+            method: "POST",
+            headers: { 
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                sentToMIK,
+            })
+        })
+        if(!orderMIK.ok)
+        {
+            throw new Error("Error in orderMIK");
+        }
+        const data = await orderMIK.json();
+        console.log(data);
+    }
         //clear cart
         res.clearCookie('userCart');
         const updatedCart = cart.filter(item => item.reservationId !== reservationId);
         res.cookie('cart', JSON.stringify(updatedCart));
-        console.log(cart);
+        // console.log(cart);
         res.status(200).json(orderDetailsOfOrder);
     }
     catch (e) {
@@ -857,7 +897,26 @@ export const getReceipt = async (req: any, res: Response) => {
         console.log(e);
     }
 }
-
+//change order status
+export const changeOrderStatus = async (req: any, res: Response) => {
+    try{
+        console.log(req.body);
+        const orderDetailId= req.body.orderDetailId;
+        console.log(orderDetailId);
+        await feature7Client.order_detail.update({
+            where: {
+                orderDetailId: orderDetailId,
+            },
+            data: {
+                status: "Completed",
+            },
+        });
+        res.status(200).json({ success: true, message: 'Order status changed' });
+    }
+    catch (e) {
+        console.log(e);
+    }
+}
 //--------------Business side---------------//
 //get all menus of venue 
 export const getAllMenus = async (req: any, res: Response) => {

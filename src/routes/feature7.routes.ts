@@ -41,6 +41,7 @@ import {
     getAllSets,
     deleteMenuItemBeforeAddingToSetForEdit,
     cancelDeleteMenuItemFromSet,
+    changeOrderStatus,
 } from "../controllers/feature7.controller";
 import { customVerifyCookie } from "../middlewares/verifyCookies";
 import { businessVerifyCookie } from "../middlewares/businessVerifyCookies";
@@ -81,7 +82,8 @@ feature7Router.post("/addCartToOrderDetailsOfDineIn/",customVerifyCookie,reserva
 feature7Router.get("/showOngoingOrderDetails/",customVerifyCookie,reservationMW,showOnGoingOrderDetails);
 //show Completed Order details
 feature7Router.get("/showCompletedOrderDetails/",customVerifyCookie,reservationMW,showCompletedOrderDetails);
-
+//change order status
+feature7Router.patch("/changeOrderStatus/",changeOrderStatus);
 //-------------------Business-------------------//
 
 //get all menus of venue
