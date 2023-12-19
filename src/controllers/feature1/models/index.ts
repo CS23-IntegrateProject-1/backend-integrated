@@ -15,6 +15,13 @@ import {
   makeVenueUpdateWebResponse,
 } from "./venue.model";
 
+import {
+  makeAboutShowWebResponse,
+  makeAboutIndexWebResponse,
+  makeAboutStoreWebResponse,
+  makeAboutUpdateWebResponse,
+} from "./about.model";
+
 export {
   makeErrorResponse,
   makeVenueShowWebResponse,
@@ -27,4 +34,8 @@ export {
   VenueShowDBResponse,
   VenueUpdateWebResponse,
   makeVenueUpdateWebResponse,
+  makeAboutShowWebResponse,
+  makeAboutIndexWebResponse,
+  makeAboutStoreWebResponse,
+  makeAboutUpdateWebResponse,
 };

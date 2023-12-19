@@ -7,6 +7,9 @@ import ProfileService, { IProfileService } from "./profile.service";
 import GroupRepository from "./group.repository";
 import GroupService, { IGroupService } from "./group.service";
 
+import AboutService, { IAboutService } from "./about.service";
+import AboutRepository from "./about.repository";
+
 export {
   VenueService,
   IVenueService,
@@ -18,4 +21,7 @@ export {
   GroupRepository,
   GroupService,
   IGroupService,
+  AboutService,
+  IAboutService,
+  AboutRepository,
 };
