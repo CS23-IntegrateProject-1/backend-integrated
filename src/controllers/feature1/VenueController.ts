@@ -48,7 +48,7 @@ class VenueController implements IVenueController {
     const result = await OpeningHourPayload.safeParseAsync(openingHours);
 
     if (!result.success) {
-      return res.status(400).json(makeErrorResponse('Invalid request'));
+      return res.status(400).json(makeErrorResponse("Invalid request"));
     }
 
     try {
@@ -59,7 +59,6 @@ class VenueController implements IVenueController {
 
       return res.status(200).send();
     } catch (e) {
-      console.log(e);
       return res.status(500).json(makeErrorResponse("Internal Server Error"));
     }
   }
