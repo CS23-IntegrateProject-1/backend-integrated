@@ -34,6 +34,7 @@ export default class QrController implements IQrController {
       const fields = pickQrFields(response);
 
       res.type("png");
+      res.setHeader('Content-Disposition', 'attachment; filename="qr.png"');
       return qr.image(JSON.stringify(fields), { type: "png" }).pipe(res);
     } catch (e) {
       return res.status(404).json(makeErrorResponse("User not found"));
@@ -57,6 +58,7 @@ export default class QrController implements IQrController {
       const fields = pickQrFields(response);
 
       res.type("png");
+      res.setHeader('Content-Disposition', 'attachment; filename="qr.png"');
       return qr.image(JSON.stringify(fields), { type: "png" }).pipe(res);
     } catch (e) {
       return res.status(404).json(makeErrorResponse("User not found"));
