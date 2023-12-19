@@ -88,7 +88,6 @@ class VenueController implements IVenueController {
 
       return res.json(response);
     } catch (e) {
-      console.log(e);
       return res.status(500).json(makeErrorResponse("Internal Server Error"));
     }
   }
