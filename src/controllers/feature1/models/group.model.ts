@@ -13,7 +13,7 @@ export type GroupCreateDBResponse = {
   Group_user: Array<{
     groupId: number;
     memberId: number;
-    member: UserMinimalInfo;
+    User: UserMinimalInfo;
   }>;
 };
 
@@ -94,9 +94,9 @@ export function makeGroupCreateWebResponse(
     group_id: data.groupId,
     group_avatar: data.group_profile,
     members: data.Group_user.map((user) => ({
-      user_id: user.member.userId,
-      username: user.member.username,
-      avatar: user.member.profile_picture,
+      user_id: user.User.userId,
+      username: user.User.username,
+      avatar: user.User.profile_picture,
     })),
   };
 }

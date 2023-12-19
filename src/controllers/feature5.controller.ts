@@ -84,7 +84,7 @@ export const AdBusiness = async (req: Request, res: Response) => {
     } catch (e) {
       console.error(e);
     }
-    return res.status(200);
+    return res.status(200).json("create success");
 
     // res.json(newAdvertisement);
   } catch (err) {
@@ -128,6 +128,48 @@ export const getAdvertisementById = async (req: Request, res: Response) => {
   } catch (e) {
     console.log(e);
     res.status(500).json(e);
+  }
+};
+
+export const AdvertisementEditbyId = async (req: Request, res: Response) => {
+  try {
+    const {
+      advertisementId: advertisementId,
+      name: name,
+      description: description,
+      cost: cost,
+      start_date: start_date,
+      endDate: end_date,
+      customer_type: customer_type,
+      target_group: target_group,
+    } = req.body;
+
+    const image_url =
+      "/uploads/" + req.file.path.substring(req.file.path.lastIndexOf("/") + 1);
+
+    const isApprove = "In_progress";
+
+    const EditAd = await feature5Client.ad_business.update({
+      where: {
+        advertisementId: advertisementId,
+      },
+      data: {
+        name,
+        description,
+        image_url,
+        cost,
+        start_date,
+        end_date,
+        customer_type,
+        target_group,
+        isApprove,
+      },
+    });
+    res.json(EditAd);
+  } catch (err) {
+    const error = err as Error;
+    console.log(err);
+    res.status(500).json({ error: error.message });
   }
 };
 
@@ -347,18 +389,28 @@ export const VoucherApprove = async (req: Request, res: Response) => {
 export const VoucherEditbyId = async (req: Request, res: Response) => {
   try {
     const {
-    //   voucherId: voucherId,
-      voucherName: voucher_name,
-      startDate: start_date,
-      endDate: end_date,
-      description: description,
-    //   venueId: venueId,
+      // voucherId,
+      voucher_name,
+      start_date,
+      end_date,
+      description,
+      // venueId,
     } = req.body;
-    console.log("hi", req.body);
-    const voucherId = parseInt(req.body.voucherId);
+    // const imageFile = req.file as MulterFile;
     const venueId = parseInt(req.body.venueId)
-    // const voucher_image =
-    //   "/uploads/" + req.file.path.substring(req.file.path.lastIndexOf("/") + 1);
+    const voucherId = parseInt(req.body.voucherId)
+    let voucher_image;
+    if (req.file.path.includes("/"))
+    {
+      voucher_image =
+        "/uploads/" +
+        req.file.path.substring(req.file.path.lastIndexOf("/") + 1);
+    }
+    else if (req.file.path.includes("\\")) {
+      voucher_image =
+        "/uploads/" +
+        req.file.path.substring(req.file.path.lastIndexOf("\\") + 1);
+    }
 
     const isApprove = "In_progress";
 
@@ -367,9 +419,8 @@ export const VoucherEditbyId = async (req: Request, res: Response) => {
         voucherId: voucherId,
       },
       data: {
-        voucherId,
         voucher_name,
-        // voucher_image,
+        voucher_image,
         start_date,
         end_date,
         description,
@@ -979,6 +1030,50 @@ export const getAllPromotion = async (req: Request, res: Response) => {
   } catch (err) {
     console.log(err);
     const error = err as Error;
+    res.status(500).json({ error: error.message });
+  }
+};
+
+export const PromotionEditbyId = async (req: Request, res: Response) => {
+  try {
+    const {
+      promotionId: promotionId,
+      name: name,
+      description: description,
+      start_date: start_date,
+      end_date: end_date,
+      discount_price: discount_price,
+      venueId: venueId,
+      menuId: menuId,
+      branchId: branchId,
+    } = req.body;
+
+    const image_url =
+      "/uploads/" + req.file.path.substring(req.file.path.lastIndexOf("/") + 1);
+
+    const isApprove = "In_progress";
+
+    const EditPromotion = await feature5Client.promotion.update({
+      where: {
+        promotionId: promotionId,
+      },
+      data: {
+        name,
+        description,
+        image_url,
+        start_date,
+        end_date,
+        isApprove,
+        discount_price,
+        venueId,
+        menuId,
+        branchId,
+      },
+    });
+    res.json(EditPromotion);
+  } catch (err) {
+    const error = err as Error;
+    console.log(err);
     res.status(500).json({ error: error.message });
   }
 };

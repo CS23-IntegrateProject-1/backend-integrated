@@ -41,7 +41,9 @@ import {
   GetCompletePromotion,
   GetRedeembyId,
   GetVoucherIncludeIsused,
-  VoucherEditbyId
+  VoucherEditbyId,
+  AdvertisementEditbyId,
+  PromotionEditbyId,
 
 } from "../controllers/feature5.controller";
 
@@ -59,6 +61,7 @@ feature5Router.get("/AllCompleteAdBSN", GetAllCompleteAdvertisement); //for show
 feature5Router.get("/AdBSN/:id", getAdvertisementById); //for show each advertisement by using advertisement id
 feature5Router.get("/AllAdBSN/", GetAllAdvertisement); //for show all advertisement was created
 feature5Router.get("/AllTag", GetAllTags); //for show all tag that business can choose to advert in user side
+feature5Router.post("/UpdateAdvertisementEditId/",multerConfig.single("file"), AdvertisementEditbyId);
 
 //Voucher
 feature5Router.post("/Voucher/", multerConfig.single("file"), Voucher); // for create voucher
@@ -73,7 +76,7 @@ feature5Router.post("/UpdateVoucherEditbyId/",multerConfig.single("file"), Vouch
 //MyReward
 feature5Router.get("/AllCollectedVoucher/",customVerifyCookie, getCollectedVoucher); //for show collected voucher for update
 feature5Router.post("/CollectVoucher/:id", multerConfig.single("file"),customVerifyCookie, CollectVoucher); //for collect voucher
-feature5Router.patch("/UpdateUsedVoucher/:id",customVerifyCookie, UpdateUsedVoucher); //for collect voucher for update
+feature5Router.patch("/UpdateUsedVoucher/:id", multerConfig.single("file"),customVerifyCookie, UpdateUsedVoucher); //for collect voucher for update
 
 //Membertier
 feature5Router.get("/tierName/", customVerifyCookie, GettierName); //for show only tier
@@ -91,8 +94,12 @@ feature5Router.patch("/PromotionApprove/:id", PromotionApprove); //for approve p
 feature5Router.get("/AllPromotion/", getAllPromotion); //for show all promotion
 feature5Router.get("/AllPromotion/:id", getPromotionbyId); //for update promotion
 feature5Router.get("/GetDetailPromotion/:id", getDetailPromotion); //for update promotion
-feature5Router.get("/GetCompletePromotion", GetCompletePromotion); //for all complete promotion
-
+feature5Router.get("/GetCompletePromotion", GetCompletePromotion); //for all complete 
+feature5Router.post(
+  "/UpdatePromotionEditbyId/",
+  multerConfig.single("file"),
+  PromotionEditbyId
+);
 //Redeem
 feature5Router.get("/GetRedeem/", customVerifyCookie,  GetRedeem); //for show redeem of customer depend on their member tier
 feature5Router.post("/createRedeem", multerConfig.single("file"), CreateRedeem); // for create promotion

@@ -1,4 +1,4 @@
-type Gender = 'Male' | 'Female' | 'Others';
+type Gender = "Male" | "Female" | "Others";
 
 export type ProfileShowDBResponse = {
   userId: number;

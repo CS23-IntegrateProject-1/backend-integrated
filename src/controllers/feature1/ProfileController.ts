@@ -6,6 +6,9 @@ import ProfileService, {
 import { makeErrorResponse } from "./models/payment_method.model";
 import { z } from "zod";
 import { MulterRequest } from "./GroupController";
+import { compose, path } from "ramda";
+
+const getUserId = compose(Number, path(["params", "userId"]));
 
 export interface IProfileController {
   show(req: Request, res: Response): unknown;
@@ -50,9 +53,7 @@ export default class ProfileController implements IProfileController {
 
   async show(req: Request, res: Response) {
     try {
-      const response = await this.service.getUserProfile(
-        Number(req.params.userId),
-      );
+      const response = await this.service.getUserProfile(getUserId(req));
 
       return res.json(response);
     } catch (e) {
