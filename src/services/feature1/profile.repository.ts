@@ -26,7 +26,7 @@ type Profile = {
   User_bio: null | User_bio;
 };
 
-type Gender = 'Male' | 'Female' | 'Others';
+type Gender = "Male" | "Female" | "Others";
 
 type ExpandedProfile = Profile & {
   avatar: string | null;

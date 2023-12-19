@@ -40,7 +40,7 @@ const OpeningHourPayload: z.ZodType<DayToString> = z.object({
   ),
 }) as z.ZodTypeAny;
 
-const getBusinessId = compose(Number, path(['params', 'businessId']));
+const getBusinessId = compose(Number, path(["params", "businessId"]));
 
 class VenueController implements IVenueController {
   private service: IVenueService = new VenueService(new VenueRepository());
@@ -89,10 +89,7 @@ class VenueController implements IVenueController {
     }
 
     try {
-      const response = await this.service.updateVenue(
-        businessId,
-        venue.data,
-      );
+      const response = await this.service.updateVenue(businessId, venue.data);
 
       const webResponse = makeVenueUpdateWebResponse(response);
 

@@ -63,8 +63,8 @@ export default class GroupController implements IGroupController {
                   userId: true,
                   username: true,
                   profile_picture: true,
-                }
-              }
+                },
+              },
             },
           },
         },

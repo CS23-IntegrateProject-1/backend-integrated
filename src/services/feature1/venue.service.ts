@@ -34,15 +34,15 @@ class VenueService implements IVenueService {
 
     const resp: VenueUpdateDBResponse = {
       capacity: 0,
-      category: 'Bar',
-      description: '',
-      name: 'Foo',
+      category: "Bar",
+      description: "",
+      name: "Foo",
       venueId: 3,
-      website_url: 'https://www.google.com/',
+      website_url: "https://www.google.com/",
       Location: {
-        address: '666 maybe, null st'
-      }
-    }
+        address: "666 maybe, null st",
+      },
+    };
 
     return resp;
   }
