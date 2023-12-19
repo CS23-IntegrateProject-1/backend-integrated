@@ -1,5 +1,4 @@
 import { Response, Request } from "express";
-import jwt, { JsonWebTokenError } from "jsonwebtoken";
 
 import PaymentMethodRepository from "../../services/feature1/payment_method.repository";
 import PaymentMethodService, {
@@ -16,7 +15,6 @@ import {
   PrismaClientValidationError,
 } from "@prisma/client/runtime/library";
 import { Prisma } from "@prisma/client";
-import { extractToken } from "./utils";
 
 interface IPaymentMethodController {
   store: (req: Request, res: Response) => unknown;
@@ -31,168 +29,91 @@ export class PaymentMethodController implements IPaymentMethodController {
   );
 
   async store(req: Request, res: Response) {
-    let token: string;
-
     try {
-      token = extractToken(req);
-    } catch (e) {
-      return res.status(401).json(makeErrorResponse("Unauthorized"));
-    }
+      const { method } = req.body;
 
-    try {
-      const decoded = jwt.verify(
-        token as string,
-        process.env.JWT_SECRET as string,
+      const response = await this.service.storePaymentMethod(
+        Number(req.params.userId),
+        method,
       );
-      const userId = (decoded as jwt.JwtPayload).userId;
 
-      try {
-        const { method } = req.body;
+      const webResponse = makePaymentMethodStoreWebResponse(response);
 
-        const response = await this.service.storePaymentMethod(userId, method);
-
-        const webResponse = makePaymentMethodStoreWebResponse(response);
-
-        return res.json(webResponse);
-      } catch (e) {
-        if (e instanceof PrismaClientValidationError) {
-          return res.status(400).send();
-        } else if (e instanceof PrismaClientKnownRequestError) {
-          if (e.code === "P2002") {
-            return res
-              .status(409)
-              .json(
-                makeErrorResponse(
-                  "Payment method already exists for this user",
-                ),
-              )
-              .send();
-          }
-        } else {
-          return res.status(500).send();
-        }
-      }
+      return res.json(webResponse);
     } catch (e) {
-      if (e instanceof JsonWebTokenError) {
-        return res.status(401).json(makeErrorResponse("Invalid token"));
+      if (e instanceof PrismaClientValidationError) {
+        return res.status(400).send();
+      } else if (e instanceof PrismaClientKnownRequestError) {
+        if (e.code === "P2002") {
+          return res
+            .status(409)
+            .json(
+              makeErrorResponse("Payment method already exists for this user"),
+            )
+            .send();
+        }
+      } else {
+        return res.status(500).send();
       }
     }
   }
 
   async show(req: Request, res: Response) {
-    let token: string;
-
     try {
-      token = extractToken(req);
-    } catch (e) {
-      return res.status(401).json(makeErrorResponse("Unauthorized"));
-    }
-
-    try {
-      const decoded = jwt.verify(
-        token as string,
-        process.env.JWT_SECRET as string,
+      const response = await this.service.getPaymentMethodOfUser(
+        Number(req.params.userId),
       );
-      const userId = (decoded as jwt.JwtPayload).userId;
 
-      try {
-        const response = await this.service.getPaymentMethodOfUser(userId);
+      const webResponse = makePaymentMethodWebResponse(response);
 
-        const webResponse = makePaymentMethodWebResponse(response);
-
-        return res.json(webResponse);
-      } catch (e) {
-        return res
-          .status(404)
-          .json(makeErrorResponse("User or payment method not found"));
-      }
+      return res.json(webResponse);
     } catch (e) {
-      if (e instanceof JsonWebTokenError) {
-        return res.status(401).json(makeErrorResponse("Invalid token"));
-      }
+      return res
+        .status(404)
+        .json(makeErrorResponse("User or payment method not found"));
     }
   }
 
   async update(req: Request, res: Response) {
-    let token: string;
+    const { method } = req.body;
 
     try {
-      token = extractToken(req);
-    } catch (e) {
-      return res.status(401).json(makeErrorResponse("Unauthorized"));
-    }
-
-    try {
-      const decoded = jwt.verify(
-        token as string,
-        process.env.JWT_SECRET as string,
+      const response = await this.service.updatePaymentMethodOfUser(
+        Number(req.params.userId),
+        method,
       );
-      const userId = (decoded as jwt.JwtPayload).userId;
 
-      const { method } = req.body;
+      const webResponse = makePaymentMethodUpdateWebResponse(response);
 
-      try {
-        const response = await this.service.updatePaymentMethodOfUser(
-          userId,
-          method,
-        );
-
-        const webResponse = makePaymentMethodUpdateWebResponse(response);
-
-        return res.json(webResponse);
-      } catch (e) {
-        if (e instanceof PrismaClientValidationError) {
-          return res
-            .status(400)
-            .json(makeErrorResponse("Invalid request"))
-            .send();
-        } else {
-          return res
-            .status(404)
-            .json(makeErrorResponse("User or payment method not found"));
-        }
-      }
+      return res.json(webResponse);
     } catch (e) {
-      if (e instanceof JsonWebTokenError) {
-        return res.status(401).json(makeErrorResponse("Invalid token"));
+      if (e instanceof PrismaClientValidationError) {
+        return res
+          .status(400)
+          .json(makeErrorResponse("Invalid request"))
+          .send();
+      } else {
+        return res
+          .status(404)
+          .json(makeErrorResponse("User or payment method not found"));
       }
     }
   }
 
   async destroy(req: Request, res: Response) {
-    let token: string;
-
     try {
-      token = extractToken(req);
+      await this.service.deletePaymentMethodOfUser(Number(req.params.userId));
+
+      return res.status(200).send();
     } catch (e) {
-      return res.status(401).json(makeErrorResponse("Unauthorized"));
-    }
-
-    try {
-      const decoded = jwt.verify(
-        token as string,
-        process.env.JWT_SECRET as string,
-      );
-      const userId = (decoded as jwt.JwtPayload).userId;
-
-      try {
-        await this.service.deletePaymentMethodOfUser(userId);
-
-        return res.status(200).send();
-      } catch (e) {
-        if (e instanceof Prisma.PrismaClientKnownRequestError) {
-          if (e.code === "P2025") {
-            return res
-              .status(404)
-              .json(makeErrorResponse(e.meta!.cause as string));
-          }
-        } else {
-          return res.status(500).send();
+      if (e instanceof Prisma.PrismaClientKnownRequestError) {
+        if (e.code === "P2025") {
+          return res
+            .status(404)
+            .json(makeErrorResponse(e.meta!.cause as string));
         }
-      }
-    } catch (e) {
-      if (e instanceof JsonWebTokenError) {
-        return res.status(401).json(makeErrorResponse("Invalid token"));
+      } else {
+        return res.status(500).send();
       }
     }
   }
