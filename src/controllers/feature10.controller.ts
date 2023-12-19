@@ -121,6 +121,12 @@ export const getTotalPriceByReservationId = async (
 	res.json(data);
 };
 
+export const getReservationById = async (req: Request, res: Response) => {
+    const id = req.body.id;
+    const data = await reservationService.getReservationById(id);
+    res.json(data);
+}
+
 export const bookSeatAndSendCookie = async (req: Request, res: Response) => {
 	try {
 		const showId = Number(req.body.showId);
@@ -189,8 +195,3 @@ export const bookSeatAndSendCookie = async (req: Request, res: Response) => {
 };
 
 
-export const getReservationById = async (req: Request, res: Response) => {
-    const id = req.body.id;
-    const data = await reservationService.getReservationById(id);
-    res.json(data);
-}
