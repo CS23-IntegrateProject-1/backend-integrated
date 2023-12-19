@@ -1,4 +1,5 @@
 import { map } from "ramda";
+import { SECRET_IDENTIFIER } from "../../../services/feature1/group.repository";
 
 type UserMinimalInfo = {
   userId: number;
@@ -33,6 +34,7 @@ export type GroupCreateWebResponse = {
   group_name: string;
   group_id: number;
   group_avatar: string | null;
+  is_secret_group: boolean;
   members: Array<{ user_id: number; username: string; avatar: string | null }>;
 };
 
@@ -89,10 +91,15 @@ export function makeGroupIndexWebResponse(
 export function makeGroupCreateWebResponse(
   data: GroupCreateDBResponse,
 ): GroupCreateWebResponse {
+  const isSecretGroup = data.group_name.endsWith(SECRET_IDENTIFIER);
+
   return {
-    group_name: data.group_name,
+    group_name: isSecretGroup
+      ? data.group_name.replace(SECRET_IDENTIFIER, "")
+      : data.group_name,
     group_id: data.groupId,
     group_avatar: data.group_profile,
+    is_secret_group: isSecretGroup,
     members: data.Group_user.map((user) => ({
       user_id: user.User.userId,
       username: user.User.username,
