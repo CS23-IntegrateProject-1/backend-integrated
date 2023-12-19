@@ -131,7 +131,7 @@ export const getVenueBranch = async (req: Request, res: Response) => {
                 branchId: parseInt(branchId),
             },
             include: {
-                venue: true,
+                Venue: true,
                 Orders: true,
                 Stocks: true,
             },
@@ -237,7 +237,7 @@ export const getVenueKeywords = async (req: Request, res: Response) => {
                 venueId: parseInt(venueId),
             },
             include: {
-                venue: true,
+                Venue: true,
             },
         });
 
@@ -285,7 +285,7 @@ export const getOpeningDay = async (req: Request, res: Response) => {
                 venueId: parseInt(venueId),
             },
             include: {
-                venue: true,
+                Venue: true,
             },
         });
 
