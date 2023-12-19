@@ -112,6 +112,7 @@ export const getMyReservationByStatus = async (req: Request, res: Response) => {
                             },
                             take: 1,
                         },
+                        Venue_branch: true,
                     },
                 },
             },
@@ -307,7 +308,7 @@ export const createReservation = async (req: Request, res: Response) => {
                 reservationTableEntry,
             };
             res.status(200).json(responseData);
-        }  // res.status(200).json(newReservation);
+        } // res.status(200).json(newReservation);
     } catch (e) {
         console.log(e);
         return res.status(500).json(e);
@@ -1157,31 +1158,47 @@ export const checkOut = async (req: Request, res: Response) => {
 };
 
 export const checkInStatus = async (req: Request, res: Response) => {
-    try {
-        const { reservationId } = req.params;
-        const token = req.cookies.authToken;
-        if (!token) {
-            return res.status(401).json({ error: "No auth token" });
-        }
-        const getstatus = await feature6Client.reservation.findUnique({
-            where: {
-                reservationId: parseInt(reservationId),
-            },
-            select: {
-                status: true,
-            },
-        });
+  try {
+    const { reservationId } = req.params;
+    const token = req.cookies.authToken;
+    if (!token) {
+      return res.status(401).json({ error: "No auth token" });
+    }
+    const getstatus = await feature6Client.reservation.findUnique({
+      where: {
+        reservationId: parseInt(reservationId),
+      },
+      select: {
+        status: true,
+      },
+    });
 
-        if (getstatus?.status == "Check_in") {
-            const reservationToken = genToken(parseInt(reservationId));
-            res.cookie("reservationToken", reservationToken, {
-                httpOnly: true,
-                secure: true,
-                sameSite: "none",
-            });
-        }
-        res.json(getstatus);
-    } catch (e) {
-        return res.status(500).json(e);
+    const hasReservationToken = (req: Request): boolean => {
+      const reservationToken = req.cookies.reservationToken;
+      return !!reservationToken; // Returns true if reservationToken exists, false otherwise
+    };
+
+    if (getstatus?.status === "Check_in" && !hasReservationToken(req)) {
+      // Generate and set reservationToken in response headers
+      const reservationToken = genToken(parseInt(reservationId));
+      res.cookie("reservationToken", reservationToken, {
+        httpOnly: true,
+        secure: true,
+        sameSite: "none",
+      });
+    }
+
+    res.json(getstatus?.status);
+  } catch (e) {
+    return res.status(500).json(e);
+  }
+};
+
+//Upload Image
+export const uploadTableTypeImage = async (req: Request, res: Response) => {
+    try {
+        res.status(200).json({ payload: "oh yeaaa" });
+    } catch (err) {
+        res.status(500).json({ err: "sorry something wrong" });
     }
 };
