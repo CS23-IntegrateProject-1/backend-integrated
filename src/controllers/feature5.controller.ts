@@ -645,7 +645,7 @@ export const GettierName = async (req: Request, res: Response) => {
         },
       },
     });
-    res.json(gettierName?.tier_name);
+    res.json(gettierName?.Member_tier?.tier_name);
   } catch (err) {
     const error = err as Error;
     res.status(500).json({ error: error.message });
@@ -666,7 +666,7 @@ export const GetMembertierPrivilleges = async (req: Request, res: Response) => {
       },
     });
 
-    res.json(GetInfoMembertier?.tier_benefit);
+    res.json(GetInfoMembertier?.Member_tier?.tier_benefit);
   } catch (err) {
     const error = err as Error;
     res.status(500).json({ error: error.message });
