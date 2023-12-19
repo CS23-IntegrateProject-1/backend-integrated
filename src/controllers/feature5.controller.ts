@@ -331,7 +331,7 @@ export const GetallVenue = async (req: Request, res: Response) => {
   try {
     const getvenue = await feature5Client.property.findMany({
       where: { businessId },
-      include: { venue: true },
+      include: { Venue: true },
     });
     res.json(getvenue);
   } catch (err) {
@@ -401,7 +401,7 @@ export const CollectVoucher = async (req: Request, res: Response) => {
       data: {
         userId: userId,
         voucherId: parseInt(id),
-        isUsed: false,
+        //isUsed: false,
       },
     });
     res.json(voucher);
@@ -437,7 +437,7 @@ export const UpdateUsedVoucher = async (req: Request, res: Response) => {
         },
       },
       data: {
-        isUsed: true,
+        //isUsed: true,
       },
     });
 
@@ -474,7 +474,7 @@ export const GettierName = async (req: Request, res: Response) => {
     const gettierName = await feature5Client.user.findUnique({
       where: { userId: userId },
       select: {
-        tier: {
+        Member_tier: {
           select: {
             tier_name: true,
             // tier_benefit: true,
@@ -495,7 +495,7 @@ export const GetInfoMembertier = async (req: Request, res: Response) => {
     const GetInfoMembertier = await feature5Client.user.findUnique({
       where: { userId: userId },
       select: {
-        tier: {
+        Member_tier: {
           select: {
             tier_name: true,
             tier_benefit: true,
@@ -611,7 +611,7 @@ export const GetAllBranches = async (req: Request, res: Response) => {
         branch_name: true,
       },
       where: {
-        venue: {
+        Venue: {
           Property: {
             some: {
               businessId: businessId,
@@ -646,7 +646,7 @@ export const GetMenuforSelect = async (req: Request, res: Response) => {
         name: true,
       },
       where: {
-        venue: {
+        Venue: {
           Property: {
             some: {
               businessId: businessId,
@@ -706,7 +706,7 @@ export const getAllPromotion = async (req: Request, res: Response) => {
       try {
         const result = feature5Client.promotion.findMany({
           where: {
-            isApprove: "Completed",
+            //isApprove: "Completed",
           },
         });
         return res.status(200).send(result);

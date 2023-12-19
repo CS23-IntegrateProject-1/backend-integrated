@@ -1,98 +1,65 @@
-import jwt, { JsonWebTokenError } from "jsonwebtoken";
-import { Request, Response } from "express";
+// import { Request, Response } from "express";
 
-import FriendRepository from "../../services/feature1/friend.repository";
-import FriendService, {
-  IFriendService,
-} from "../../services/feature1/friend.service";
-import { extractToken } from "./utils";
-import { makeErrorResponse } from "./models/payment_method.model";
-import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
-import { makeFriendIndexWebResponse } from "./models/friend.model";
+// import FriendRepository from "../../services/feature1/friend.repository";
+// import FriendService, {
+//   IFriendService,
+// } from "../../services/feature1/friend.service";
+// import { makeErrorResponse } from "./models/payment_method.model";
+// import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
+// import { makeFriendIndexWebResponse } from "./models/friend.model";
 
-export interface IFriendController {
-  addFriend(req: Request, res: Response): unknown;
+// export interface IFriendController {
+//   addFriend(req: Request, res: Response): unknown;
 
-  index(req: Request, res: Response): unknown;
-}
+//   index(req: Request, res: Response): unknown;
+// }
 
-export default class FriendController implements IFriendController {
-  private service: IFriendService = new FriendService(new FriendRepository());
+// export default class FriendController implements IFriendController {
+//   private service: IFriendService = new FriendService(new FriendRepository());
 
-  async index(req: Request, res: Response) {
-    let token: string;
+//   async index(req: Request, res: Response) {
+//     try {
+//       const friends = await this.service.listFriendsOfUser(
+//         Number(req.params.userId),
+//       );
 
-    try {
-      token = extractToken(req);
-    } catch (e) {
-      return res.status(401).json(makeErrorResponse("Unauthorized"));
-    }
+//       const webResponse = makeFriendIndexWebResponse(friends);
 
-    try {
-      const decoded = jwt.verify(
-        token as string,
-        process.env.JWT_SECRET as string,
-      );
-      const userId = (decoded as jwt.JwtPayload).userId;
+//       return res.status(200).json(webResponse);
+//     } catch (e) {
+//       return res
+//         .status(500)
+//         .json(makeErrorResponse("Unknown Error Encountered"));
+//     }
+//   }
 
-      const friends = await this.service.listFriendsOfUser(userId);
+//   async addFriend(req: Request, res: Response) {
+//     const { friend_id } = req.body;
 
-      const webResponse = makeFriendIndexWebResponse(friends);
+//     try {
+//       if (Number(req.params.userId) === friend_id) {
+//         return res
+//           .status(409)
+//           .json(makeErrorResponse("Cannot add oneself as friend"));
+//       }
 
-      return res.status(200).json(webResponse);
-    } catch (e) {
-      if (e instanceof JsonWebTokenError) {
-        return res.status(401).json(makeErrorResponse("Invalid token"));
-      }
+//       await this.service.addFriendById(Number(req.params.userId), friend_id);
 
-      return res
-        .status(500)
-        .json(makeErrorResponse("Unknown Error Encountered"));
-    }
-  }
+//       return res.status(200).send();
+//     } catch (e) {
+//       console.log(e);
+//       if (e instanceof PrismaClientKnownRequestError) {
+//         if (e.code === "P2002") {
+//           return res
+//             .status(409)
+//             .json(makeErrorResponse("Already friend with user"))
+//             .send();
+//         }
+//       }
 
-  async addFriend(req: Request, res: Response) {
-    let token: string;
-
-    try {
-      token = extractToken(req);
-    } catch (e) {
-      return res.status(401).json(makeErrorResponse("Unauthorized"));
-    }
-
-    const { friend_id } = req.body;
-
-    try {
-      const decoded = jwt.verify(
-        token as string,
-        process.env.JWT_SECRET as string,
-      );
-      const userId = (decoded as jwt.JwtPayload).userId;
-
-      if (userId === friend_id) {
-        return res
-          .status(409)
-          .json(makeErrorResponse("Cannot add oneself as friend"));
-      }
-
-      await this.service.addFriendById(userId, friend_id);
-
-      return res.status(200).send();
-    } catch (e) {
-      if (e instanceof JsonWebTokenError) {
-        return res.status(401).json(makeErrorResponse("Invalid token"));
-      } else if (e instanceof PrismaClientKnownRequestError) {
-        if (e.code === "P2002") {
-          return res
-            .status(409)
-            .json(makeErrorResponse("Already friend with user"))
-            .send();
-        }
-      }
-
-      return res
-        .status(500)
-        .json(makeErrorResponse("Unknown Error Encountered"));
-    }
-  }
-}
+//       return res
+//         .status(500)
+//         .json(makeErrorResponse("Unknown Error Encountered"));
+//     }
+//   }
+// }
