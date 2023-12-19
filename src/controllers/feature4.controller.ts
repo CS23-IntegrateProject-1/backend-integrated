@@ -609,7 +609,7 @@ export const addItemToCookie = async (req: any, res: Response) => {
     const price = req.body.price;
     const itemId = req.params.itemId;
     // Retrieve existing cart from the 'cart' cookie or initialize an empty array
-    const existingCartString = req.cookies.orderItemCart || "[]";
+    const existingCartString = req.cookies.onlineOrderItemCart || "[]";
     const existingCart = JSON.parse(existingCartString);
 
     // Check if the menu item is already in the cart
@@ -638,7 +638,7 @@ export const addItemToCookie = async (req: any, res: Response) => {
       res.clearCookie("cart");
     }
     // Update the 'cart' cookie with the modified cart
-    res.cookie("orderItemCart", JSON.stringify(existingCart));
+    res.cookie("onlineOrderItemCart", JSON.stringify(existingCart));
     res.status(200).json({ success: true, message: "Added to cart" });
   } catch (error) {
     console.log(error);
@@ -648,7 +648,7 @@ export const addItemToCookie = async (req: any, res: Response) => {
 export const showCart = async (req: any, res: Response) => {
   try {
     const userId = parseInt(req.userId);
-    const cartString = req.cookies.orderItemCart || "[]";
+    const cartString = req.cookies.onlineOrderItemCart || "[]";
     console.log(cartString);
     const cart = JSON.parse(cartString);
     console.log(cart);
