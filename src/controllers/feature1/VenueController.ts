@@ -9,6 +9,7 @@ import {
   makeVenueUpdateWebResponse,
   makeVenueShowWebResponse,
 } from "./models/venue.model";
+import { compose, path } from "ramda";
 
 export interface IVenueController {
   update: (req: Request, res: Response) => unknown;
@@ -38,6 +39,8 @@ const OpeningHourPayload: z.ZodType<DayToString> = z.object({
     {},
   ),
 }) as z.ZodTypeAny;
+
+const getBusinessId = compose(Number, path(['params', 'businessId']));
 
 class VenueController implements IVenueController {
   private service: IVenueService = new VenueService(new VenueRepository());
@@ -78,18 +81,17 @@ class VenueController implements IVenueController {
   }
 
   async update(req: Request, res: Response) {
-    const venue = req.body;
+    const venue = await VenueUpdatePayload.safeParseAsync(req.body);
+    const businessId = getBusinessId(req);
 
-    const result = await VenueUpdatePayload.safeParseAsync(venue);
-
-    if (!result.success) {
+    if (!venue.success) {
       return res.status(400).json(makeErrorResponse("Invalid request"));
     }
 
     try {
       const response = await this.service.updateVenue(
-        Number(req.params.businessId),
-        result.data,
+        businessId,
+        venue.data,
       );
 
       const webResponse = makeVenueUpdateWebResponse(response);
