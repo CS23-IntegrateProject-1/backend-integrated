@@ -1,5 +1,4 @@
 import { Response, Request } from "express";
-import jwt, { JsonWebTokenError } from "jsonwebtoken";
 
 import PrivacyPolicyRepository from "../../services/feature1/privacy_policy.repository";
 import PrivacyPolicyService, {
@@ -16,7 +15,6 @@ import {
 } from "@prisma/client/runtime/library";
 import { Prisma } from "@prisma/client";
 import { makeErrorResponse } from "./models/payment_method.model";
-import { extractToken } from "./utils";
 
 interface IPrivacyPolicyController {
   store: (req: Request, res: Response) => unknown;
@@ -31,189 +29,109 @@ export class PrivacyPolicyController implements IPrivacyPolicyController {
   );
 
   async store(req: Request, res: Response) {
-    let token: string;
+    const { privacy_consent: privacyConsent, cookie_consent: cookieConsent } =
+      req.body;
 
-    try {
-      token = extractToken(req);
-    } catch (e) {
-      return res.status(401).json(makeErrorResponse("Unauthorized"));
+    if (
+      typeof privacyConsent !== "boolean" ||
+      typeof cookieConsent !== "boolean"
+    ) {
+      res.status(400).json(makeErrorResponse("Malformed request"));
     }
 
     try {
-      const decoded = jwt.verify(
-        token as string,
-        process.env.JWT_SECRET as string,
+      const response = await this.service.storePrivacyPolicy(
+        Number(req.params.userId),
+        privacyConsent,
+        cookieConsent,
       );
-      const userId = (decoded as jwt.JwtPayload).userId;
 
-      const { privacy_consent: privacyConsent, cookie_consent: cookieConsent } =
-        req.body;
+      const webResponse = makePrivacyPolicyStoreWebResponse(response);
 
-      if (
-        typeof privacyConsent !== "boolean" ||
-        typeof cookieConsent !== "boolean"
-      ) {
-        res.status(400).json(makeErrorResponse("Malformed request"));
-      }
-
-      try {
-        const response = await this.service.storePrivacyPolicy(
-          userId,
-          privacyConsent,
-          cookieConsent,
-        );
-
-        const webResponse = makePrivacyPolicyStoreWebResponse(response);
-
-        return res.json(webResponse);
-      } catch (e) {
-        if (e instanceof PrismaClientValidationError) {
-          return res.status(400).send();
-        } else if (e instanceof PrismaClientKnownRequestError) {
-          if (e.code === "P2002") {
-            return res
-              .status(409)
-              .json(
-                makeErrorResponse(
-                  "Privacy policy already exists for this user",
-                ),
-              )
-              .send();
-          }
-        } else {
-          return res.status(500).send();
-        }
-      }
+      return res.json(webResponse);
     } catch (e) {
-      if (e instanceof JsonWebTokenError) {
-        return res.status(401).json(makeErrorResponse("Invalid token"));
+      if (e instanceof PrismaClientValidationError) {
+        return res.status(400).send();
+      } else if (e instanceof PrismaClientKnownRequestError) {
+        if (e.code === "P2002") {
+          return res
+            .status(409)
+            .json(
+              makeErrorResponse("Privacy policy already exists for this user"),
+            )
+            .send();
+        }
+      } else {
+        return res.status(500).send();
       }
     }
   }
 
   async show(req: Request, res: Response) {
-    let token: string;
-
     try {
-      token = extractToken(req);
-    } catch (e) {
-      return res.status(401).json(makeErrorResponse("Unauthorized"));
-    }
-
-    try {
-      const decoded = jwt.verify(
-        token as string,
-        process.env.JWT_SECRET as string,
+      const response = await this.service.getPrivacyPolicyOfUser(
+        Number(req.params.userId),
       );
-      const userId = (decoded as jwt.JwtPayload).userId;
 
-      try {
-        const response = await this.service.getPrivacyPolicyOfUser(userId);
+      const webResponse = makePrivacyPolicyWebResponse(response);
 
-        const webResponse = makePrivacyPolicyWebResponse(response);
-
-        return res.json(webResponse);
-      } catch (e) {
-        return res
-          .status(404)
-          .json(makeErrorResponse("User or Privacy Policy not found"));
-      }
+      return res.json(webResponse);
     } catch (e) {
-      if (e instanceof JsonWebTokenError) {
-        return res.status(401).json(makeErrorResponse("Invalid token"));
-      }
+      return res
+        .status(404)
+        .json(makeErrorResponse("User or Privacy Policy not found"));
     }
   }
 
   async update(req: Request, res: Response) {
-    let token: string;
+    const { privacy_consent: privacyConsent, cookie_consent: cookieConsent } =
+      req.body;
 
-    try {
-      token = extractToken(req);
-    } catch (e) {
-      return res.status(401).json(makeErrorResponse("Unauthorized"));
+    if (
+      typeof privacyConsent !== "boolean" ||
+      typeof cookieConsent !== "boolean"
+    ) {
+      res.status(400).json(makeErrorResponse("Malformed request"));
     }
 
     try {
-      const decoded = jwt.verify(
-        token as string,
-        process.env.JWT_SECRET as string,
+      const response = await this.service.updatePrivacyPolicyOfUser(
+        Number(req.params.userId),
+        privacyConsent,
+        cookieConsent,
       );
-      const userId = (decoded as jwt.JwtPayload).userId;
 
-      const { privacy_consent: privacyConsent, cookie_consent: cookieConsent } =
-        req.body;
+      const webResponse = makePrivacyPolicyUpdateWebResponse(response);
 
-      if (
-        typeof privacyConsent !== "boolean" ||
-        typeof cookieConsent !== "boolean"
-      ) {
-        res.status(400).json(makeErrorResponse("Malformed request"));
-      }
-
-      try {
-        const response = await this.service.updatePrivacyPolicyOfUser(
-          userId,
-          privacyConsent,
-          cookieConsent,
-        );
-
-        const webResponse = makePrivacyPolicyUpdateWebResponse(response);
-
-        return res.json(webResponse);
-      } catch (e) {
-        if (e instanceof PrismaClientValidationError) {
-          return res
-            .status(400)
-            .json(makeErrorResponse("Invalid request"))
-            .send();
-        } else {
-          return res
-            .status(404)
-            .json(makeErrorResponse("User or Privacy Policy not found"));
-        }
-      }
+      return res.json(webResponse);
     } catch (e) {
-      if (e instanceof JsonWebTokenError) {
-        return res.status(401).json(makeErrorResponse("Invalid token"));
+      if (e instanceof PrismaClientValidationError) {
+        return res
+          .status(400)
+          .json(makeErrorResponse("Invalid request"))
+          .send();
+      } else {
+        return res
+          .status(404)
+          .json(makeErrorResponse("User or Privacy Policy not found"));
       }
     }
   }
 
   async destroy(req: Request, res: Response) {
-    let token: string;
-
     try {
-      token = extractToken(req);
+      await this.service.deletePrivacyPolicyOfUser(Number(req.params.userId));
+
+      return res.status(200).send();
     } catch (e) {
-      return res.status(401).json(makeErrorResponse("Unauthorized"));
-    }
-
-    try {
-      const decoded = jwt.verify(
-        token as string,
-        process.env.JWT_SECRET as string,
-      );
-      const userId = (decoded as jwt.JwtPayload).userId;
-
-      try {
-        await this.service.deletePrivacyPolicyOfUser(userId);
-
-        return res.status(200).send();
-      } catch (e) {
-        if (e instanceof Prisma.PrismaClientKnownRequestError) {
-          if (e.code === "P2025") {
-            return res
-              .status(404)
-              .json(makeErrorResponse(e.meta!.cause as string));
-          }
-        } else {
-          return res.status(500).send();
+      if (e instanceof Prisma.PrismaClientKnownRequestError) {
+        if (e.code === "P2025") {
+          return res
+            .status(404)
+            .json(makeErrorResponse(e.meta!.cause as string));
         }
-      }
-    } catch (e) {
-      if (e instanceof JsonWebTokenError) {
-        return res.status(401).json(makeErrorResponse("Invalid token"));
+      } else {
+        return res.status(500).send();
       }
     }
   }

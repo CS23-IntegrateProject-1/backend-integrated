@@ -18,85 +18,85 @@ class filmService{
 	getShowingImaxFilms(): Promise<any[]> {
 		const prisma = new PrismaClient();
 		const data = prisma.films.findMany({
-			distinct: ["filmId"],
-			where: {
-				Shows: {
-					some: {
-						screen: {
-							screen_type: "IMAX"
-						}
-					}
-				}
-			}
-		});
+      distinct: ["filmId"],
+      where: {
+        Shows: {
+          some: {
+            Screens: {
+              screen_type: "IMAX",
+            },
+          },
+        },
+      },
+    });
 		return data;
 	}
 
 	getShowing3DFilms(): Promise<any[]> {
 		const prisma = new PrismaClient();
 		const data = prisma.films.findMany({
-			distinct: ["filmId"],
-			where: {
-				Shows: {
-					some: {
-						screen: {
-							screen_type: "X3D"
-						}
-					}
-				}
-			}
-		});
+      distinct: ["filmId"],
+      where: {
+        Shows: {
+          some: {
+            Screens: {
+              screen_type: "X3D",
+            },
+          },
+        },
+      },
+    });
 		return data;
 	}
 
 	getShowing4DFilms(): Promise<any[]> {
 		const prisma = new PrismaClient();
 		const data = prisma.films.findMany({
-			distinct: ["filmId"],
-			where: {
-				Shows: {
-					some: {
-						screen: {
-							screen_type: "X4D"
-						}
-					}
-				}
-			}
-		});
+      distinct: ["filmId"],
+      where: {
+        Shows: {
+          some: {
+            Screens: {
+              screen_type: "X4D",
+            },
+          },
+        },
+      },
+    });
 		return data;
 	}
 
 	getShowingKidFilms(): Promise<any[]> {
 		const prisma = new PrismaClient();
 		const data = prisma.films.findMany({
-			distinct: ["filmId"],
-			where: {
-				Shows: {
-					some: {
-						screen: {
-							screen_type: "Kids"
-						}
-					}
-				}
-			}
-		});
+      distinct: ["filmId"],
+      where: {
+        Shows: {
+          some: {
+            Screens: {
+              screen_type: "Kids",
+            },
+          },
+        },
+      },
+    });
 		return data;
 	}
 
 	getShowingStandardFilms(): Promise<any[]> {
 		const prisma = new PrismaClient();
 		const data = prisma.films.findMany({
-			distinct: ["filmId"],
-			where: {
-				Shows: {
-					some: {
-						screen: {
-							screen_type: "Standard"
-						}
-					}
-				}
-			}
-		});
+      distinct: ["filmId"],
+      where: {
+        Shows: {
+          some: {
+            Screens: {
+              screen_type: "Standard",
+            },
+          },
+        },
+      },
+    });
 		return data;
 	}
 
@@ -124,45 +124,39 @@ class filmService{
 		return data;
 	}
 
-	// getFilmsByTheaterId(id: number, date: string): Promise<any[]> {
-	// 	const prisma = new PrismaClient();
-	// 	const data = prisma.films.findMany({
-	// 		//distinct: ["filmId"],
-	// 		where: {
-	// 			Shows: {
-	// 				every: {
-	// 					date: new Date(date)
-	// 				}
-	// 			},
-	// 		},
-	// 	});
-	// 	return data;
-	// }
-
 	async getFilmsByTheaterId(id: number, date: number, month:number, year:number): Promise<any[]> {
 		const prisma = new PrismaClient();
-		const queryDate = new Date(year+"-"+month+"-"+date).toISOString()
+		const dateString = date<10 ? "0"+date : date.toString()
+		const monthString = month<10 ? "0"+month : month.toString()
+		const queryDate = new Date(year+"-"+monthString+"-"+dateString).toISOString()
 		console.log(queryDate);
 		
+		
 		const shows = await prisma.films.findMany({
-			where: {
-				Shows: {
-					some: {
-						screen: {
-							theaterId: id
-						},
-						date: queryDate
-					}
-				}
-			},
-			include: {
-				Shows: {
-					include: {
-						screen: true
-					}
-				}
-			}
-		});
+      where: {
+        Shows: {
+          some: {
+            Screens: {
+              theaterId: id,
+            },
+            date: queryDate,
+          },
+        },
+      },
+      include: {
+        Shows: {
+          where: {
+            Screens: {
+              theaterId: id,
+            },
+            date: queryDate,
+          },
+          include: {
+            Screens: true,
+          },
+        },
+      },
+    });
 
 		return shows;
 	}

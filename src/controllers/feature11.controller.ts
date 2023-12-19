@@ -1,24 +1,15 @@
 import { PrismaClient } from "@prisma/client";
 import { Response, Request } from "express";
-import jwt, { JwtPayload, Secret } from 'jsonwebtoken';
 import authService from "../services/auth/auth.service";
-//import { startOfDay, endOfDay } from 'date-fns';
+import { MulterFile } from "multer"
+
 //const feature11Client = new PrismaClient();
 const prisma = new PrismaClient();
-
-// * TODO : 
-// * edit article 
-// * change keyword to link, 
-// * upload image with req.file
 
 enum Category {
     Review = "Review",
     Blog = "Blog",
     Question = "Question",
-}
-
-interface CustomJwtPayload extends JwtPayload {
-  userId: number;
 }
 
 interface ArticleCreateInput {
@@ -38,80 +29,30 @@ interface LikeCreateInput {
   articleId: number;
 }
 
-interface ImageInput {
-  url: string;
-  description: string;
-  //articleId: number;
-}
+// ! use for uploading multiple image
+// Create a custom type to extend Express's Request interface
 
-//export const getfeature11 = async (req: Request, res: Response) => {
-    
-//};
-
-//const getAllUsers = async (req: Request, res: Response) => {
-//  try {
-//    const allUsers = await prisma.venue.findMany();
-
-//    res.json(allUsers);
-//  } catch (error) {
-//    console.error("Error retrieving all users:", error);
-//    res.status(500).json({ error: "Internal server error" });
-//  }
-//};
-
-export const deleteTag = async (req: Request, res: Response) => {
-  try {
-    const { articleId, tagId } = req.body;
-
-    const deletedTag = await prisma.article_tags.delete({
-      where: {
-        tagId_articleId: {
-          tagId: tagId,
-          articleId: articleId,
-        },
-      },
-    });
-    
-    const tags = await prisma.article_tags.findMany({
-      where: { tagId: tagId }
-    })
-
-    var deleteWholeTag
-    if (tags.length === 0) {
-      deleteWholeTag = await prisma.tag.delete({
-        where: { tagId: tagId }
-      })
-    }
-
-    const overAllDelteResult = {
-      ...deletedTag,
-      WholeTagDeleted: deleteWholeTag,
-    };
-
-    res.json(overAllDelteResult)
-  }
-  catch (error) {
-    res.json(error);
+declare module 'express-serve-static-core' {
+  interface Request {
+    files?: MulterFile[]; // Augment Request interface to include 'files' property
   }
 }
 
-// ! if it doesn't work then the problem is at decoding userId
-// ! other than that is working fine (alr test in postman)
 export const addArticle = async (req: Request, res: Response) => {
-  try {
+  try {      
     const article: ArticleCreateInput = req.body;
     const { topic, content, category, author_name } = article;
-    const venueIds: number[] = req.body.venueIds;
+    // แก้แค่ตรงนี้ เพราะ frontend มีปัญหาการส่งรูป เลยเปลียนรูปแบบการส่งข้อมูลมาอยู๋ใน formData แล้วมันส่ง number[] มาไม่ได้ เลยส่งเป็น string[] มาก่อน แล้วมา convert ในนี้
+    const venueIds: number[] = req.body.venueIds.map((id: string) =>  parseInt(id, 10));
     const tags: string[] = req.body.tags;
-    const imageDetails: ImageInput[] = req.body.images;
-
+    
     const token = req.cookies.authToken;
     if (!token) {
       return res.json({ error: "No auth token" })
     }
     const decodedToken = authService.decodeToken(token)
     const userId = decodedToken.userId;
-
+    
     const newArticle = await prisma.article.create({
       data: {
         topic,
@@ -131,9 +72,10 @@ export const addArticle = async (req: Request, res: Response) => {
         },
       });
     }
-
+    
+    let newTag;
     for (const tag of tags) {
-      const newTag = await prisma.tag.create({
+      newTag = await prisma.tag.create({
         data: {
           tag_name: tag,
         }
@@ -147,31 +89,52 @@ export const addArticle = async (req: Request, res: Response) => {
       });
     }
 
-    for (const imageDetail of imageDetails) {
-      await prisma.images.create({
+    //for (const imageDetail of imageDetails) {
+    //  await prisma.images.create({
+    //    data: {
+      //      url: imageDetail.url,
+      //      description: imageDetail.description,
+          //      articleId: newArticle.articleId,
+    //    },
+    //  });
+    //}
+
+    // ! upload image
+    const imageFiles = req.files as MulterFile[];
+
+    //var newImage;
+    for (const file of imageFiles) {
+      const imagePath = "/uploads/" + file.path.substring(file.path.lastIndexOf('/') + 1);
+      const description = file.originalname
+      console.log("file path --> ", imagePath)
+      const newImage = await prisma.images.create({
         data: {
-          url: imageDetail.url,
-          description: imageDetail.description,
+          url: imagePath,
+          description: description,
           articleId: newArticle.articleId,
         },
       });
+      console.log("res --> ", newImage);
     }
 
     res.json(newArticle);
   } catch (error) {
     console.error(error);
-    res.json({ error: "Internal server error" });
+    res.status(400).json({ error: "Internal server error" });
   }
 };
 
-// ! haven't test
+//interface ImageInput {
+//  url: string,
+//  description: string
+//}
+
 export const editArticle = async (req: Request, res: Response) => {
   try {
-    //const article: ArticleCreateInput = req.body;
     const { articleId, topic, content, category, author_name } = req.body;
     const venueIds: number[] = req.body.venueIds;
     const tags: string[] = req.body.tags;
-    const imageDetails: ImageInput[] = req.body.images;
+    //const imageDetails: ImageInput[] = req.body.images;
 
     //const userId = 1;
     //const secret: Secret = 'fwjjpjegjwpjgwej' || "";
@@ -196,8 +159,9 @@ export const editArticle = async (req: Request, res: Response) => {
       where: { articleId: parseInt(articleId) }
     })
 
+    let newVenue;
     for (const venueId of venueIds) {
-      const newVenue = await prisma.article_venue.create({
+      newVenue = await prisma.article_venue.create({
         data: {
           articleId,
           venueId
@@ -209,39 +173,113 @@ export const editArticle = async (req: Request, res: Response) => {
       where: { articleId: parseInt(articleId) }
     })
 
+    let updatedTag
     for (const tag of tags) {
-      const newTag = await prisma.tag.create({
-        data: {
-          tag_name: tag,
+      let tagUse;
+      // * if we already have that tag in tag db
+      // * if not --> it's a new tag
+      const thisTag = await prisma.tag.findMany({
+        where: {
+          tag_name: tag
         }
       })
 
-      await prisma.article_tags.create({
-        data: {
-          articleId,
-          tagId: newTag.tagId,
-        },
-      });
+      if (thisTag.length != 0) {
+        // * if alr have that tag
+        // * check whether tag is use by the other article
+        tagUse = await prisma.article_tags.findMany({
+          where: {
+            tagId: thisTag[0].tagId
+          }
+        })
+
+        if (tagUse.length === 0)
+        {
+          updatedTag = await prisma.tag.update({
+            where: { tagId: thisTag[0].tagId },
+            data: {
+              tag_name: tag
+            }
+          })
+
+          await prisma.article_tags.create({
+            data: {
+              articleId,
+              tagId: updatedTag.tagId,
+            },
+          })
+        } else {
+          await prisma.article_tags.create({
+            data: {
+              articleId,
+              tagId: thisTag[0].tagId,
+            },
+          })
+        }
+      }
+      else {
+        const TagDB = await prisma.tag.create({
+          data: {
+            tag_name: tag
+          }
+        })
+
+        await prisma.article_tags.create({
+          data: {
+            articleId,
+            tagId: TagDB.tagId
+          }
+        })
+      }
     }
 
     await prisma.images.deleteMany({
       where: { articleId: parseInt(articleId) }
     })
 
-    for (const imageDetail of imageDetails) {
-      await prisma.images.create({
-        data: {
-          url: imageDetail.url,
-          description: imageDetail.description,
-          articleId,
-        },
-      });
+    const imageFiles = req.files as MulterFile[];
+    let newImage;
+
+    if (imageFiles)
+    {
+      for (const file of imageFiles) {
+        const imagePath = "/uploads/" + file.path.substring(file.path.lastIndexOf('/') + 1);
+        const description = file.originalname
+        newImage = await prisma.images.create({
+          data: {
+            url: imagePath,
+            description: description,
+            articleId: parseInt(articleId),
+          },
+        });
+      }
+    }
+    else
+    {
+      newImage = "no change in image"
     }
 
-    res.json(newArticle);
+    //for (const imageDetail of imageDetails) {
+    //  newImage = await prisma.images.create({
+    //    data: {
+    //        url: imageDetail.url,
+    //        description: imageDetail.description,
+    //            articleId: newArticle.articleId,
+    //    },
+    //  });
+    //}
+
+    const editedArticle = {
+      ...newArticle,
+      venues: newVenue,
+      tags: updatedTag,
+      images: newImage
+    };
+
+    res.json(editedArticle);
   } catch (error) {
     console.error(error);
-    res.json({ error: "Internal server error" });
+    res.status(400).json({ error: "Internal server error" });
   }
 }
 
@@ -291,7 +329,43 @@ export const deleteImage = async (req: Request, res: Response) => {
     res.json(deletedImage);
   } catch (error) {
     console.error(error);
-    res.json({ error: "Internal server error" });
+    res.status(400).json({ error: "Internal server error" });
+  }
+}
+
+export const deleteTag = async (req: Request, res: Response) => {
+  try {
+    const { articleId, tagId } = req.body;
+    
+    const deletedTag = await prisma.article_tags.delete({
+      where: {
+        tagId_articleId: {
+          tagId: tagId,
+          articleId: articleId,
+        },
+      },
+    });
+    
+    const tags = await prisma.article_tags.findMany({
+      where: { tagId: tagId }
+    })
+    
+    let deleteWholeTag
+    if (tags.length === 0) {
+      deleteWholeTag = await prisma.tag.delete({
+        where: { tagId: tagId }
+      })
+    }
+    
+    const overAllDelteResult = {
+      ...deletedTag,
+      WholeTagDeleted: deleteWholeTag,
+    };
+    
+    res.json(overAllDelteResult)
+  }
+  catch (error) {
+    res.json(error);
   }
 }
 
@@ -309,7 +383,7 @@ export const deleteVenue = async (req: Request, res: Response) => {
     res.json(deletedVenue);
   } catch (error) {
     console.error(error);
-    res.json({ error: "internal server error" });
+    res.status(400).json({ error: "Internal server error" });
   }
 }
 
@@ -335,7 +409,7 @@ export const addComment = async (req: Request, res: Response) => {
     res.json(newComment);
   } catch (error) {
     console.error(error);
-    res.json({ error: "Internal server error" });
+    res.status(400).json({ error: "Internal server error" });
   }
 };
 
@@ -385,7 +459,7 @@ export const getArticleDetail = async (req: Request, res: Response) => {
     const article = await prisma.article.findUnique({
       where: { articleId: parseInt(articleId) },
       include: {
-        Image: {
+        Images: {
           select: {
             url: true,
             description: true
@@ -393,20 +467,26 @@ export const getArticleDetail = async (req: Request, res: Response) => {
         },
         Article_tags: {
           include: {
-            tag: {
+            Tag: {
               select: { tag_name: true }
             },
           },
         },
         Article_venue: {
           include: {
-            venue: {
+            Venue: {
               select: { 
                 venueId: true,
                 name: true }
             },
           }
         },
+        User: {
+          select: {
+            username: true,
+            profile_picture: true,
+          }
+        }
       },
     });
 
@@ -417,7 +497,7 @@ export const getArticleDetail = async (req: Request, res: Response) => {
       }
     })
 
-    var isLike
+    let isLike
     if (like.length === 0)
       isLike = false;
     else
@@ -446,7 +526,7 @@ export const getArticleDetail = async (req: Request, res: Response) => {
     res.json(articleWithLikeCount);
   } catch (error) {
     console.error(error);
-    res.json({ error: "Internal server error" });
+    res.status(400).json({ error: "Internal server error" });
   }
 };
   
@@ -457,7 +537,7 @@ export const public_getArticleDetail = async (req: Request, res: Response) => {
     const article = await prisma.article.findUnique({
       where: { articleId: parseInt(articleId) },
       include: {
-        Image: {
+        Images: {
           select: {
             url: true,
             description: true
@@ -465,14 +545,14 @@ export const public_getArticleDetail = async (req: Request, res: Response) => {
         },
         Article_tags: {
           include: {
-            tag: {
+            Tag: {
               select: { tag_name: true }
             },
           },
         },
         Article_venue: {
           include: {
-            venue: {
+            Venue: {
               select: { 
                 venueId: true,
                 name: true }
@@ -504,7 +584,7 @@ export const public_getArticleDetail = async (req: Request, res: Response) => {
     res.json(articleWithLikeCount);
   } catch (error) {
     console.error(error);
-    res.json({ error: "Internal server error" });
+    res.status(400).json({ error: "Internal server error" });
   }
 };
 
@@ -515,7 +595,7 @@ export const getArticleComment = async (req: Request, res: Response) => {
     const newcomment = await prisma.comments.findMany({
       where: { articleId: parseInt(id) },
       include: {
-        user: {
+        User: {
           select: {
             username: true,
             profile_picture: true
@@ -545,7 +625,7 @@ export const getArticleComment = async (req: Request, res: Response) => {
     }
   } catch (error) {
     console.error(error);
-    res.json({ error: "Internal server error" });
+    res.status(400).json({ error: "Internal server error" });
   }
 };
 
@@ -560,7 +640,7 @@ export const getAllArticle = async (req: Request, res: Response) => {
   try {
     const articles = await prisma.article.findMany({
       include: {
-        Image: {
+        Images: {
           select: {
             url: true,
             description: true
@@ -568,7 +648,7 @@ export const getAllArticle = async (req: Request, res: Response) => {
         },
         Article_tags: {
           include: {
-            tag: {
+            Tag: {
               select: {
                 tag_name: true
               }
@@ -577,14 +657,14 @@ export const getAllArticle = async (req: Request, res: Response) => {
         },
         Article_venue: {
           include: {
-            venue: {
+            Venue: {
               select: { 
                 venueId: true,
                 name: true }
             }
           },
         },
-        user: {
+        User: {
           select: {
             username: true,
             profile_picture: true,
@@ -625,7 +705,7 @@ export const getAllArticle = async (req: Request, res: Response) => {
     res.json(articlesWithLikeCount);
   } catch (error) {
     console.error(error);
-    res.json({ error: "Internal server error" });
+    res.status(400).json({ error: "Internal server error" });
   }
 };
 
@@ -633,7 +713,7 @@ export const public_getAllArticle = async (req: Request, res: Response) => {
   try {
     const articles = await prisma.article.findMany({
       include: {
-        Image: {
+        Images: {
           select: {
             url: true,
             description: true
@@ -641,7 +721,7 @@ export const public_getAllArticle = async (req: Request, res: Response) => {
         },
         Article_tags: {
           include: {
-            tag: {
+            Tag: {
               select: {
                 tag_name: true
               }
@@ -650,14 +730,14 @@ export const public_getAllArticle = async (req: Request, res: Response) => {
         },
         Article_venue: {
           include: {
-            venue: {
+            Venue: {
               select: { 
                 venueId: true,
                 name: true }
             }
           },
         },
-        user: {
+        User: {
           select: {
             username: true,
             profile_picture: true,
@@ -693,7 +773,7 @@ export const public_getAllArticle = async (req: Request, res: Response) => {
     res.json(articlesWithLikeCount);
   } catch (error) {
     console.error(error);
-    res.json({ error: "Internal server error" });
+    res.status(400).json({ error: "Internal server error" });
   }
 };
 
@@ -720,7 +800,7 @@ export const addLike = async (req: Request, res: Response) => {
   }
   catch (error) {
     console.error(error);
-    res.json({ error: "Internal server error" });
+    res.status(400).json({ error: "Internal server error" });
   }
 }
 
@@ -768,7 +848,7 @@ export const getAllVenueName = async (req: Request, res: Response) => {
     }
   } catch (error) {
     console.error(error);
-    res.json({ error: "Internal server error" });
+    res.status(400).json({ error: "Internal server error" });
   }
 };
 
@@ -784,7 +864,7 @@ export const getArticleHistory = async (req: Request, res: Response) => {
     const articles = await prisma.article.findMany({
       where: { userId },
       include: {
-        Image: {
+        Images: {
           select: {
             url: true,
             description: true
@@ -792,7 +872,7 @@ export const getArticleHistory = async (req: Request, res: Response) => {
         },
         Article_tags: {
           include: {
-            tag: {
+            Tag: {
               select: {
                 tag_name: true
               }
@@ -801,14 +881,14 @@ export const getArticleHistory = async (req: Request, res: Response) => {
         },
         Article_venue: {
           include: {
-            venue: {
+            Venue: {
               select: { 
                 venueId: true,
                 name: true }
             }
           },
         },
-        user: {
+        User: {
           select: {
             username: true,
             profile_picture: true,
@@ -849,7 +929,7 @@ export const getArticleHistory = async (req: Request, res: Response) => {
     res.json(articlesWithLikeCount);
   } catch (error) {
     console.error(error);
-    res.json({ error: "Internal server error" });
+    res.status(400).json({ error: "Internal server error" });
   }
 };
 
@@ -866,7 +946,7 @@ export const getUserArticle = async (req: Request, res: Response) => {
     const articles = await prisma.article.findMany({
       where: { userId },
       include: {
-        Image: {
+        Images: {
           select: {
             url: true,
             description: true
@@ -874,7 +954,7 @@ export const getUserArticle = async (req: Request, res: Response) => {
         },
         Article_tags: {
           include: {
-            tag: {
+            Tag: {
               select: {
                 tag_name: true
               }
@@ -883,14 +963,14 @@ export const getUserArticle = async (req: Request, res: Response) => {
         },
         Article_venue: {
           include: {
-            venue: {
+            Venue: {
               select: { 
                 venueId: true,
                 name: true }
             }
           },
         },
-        user: {
+        User: {
           select: {
             username: true,
             profile_picture: true,
@@ -931,7 +1011,7 @@ export const getUserArticle = async (req: Request, res: Response) => {
     res.json(articlesWithLikeCount);
   } catch (error) {
     console.error(error);
-    res.json({ error: "Internal server error" });
+    res.status(400).json({ error: "Internal server error" });
   }
 };
 
@@ -947,10 +1027,10 @@ export const getCommentHistory = async (req: Request, res: Response) => {
     const comment = await prisma.comments.findMany({
       where: { userId },
       include: {
-        article: {
+        Article: {
           select: { topic: true }
         },
-        user: {
+        User: {
           select: {
             username: true,
             profile_picture: true
@@ -962,14 +1042,9 @@ export const getCommentHistory = async (req: Request, res: Response) => {
     res.json(comment)
   } catch (error) {
     console.error(error);
-    res.json({ error: "Internal server error" });
+    res.status(400).json({ error: "Internal server error" });
   }
 }
-
-//interface Comment_like_by_creatorCreateInput {
-//  commentId: number,
-//  articleId: number
-//}
 
 export const CreatorLikeComment = async (req: Request, res: Response) => {
   const token = req.cookies.authToken;
@@ -985,9 +1060,9 @@ export const CreatorLikeComment = async (req: Request, res: Response) => {
     const thisArticle = await prisma.comments.findUnique({
       where: { commentId },
       include: {
-        article: {
+        Article: {
           include: {
-            user: {
+            User: {
               select: { userId: true }
             }
           }
@@ -995,9 +1070,9 @@ export const CreatorLikeComment = async (req: Request, res: Response) => {
       }
     })
 
-    if (thisArticle && thisArticle.article && thisArticle.article.user.userId === userId) {
+    if (thisArticle && thisArticle.Article && thisArticle.Article.User.userId === userId) {
       const articleId = thisArticle.articleId || 0; // Assign a default value if articleId is undefined
-      const newLike = await prisma.comment_like_by_creator.create({
+      await prisma.comment_like_by_creator.create({
         data: {
           commentId,
           articleId,
@@ -1011,7 +1086,7 @@ export const CreatorLikeComment = async (req: Request, res: Response) => {
     }
   } catch (error) {
     console.error(error);
-    res.json({ error: "Internal server error" });
+    res.status(400).json({ error: "Internal server error" });
   }
 };
 
@@ -1029,9 +1104,9 @@ export const deleteCommentLikeByCreator = async (req: Request, res: Response) =>
     const thisArticle = await prisma.comments.findUnique({
       where: { commentId },
       include: {
-        article: {
+        Article: {
           include: {
-            user: {
+            User: {
               select: { userId: true }
             }
           }
@@ -1039,9 +1114,9 @@ export const deleteCommentLikeByCreator = async (req: Request, res: Response) =>
       }
     })
 
-    if (thisArticle && thisArticle.article && thisArticle.article.user.userId === userId) {
+    if (thisArticle && thisArticle.Article && thisArticle.Article.User.userId === userId) {
       const articleId = thisArticle.articleId || 0; // Assign a default value if articleId is undefined
-      const deleteLike = await prisma.comment_like_by_creator.delete({
+      await prisma.comment_like_by_creator.delete({
         where: { commentId_articleId: { commentId, articleId }}
       })
 
@@ -1052,53 +1127,107 @@ export const deleteCommentLikeByCreator = async (req: Request, res: Response) =>
     }
   } catch (error) {
     console.error(error);
-    res.json({ error: "Internal server error" });
+    res.status(400).json({ error: "Internal server error" });
   }
 }
-// example of controller getAllAuthors
-// export const getAllAuthors = async (req: Request, res: Response) => {
-//   try {
-//     const allAuthors = await feature1Client.modelName.findMany({
-//   } catch (e) {
-//     console.log(e);
-//   }
-// };
 
-//export const getCountPerDay = async (req: Request, res: Response) => {
-//  try {
-//      const { venueId } = req.params;
-//      const today = new Date();
-//      const startOfToday = startOfDay(today); // Gets the start of the current day
-//      const endOfToday = endOfDay(today); // Gets the end of the current day
+//-----------------------saved place---------------------------------------
 
-//      console.log(today)
-//      console.log(startOfDay)
-//      console.log(endOfDay)
+export const getUserSavedPlace = async (req: Request, res: Response) => {
+  const token = req.cookies.authToken;
+  if (!token) {
+    return res.json({ error: "No auth token" })
+  }
+  const decodedToken = authService.decodeToken(token)
+  const userId = decodedToken.userId;
 
-//      const reservationsToday = await prisma.reservation.findMany({
-//        where: {
-//          AND: [
-//            {
-//              reserved_time: {
-//                gte: startOfToday,
-//                lte: endOfToday,
-//              },
-//              venueId: parseInt(venueId)
-//            },
-//          ],
-//        },
-//        include: {
-//          Reservation_table: true,
-//        },
-//      });
+  try {
+    const savedPlace = await prisma.saved_place.findMany({
+      where: { userId },
+      include: {
+        Venue: {
+          select: {
+            name: true,
+            description: true,
+            category: true,
+            capacity: true,
+            chatRoomId: true,
+            Location: true,
+            website_url: true
+          }
+        }
+      }
+    })
 
-//      let count = 0;
-//      reservationsToday.forEach((reservation) => {
-//        count += reservation.Reservation_table.length;
-//      });
+    const isLike = true;
 
-//      res.json(count)
-//  } catch (e) {
-//      return res.status(500).json(e);
-//  }
-//};
+    const savedPlace_isLike = {
+      ...savedPlace,
+      isLike: isLike
+    };
+
+    res.json(savedPlace_isLike)
+  } catch (error) {
+    console.error(error);
+    res.status(400).json({ error: "Internal server error" });
+  }
+}
+
+export const CreateSavedPLace = async (req: Request, res: Response) => {
+  const token = req.cookies.authToken;
+  if (!token) {
+    return res.json({ error: "No auth token" })
+  }
+  const decodedToken = authService.decodeToken(token)
+  const userId = decodedToken.userId;
+
+  try {
+    const { venueId } = req.body;
+
+    const savedPlace = await prisma.saved_place.create({
+      data: {
+        userId,
+        venueId: parseInt(venueId)
+      }
+    })
+
+    res.json(savedPlace)
+  } catch (error) {
+    console.error(error);
+    res.status(400).json({ error: "Internal server error" });
+  }
+}
+
+export const DeleteSavedPlace = async (req: Request, res: Response) => {
+  const token = req.cookies.authToken;
+  if (!token) {
+    return res.json({ error: "No auth token" })
+  }
+  const decodedToken = authService.decodeToken(token)
+  const userId = decodedToken.userId;
+
+  try {
+    const { venueId } = req.body;
+
+    const savedId = await prisma.saved_place.findFirst({
+      where: {
+        userId: userId,
+        venueId: parseInt(venueId)
+      }
+    })
+
+    let deletedPlace
+    if (savedId && typeof savedId === 'number') {
+      deletedPlace = await prisma.saved_place.delete({
+        where: {
+          id: savedId
+        },
+      });
+    }
+        
+    res.json(deletedPlace)
+  } catch (error) {
+    console.error(error);
+    res.status(400).json({ error: "Internal server error" });
+  }
+}

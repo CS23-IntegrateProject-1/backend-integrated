@@ -1,648 +1,576 @@
 import { PrismaClient } from "@prisma/client";
 import { Response, Request } from "express";
-import * as fs from "fs";
-import { type } from "os";
-import * as path from "path";
+import authService from "../services/auth/auth.service";
 
 const feature3Client = new PrismaClient();
 
-export const getfeature3 = async (req: Request, res: Response) => {};
 
-const executePythonFile = async (pythonScriptPath: string, arg: string) => {
-    return new Promise((resolve, reject) => {
-        const { exec } = require("child_process");
-        console.log(pythonScriptPath);
-        exec(
-            `python ${"../backend-integrated/src/services/sentimentAnalysis/func.py"} --review "${arg}"`,
-            (error, stdout, stderr) => {
-                if (error) {
-                    console.error(
-                        `Error executing Python script: ${error.message}`
-                    );
-                    reject(error);
-                } else {
-                    try {
-                        const resultObject = JSON.parse(stdout);
-                        resolve(resultObject);
-                    } catch (parseError) {
-                        console.error(`Error parsing JSON: ${parseError}`);
-                        reject(parseError);
-                    }
-                }
-            }
+interface VenueInfo {
+  venueId: number;
+  branchId: number;
+  name: string;
+  description: string;
+  category: string;
+  capacity: number;
+  chatRoomId: number;
+  locationId: number;
+  website_url: string;
+  rating: string;
+  venue_picture: string;
+}
+
+export const getVenuesPage = async (req: Request, res: Response) => {
+  const search = String(req.query.search || "");
+  const priceMin = Number(req.query.priceMin || 0);
+  const priceMax = Number(req.query.priceMax || 1000);
+  const capacity = String(req.query.capacity || "").split(",").filter((v) => v !== "");
+  const categorys = String(req.query.category || "").split(",").filter((v) => v !== "");
+
+  try {
+    const [VenuesPage, menus, tables] = await Promise.all([
+      feature3Client.$queryRaw<VenueInfo[]>`
+    SELECT
+      V.venueId,
+      VB.branchId,
+      name,
+      description,
+      category,
+      capacity,
+      chatRoomId,
+      locationId,
+      website_url,
+      COALESCE(AVG(VR.rating), 0) AS rating,
+      venue_picture
+    FROM
+      Venue V
+      JOIN Venue_branch VB ON V.venueId = VB.venueId
+      LEFT JOIN Venue_reviews VR ON VB.branchId = VR.branchId
+    GROUP BY
+      V.venueId
+    ORDER BY
+      V.venueId;
+  `,
+      feature3Client.menu.findMany({}),
+      feature3Client.table_type_detail.findMany({}),
+    ]);
+
+    const filteredVenues = VenuesPage.filter((v) =>
+      String(v.name)
+        .trim()
+        .toLowerCase()
+        .includes(String(search).trim().toLowerCase())
+    )
+      .filter((v) => {
+        const venueCategoryMatch = categorys.length === 0 ? true : categorys.includes(v.category);
+        return venueCategoryMatch;
+      })
+      .filter((v) => {
+        const venueMenus = menus.filter((m) => m.venueId === v.venueId);
+        const statements: boolean[] = [];
+        if (priceMin === 0 && priceMax === 1000) {
+          return true;
+        }
+        statements.push(
+          venueMenus.some(
+            (m) =>
+              m.price.greaterThanOrEqualTo(priceMin) &&
+              m.price.lessThanOrEqualTo(priceMax)
+          )
         );
-    });
-};
+        return statements.some((v) => v === true);
+      })
+      .filter((v) => {
+        const venueTables = tables.filter((t) => t.venueId === v.venueId);
+        const statements: boolean[] = [];
 
-export const getSentimentAnalysis = async (req: Request, res: Response) => {
-    const { id } = req.params;
-
-    try {
-        const review = await feature3Client.venue_reviews.findMany({
-            where: {
-                venueReviewId: parseInt(id),
-            } as any,
-        });
-
-        if (review && review.length > 0) {
-            const review_txt = review[0].review;
-
-            // Check if review_txt is not null before proceeding
-            if (review_txt !== null) {
-                const pythonPath = "../services/sentimentAnalysis/func.py";
-
-                if (fs.existsSync(path.resolve(__dirname, pythonPath))) {
-                    try {
-                        const sentiment_analysis = await executePythonFile(
-                            pythonPath,
-                            review_txt
-                        );
-                        return res.json(sentiment_analysis);
-                    } catch (error) {
-                        console.error("Error in executePythonFile:", error);
-                        return res
-                            .status(500)
-                            .json({ error: "Error executing Python file" });
-                    }
-                } else {
-                    console.error(
-                        `Python file not found at path: ${pythonPath}`
-                    );
-                    return res
-                        .status(500)
-                        .json({ error: "Python file not found" });
-                }
-            } else {
-                console.error(`Review is null for venueReviewId: ${id}`);
-                return res.status(404).json({ error: "Review is null" });
-            }
-        } else {
-            console.error(`Review not found for venueReviewId: ${id}`);
-            return res.status(404).json({ error: "Review not found" });
+        if (capacity.length === 0) {
+          return true;
         }
-    } catch (error) {
-        console.error(error);
-        return res.status(500).json(error);
-    }
+
+        if (capacity.includes("1TO4")) {
+          statements.push(
+            venueTables.some((t) => t.capacity >= 1 && t.capacity <= 4)
+          );
+        }
+
+        if (capacity.includes("5TO6")) {
+          statements.push(
+            venueTables.some((t) => t.capacity >= 5 && t.capacity <= 6)
+          );
+        }
+
+        if (capacity.includes("7TO10")) {
+          statements.push(
+            venueTables.some((t) => t.capacity >= 7 && t.capacity <= 10)
+          );
+        }
+
+        if (capacity.includes("11M")) {
+          statements.push(
+            venueTables.some((t) => t.capacity >= 11)
+            );
+        }
+        return statements.some((v) => v === true);
+      })
+
+    return res.json(filteredVenues);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
 };
 
-export const getAdvertisements = async (req: Request, res: Response) => {
-    try {
-        const advertisement = await feature3Client.ad_business.findMany();
-        return res.json(advertisement);
-    } catch (error) {
-        console.log(error);
-        return res.status(500).json(error);
-    }
+interface RPVenueInfo {
+  venueId: number;
+  branchId: number;
+  name: string;
+  description: string;
+  category: string;
+  capacity: number;
+  chatRoomId: number;
+  locationId: number;
+  website_url: string;
+  rating: string;
+  venue_picture: string;
+}
+
+export const getRecommendedPlaces = async (req: Request, res: Response) => {
+  const search = String(req.query.search || "");
+  const priceMin = Number(req.query.priceMin || 0);
+  const priceMax = Number(req.query.priceMax || 1000);
+  const capacity = String(req.query.capacity || "")
+    .split(",")
+    .filter((v) => v !== "");
+
+  try {
+    const [RecommendedPlaces, menus, tables] = await Promise.all([
+      feature3Client.$queryRaw<RPVenueInfo[]>`
+            SELECT V.venueId, VB.branchId, name, description, category, capacity,
+            chatRoomId, locationId, website_url, COALESCE(AVG(VR.rating) , 0) as rating, venue_picture
+            FROM Venue V, Venue_branch VB, Venue_reviews VR
+            WHERE V.venueId = VB.venueId AND VB.branchId = VR.branchId
+            GROUP BY V.venueId
+            HAVING AVG(VR.rating) >= 4
+            ORDER BY V.venueId;
+          `,
+      feature3Client.menu.findMany({}),
+      feature3Client.table_type_detail.findMany({}),
+    ]);
+
+    const filteredVenues = RecommendedPlaces.filter((v) =>
+      String(v.name)
+        .trim()
+        .toLowerCase()
+        .includes(String(search).trim().toLowerCase())
+    )
+      .filter((v) => {
+        const venueMenus = menus.filter((m) => m.venueId === v.venueId);
+        const statements: boolean[] = [];
+        if (priceMin === 0 && priceMax === 1000) {
+          return true;
+        }
+        statements.push(
+          venueMenus.some(
+            (m) =>
+              m.price.greaterThanOrEqualTo(priceMin) &&
+              m.price.lessThanOrEqualTo(priceMax)
+          )
+        );
+        return statements.some((v) => v === true);
+      })
+      .filter((v) => {
+        const venueTables = tables.filter((t) => t.venueId === v.venueId);
+        const statements: boolean[] = [];
+
+        if (capacity.length === 0) {
+          return true;
+        }
+
+        if (capacity.includes("1-4")) {
+          statements.push(
+            venueTables.some((t) => t.capacity >= 1 && t.capacity <= 4)
+          );
+        }
+
+        if (capacity.includes("4-6")) {
+          statements.push(
+            venueTables.some((t) => t.capacity >= 4 && t.capacity <= 6)
+          );
+        }
+
+        if (capacity.includes("6-10")) {
+          statements.push(
+            venueTables.some((t) => t.capacity >= 6 && t.capacity <= 10)
+          );
+        }
+
+        if (capacity.includes("10M")) {
+          statements.push(venueTables.some((t) => t.capacity >= 10));
+        }
+        return statements.some((v) => v === true);
+      });
+    return res.json(filteredVenues);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json(error);
+  }
 };
 
-export const getVenues = async (req: Request, res: Response) => {
-    try {
-        const venue = await feature3Client.venue.findMany();
-        return res.json(venue);
-    } catch (error) {
-        console.log(error);
-        return res.status(500).json(error);
-    }
+export const getVenBranchPage = async (req: Request, res: Response) => {
+  const { venueId } = req.params;
+  const venueIdInt = parseInt(venueId);
+
+  try {
+    const VenBranchPage = await feature3Client.$queryRaw`
+  SELECT
+    VB.branchId,
+    V.venueId,
+    VB.venueId,
+    VB.branch_name,
+    V.name,
+    COALESCE(AVG(VR.rating), 0) AS rating
+  FROM
+    Venue_branch VB
+    LEFT JOIN Venue_reviews VR ON VB.branchId = VR.branchId
+    JOIN Venue V ON V.venueId = VB.venueId
+  WHERE
+    VB.venueId = ${venueIdInt}
+  GROUP BY
+    VR.branchId;
+`;
+    console.log(VenBranchPage);
+    return res.json(VenBranchPage);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json(error);
+  }
 };
 
-export const getVenuesByCategory = async (req: Request, res: Response) => {
-    try {
-        const { category } = req.params;
+export const getVenDetail = async (req: Request, res: Response) => {
+  const { branchId } = req.params;
+  const branchIdInt = parseInt(branchId);
 
-        const venues = await feature3Client.venue.findMany({
-            where: {
-                category: category,
-            },
-        });
+  try {
+    const VenDetail = await feature3Client.$queryRaw`
+      SELECT V.venueId, VB.branchId, name, VB.branch_name, description, category, capacity,
+        chatRoomId, locationId, website_url, COALESCE(AVG(VR.rating), 0) as rating, venue_picture
+      FROM Venue V
+      JOIN Venue_branch VB ON V.venueId = VB.venueId
+      LEFT JOIN Venue_reviews VR ON VB.branchId = VR.branchId
+      WHERE VB.branchId = ${branchIdInt}
+      GROUP BY V.venueId, VB.branchId
+      ORDER BY V.venueId;
+    `;
 
-        return res.json(venues);
-    } catch (error) {
-        console.log(error);
-        return res.status(500).json(error);
-    }
+    return res.json(VenDetail);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json(error);
+  }
 };
 
-export const getVenueBranch = async (req: Request, res: Response) => {
+export const getVenDetailMenu = async (req: Request, res: Response) => {
+  const { branchId } = req.params;
+  const branchIdInt = parseInt(branchId);
+
+  try {
+    const VenDetailMenu = await feature3Client.$queryRaw`
+      SELECT DISTINCT M.venueId, M.menuId, M.name, M.description, M.price, M.image
+      FROM Venue V
+      JOIN Venue_branch VB ON V.venueId = VB.venueId
+      LEFT JOIN Menu M ON V.venueId = M.venueId
+      WHERE VB.branchId = ${branchIdInt}
+      ORDER BY V.venueId;
+    `;
+
+    return res.json(VenDetailMenu);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json(error);
+  }
+};
+
+
+export const getReviewsBranch = async (req: Request, res: Response) => {
+  try {
     const { branchId } = req.params;
+    const branchIdInt = parseInt(branchId);
+    const reviewStars = String(req.query.reviewStars || "")
+      .split(",")
+      .filter((v) => v !== "");
+    const reviewTypes = String(req.query.reviewTypes || "")
+      .split(",")
+      .filter((v) => v !== "");
 
-    try {
-        const venueBranch = await feature3Client.venue_branch.findUnique({
-            where: {
-                branchId: parseInt(branchId),
-            },
-            include: {
-                venue: true,
-                Orders: true,
-                Stocks: true,
-            },
-        });
+    const reviewsBranch: { review_type: string; rating: number }[] =
+      await feature3Client.$queryRaw`
+    SELECT U.userId, U.username, VR.branchId, VR.venueReviewId, VR.rating, VR.review, VR.date_added, VR.review_type
+    FROM Venue_reviews VR, User U
+    WHERE VR.branchId = ${branchIdInt} AND VR.userId = U.userId
+    ORDER BY VR.date_added DESC;
+    `;
 
-        if (!venueBranch) {
-            return res.status(404).json({ error: "Venue branch not found" });
-        }
+    const filteredReviews = reviewsBranch.filter((review) => {
+      console.log(reviewTypes, reviewStars);
+      const reviewTypeMatch =
+        reviewTypes.length === 0
+          ? true
+          : reviewTypes.includes(review.review_type);
+      const reviewStarMatch =
+        reviewStars.length === 0
+          ? true
+          : reviewStars.includes(String(review.rating));
+      return reviewTypeMatch && reviewStarMatch;
+    });
 
-        return res.json(venueBranch);
-    } catch (error) {
-        console.error(error);
-        return res.status(500).json({ error: "Internal Server Error" });
-    }
+    res.status(200).json(filteredReviews);
+  } catch (error) {
+    console.error("Error fetching reviews:", error);
+    res.status(500).json(error);
+  }
 };
 
-export const getAllMenusByVenueId = async (req: Request, res: Response) => {
-    const { venueId } = req.params;
 
-    try {
-        const menus = await feature3Client.menu.findMany({
-            where: {
-                venueId: parseInt(venueId),
-            },
-        });
+interface ReviewsBranchOverAll_Interface {
+  branchId: number;
+  venueReviewId: number;
+  rating: number;
+  total_reviews: number;
+}
 
-        return res.json(menus);
-    } catch (error) {
-        console.error(error);
-        return res.status(500).json({ error: "Internal Server Error" });
-    }
+export const getReviewsBranchOverAll = async (req: Request, res: Response) => {
+  try {
+    const { branchId } = req.params;
+    const branchIdInt = Number(branchId);
+
+    const ReviewsBranchOverAll: ReviewsBranchOverAll_Interface[] =
+      await feature3Client.$queryRaw`
+      SELECT branchId, venueReviewId, AVG(VR.rating) as rating, count(review) as total_reviews
+      FROM Venue_reviews VR
+      WHERE branchId = ${branchIdInt}
+      GROUP BY branchId;
+`;
+
+    ReviewsBranchOverAll.forEach(
+      (RBOAObject: ReviewsBranchOverAll_Interface) => {
+        RBOAObject.rating = Number(RBOAObject.rating);
+        RBOAObject.total_reviews = Number(RBOAObject.total_reviews);
+      }
+    );
+
+    return res.json(ReviewsBranchOverAll);
+  } catch (error) {
+    console.error("Error fetching reviews:", error);
+    res.status(500).json(error);
+  }
 };
 
-export const getVenueContacts = async (req: Request, res: Response) => {
-    const { venueId } = req.params;
+interface StarGraph_Interface {
+  branchId: number;
+  rating: number;
+  total_per_rating: number;
+  total_ratings_per_branch: number;
+}
 
-    try {
-        const venueContacts = await feature3Client.venue_contacts.findMany({
-            where: {
-                venueId: parseInt(venueId),
-            },
-        });
+export const getStarGraph = async (req: Request, res: Response) => {
+  const { branchId } = req.params;
+  const branchIdInt = Number(branchId);
 
-        return res.json(venueContacts);
-    } catch (error) {
-        console.error(error);
-        return res.status(500).json({ error: "Internal Server Error" });
-    }
+  try {
+    const StarGraph: StarGraph_Interface[] = await feature3Client.$queryRaw`
+      SELECT B.branchId, R.rating, COALESCE(COUNT(VR.rating), 0) AS total_per_rating,
+        SUM(COALESCE(COUNT(VR.rating), 0)) OVER (PARTITION BY B.branchId) AS total_ratings_per_branch
+      FROM ( SELECT DISTINCT branchId FROM Venue_reviews ) B
+        CROSS JOIN ( SELECT DISTINCT rating FROM Venue_reviews ) R
+        LEFT JOIN Venue_reviews VR ON B.branchId = VR.branchId AND R.rating = VR.rating
+      WHERE B.branchId = ${branchIdInt}
+      GROUP BY B.branchId, R.rating
+      ORDER BY B.branchId, R.rating;
+      `;
+
+    StarGraph.forEach((SGObject: StarGraph_Interface) => {
+      SGObject.total_per_rating = Number(SGObject.total_per_rating);
+      SGObject.total_ratings_per_branch = Number(
+        SGObject.total_ratings_per_branch
+      );
+    });
+
+    return res.json(StarGraph);
+  } catch (error) {
+    console.error("Error fetching reviews:", error);
+    res.status(500).json(error);
+  }
 };
 
-export const getVenueReviews = async (req: Request, res: Response) => {
-    const { id } = req.params;
-    try {
-        const reviews = await feature3Client.venue_reviews.findMany({
-            where: {
-                branchId: parseInt(id),
-            },
-        });
-        return res.json(reviews);
-    } catch (error) {
-        console.error(error);
-        return res.status(500).json(error);
-    }
+export const getMyReviews = async (req: Request, res: Response) => {
+  try {
+    const userId = authService.decodeToken(req.cookies.authToken).userId;
+
+    const reviewStars = String(req.query.reviewStars || "")
+      .split(",")
+      .filter((v) => v !== "");
+    const reviewTypes = String(req.query.reviewTypes || "")
+      .split(",")
+      .filter((v) => v !== "");
+
+    // const myReviews = await feature3Client.venue.findMany({
+    //   where: {
+    //     Venue_branch: {
+    //       some: {
+    //         Venue_reviews: {
+    //           some: {
+    //             userId: userId,
+    //           },
+    //         },
+    //       },
+    //     },
+    //   },
+    //   include: {
+    //     Venue_branch: {
+    //       where: {
+    //         Venue_reviews: {
+    //           some: {
+    //             userId: userId,
+    //           },
+    //         },
+    //       },
+    //       include: {
+    //         Venue_reviews: {
+    //           where: {
+    //             userId: userId,
+    //           },
+    //           orderBy: {
+    //             date_added: "desc",
+    //           },
+    //         },
+    //       },
+    //     },
+    //   },
+    // });
+
+    const myReviews: { review_type: string; rating: number }[] =
+      await feature3Client.$queryRaw`
+    SELECT V.name, V.description, V.category, V.venueId, VB.branchId, VB.branch_name, VR.rating, VR.review, VR.date_added, VR.venueReviewId, VR.review_type
+    FROM Venue V, Venue_branch VB, Venue_reviews VR
+    WHERE V.venueId = VB.venueId AND VB.branchId = VR.branchId AND userId = ${userId}
+    ORDER BY VR.date_added DESC;
+    `;
+
+    const filteredReviews = myReviews.filter((review) => {
+      // console.log(reviewTypes, reviewStars)
+      const reviewTypeMatch =
+        reviewTypes.length === 0
+          ? true
+          : reviewTypes.includes(review.review_type);
+      const reviewStarMatch =
+        reviewStars.length === 0
+          ? true
+          : reviewStars.includes(String(review.rating));
+      return reviewTypeMatch && reviewStarMatch;
+    });
+
+    res.status(200).json(filteredReviews);
+  } catch (error) {
+    console.error("Error from getMyReviews Backend: ", error);
+    return res.status(500).json(error);
+  }
 };
 
-export const getRecommendedVenues = async (req: Request, res: Response) => {
-    try {
-        const ratings = await feature3Client.$queryRaw`
-            SELECT venuId, AVG(rating) as rating
-            FROM Venue_reviews
-            GROUP BY venuId
-            HAVING AVG(rating) >= 4.0
-        `;
-
-        return res.json(ratings);
-    } catch (error) {
-        console.error(error);
-        return res.status(500).json(error);
-    }
-};
-
-export const getVenuesRatings = async (req: Request, res: Response) => {
-    try {
-        const ratings = await feature3Client.$queryRaw`
-            SELECT venuId, AVG(rating) as rating
-            FROM Venue_reviews
-            GROUP BY venuId
-        `;
-
-        return res.json(ratings);
-    } catch (error) {
-        console.error(error);
-        return res.status(500).json(error);
-    }
-};
-
-export const getVenueKeywords = async (req: Request, res: Response) => {
-    const { venueId } = req.params;
-
-    try {
-        const venueKeywords = await feature3Client.venue_keywords.findMany({
-            where: {
-                venueId: parseInt(venueId),
-            },
-            include: {
-                venue: true,
-            },
-        });
-
-        return res.json(venueKeywords);
-    } catch (error) {
-        console.error(error);
-        return res.status(500).json({ error: "Internal Server Error" });
-    }
-};
-
-export const getPhotos = async (req: Request, res: Response) => {
-    try {
-        const photos = await feature3Client.venue_photo.findMany();
-        return res.json(photos);
-    } catch (error) {
-        console.log(error);
-        return res.status(500).json(error);
-    }
-};
-
-export const getVenuePhotos = async (req: Request, res: Response) => {
-    const { venueId } = req.params;
-
-    try {
-        const venuePhotos = await feature3Client.venue_photo.findMany({
-            where: {
-                venueId: parseInt(venueId),
-            },
-        });
-
-        return res.json(venuePhotos);
-    } catch (error) {
-        console.error(error);
-        return res.status(500).json({ error: "Internal Server Error" });
-    }
-};
-
-export const getOpeningDay = async (req: Request, res: Response) => {
-    const { venueId, openingDayId } = req.params;
-
-    try {
-        const openingDay = await feature3Client.opening_day.findUnique({
-            where: {
-                openingDayId: parseInt(openingDayId),
-                venueId: parseInt(venueId),
-            },
-            include: {
-                venue: true,
-            },
-        });
-
-        if (!openingDay) {
-            return res.status(404).json({ error: "Opening day not found" });
-        }
-
-        return res.json(openingDay);
-    } catch (error) {
-        console.error(error);
-        return res.status(500).json({ error: "Internal Server Error" });
-    }
-};
-
-export const getSearchHistory = async (req: Request, res: Response) => {
-    const { user_id } = req.params;
-
-    try {
-        const history = await feature3Client.search_history.findMany({
-            where: {
-                userId: parseInt(user_id),
-            },
-        });
-
-        return res.json(history);
-    } catch (error) {
-        console.error(error);
-        return res.status(500).json(error);
-    }
-};
-
-export const addVenueReview = async (req: Request, res: Response) => {
-    const { venueId,branchId, userId, rating, review } = req.body;
-
-    try {
-        // Check if the user and venue exist (you may need additional validations)
-        const userExists = await feature3Client.user.findUnique({
-            where: { userId },
-        });
-
-        const venueExists = await feature3Client.venue.findUnique({
-            where: { venueId: venueId },
-        });
-
-        if (!userExists || !venueExists) {
-            return res.status(404).json({ error: "User or Venue not found" });
-        }
-
-        // Create a new VenueReview
-        const newReview = await feature3Client.venue_reviews.create({
-            data: {
-                branchId,
-                userId,
-                rating,
-                review,
-            },
-        });
-
-        return res.json(newReview);
-    } catch (error) {
-        console.error(error);
-        return res.status(500).json({ error: "Internal Server Error" });
-    }
-};
-
-export const editVenueReview = async (req: Request, res: Response) => {
-    const { venueReviewId } = req.params;
+export const postReviewDelivery = async (req: Request, res: Response) => {
+  try {
     const { rating, review } = req.body;
+    const userId = authService.decodeToken(req.cookies.authToken).userId;
+    const { branchId } = req.params;
+    const branchIdInt = Number(branchId);
 
-    try {
-        // Check if the review exists
-        const existingReview = await feature3Client.venue_reviews.findUnique({
-            where: { venueReviewId: parseInt(venueReviewId) },
-        });
+    const newReview = await feature3Client.venue_reviews.create({
+      data: {
+        userId,
+        rating,
+        review,
+        branchId: branchIdInt,
+        review_type: "Delivery",
+      },
+    });
 
-        if (!existingReview) {
-            return res.status(404).json({ error: "Review not found" });
-        }
-
-        // Update the existing review with the provided fields
-        const updatedReview = await feature3Client.venue_reviews.update({
-            where: { venueReviewId: parseInt(venueReviewId) },
-            data: {
-                rating: rating !== undefined ? rating : existingReview.rating,
-                review: review !== undefined ? review : existingReview.review,
-            },
-        });
-
-        return res.json(updatedReview);
-    } catch (error) {
-        console.error(error);
-        return res.status(500).json({ error: "Internal Server Error" });
-    }
+    res.status(201).json(newReview);
+  } catch (error) {
+    console.error("Error creating review:", error);
+    res.status(500).json(error);
+  }
 };
 
-export const deleteVenueReview = async (req: Request, res: Response) => {
-    const { venueReviewId } = req.params;
-
-    try {
-        // Check if the review exists
-        const existingReview = await feature3Client.venue_reviews.findUnique({
-            where: { venueReviewId: parseInt(venueReviewId) },
-        });
-
-        if (!existingReview) {
-            return res.status(404).json({ error: "Review not found" });
-        }
-
-        // Delete the existing review
-        await feature3Client.venue_reviews.delete({
-            where: { venueReviewId: parseInt(venueReviewId) },
-        });
-
-        return res.json({ message: "Review deleted successfully" });
-    } catch (error) {
-        console.error(error);
-        return res.status(500).json({ error: "Internal Server Error" });
-    }
-};
-
-export const getAllDiscountVouchers = async (req: Request, res: Response) => {
-    try {
-        const discountVouchers =
-            await feature3Client.discount_voucher.findMany();
-        return res.json(discountVouchers);
-    } catch (error) {
-        console.error(error);
-        return res.status(500).json({ error: "Internal Server Error" });
-    }
-};
-
-export const getAllFoodVouchers = async (req: Request, res: Response) => {
-    try {
-        const foodVouchers = await feature3Client.food_voucher.findMany();
-        return res.json(foodVouchers);
-    } catch (error) {
-        console.error(error);
-        return res.status(500).json({ error: "Internal Server Error" });
-    }
-};
-
-export const getFoodReviews = async (req: Request, res: Response) => {
-    const { id } = req.params;
-    try {
-        const reviews = await feature3Client.food_reviews.findMany({
-            where: {
-                menuId: parseInt(id),
-            } as any,
-        });
-        return res.json(reviews);
-    } catch (error) {
-        console.error(error);
-        return res.status(500).json(error);
-    }
-};
-
-export const addFoodReview = async (req: Request, res: Response) => {
-    const { menuId, userId, rating, review } = req.body;
-
-    // Get time now
-    const date_added = new Date();
-
-    try {
-        // Check if the user and venue exist (you may need additional validations)
-        const userExists = await feature3Client.user.findUnique({
-            where: { userId },
-        });
-
-        const foodExists = await feature3Client.menu.findUnique({
-            where: { menuId },
-        });
-
-        if (!userExists || !foodExists) {
-            return res.status(404).json({ error: "User or Food not found" });
-        }
-
-        // Create a new FoodReview
-        const newReview = await feature3Client.food_reviews.create({
-            data: {
-                menuId,
-                userId,
-                rating,
-                review,
-                date_added,
-            } as any,
-        });
-
-        return res.json(newReview);
-    } catch (error) {
-        console.error(error);
-        return res.status(500).json({ error: "Internal Server Error" });
-    }
-};
-
-export const editFoodReview = async (req: Request, res: Response) => {
-    const { foodReviewId } = req.params;
+export const postReviewReservation = async (req: Request, res: Response) => {
+  try {
     const { rating, review } = req.body;
+    const userId = authService.decodeToken(req.cookies.authToken).userId;
+    const { branchId } = req.params;
+    const branchIdInt = Number(branchId);
 
-    try {
-        // Check if the review exists
-        const existingReview = await feature3Client.food_reviews.findUnique({
-            where: { foodReviewId: parseInt(foodReviewId) },
-        });
+    const newReview = await feature3Client.venue_reviews.create({
+      data: {
+        userId,
+        rating,
+        review,
+        branchId: branchIdInt,
+        review_type: "Reservation",
+      },
+    });
 
-        if (!existingReview) {
-            return res.status(404).json({ error: "Review not found" });
-        }
-
-        // Update the existing review with the provided fields
-        const updatedReview = await feature3Client.food_reviews.update({
-            where: { foodReviewId: parseInt(foodReviewId) },
-            data: {
-                rating: rating !== undefined ? rating : existingReview.rating,
-                review: review !== undefined ? review : existingReview.review,
-            },
-        });
-
-        return res.json(updatedReview);
-    } catch (error) {
-        console.error(error);
-        return res.status(500).json({ error: "Internal Server Error" });
-    }
+    res.status(201).json(newReview);
+  } catch (error) {
+    console.error("Error creating review:", error);
+    res.status(500).json(error);
+  }
 };
 
-export const deleteFoodReview = async (req: Request, res: Response) => {
-    const { foodReviewId } = req.params;
+export const postVenuesFavourites = async (req: Request, res: Response) => {
+  try {
+    const userId = Number(
+      authService.decodeToken(req.cookies.authToken).userId
+    );
+    const { venueId } = req.params;
+    const venueIdInt = Number(venueId);
 
-    try {
-        // Check if the review exists
-        const existingReview = await feature3Client.food_reviews.findUnique({
-            where: { foodReviewId: parseInt(foodReviewId) },
-        });
+    const foundVenue = await feature3Client.saved_place.findFirst({
+      where: {
+        userId,
+        venueId: venueIdInt,
+      },
+    });
 
-        if (!existingReview) {
-            return res.status(404).json({ error: "Review not found" });
-        }
+    if (foundVenue) {
+      await feature3Client.saved_place.deleteMany({
+        where: {
+          userId,
+          venueId: venueIdInt,
+        },
+      });
+      const toggledFavourite = await feature3Client.saved_place.findFirst({
+        where: {
+          userId,
+          venueId: venueIdInt,
+        },
+      });
 
-        // Delete the existing review
-        await feature3Client.food_reviews.delete({
-            where: { foodReviewId: parseInt(foodReviewId) },
-        });
-
-        return res.json({ message: "Review deleted successfully" });
-    } catch (error) {
-        console.error(error);
-        return res.status(500).json({ error: "Internal Server Error" });
+      return res.status(200).json(toggledFavourite);
+    } else {
+      const newFavourite = await feature3Client.user.update({
+        where: {
+          userId,
+        },
+        data: {
+          // Saved_place: {
+          //   create: {
+          //     venueId: venueIdInt
+          //   }
+          // }
+        },
+      });
+      return res.status(201).json(newFavourite);
     }
+  } catch (error) {
+    console.error("Error creating favourite:", error);
+    res.status(500).json(error);
+  }
 };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/////////////////////////////////////////////////////////////////////////////
-// export const getVen = async (req: Request, res: Response) => {
-//     try {
-//         const Ven = await feature3Client.$queryRaw`
-//             SELECT venueId, name, description, category, capacity, 
-//             chatRoomId, locationId, website_url
-//             FROM Venue
-//             Order by venueId
-//         `;
-
-//         return res.json(Ven);
-//     } catch (error) {
-//         console.error(error);
-//         return res.status(500).json(error);
-//     }
-// };
-
-// export const getBranch = async (req: Request, res: Response) => {
-//     try {
-//         const Branch = await feature3Client.$queryRaw`
-//             SELECT venueId, branchId, branch_name
-//             FROM Venue_branch
-//             Order by branchId
-//         `;
-
-//         return res.json(Branch);
-//     } catch (error) {
-//         console.error(error);
-//         return res.status(500).json(error);
-//     }
-// };
-
-// export const getBranchRate = async (req: Request, res: Response) => {
-//     try {
-//         const BranchRate = await feature3Client.$queryRaw`
-//             SELECT VB.branchId, VR.rating
-//             FROM Venue_branch VB, Venue_reviews VR
-//             WHERE VB.branchId = VR.branchId
-//             ORDER BY branchId
-//         `;
-
-//         return res.json(BranchRate);
-//     } catch (error) {
-//         console.error(error);
-//         return res.status(500).json(error);
-//     }
-// };
-
-// export const getVenRate = async (req: Request, res: Response) => {
-//     try {
-//         const VenRate = await feature3Client.$queryRaw`
-//             SELECT V.venueId, VB.branchId, name, description, category, capacity,
-//             chatRoomId, locationId, website_url, AVG(VR.rating) as rating
-//             FROM Venue V, Venue_branch VB, Venue_reviews VR
-//             WHERE V.venueId = VB.venueId AND VB.branchId = VR.branchId
-//             GROUP BY V.venueId, VB.branchId
-//             ORDER BY V.venueId;
-//         `;
-
-//         return res.json(VenRate);
-//     } catch (error) {
-//         console.error(error);
-//         return res.status(500).json(error);
-//     }
-// };
-
-// export const getVenRate4 = async (req: Request, res: Response) => {
-//     try {
-//         const VenRate4 = await feature3Client.$queryRaw`
-//             SELECT V.venueId, VB.branchId, name, description, category, capacity,
-//             chatRoomId, locationId, website_url, AVG(VR.rating) as rating
-//             FROM Venue V, Venue_branch VB, Venue_reviews VR
-//             WHERE V.venueId = VB.venueId AND VB.branchId = VR.branchId
-//             GROUP BY V.venueId, VB.branchId
-//             HAVING AVG(VR.rating) >= 4
-//             ORDER BY V.venueId;
-//         `;
-
-//         return res.json(VenRate4);
-//     } catch (error) {
-//         console.error(error);
-//         return res.status(500).json(error);
-//     }
-// };
-

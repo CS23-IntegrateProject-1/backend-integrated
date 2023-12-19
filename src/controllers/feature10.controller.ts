@@ -3,19 +3,13 @@ import { Response, Request } from "express";
 import filmService from "../services/movie/films.service";
 import  theaterService  from "../services/movie/theaters.service";
 import showService from "../services/movie/shows.service";
+import seatsService from "../services/movie/seats.service";
+import reservationService from "../services/movie/reservation.service";
 
 const prisma = new PrismaClient();
 
-// example of controller getAllAuthors
-// export const getAllAuthors = async (req: Request, res: Response) => {
-//   try {
-//     const allAuthors = await feature1Client.modelName.findMany({
-//   } catch (e) {
-//     console.log(e);
-//   }
-// };
+// export const getfeature10 = async (req: Request, res: Response) => {};
 
-export const getfeature10 = async (req: Request, res: Response) => {};
 
 export const getAllFilms = async (req: Request, res: Response) => {
     const data = await filmService.getAllFilms();
@@ -65,8 +59,6 @@ export const getUpcomingFilms = async (req: Request, res: Response) => {
     res.json(data);
 };
 
-
-
 export const getShowsByFilmId = async (req: Request, res: Response) => {
     const id = Number(req.params.id);
     const date = req.params.date;
@@ -74,6 +66,10 @@ export const getShowsByFilmId = async (req: Request, res: Response) => {
     const data = await showService.getShowsByFilmId(id, date);
     res.json(data);
 };
+
+
+
+
 
 //make it distinct????????????????????????????????????????????????
 export const getSeatsTypeByScreenId = async (req: Request, res: Response) => {
@@ -90,8 +86,21 @@ export const getSeatsTypeByScreenId = async (req: Request, res: Response) => {
     
 }
 
+
+
+
+
+export const getSeatByScreenId = async (req: Request, res: Response) => {
+    const id = req.body.id;
+    const data = await seatsService.getSeatByScreenId(id);
+    res.json(data);
+}
+
+
+
+
+
 //page4
-//
 
 export const getShowsByTheaterId = async (req: Request, res: Response) => {
     const id = Number(req.params.id);
@@ -100,7 +109,7 @@ export const getShowsByTheaterId = async (req: Request, res: Response) => {
     const data = await showService.getShowsByTheaterId(id, date);
     res.json(data);
 }
-//
+
 export const getFilmsByTheaterId = async (req: Request, res: Response) => {
     const id = req.body.id;
     const date = req.body.date;
@@ -110,7 +119,7 @@ export const getFilmsByTheaterId = async (req: Request, res: Response) => {
     const data = await filmService.getFilmsByTheaterId(id, date,month,year);
     res.json(data);
 }  
-//
+
 export const getTheaterById = async (req: Request, res: Response) => {
     const id = Number(req.params.id);
     const data = await theaterService.getTheaterById(id);
@@ -119,5 +128,8 @@ export const getTheaterById = async (req: Request, res: Response) => {
 
 
 
-
-
+export const getTotalPriceByReservationId = async (req: Request, res: Response) => {
+    const id = req.body.id;
+    const data = await reservationService.getTotalPriceByReservationId(id);
+    res.json(data);
+}

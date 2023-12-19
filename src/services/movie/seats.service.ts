@@ -24,6 +24,26 @@ class seatService{
     //     });
     //     return data;
     // }
+    // async getSeatByScreenId(id: number) : Promise<any[]> {
+    //     const prisma = new PrismaClient();
+    //     const data = await prisma.seats.findMany({
+    //         where: {
+    //             screenId: id
+    //         }
+    //     });
+    //     return data;
+    // }
+    async getSeatByScreenId(id: number) : Promise<any[]> {
+        const prisma = new PrismaClient();
+        console.log(id);
+        const data = await prisma.seats.findMany({
+            where: {
+                screenId: id
+            }
+        });
+        return data;
+    }
+
 }
 
 export default new seatService();
