@@ -16,6 +16,7 @@ import {
   getGroupChatDetail,
   getAllMessage,
   getUserId,
+  getCommunityChatList,
 } from "../controllers/feature12.controller";
 import { customVerifyCookie } from "../middlewares/verifyCookies";
 
@@ -47,6 +48,7 @@ feature12Router.get("/displayGroupDetail",customVerifyCookie, getPrivateChatList
 feature12Router.get("/displaychatDetail/:id", getGroupChatDetail);
 feature12Router.get("/displayAllMessage/:id", getAllMessage);
 feature12Router.get("/displayUserId/:sender", getUserId);
+feature12Router.get("/displayCommunityDetail",customVerifyCookie, getCommunityChatList);
 
 //dialogflow route
 feature12Router.post("/dialogflow", forDialogflow);

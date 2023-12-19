@@ -322,7 +322,76 @@ createChatRooms();
 //   const { userId } = decodedToken;
 //   return res.status(200).json({ userId });
 // };
+//get detail of community chat of specific userid
+export const getCommunityChatList = async (req: any, res: Response) => {
 
+  try {
+    const userId = req.userId;
+    const communityList = await feature12Client.chat_Room_Logs.findMany({
+      where: {
+        userId: parseInt(userId),
+      },
+      select: {
+        chatRoomId: true,
+      },
+    });
+
+    const communitygroupDetail = await Promise.all(
+      communityList.map(async (group) => {
+        const id = group.chatRoomId;
+        const groupInfo = await feature12Client.chat_room.findUnique({
+          where: {
+            chatRoomId: id,
+          },
+          select: {
+            roomname: true,
+          },
+        });
+
+        const members = await feature12Client.chat_Room_Logs.findMany({
+          where: {
+            chatRoomId: id,
+          },
+          select: {
+            userId: true,
+            user: {
+              select: {
+                username: true,
+                userId: true,
+                addId: true,
+                profile_picture: true,
+              },
+            },
+            
+          },
+        });
+        
+        const messages = await feature12Client.message.findMany({
+          where: {
+            roomId: id,
+          },
+          select: {
+            userId: true,
+            // message: true,
+            date_time: true,
+            messageId: true,
+          },
+        });
+
+        return {
+          ...groupInfo,
+          id,
+          members,
+          messages,
+        };
+      })
+    );
+    
+    return res.status(200).json(communitygroupDetail);
+  } catch (error) {
+    return res.status(500).json({ error });
+  }
+};
 //get userId from username
 export const getUserId = async (req: Request, res: Response) => {
   const { sender } = req.params;
