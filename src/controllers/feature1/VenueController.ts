@@ -2,12 +2,12 @@ import { Request, Response } from "express";
 import { compose, path } from "ramda";
 import { z } from "zod";
 
-import VenueRepository from "../../services/feature1/venue.repository";
-import VenueService, {
+import {
+  VenueService,
   IVenueService,
-} from "../../services/feature1/venue.service";
-import { makeErrorResponse } from "./models/payment_method.model";
-import { makeVenueShowWebResponse } from "./models/venue.model";
+  VenueRepository,
+} from "../../services/feature1";
+import { makeErrorResponse, makeVenueShowWebResponse } from "./models";
 
 export interface IVenueController {
   update: (req: Request, res: Response) => unknown;
