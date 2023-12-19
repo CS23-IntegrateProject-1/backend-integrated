@@ -246,11 +246,12 @@ model Chat_message {
 }
 
 model Chat_room {
-  roomname       String
-  chatRoomId     Int              @id @default(autoincrement())
-  Chat_Room_Logs Chat_Room_Logs[]
-  Venue          Venue            @relation(fields: [chatRoomId], references: [chatRoomId])
-  Message        Message[]
+  roomname                String
+  chatRoomId              Int              @id @default(autoincrement())
+  community_group_profile String?          @db.Text
+  Chat_Room_Logs          Chat_Room_Logs[]
+  Venue                   Venue            @relation(fields: [chatRoomId], references: [chatRoomId])
+  Message                 Message[]
 }
 
 model Check_in_log {

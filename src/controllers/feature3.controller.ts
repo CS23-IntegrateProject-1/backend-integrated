@@ -24,10 +24,10 @@ export const getVenuesPage = async (req: Request, res: Response) => {
   const priceMin = Number(req.query.priceMin || 0);
   const priceMax = Number(req.query.priceMax || 1000);
   const capacity = String(req.query.capacity || "").split(",").filter((v) => v !== "");
-  const categorys = String(req.query.category || "").split(",").filter((v) => v !== "");
+  const category = String(req.query.category || "").split(",").filter((v) => v !== "");
 
   try {
-    const [VenuesPage, menus, tables] = await Promise.all([
+    const [VenuesPage, menus, tables, venues] = await Promise.all([
       feature3Client.$queryRaw<VenueInfo[]>`
     SELECT
       V.venueId,
@@ -52,6 +52,7 @@ export const getVenuesPage = async (req: Request, res: Response) => {
   `,
       feature3Client.menu.findMany({}),
       feature3Client.table_type_detail.findMany({}),
+      feature3Client.venue.findMany({}),
     ]);
 
     const filteredVenues = VenuesPage.filter((v) =>
@@ -60,9 +61,33 @@ export const getVenuesPage = async (req: Request, res: Response) => {
         .toLowerCase()
         .includes(String(search).trim().toLowerCase())
     )
-      .filter((v) => {
-        const venueCategoryMatch = categorys.length === 0 ? true : categorys.includes(v.category);
-        return venueCategoryMatch;
+    .filter((v) => {
+        const venueCategoryMatch = venues.filter((vs) => vs.venueId === v.venueId);
+        const statements: boolean[] = [];
+
+        if (category.length === 0) {
+          return true;
+        }
+
+        if (category.includes("Restaurant")) {
+          statements.push(
+            venueCategoryMatch.some((vs) => vs.category == "Restaurant")
+          );
+        }
+
+        if (category.includes("Club")) {
+          statements.push(
+            venueCategoryMatch.some((vs) => vs.category == "Club")
+          );
+        }
+
+        if (category.includes("Bar")) {
+          statements.push(
+            venueCategoryMatch.some((vs) => vs.category == "Bar")
+          );
+        }
+
+        return statements.some((v) => v === true);
       })
       .filter((v) => {
         const venueMenus = menus.filter((m) => m.venueId === v.venueId);
@@ -311,7 +336,7 @@ export const getReviewsBranch = async (req: Request, res: Response) => {
     `;
 
     const filteredReviews = reviewsBranch.filter((review) => {
-      console.log(reviewTypes, reviewStars);
+      // console.log(reviewTypes, reviewStars);
       const reviewTypeMatch =
         reviewTypes.length === 0
           ? true
