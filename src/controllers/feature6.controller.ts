@@ -47,7 +47,7 @@ export const getVenueById = async (req: Request, res: Response) => {
             },
             include: {
                 Venue_photo: true,
-                location: true,
+                Location: true,
             },
         });
         return res.json(venue), branchName;
@@ -71,8 +71,8 @@ export const getReservationById = async (req: Request, res: Response) => {
                 reservationId: parseInt(req.params.reservationId),
             },
             include: {
-                user: true,
-                deposit: true,
+                User: true,
+                Deposit: true,
             },
         });
         return res.json(reservations);
@@ -100,7 +100,7 @@ export const getMyReservationByStatus = async (req: Request, res: Response) => {
                 userId: userId,
             },
             include: {
-                venue: {
+                Venue: {
                     include: {
                         Venue_photo: true,
                         Menu: {
@@ -164,12 +164,12 @@ export const getVenueAndReservationsById = async (
                 reservationId: parseInt(reservationId),
             },
             include: {
-                user: {
+                User: {
                     include: {
                         User_bio: true,
                     },
                 },
-                deposit: true,
+                Deposit: true,
             },
         });
 
@@ -353,7 +353,7 @@ export const getTableByTableId = async (req: Request, res: Response) => {
                 venueId: venueId,
             },
             include: {
-                table_type: true,
+                Table_type_detail: true,
             },
         });
 
@@ -436,7 +436,7 @@ export const getAllTableByVenueId = async (req: Request, res: Response) => {
                 isUsing: true,
             },
             include: {
-                table_type: true,
+                Table_type_detail: true,
             },
         });
 
@@ -682,7 +682,7 @@ export const getAllReservationOfVenue = async (req: Request, res: Response) => {
                 venueId: venueId,
             },
             include: {
-                user: true,
+                User: true,
             },
         });
         return res.json(reservations);

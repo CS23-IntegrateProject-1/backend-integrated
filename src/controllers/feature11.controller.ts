@@ -459,7 +459,7 @@ export const getArticleDetail = async (req: Request, res: Response) => {
     const article = await prisma.article.findUnique({
       where: { articleId: parseInt(articleId) },
       include: {
-        Image: {
+        Images: {
           select: {
             url: true,
             description: true
@@ -467,21 +467,21 @@ export const getArticleDetail = async (req: Request, res: Response) => {
         },
         Article_tags: {
           include: {
-            tag: {
+            Tag: {
               select: { tag_name: true }
             },
           },
         },
         Article_venue: {
           include: {
-            venue: {
+            Venue: {
               select: { 
                 venueId: true,
                 name: true }
             },
           }
         },
-        user: {
+        User: {
           select: {
             username: true,
             profile_picture: true,
@@ -537,7 +537,7 @@ export const public_getArticleDetail = async (req: Request, res: Response) => {
     const article = await prisma.article.findUnique({
       where: { articleId: parseInt(articleId) },
       include: {
-        Image: {
+        Images: {
           select: {
             url: true,
             description: true
@@ -545,14 +545,14 @@ export const public_getArticleDetail = async (req: Request, res: Response) => {
         },
         Article_tags: {
           include: {
-            tag: {
+            Tag: {
               select: { tag_name: true }
             },
           },
         },
         Article_venue: {
           include: {
-            venue: {
+            Venue: {
               select: { 
                 venueId: true,
                 name: true }
@@ -595,7 +595,7 @@ export const getArticleComment = async (req: Request, res: Response) => {
     const newcomment = await prisma.comments.findMany({
       where: { articleId: parseInt(id) },
       include: {
-        user: {
+        User: {
           select: {
             username: true,
             profile_picture: true
@@ -640,7 +640,7 @@ export const getAllArticle = async (req: Request, res: Response) => {
   try {
     const articles = await prisma.article.findMany({
       include: {
-        Image: {
+        Images: {
           select: {
             url: true,
             description: true
@@ -648,7 +648,7 @@ export const getAllArticle = async (req: Request, res: Response) => {
         },
         Article_tags: {
           include: {
-            tag: {
+            Tag: {
               select: {
                 tag_name: true
               }
@@ -657,14 +657,14 @@ export const getAllArticle = async (req: Request, res: Response) => {
         },
         Article_venue: {
           include: {
-            venue: {
+            Venue: {
               select: { 
                 venueId: true,
                 name: true }
             }
           },
         },
-        user: {
+        User: {
           select: {
             username: true,
             profile_picture: true,
@@ -713,7 +713,7 @@ export const public_getAllArticle = async (req: Request, res: Response) => {
   try {
     const articles = await prisma.article.findMany({
       include: {
-        Image: {
+        Images: {
           select: {
             url: true,
             description: true
@@ -721,7 +721,7 @@ export const public_getAllArticle = async (req: Request, res: Response) => {
         },
         Article_tags: {
           include: {
-            tag: {
+            Tag: {
               select: {
                 tag_name: true
               }
@@ -730,14 +730,14 @@ export const public_getAllArticle = async (req: Request, res: Response) => {
         },
         Article_venue: {
           include: {
-            venue: {
+            Venue: {
               select: { 
                 venueId: true,
                 name: true }
             }
           },
         },
-        user: {
+        User: {
           select: {
             username: true,
             profile_picture: true,
@@ -864,7 +864,7 @@ export const getArticleHistory = async (req: Request, res: Response) => {
     const articles = await prisma.article.findMany({
       where: { userId },
       include: {
-        Image: {
+        Images: {
           select: {
             url: true,
             description: true
@@ -872,7 +872,7 @@ export const getArticleHistory = async (req: Request, res: Response) => {
         },
         Article_tags: {
           include: {
-            tag: {
+            Tag: {
               select: {
                 tag_name: true
               }
@@ -881,14 +881,14 @@ export const getArticleHistory = async (req: Request, res: Response) => {
         },
         Article_venue: {
           include: {
-            venue: {
+            Venue: {
               select: { 
                 venueId: true,
                 name: true }
             }
           },
         },
-        user: {
+        User: {
           select: {
             username: true,
             profile_picture: true,
@@ -946,7 +946,7 @@ export const getUserArticle = async (req: Request, res: Response) => {
     const articles = await prisma.article.findMany({
       where: { userId },
       include: {
-        Image: {
+        Images: {
           select: {
             url: true,
             description: true
@@ -954,7 +954,7 @@ export const getUserArticle = async (req: Request, res: Response) => {
         },
         Article_tags: {
           include: {
-            tag: {
+            Tag: {
               select: {
                 tag_name: true
               }
@@ -963,14 +963,14 @@ export const getUserArticle = async (req: Request, res: Response) => {
         },
         Article_venue: {
           include: {
-            venue: {
+            Venue: {
               select: { 
                 venueId: true,
                 name: true }
             }
           },
         },
-        user: {
+        User: {
           select: {
             username: true,
             profile_picture: true,
@@ -1027,10 +1027,10 @@ export const getCommentHistory = async (req: Request, res: Response) => {
     const comment = await prisma.comments.findMany({
       where: { userId },
       include: {
-        article: {
+        Article: {
           select: { topic: true }
         },
-        user: {
+        User: {
           select: {
             username: true,
             profile_picture: true
@@ -1060,9 +1060,9 @@ export const CreatorLikeComment = async (req: Request, res: Response) => {
     const thisArticle = await prisma.comments.findUnique({
       where: { commentId },
       include: {
-        article: {
+        Article: {
           include: {
-            user: {
+            User: {
               select: { userId: true }
             }
           }
@@ -1070,7 +1070,7 @@ export const CreatorLikeComment = async (req: Request, res: Response) => {
       }
     })
 
-    if (thisArticle && thisArticle.article && thisArticle.article.user.userId === userId) {
+    if (thisArticle && thisArticle.Article && thisArticle.Article.User.userId === userId) {
       const articleId = thisArticle.articleId || 0; // Assign a default value if articleId is undefined
       await prisma.comment_like_by_creator.create({
         data: {
@@ -1104,9 +1104,9 @@ export const deleteCommentLikeByCreator = async (req: Request, res: Response) =>
     const thisArticle = await prisma.comments.findUnique({
       where: { commentId },
       include: {
-        article: {
+        Article: {
           include: {
-            user: {
+            User: {
               select: { userId: true }
             }
           }
@@ -1114,7 +1114,7 @@ export const deleteCommentLikeByCreator = async (req: Request, res: Response) =>
       }
     })
 
-    if (thisArticle && thisArticle.article && thisArticle.article.user.userId === userId) {
+    if (thisArticle && thisArticle.Article && thisArticle.Article.User.userId === userId) {
       const articleId = thisArticle.articleId || 0; // Assign a default value if articleId is undefined
       await prisma.comment_like_by_creator.delete({
         where: { commentId_articleId: { commentId, articleId }}
@@ -1145,14 +1145,14 @@ export const getUserSavedPlace = async (req: Request, res: Response) => {
     const savedPlace = await prisma.saved_place.findMany({
       where: { userId },
       include: {
-        venue: {
+        Venue: {
           select: {
             name: true,
             description: true,
             category: true,
             capacity: true,
             chatRoomId: true,
-            location: true,
+            Location: true,
             website_url: true
           }
         }
