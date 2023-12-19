@@ -38,15 +38,15 @@ export const ApiConfirmReserve = async (req: Request, res: Response) => {
     try{
         const status = req.body.status;
         const reservationId = req.body.reservation_id;
-        const tableId = req.body.table_id;
-        const reserved_time = req.body.time;
-        const reserved_date = req.body.reserve_date;
-        const venueId = req.body.venueId;
-        const branchId = req.body.branchId;
+        // const tableId = req.body.table_id;
+        // const reserved_time = req.body.time;
+        // const reserved_date = req.body.reserve_date;
+        // const venueId = req.body.venueId;
+        // const branchId = req.body.branchId;
         const guest_amount = req.body.guest_amount;
 
-        console.log(venueId,branchId);
-        console.log(tableId, reserved_time, reserved_date)
+        // console.log(venueId,branchId);
+        // console.log(tableId, reserved_time, reserved_date)
 
         let isResponse = true;
         const getAvailableTablesResponse: any = await getAvailableTables(req);
@@ -78,6 +78,7 @@ export const ApiConfirmReserve = async (req: Request, res: Response) => {
         const selectedTable = await findSuitableTable(
             getAvailableTablesResponse
         );
+        console.log(selectedTable)
         if (isResponse) {
             if (
                 !selectedTable ||
