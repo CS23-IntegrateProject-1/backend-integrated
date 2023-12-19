@@ -322,6 +322,38 @@ createChatRooms();
 //   const { userId } = decodedToken;
 //   return res.status(200).json({ userId });
 // };
+
+//get All message (Comminity Chat)
+export const getAllMessageCommunity = async (req: Request, res: Response) => {
+  const { id } = req.params;
+  try {
+    const messages = await feature12Client.message.findMany({
+      where: {
+        roomId: parseInt(id),
+      },
+      select: {
+        userId: true,
+        User: {
+          select: {
+            username: true,
+            fname: true,
+            lname: true,
+            profile_picture: true,
+          },
+        },
+        message: true,
+        date_time: true,
+      },
+      orderBy: {
+        messageId: "asc",
+      },
+    });
+    return res.status(200).json(messages);
+  } catch (error) {
+    return res.status(500).json({ error });
+  }
+};
+
 //get detail of community chat of specific userid
 export const getCommunityChatList = async (req: any, res: Response) => {
 
@@ -345,6 +377,7 @@ export const getCommunityChatList = async (req: any, res: Response) => {
           },
           select: {
             roomname: true,
+            community_group_profile: true,
           },
         });
 
@@ -354,7 +387,7 @@ export const getCommunityChatList = async (req: any, res: Response) => {
           },
           select: {
             userId: true,
-            user: {
+            User: {
               select: {
                 username: true,
                 userId: true,
