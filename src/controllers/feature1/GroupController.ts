@@ -58,7 +58,7 @@ export default class GroupController implements IGroupController {
         include: {
           Group_user: {
             include: {
-              member: {
+              User: {
                 select: {
                   userId: true,
                   username: true,
@@ -79,9 +79,9 @@ export default class GroupController implements IGroupController {
         group_name: result.group_name,
         group_avatar: result.group_profile,
         members: result.Group_user.map((user) => ({
-          user_id: user.member.userId,
-          username: user.member.username,
-          avatar: user.member.profile_picture,
+          user_id: user.User.userId,
+          username: user.User.username,
+          avatar: user.User.profile_picture,
         })),
       };
 
@@ -101,15 +101,15 @@ export default class GroupController implements IGroupController {
           memberId: Number(req.params.userId),
         },
         include: {
-          group: true,
+          Group: true
         },
       });
 
       const response = result.map((r) => {
         return {
-          group_id: r.group.groupId,
-          group_name: r.group.group_name,
-          group_avatar: r.group.group_profile,
+          group_id: r.Group.groupId,
+          group_name: r.Group.group_name,
+          group_avatar: r.Group.group_profile,
         };
       });
 

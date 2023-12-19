@@ -42,7 +42,7 @@ export default class GroupRepository {
       include: {
         Group_user: {
           include: {
-            member: {
+            User: {
               select: {
                 userId: true,
                 username: true,

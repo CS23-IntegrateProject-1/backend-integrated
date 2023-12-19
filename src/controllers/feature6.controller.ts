@@ -9,9 +9,7 @@ import { getOfflineAvailableTables } from "../services/reservation/getOfflineAva
 import { findSuitableTable } from "../services/reservation/findSuitable.service";
 import qr from "qr-image";
 
-
 const feature6Client = new PrismaClient();
-
 
 //GET METHOD
 export const getAllTable = async (req: Request, res: Response) => {
@@ -41,7 +39,7 @@ export const getVenueById = async (req: Request, res: Response) => {
             where: {
                 venueId: parseInt(venueId),
                 branchId: parseInt(branchId),
-            }
+            },
         });
         const venue = await feature6Client.venue.findUnique({
             where: {
@@ -49,7 +47,7 @@ export const getVenueById = async (req: Request, res: Response) => {
             },
             include: {
                 Venue_photo: true,
-                location: true,
+                Location: true,
             },
         });
         return res.json(venue), branchName;
@@ -61,14 +59,20 @@ export const getVenueById = async (req: Request, res: Response) => {
 
 export const getReservationById = async (req: Request, res: Response) => {
     try {
+        const token = req.cookies.authToken;
+        if (!token) {
+            return res.status(401).json({ error: "No auth token" });
+        }
+        const decodedToken = authService.decodeToken(token);
+        const { userId } = decodedToken;
         const reservations = await feature6Client.reservation.findMany({
             where: {
-                userId: parseInt(req.body.userId),
+                userId: userId,
                 reservationId: parseInt(req.params.reservationId),
             },
             include: {
-                user: true,
-                deposit: true,
+                User: true,
+                Deposit: true,
             },
         });
         return res.json(reservations);
@@ -81,10 +85,7 @@ export const getReservationById = async (req: Request, res: Response) => {
 //Start from here
 //My Reservation Page (4 status)
 //Finished
-export const getMyReservationByStatus = async (
-    req: Request,
-    res: Response
-) => {
+export const getMyReservationByStatus = async (req: Request, res: Response) => {
     try {
         const token = req.cookies.authToken;
         if (!token) {
@@ -99,7 +100,7 @@ export const getMyReservationByStatus = async (
                 userId: userId,
             },
             include: {
-                venue: {
+                Venue: {
                     include: {
                         Venue_photo: true,
                         Menu: {
@@ -146,7 +147,6 @@ export const getVenueAndReservationsById = async (
                 Venue_photo: true,
             },
         });
-        // console.log(venue)
 
         const location = await feature6Client.location.findUnique({
             where: {
@@ -164,18 +164,18 @@ export const getVenueAndReservationsById = async (
                 reservationId: parseInt(reservationId),
             },
             include: {
-                user: {
+                User: {
                     include: {
                         User_bio: true,
                     },
                 },
-                deposit: true,
+                Deposit: true,
             },
         });
 
         return res.json({ venue, location, reservations });
     } catch (e) {
-        console.log(e)
+        console.log(e);
         return res.status(500).json(e);
     }
 };
@@ -183,8 +183,9 @@ export const getVenueAndReservationsById = async (
 //POST METHOD
 // create Reservation
 // Finished
-var isResponse = true;
 export const createReservation = async (req: Request, res: Response) => {
+    let isResponse = true;
+
     try {
         const token = req.cookies.authToken;
         if (!token) {
@@ -199,8 +200,15 @@ export const createReservation = async (req: Request, res: Response) => {
                 .json({ error: "This user is not customer user" });
         }
 
-        const { venueId, guest_amount, reserve_date, time, branchId, name, phone_num } =
-            req.body;
+        const {
+            venueId,
+            guest_amount,
+            reserve_date,
+            time,
+            branchId,
+            name,
+            phone_num,
+        } = req.body;
 
         const concatDatetime = `${reserve_date} ${time}`;
         const reserved_time = new Date(concatDatetime);
@@ -229,7 +237,9 @@ export const createReservation = async (req: Request, res: Response) => {
             getAvailableTablesResponse.error ==
             "Reservation time is not within valid hours"
         ) {
-            return res.status(400).json({ error: "Reservation time is not within valid hours" });
+            return res
+                .status(400)
+                .json({ error: "Reservation time is not within valid hours" });
         } else if (
             getAvailableTablesResponse.error == "No more Available Table"
         ) {
@@ -297,44 +307,7 @@ export const createReservation = async (req: Request, res: Response) => {
                 reservationTableEntry,
             };
             res.status(200).json(responseData);
-        }
-        const depositId = await feature6Client.deposit.findMany({
-            where: {
-                venueId: venueId,
-            },
-            select: {
-                depositId: true,
-            },
-        });
-        // Create the reservation
-        // console.log(depositId);
-        const newReservation = await feature6Client.reservation.create({
-            data: {
-                venueId,
-                userId: userId,
-                guest_amount,
-                reserved_time: new Date(reserved_time),
-                entry_time,
-                status: "Pending",
-                isPaidDeposit: "Pending",
-                isReview: false,
-                depositId: depositId[0].depositId,
-                branchId: branchId,
-            },
-        });
-        // Create the reservation table entry for the selected table
-        const reservationTableEntry =
-            await feature6Client.reservation_table.create({
-                data: {
-                    reserveId: newReservation.reservationId,
-                    tableId: selectedTable[0].tableId,
-                },
-            });
-        res.status(200).json({
-            // newReservation,
-            reservationTableEntry,
-        });
-        // res.status(200).json(newReservation);
+        }  // res.status(200).json(newReservation);
     } catch (e) {
         console.log(e);
         return res.status(500).json(e);
@@ -380,7 +353,7 @@ export const getTableByTableId = async (req: Request, res: Response) => {
                 venueId: venueId,
             },
             include: {
-                table_type: true,
+                Table_type_detail: true,
             },
         });
 
@@ -463,7 +436,7 @@ export const getAllTableByVenueId = async (req: Request, res: Response) => {
                 isUsing: true,
             },
             include: {
-                table_type: true,
+                Table_type_detail: true,
             },
         });
 
@@ -709,7 +682,7 @@ export const getAllReservationOfVenue = async (req: Request, res: Response) => {
                 venueId: venueId,
             },
             include: {
-                user: true,
+                User: true,
             },
         });
         return res.json(reservations);
@@ -831,9 +804,8 @@ export const cancelReservation = async (req: Request, res: Response) => {
 
 // OFFLINE RESERVATION
 // Finished
-var isResponse = true;
 export const createOfflineReservation = async (req: Request, res: Response) => {
-    isResponse = true;
+    let isResponse = true;
     try {
         const token = req.cookies.authToken;
         if (!token) {
@@ -975,7 +947,7 @@ export const createOfflineReservation = async (req: Request, res: Response) => {
 
             const defaultCheckoutTime = new Date();
             defaultCheckoutTime.setHours(7, 0, 0, 0);
-            const checkInLog = await feature6Client.check_in_log.create({
+            await feature6Client.check_in_log.create({
                 data: {
                     reserveId: reservationId,
                     check_in_time: checkInTime,
@@ -1053,7 +1025,7 @@ export const checkIn = async (req: Request, res: Response) => {
         defaultCheckoutTime.setHours(7, 0, 0, 0);
         const isSuccess = true;
         if (isSuccess) {
-            const checkInLog = await feature6Client.check_in_log.create({
+            await feature6Client.check_in_log.create({
                 data: {
                     reserveId: reservationId,
                     check_in_time: checkInTime,
@@ -1191,8 +1163,7 @@ export const checkInStatus = async (req: Request, res: Response) => {
         if (!token) {
             return res.status(401).json({ error: "No auth token" });
         }
-
-        const status = await feature6Client.reservation.findUnique({
+        const getstatus = await feature6Client.reservation.findUnique({
             where: {
                 reservationId: parseInt(reservationId),
             },
@@ -1200,105 +1171,16 @@ export const checkInStatus = async (req: Request, res: Response) => {
                 status: true,
             },
         });
-        if (status?.status == "Check_in") {
-            // res.cookie("reservationToken")
+
+        if (getstatus?.status == "Check_in") {
             const reservationToken = genToken(parseInt(reservationId));
             res.cookie("reservationToken", reservationToken, {
                 httpOnly: true,
                 secure: true,
                 sameSite: "none",
             });
-            
         }
-        res.json(status?.status);
-       
-    } catch (e) {
-        return res.status(500).json(e);
-    }
-};
-
-// BUSINESS SIDE PART
-// GET METHOD
-
-// In-progress
-// Stil error userId
-// export const getAllTableTypeByVenueId = async (req: Request, res: Response) => {
-//     try {
-//         const { venueId } = req.params;
-//         const { userId } = req.body;
-
-//         const tableTypeDetails =
-//             await feature6Client.table_type_detail.findMany({
-//                 where: {
-//                     userId: parseInt(userId),
-//                     venueId: parseInt(venueId),
-//                 },
-//                 include: {
-//                     venue: true,
-//                 },
-//             });
-
-//         return res.status(200).json(tableTypeDetails);
-//     } catch (e) {
-//         return res.status(500).json(e);
-//     }
-// };
-
-// In-progress
-export const getTableByTableId = async (req: Request, res: Response) => {
-    try {
-        const { tableId } = req.params;
-        const venueId = req.body.venueId;
-        const table = await feature6Client.tables.findUnique({
-            where: {
-                tableId: parseInt(tableId),
-                venueId: parseInt(venueId),
-                tableTypeDetailId: venueId.tableTypeDetailId,
-            },
-        });
-
-        return res.status(200).json(table);
-    } catch (e) {
-        return res.status(500).json(e);
-    }
-};
-
-//POST METHOD
-// In-progress
-export const createTable = async (req: Request, res: Response) => {
-    try {
-        const { venueId, information, tableTypeDetailId, tableNo, branchId } = req.body;
-        const newTable = await feature6Client.tables.create({
-            data: {
-                venueId: venueId,
-                information: information,
-                tableTypeDetailId: tableTypeDetailId,
-                table_no: tableNo,
-                branchId: branchId,
-                status: "Available",
-            },
-        });
-
-        return res.json(newTable);
-    } catch (e) {
-        return res.status(500).json(e);
-    }
-};
-
-export const createTableType = async (req: Request, res: Response) => {
-    try {
-        const { capacity, detail, name, venueId, image_url } = req.body;
-        const newTableType = await feature6Client.table_type_detail.create({
-            data: {
-                capacity: capacity,
-                detail: detail,
-                name: name,
-                venueId: venueId,
-                image_url: image_url
-            },
-        });
-
-        return res.json(newTableType);
+        res.json(getstatus);
     } catch (e) {
         return res.status(500).json(e);
     }

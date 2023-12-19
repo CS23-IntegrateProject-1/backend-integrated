@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import { Router } from "express";
 import multerConfig from "../multerConfig";
 
@@ -20,75 +21,100 @@ import ProfileController from "../controllers/feature1/ProfileController";
 import SearchController from "../controllers/feature1/SearchController";
 import VenueController from "../controllers/feature1/VenueController";
 import GroupController from "../controllers/feature1/GroupController";
+=======
+// import { Router } from "express";
+// import multerConfig from '../multerConfig';
 
-const aboutController = new AboutController();
-const friendController = new FriendController();
-const profileController = new ProfileController();
-const searchController = new SearchController();
-const venueController = new VenueController();
-const groupController = new GroupController();
+// // here import your controllers(function)
+// import {
+//   getfeature1,
+//   paymentMethodHandler,
+//   tosHandler,
+//   privacyPolicyHandler,
+//   promptPayHandler,
+//   groupInfoHandler,
+// } from "../controllers/feature1.controller";
+// import {
+//   userAuthMiddleware,
+//   businessAuthMiddleware,
+// } from "../middlewares/feature1.middleware";
+// import { AboutController } from "../controllers/feature1/AboutController";
+// // import FriendController from "../controllers/feature1/FriendController";
+// import ProfileController from "../controllers/feature1/ProfileController";
+// import SearchController from "../controllers/feature1/SearchController";
+// import VenueController from "../controllers/feature1/VenueController";
+// import GroupController from '../controllers/feature1/GroupController';
+>>>>>>> e27e607501bd440ab4bea090216b9d69b2ba9a62
 
-const feature1Router = Router();
+// const aboutController = new AboutController();
+// // const friendController = new FriendController();
+// const profileController = new ProfileController();
+// const searchController = new SearchController();
+// const venueController = new VenueController();
+// const groupController = new GroupController();
 
-// here define your routes
-feature1Router.get("/", getfeature1);
+// const feature1Router = Router();
 
-feature1Router.get(
-  "/about",
-  userAuthMiddleware,
-  aboutController.show.bind(aboutController),
-);
-feature1Router.post(
-  "/about",
-  userAuthMiddleware,
-  aboutController.store.bind(aboutController),
-);
-feature1Router.put(
-  "/about",
-  userAuthMiddleware,
-  aboutController.update.bind(aboutController),
-);
-feature1Router.delete(
-  "/about",
-  userAuthMiddleware,
-  aboutController.destroy.bind(aboutController),
-);
+// // here define your routes
+// feature1Router.get("/", getfeature1);
 
-feature1Router.get("/term-of-services", tosHandler);
-feature1Router.post("/term-of-services", tosHandler);
-feature1Router.put("/term-of-services", tosHandler);
-feature1Router.delete("/term-of-services", tosHandler);
+// feature1Router.get(
+//   "/about",
+//   userAuthMiddleware,
+//   aboutController.show.bind(aboutController),
+// );
+// feature1Router.post(
+//   "/about",
+//   userAuthMiddleware,
+//   aboutController.store.bind(aboutController),
+// );
+// feature1Router.put(
+//   "/about",
+//   userAuthMiddleware,
+//   aboutController.update.bind(aboutController),
+// );
+// feature1Router.delete(
+//   "/about",
+//   userAuthMiddleware,
+//   aboutController.destroy.bind(aboutController),
+// );
 
-feature1Router.get("/payment-method", paymentMethodHandler);
-feature1Router.post("/payment-method", paymentMethodHandler);
-feature1Router.put("/payment-method", paymentMethodHandler);
-feature1Router.delete("/payment-method", paymentMethodHandler);
+// feature1Router.get("/term-of-services", tosHandler);
+// feature1Router.post("/term-of-services", tosHandler);
+// feature1Router.put("/term-of-services", tosHandler);
+// feature1Router.delete("/term-of-services", tosHandler);
 
-feature1Router.get("/privacy-policy", privacyPolicyHandler);
-feature1Router.post("/privacy-policy", privacyPolicyHandler);
-feature1Router.put("/privacy-policy", privacyPolicyHandler);
-feature1Router.delete("/privacy-policy", privacyPolicyHandler);
+// feature1Router.get("/payment-method", paymentMethodHandler);
+// feature1Router.post("/payment-method", paymentMethodHandler);
+// feature1Router.put("/payment-method", paymentMethodHandler);
+// feature1Router.delete("/payment-method", paymentMethodHandler);
 
-feature1Router.get("/promptpay", promptPayHandler);
-feature1Router.put("/promptpay", promptPayHandler);
+// feature1Router.get("/privacy-policy", privacyPolicyHandler);
+// feature1Router.post("/privacy-policy", privacyPolicyHandler);
+// feature1Router.put("/privacy-policy", privacyPolicyHandler);
+// feature1Router.delete("/privacy-policy", privacyPolicyHandler);
 
-feature1Router.get(
-  "/search/friends",
-  userAuthMiddleware,
-  searchController.show.bind(searchController),
-);
+// feature1Router.get("/promptpay", promptPayHandler);
+// feature1Router.put("/promptpay", promptPayHandler);
 
-feature1Router.get(
-  "/friend",
-  userAuthMiddleware,
-  friendController.index.bind(friendController),
-);
-feature1Router.post(
-  "/friend/add",
-  userAuthMiddleware,
-  friendController.addFriend.bind(friendController),
-);
+// feature1Router.get(
+//   "/search/friends",
+//   userAuthMiddleware,
+//   searchController.show.bind(searchController),
+// );
 
+// // feature1Router.get(
+// //   "/friend",
+// //   userAuthMiddleware,
+// //   friendController.index.bind(friendController),
+// // );
+// // feature1Router.post(
+// //   "/friend/add",
+// //   userAuthMiddleware,
+// //   friendController.addFriend.bind(friendController),
+// // );
+
+<<<<<<< HEAD
 feature1Router.get(
   "/profile",
   userAuthMiddleware,
@@ -113,21 +139,37 @@ feature1Router.post(
   multerConfig.single("avatar"),
   groupController.create.bind(groupController),
 );
+=======
+// feature1Router.get(
+//   "/profile",
+//   userAuthMiddleware,
+//   profileController.show.bind(profileController),
+// );
+// feature1Router.put(
+//   "/profile",
+//   userAuthMiddleware,
+//   profileController.update.bind(profileController),
+// );
 
-feature1Router.get(
-  "/venue",
-  businessAuthMiddleware,
-  venueController.show.bind(venueController),
-);
-feature1Router.put(
-  "/venue/info",
-  businessAuthMiddleware,
-  venueController.update.bind(venueController),
-);
-feature1Router.put(
-  "/venue/opening_hours",
-  businessAuthMiddleware,
-  venueController.updateOpeningHours.bind(venueController),
-);
+// feature1Router.get("/group", userAuthMiddleware, groupController.index.bind(groupController));
+// feature1Router.get("/group/:id", groupInfoHandler);
+// feature1Router.post("/group/add", userAuthMiddleware, multerConfig.single('avatar'), groupController.create.bind(groupController));
+>>>>>>> e27e607501bd440ab4bea090216b9d69b2ba9a62
 
-export default feature1Router;
+// feature1Router.get(
+//   "/venue",
+//   businessAuthMiddleware,
+//   venueController.show.bind(venueController),
+// );
+// feature1Router.put(
+//   "/venue/info",
+//   businessAuthMiddleware,
+//   venueController.update.bind(venueController),
+// );
+// feature1Router.put(
+//   "/venue/opening_hours",
+//   businessAuthMiddleware,
+//   venueController.updateOpeningHours.bind(venueController),
+// );
+
+// export default feature1Router;
