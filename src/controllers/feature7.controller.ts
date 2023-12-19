@@ -2,18 +2,38 @@ import { PrismaClient } from "@prisma/client";
 import { Response, Request } from "express";
 // import { parse } from "path";
 // import { json } from "stream/consumers";
-import multerConfig from "../multerConfig";
+// import multerConfig from "../multerConfig";
 
 
 const feature7Client = new PrismaClient();
 
-export const getMenusByVenueId = async (req: Request, res: Response) => {
+
+//----------------Customer-Side-------------------//
+export const getReservationId = async (req: any, res: Response) => {
     try {
-        const venueId = req.params.id;
+        const reservationId = req.reservationId;
+        console.log(reservationId);
+
+        res.status(200).json(reservationId);
+    }
+    catch (e) {
+        console.log(e);
+    }
+}
+export const getMenusByVenueId = async (req: any, res: Response) => {
+    try {
+        const reservationId = req.reservationId;
+        console.log(reservationId);
+        const reservationInfo = await feature7Client.reservation.findUnique({
+            where: {
+                reservationId: reservationId,
+            },
+        });
+        const venueId = reservationInfo?.venueId;
         const allMenus = await feature7Client.menu.findMany(
             {
                 where: {
-                    venueId: parseInt(venueId)
+                    venueId: venueId
                 }
             }
         );
@@ -24,13 +44,19 @@ export const getMenusByVenueId = async (req: Request, res: Response) => {
         console.log(e);
     }
 }
-export const getSetsByVenueId = async (req: Request, res: Response) => {
+export const getSetsByVenueId = async (req: any, res: Response) => {
     try {
-        const venueId = req.params.id;
+        const reservationId = req.reservationId;
+        const reservationInfo = await feature7Client.reservation.findUnique({
+            where: {
+                reservationId: reservationId,
+            },
+        });
+        const venueId = reservationInfo?.venueId;
         const allSets = await feature7Client.sets.findMany(
             {
                 where: {
-                    venueId: parseInt(venueId)
+                    venueId: venueId
                 }
             }
         );
@@ -73,30 +99,199 @@ export const getSetById = async (req: Request, res: Response) => {
         console.log(e);
     }
 }
-export const checkMenuAvailability = async (req: Request, res: Response) => {
+export const addMenuToCookie = async (req: any, res: Response) => {
     try {
-        const menuId = req.params.menuId;
-        const venueId = req.params.venueId;
-        const branchId = req.params.branchId;
-        const stockRecord = await feature7Client.stocks.findFirst({
+        const userId = req.userId;
+        const reservationId = req.reservationId;
+        const reservationInfo = await feature7Client.reservation.findUnique({
             where: {
-                venueId: parseInt(venueId),
-                branchId: parseInt(branchId),
-                menuId: parseInt(menuId),
+                reservationId: reservationId,
             },
         });
+        const quantity = req.body.quantity;
+        if (quantity === undefined || quantity === null) {
+            return res.status(400).json({ error: 'Add Quantity' });
+        }
+        const menuId = req.params.menuId;
+        const venueId = reservationInfo?.venueId;
+        const branchId = reservationInfo?.branchId;
+        console.log(branchId);
+        let stockRecord;
+        if (venueId !== 2) {
+            stockRecord = await feature7Client.stocks.findFirst({
+                where: {
+                    venueId: venueId,
+                    branchId: branchId!,
+                    menuId: parseInt(menuId),
+                },
+            });
+            if (stockRecord?.availability === false) {
+                return res.status(404).json({ error: 'Menu item not available' });
+            }
+            else {
+                const menu = await feature7Client.menu.findUnique(
+                    {
+                        where: {
+                            menuId: parseInt(menuId)
+                        }
+                    }
+                );
+                if (!menu) {
+                    return res.status(404).json({ error: 'Menu item not found' });
+                }
 
-        return res.status(200).json(stockRecord?.availability);
-    }
-    catch (e) {
-        console.error('Error checking stock availability:', e);
+                // Retrieve existing cart from the 'cart' cookie or initialize an empty array
+                const existingCartString = req.cookies.cart || '[]';
+                const existingCart = JSON.parse(existingCartString);
+
+                // Check if the menu item is already in the cart
+                const existingCartItem = existingCart.find((item) => item.menuId === menu.menuId);
+
+                if (existingCartItem && reservationId == existingCartItem.reservationId) {
+                    // If the item is already in the cart, update the quantity
+                    existingCartItem.quantity = quantity;
+                } else {
+                    // If the item is not in the cart, add it
+                    existingCart.push({
+                        userId: parseInt(userId),
+                        menuId: menu.menuId,
+                        reservationId: reservationId,
+                        setId: null,
+                        name: menu.name,
+                        price: menu.price,
+                        quantity: quantity,
+                        image: menu.image,
+                        description: menu.description,
+                    });
+                }
+                if (quantity == 0) {
+                    existingCart.pop();
+                }
+                //if nothing in cart delete cookie
+                if (existingCart.length == 0) {
+                    res.clearCookie('cart');
+                }
+                // Update the 'cart' cookie with the modified cart
+                res.cookie('cart', JSON.stringify(existingCart));
+                res.status(200).json({ success: true, message: 'Added to cart' });
+            }
+
+        }
+        else {
+            const getMenoNo = await feature7Client.menu.findUnique({
+                where: {
+                    menuId: parseInt(menuId),
+                },
+            });
+            const menuNo = getMenoNo?.menu_no;
+            const url = process.env.MIKSERVER_URL || "http://localhost:11000";
+            const result = await fetch(`${url}/api/harmoniStock`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ branch_id: branchId }),
+            });
+            const data = await result.json();
+            console.log(data);
+            stockRecord = data.filter((item: any) => item.menu_id === menuNo && item.branch_id === branchId);
+            console.log(stockRecord);
+            console.log(stockRecord[0].availibility);
+            if (stockRecord[0].availibility == false) {
+                return res.status(404).json({ error: 'Menu item not available' });
+            }
+            else {
+                const menu = await feature7Client.menu.findUnique(
+                    {
+                        where: {
+                            menuId: parseInt(menuId)
+                        }
+                    }
+                );
+                if (!menu) {
+                    return res.status(404).json({ error: 'Menu item not found' });
+                }
+
+                // Retrieve existing cart from the 'cart' cookie or initialize an empty array
+                const existingCartString = req.cookies.cart || '[]';
+                const existingCart = JSON.parse(existingCartString);
+
+                // Check if the menu item is already in the cart
+                const existingCartItem = existingCart.find((item) => item.menuId === menu.menuId);
+
+                if (existingCartItem && reservationId == existingCartItem.reservationId) {
+                    // If the item is already in the cart, update the quantity
+                    existingCartItem.quantity = quantity;
+                } else {
+                    // If the item is not in the cart, add it
+                    existingCart.push({
+                        userId: parseInt(userId),
+                        menuId: menu.menuId,
+                        reservationId: reservationId,
+                        setId: null,
+                        name: menu.name,
+                        price: menu.price,
+                        quantity: quantity,
+                        image: menu.image,
+                        description: menu.description,
+                    });
+                }
+                if (quantity == 0) {
+                    existingCart.pop();
+                }
+                //if nothing in cart delete cookie
+                if (existingCart.length == 0) {
+                    res.clearCookie('cart');
+                }
+                // Update the 'cart' cookie with the modified cart
+                res.cookie('cart', JSON.stringify(existingCart));
+                res.status(200).json({ success: true, message: 'Added to cart' });
+            }
+        }
+
+    } catch (error) {
+        console.log(error);
     }
 }
-export const checkSetAvailability = async (req: Request, res: Response) => {
+
+export const deleteMenuFromCookie = async (req: any, res: Response) => {
     try {
+        const reservationId = req.reservationId;
+        const menuId = req.params.menuId;
+        // Retrieve existing cart from the 'cart' cookie or initialize an empty array
+        const existingCartString = req.cookies.cart || '[]';
+        const existingCart = JSON.parse(existingCartString);
+
+        // Check if the menu item is already in the cart
+        // const existingCartItem = existingCart.find((item) => item.menuId === menuId);
+        // existingCart.pop(existingCartItem);
+        const updatedCart = existingCart.filter(item => item.reservationId == reservationId && item.menuId !== parseInt(menuId));
+        // Update the 'cart' cookie with the modified cart
+        res.cookie('cart', JSON.stringify(updatedCart));
+        res.status(200).json({ success: true, message: 'Deleted menu from cart' });
+    } catch (error) {
+        console.log(error);
+    }
+}
+export const addSetToCookie = async (req: any, res: Response) => {
+    try {
+        const userId = req.userId;
+        const reservationId = req.reservationId;
+        const reservationInfo = await feature7Client.reservation.findUnique({
+            where: {
+                reservationId: reservationId,
+            },
+        });
+        const quantity = req.body.quantity;
+        if (quantity === undefined || quantity === null) {
+            return res.status(400).json({ error: 'Add Quantity' });
+        }
+        const setId = req.params.setId;
+        const venueId = reservationInfo?.venueId;
+        const branchId = reservationInfo?.branchId;
         const setItems = await feature7Client.set_items.findMany({
             where: {
-                setId: parseInt(req.params.setId),
+                setId: parseInt(setId),
             },
         });
         const menuIds = setItems.map((setItem) => setItem.menuId);
@@ -105,75 +300,13 @@ export const checkSetAvailability = async (req: Request, res: Response) => {
                 menuId: {
                     in: menuIds,
                 },
-                venueId: parseInt(req.params.venueId),
-                branchId: parseInt(req.params.branchId),
+                venueId: venueId,
+                branchId: branchId!,
             },
         });
-        return res.status(200).json(stockRecords.every((stockRecord) => stockRecord.availability));
-    }
-    catch (e) {
-        console.log(e);
-    }
-}
-
-export const addMenuToCookie = async (req: any, res: Response) => {
-    try {
-        const userId = req.userId;
-        const quantity = req.body.quantity;
-        const menuId = req.params.menuId;
-        const menu = await feature7Client.menu.findUnique(
-            {
-                where: {
-                    menuId: parseInt(menuId)
-                }
-            }
-        );
-        if (!menu) {
-            return res.status(404).json({ error: 'Menu item not found' });
+        if (stockRecords.every((stockRecord) => stockRecord.availability) === false) {
+            return res.status(404).json({ error: 'Set not available' });
         }
-
-        // Retrieve existing cart from the 'cart' cookie or initialize an empty array
-        const existingCartString = req.cookies.cart || '[]';
-        const existingCart = JSON.parse(existingCartString);
-
-        // Check if the menu item is already in the cart
-        const existingCartItem = existingCart.find((item) => item.menuId === menu.menuId);
-
-        if (existingCartItem && userId == existingCartItem.userId) {
-            // If the item is already in the cart, update the quantity
-            existingCartItem.quantity = quantity;
-        } else {
-            // If the item is not in the cart, add it
-            existingCart.push({
-                userId: parseInt(userId),
-                menuId: menu.menuId,
-                setId: null,
-                name: menu.name,
-                price: menu.price,
-                quantity: quantity,
-                image: menu.image,
-                description: menu.description,
-            });
-        }
-        if (quantity == 0) {
-            existingCart.pop();
-        }
-        //if nothing in cart delete cookie
-        if (existingCart.length == 0) {
-            res.clearCookie('cart');
-        }
-        // Update the 'cart' cookie with the modified cart
-        res.cookie('cart', JSON.stringify(existingCart));
-        res.status(200).json({ success: true, message: 'Added to cart' });
-    } catch (error) {
-        console.log(error);
-    }
-}
-export const addSetToCookie = async (req: any, res: Response) => {
-    try {
-        const userId = req.userId;
-        const quantity = req.body.quantity;
-        const setId = req.params.setId;
         const set = await feature7Client.sets.findUnique(
             {
                 where: {
@@ -192,7 +325,7 @@ export const addSetToCookie = async (req: any, res: Response) => {
         // Check if the set item is already in the cart
         const existingCartItem = existingCart.find((item) => item.setId === set.setId);
 
-        if (existingCartItem && userId == existingCartItem.userId) {
+        if (existingCartItem && reservationId == existingCartItem.reservationId) {
             // If the item is already in the cart, update the quantity
             existingCartItem.quantity = quantity;
         } else {
@@ -200,6 +333,7 @@ export const addSetToCookie = async (req: any, res: Response) => {
             existingCart.push({
                 userId: parseInt(userId),
                 setId: set.setId,
+                reservationId: reservationId,
                 menuId: null,
                 name: set.name,
                 price: set.price,
@@ -222,14 +356,34 @@ export const addSetToCookie = async (req: any, res: Response) => {
         console.log(error);
     }
 }
+export const deleteSetFromCookie = async (req: any, res: Response) => {
+    try {
+        const reservationId = req.reservationId;
+        const setId = req.params.setId;
+        // Retrieve existing cart from the 'cart' cookie or initialize an empty array
+        const existingCartString = req.cookies.cart || '[]';
+        const existingCart = JSON.parse(existingCartString);
+
+        // Check if the menu item is already in the cart
+        // const existingCartItem = existingCart.find((item) => item.setId === setId);
+        // existingCart.pop(existingCartItem);
+        const updatedCart = existingCart.filter(item => item.reservationId == reservationId && item.setId !== parseInt(setId));
+        // Update the 'cart' cookie with the modified cart
+        res.cookie('cart', JSON.stringify(updatedCart));
+        res.status(200).json({ success: true, message: 'Deleted set from cart' });
+    } catch (error) {
+        console.log(error);
+    }
+}
 export const showCart = async (req: any, res: Response) => {
     try {
-        const userId = parseInt(req.userId);
+        // const userId = parseInt(req.userId);
+        const reservationId = req.reservationId;
         const cartString = req.cookies.cart || '[]';
         // console.log(cartString);
         const cart = JSON.parse(cartString);
         console.log(cart);
-        const userCart = cart.filter((item: any) => item.userId === userId);
+        const userCart = cart.filter((item: any) => item.reservationId === reservationId);
         console.log(userCart);
         res.status(200).json(userCart);
     }
@@ -240,11 +394,11 @@ export const showCart = async (req: any, res: Response) => {
 //Show detail of specific menu from cart
 export const showMenuDetailFromCart = async (req: any, res: Response) => {
     try {
-        const userId = parseInt(req.userId);
-        const mneuId = parseInt(req.params.menuId);
+        const reservationId = req.reservationId;
+        const menuId = parseInt(req.params.menuId);
         const cartString = req.cookies.cart || '[]';
         const cart = JSON.parse(cartString);
-        const userCart = cart.filter((item: any) => item.userId === userId && item.menuId === mneuId);
+        const userCart = cart.filter((item: any) => item.reservationId === reservationId && item.menuId === menuId);
         if (userCart.length === 1) {
             const dataObject = userCart[0];
             res.status(200).json(dataObject);
@@ -260,11 +414,11 @@ export const showMenuDetailFromCart = async (req: any, res: Response) => {
 //for sets
 export const showSetDetailFromCart = async (req: any, res: Response) => {
     try {
-        const userId = parseInt(req.userId);
+        const reservationId = req.reservationId;
         const setId = parseInt(req.params.setId);
         const cartString = req.cookies.cart || '[]';
         const cart = JSON.parse(cartString);
-        const userCart = cart.filter((item: any) => item.userId === userId && item.setId === setId);
+        const userCart = cart.filter((item: any) => item.reservationId === reservationId && item.setId === setId);
         if (userCart.length === 1) {
             const dataObject = userCart[0];
             res.status(200).json(dataObject);
@@ -277,70 +431,230 @@ export const showSetDetailFromCart = async (req: any, res: Response) => {
         console.log(e);
     }
 }
-// export const addCartToOrderDetailsOfDineIn = async (req: Request, res: Response) => {
-//     try{
+export const addCartToOrderDetailsOfDineIn = async (req: any, res: Response) => {
+    const url = process.env.MIKSERVER_URL + "/api/orderHarmoni" || "http://localhost:11000";
 
+    try {
+        const reservationId = req.reservationId;
+        const reservationInfo = await feature7Client.reservation.findUnique({
+            where: {
+                reservationId: reservationId,
+            },
+        });
+        const venueId = reservationInfo?.venueId;
+        const branchId = reservationInfo?.branchId;
+        const userId = req.userId;
+        const orderId = reservationId;
+        const findOrder = await feature7Client.orders.findFirst({
+            where: {
+                orderId: reservationId,
+            },
+        });
+        if (!findOrder) {
+            //create new order
+            await feature7Client.orders.create({
+                data: {
+                    orderId: reservationId,
+                    userId: userId,
+                    branchId: branchId!,
+                    reservedId: reservationId,
+                    venueId: venueId!,
+                    order_date: new Date(),
+                    total_amount: 0,
+                    // status: "On_going",
+                },
+            });
+        }
+        const cartString = req.cookies.cart || '[]';
+        const cart = JSON.parse(cartString);
+        console.log(cart);
+        const userCart = cart.filter((item: any) => item.reservationId === reservationId);
+        console.log(userCart);
+        //For menu
+        const menuIds = userCart
+            .filter((item) => item.menuId !== null) // Filter out null values
+            .map((item) => parseInt(item.menuId));
+        const menu = await feature7Client.menu.findMany({
+            where: {
+                menuId: {
+                    in: menuIds.map((id) => parseInt(id))
+                }
+            }
+        });
+        await feature7Client.order_detail.createMany({
+            data: userCart
+                .filter((item) => item.menuId !== null) // Filter out null menuId values
+                .map((item) => ({
+                    orderId: orderId,
+                    menuId: item.menuId,
+                    unit_price: menu.find((menu) => menu.menuId === item.menuId)?.price,
+                    quantity: parseInt(item.quantity),
+                    setId: null,
+                    order_time: new Date(),
+                    status: "On_going",
+                })),
+        });
+        //For set
+        const setIds = userCart
+            .filter((item) => item.setId !== null) // Filter out null values
+            .map((item) => parseInt(item.setId));
+        // console.log(setIds);
+        const set = await feature7Client.sets.findMany({
+            where: {
+                setId: {
+                    in: setIds.map((id) => parseInt(id))
+                }
+            }
+        });
+
+
+        await feature7Client.order_detail.createMany({
+            data: userCart
+                .filter((item) => item.setId !== null) // Filter out null setId values
+                .map((item) => ({
+                    orderId: orderId,
+                    setId: item.setId,
+                    unit_price: set.find((set) => set.setId === item.setId)?.price,
+                    menuId: null,
+                    quantity: parseInt(item.quantity),
+                    order_time: new Date(),
+                    // status: "On_going",
+                })),
+        });
+        //get all orderdetails of the order
+        const orderDetailsOfOrder = await feature7Client.order_detail.findMany({
+            where: {
+                orderId: orderId,
+            },
+        });
+
+        //get total amount with quantity and unitprice
+        const totalAmount = orderDetailsOfOrder.reduce(
+            (total, orderDetail) => total + orderDetail.quantity * orderDetail.unit_price.toNumber(),
+            0
+        );
+        //update order with total amount
+        await feature7Client.orders.update({
+            where: {
+                orderId: orderId,
+            },
+            data: {
+                total_amount: totalAmount,
+                status: "On_going",
+            },
+        });
+        if (venueId == 2) {
+            const lastOrderDetailId = await feature7Client.order_detail.findFirst({
+                orderBy: {
+                    orderDetailId: 'desc',
+                },
+            });
+            const last = lastOrderDetailId!.orderDetailId;
+            console.log(lastOrderDetailId?.orderDetailId);
+            const sentToMIK = userCart.map((item: any, index: number) => {
+                const size = userCart.length;
+                return {
+                    orderDetailId: last - size + index + 1,
+                    menu_id: menu.find((menu) => menu.menuId === item.menuId)?.menu_no,
+                    quantity: item.quantity,
+                    reservationId: reservationId,
+                };
+            });
+
+            console.log(sentToMIK);
+            const orderMIK = await fetch(url, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    sentToMIK,
+                })
+            })
+            if (!orderMIK.ok) {
+                throw new Error("Error in orderMIK");
+            }
+            const data = await orderMIK.json();
+            console.log(data);
+        }
+        //clear cart
+        res.clearCookie('userCart');
+        const updatedCart = cart.filter(item => item.reservationId !== reservationId);
+        res.cookie('cart', JSON.stringify(updatedCart));
+        // console.log(cart);
+        res.status(200).json(orderDetailsOfOrder);
+    }
+    catch (e) {
+        console.log(e);
+    }
+}
+// export const addCartToOrderDetailsOfDineIn = async (req: any, res: Response) => {
+//     try {
 //         const branchId = req.body.branchId;
 //         const venueId = req.params.venueId;
-//         // const reservedId = req.params.reservationId;
-//         const userId = 4;
-//         // const user = await feature7Client.reservation.findUnique({
-//         //     where: {
-//         //       reservationId: parseInt(reservedId),
-//         //     },
-//         //   });
-//         //get latest order id
-//         const latestOrder = await feature7Client.orders.findFirst({
-//             orderBy: {
-//               orderId: 'desc',
-//             },
-//           });
-//         //   const latestOrder = await feature7Client.orders.findUnique({
-//         //     where: {
-//         //         reservedId: parseInt(reservedId),
-//         //     },
-//         //   });
+//         const userId = parseInt(req.userId);
 
-//         const orderId = latestOrder?.orderId || 0;
-//         //create new orderId
-//         const newOrderId = orderId + 1;
-//         //create new order
-//         const newOrder = await feature7Client.orders.create({
-//             data: {
-//               orderId: newOrderId,
+//         // Check if the user already has an active order for the given venue
+//         const existingOrder = await feature7Client.orders.findFirst({
+//             where: {
 //                 userId: userId,
-//                 // userId: user?.userId,
-//                 branchId: parseInt(branchId),
-//                 reservedId: null,
 //                 venueId: parseInt(venueId),
-//                 order_date: new Date(),
-//                 total_amount: 0,
-//                 // status: "On_going",
+//                 status: "On_going", // Assuming this is your order status for active orders
 //             },
-//           });
-//           const cartString = req.cookies.cart || '[]';
-//           // console.log(cartString);
-//           const cart = JSON.parse(cartString);
-//           console.log(cart);
-//           const userCart = cart.filter((item: any) => item.userId === userId);
-//         //   console.log(userCart);
-//         console.log(userCart);
-//         //For menu
+//         });
+
+//         let orderId;
+//         if (existingOrder) {
+//             // If the user has an active order for the venue, use its orderId
+//             orderId = existingOrder.orderId;
+//         } else {
+//             // If the user doesn't have an active order for the venue, create a new order
+//             const latestOrder = await feature7Client.orders.findFirst({
+//                 orderBy: {
+//                     orderId: 'desc',
+//                 },
+//             });
+
+//             const newOrderId = latestOrder?.orderId ? latestOrder.orderId + 1 : 1;
+
+//             // Create a new order
+//             const newOrder = await feature7Client.orders.create({
+//                 data: {
+//                     orderId: newOrderId,
+//                     userId: userId,
+//                     branchId: parseInt(branchId),
+//                     reservedId: null,
+//                     venueId: parseInt(venueId),
+//                     order_date: new Date(),
+//                     total_amount: 0,
+//                     status: "On_going",
+//                 },
+//             });
+
+//             orderId = newOrderId;
+//         }
+
+//         const cartString = req.cookies.cart || '[]';
+//         const cart = JSON.parse(cartString);
+//         const userCart = cart.filter((item: any) => item.userId === userId);
+
+//         // For menu
 //         const menuIds = userCart
-//         .filter((item) => item.menuId !== null) // Filter out null values
-//         .map((item) => parseInt(item.menuId));
+//             .filter((item) => item.menuId !== null)
+//             .map((item) => parseInt(item.menuId));
 //         const menu = await feature7Client.menu.findMany({
 //             where: {
 //                 menuId: {
-//                     in: menuIds.map((id) => parseInt(id))
-//                 }
-//             } 
+//                     in: menuIds.map((id) => parseInt(id)),
+//                 },
+//             },
 //         });
+
 //         const menuOrderDetails = await feature7Client.order_detail.createMany({
 //             data: userCart
-//                 .filter((item) => item.menuId !== null) // Filter out null menuId values
+//                 .filter((item) => item.menuId !== null)
 //                 .map((item) => ({
-//                     orderId: newOrderId,
+//                     orderId: orderId,
 //                     menuId: item.menuId,
 //                     unit_price: menu.find((menu) => menu.menuId === item.menuId)?.price,
 //                     setId: null,
@@ -349,208 +663,71 @@ export const showSetDetailFromCart = async (req: any, res: Response) => {
 //                     status: "On_going",
 //                 })),
 //         });
-//         //For set
+
+//         // For set
 //         const setIds = userCart
-//         .filter((item) => item.setId !== null) // Filter out null values
-//         .map((item) => parseInt(item.setId));
-//         // console.log(setIds);
+//             .filter((item) => item.setId !== null)
+//             .map((item) => parseInt(item.setId));
 //         const set = await feature7Client.sets.findMany({
 //             where: {
 //                 setId: {
-//                     in: setIds.map((id) => parseInt(id))
-//                 }
-//             } 
+//                     in: setIds.map((id) => parseInt(id)),
+//                 },
+//             },
 //         });
+
 //         const setOrderDetails = await feature7Client.order_detail.createMany({
 //             data: userCart
-//                 .filter((item) => item.setId !== null) // Filter out null setId values
+//                 .filter((item) => item.setId !== null)
 //                 .map((item) => ({
-//                     orderId: newOrderId,
+//                     orderId: orderId,
 //                     setId: item.setId,
 //                     unit_price: set.find((set) => set.setId === item.setId)?.price,
 //                     menuId: null,
 //                     quantity: item.quantity,
 //                     order_time: new Date(),
-//                     // status: "On_going",
 //                 })),
 //         });
-//         //get all orderdetails of the order
+
+//         // Get all order details of the order
 //         const orderDetailsOfOrder = await feature7Client.order_detail.findMany({
 //             where: {
-//                 orderId: newOrderId,
+//                 orderId: orderId,
 //             },
 //         });
 
-//         //get total amount with quantity and unitprice
+//         // Get total amount with quantity and unit price
 //         const totalAmount = orderDetailsOfOrder.reduce(
 //             (total, orderDetail) => total + orderDetail.quantity * orderDetail.unit_price.toNumber(),
 //             0
 //         );
-//         //update order with total amount
+
+//         // Update order with total amount
 //         const updatedOrder = await feature7Client.orders.update({
 //             where: {
-//                 orderId: newOrderId,
+//                 orderId: orderId,
 //             },
 //             data: {
-//                 total_amount:totalAmount,
+//                 total_amount: totalAmount,
 //             },
 //         });
-//         //clear cart
-//         res.clearCookie('cart');
+
+//         // Clear cart
+//         // res.clearCookie('userCart');
+//         const updatedCart = cart.filter(item => item.userId !== userId);
+//         res.cookie('cart', JSON.stringify(updatedCart));
 //         res.status(200).json(orderDetailsOfOrder);
-//     }
-//     catch (e) {
+//     } catch (e) {
 //         console.log(e);
+//         res.status(500).json({ error: 'Internal Server Error' });
 //     }
-// }
-export const addCartToOrderDetailsOfDineIn = async (req: any, res: Response) => {
-    try {
-        const branchId = req.body.branchId;
-        const venueId = req.params.venueId;
-        const userId = parseInt(req.userId);
-
-        // Check if the user already has an active order for the given venue
-        const existingOrder = await feature7Client.orders.findFirst({
-            where: {
-                userId: userId,
-                venueId: parseInt(venueId),
-                status: "On_going", // Assuming this is your order status for active orders
-            },
-        });
-
-        let orderId;
-        if (existingOrder) {
-            // If the user has an active order for the venue, use its orderId
-            orderId = existingOrder.orderId;
-        } else {
-            // If the user doesn't have an active order for the venue, create a new order
-            const latestOrder = await feature7Client.orders.findFirst({
-                orderBy: {
-                    orderId: 'desc',
-                },
-            });
-
-            const newOrderId = latestOrder?.orderId ? latestOrder.orderId + 1 : 1;
-
-            // Create a new order
-            await feature7Client.orders.create({
-                data: {
-                    orderId: newOrderId,
-                    userId: userId,
-                    branchId: parseInt(branchId),
-                    reservedId: null,
-                    venueId: parseInt(venueId),
-                    order_date: new Date(),
-                    total_amount: 0,
-                    status: "On_going",
-                },
-            });
-
-            orderId = newOrderId;
-        }
-
-        const cartString = req.cookies.cart || '[]';
-        const cart = JSON.parse(cartString);
-        const userCart = cart.filter((item: any) => item.userId === userId);
-
-        // For menu
-        const menuIds = userCart
-            .filter((item) => item.menuId !== null)
-            .map((item) => parseInt(item.menuId));
-        const menu = await feature7Client.menu.findMany({
-            where: {
-                menuId: {
-                    in: menuIds.map((id) => parseInt(id)),
-                },
-            },
-        });
-
-        await feature7Client.order_detail.createMany({
-            data: userCart
-                .filter((item) => item.menuId !== null)
-                .map((item) => ({
-                    orderId: orderId,
-                    menuId: item.menuId,
-                    unit_price: menu.find((menu) => menu.menuId === item.menuId)?.price,
-                    setId: null,
-                    quantity: item.quantity,
-                    order_time: new Date(),
-                    status: "On_going",
-                })),
-        });
-
-        // For set
-        const setIds = userCart
-            .filter((item) => item.setId !== null)
-            .map((item) => parseInt(item.setId));
-        const set = await feature7Client.sets.findMany({
-            where: {
-                setId: {
-                    in: setIds.map((id) => parseInt(id)),
-                },
-            },
-        });
-
-        await feature7Client.order_detail.createMany({
-            data: userCart
-                .filter((item) => item.setId !== null)
-                .map((item) => ({
-                    orderId: orderId,
-                    setId: item.setId,
-                    unit_price: set.find((set) => set.setId === item.setId)?.price,
-                    menuId: null,
-                    quantity: item.quantity,
-                    order_time: new Date(),
-                })),
-        });
-
-        // Get all order details of the order
-        const orderDetailsOfOrder = await feature7Client.order_detail.findMany({
-            where: {
-                orderId: orderId,
-            },
-        });
-
-        // Get total amount with quantity and unit price
-        const totalAmount = orderDetailsOfOrder.reduce(
-            (total, orderDetail) => total + orderDetail.quantity * orderDetail.unit_price.toNumber(),
-            0
-        );
-
-        // Update order with total amount
-        await feature7Client.orders.update({
-            where: {
-                orderId: orderId,
-            },
-            data: {
-                total_amount: totalAmount,
-            },
-        });
-
-        // Clear cart
-        // res.clearCookie('userCart');
-        const updatedCart = cart.filter(item => item.userId !== userId);
-        res.cookie('cart', JSON.stringify(updatedCart));
-        res.status(200).json(orderDetailsOfOrder);
-    } catch (e) {
-        console.log(e);
-        res.status(500).json({ error: 'Internal Server Error' });
-    }
-};
+// };
 export const showOnGoingOrderDetails = async (req: any, res: Response) => {
     try {
-        const userId = parseInt(req.userId);
-        const venueId = parseInt(req.params.venueId);
-        const orderId = await feature7Client.orders.findFirst({
-            where: {
-                userId: userId,
-                venueId: venueId,
-                // status: "On_going",
-            },
-        });
+        const reservationId = req.reservationId;
         const orderDetails = await feature7Client.order_detail.findMany({
             where: {
-                orderId: orderId?.orderId,
+                orderId: reservationId,
                 status: "On_going",
             },
         });
@@ -596,18 +773,10 @@ export const showOnGoingOrderDetails = async (req: any, res: Response) => {
 }
 export const showCompletedOrderDetails = async (req: any, res: Response) => {
     try {
-        const userId = parseInt(req.userId);
-        const venueId = parseInt(req.params.venueId);
-        const orderId = await feature7Client.orders.findFirst({
-            where: {
-                userId: userId,
-                venueId: venueId,
-                // status: "Completed",
-            },
-        });
+        const reservationId = req.reservationId;
         const orderDetails = await feature7Client.order_detail.findMany({
             where: {
-                orderId: orderId?.orderId,
+                orderId: reservationId,
                 status: "Completed",
             },
         });
@@ -651,14 +820,164 @@ export const showCompletedOrderDetails = async (req: any, res: Response) => {
         console.log(e);
     }
 }
+//get receipt
+export const getReceipt = async (req: any, res: Response) => {
+    try {
+        const reservationId = req.reservationId;
+        const orderId = reservationId;
+        const orderInfo = await feature7Client.orders.findUnique({
+            where: {
+                orderId: orderId,
+            },
+        });
+        const orderDetails = await feature7Client.order_detail.findMany({
+            where: {
+                orderId: orderId,
+            },
+        });
+        //menu name
+        const menuIds = orderDetails
+            .map((orderDetail) => orderDetail.menuId)
+            .filter((menuId) => menuId !== null) as number[];
+        const menu = await feature7Client.menu.findMany({
+            where: {
+                menuId: {
+                    in: menuIds,
+                },
+            },
+        });
+        //set name
+        const setIds = orderDetails
+            .map((orderDetail) => orderDetail.setId)
+            .filter((setId) => setId !== null) as number[];
+        const set = await feature7Client.sets.findMany({
+            where: {
+                setId: {
+                    in: setIds,
+                },
+            },
+        });
+        // Calculate item count, total count, and total amount only once
+        const itemCount = orderDetails.length;
+        const totalCount = orderDetails.reduce((total, orderDetail) => total + orderDetail.quantity, 0);
+        const totalAmount = orderInfo?.total_amount;
+
+        // Process order details and add calculated values
+        const orderDetailsWithDetails = orderDetails.map((orderDetail) => {
+            const quantity = orderDetail.quantity;
+            const menuName = menu.find((menu) => menu.menuId === orderDetail.menuId)?.name;
+            const menuPrice = menu.find((menu) => menu.menuId === orderDetail.menuId)?.price;
+            const setPrice = set.find((set) => set.setId === orderDetail.setId)?.price;
+            const setName = set.find((set) => set.setId === orderDetail.setId)?.name;
+            return {
+
+                menuName: menuName,
+                setName: setName,
+                quantity: quantity,
+                menuPrice: menuPrice,
+                setPrice: setPrice,
+
+            };
+        });
+
+        // Add calculated values to the response
+        const finalResponse = {
+            orderId: orderInfo?.orderId,
+            orderDate: orderInfo?.order_date,
+            orderDetails: orderDetailsWithDetails,
+            itemCount: itemCount,
+            totalCount: totalCount,
+            totalAmount: totalAmount,
+        };
+
+        res.status(200).json(finalResponse);
+    }
+    catch (e) {
+        console.log(e);
+    }
+}
+//change order status
+export const changeOrderStatus = async (req: any, res: Response) => {
+    try {
+        console.log(req.body);
+        const orderDetailId = req.body.orderDetailId;
+        console.log(orderDetailId);
+        await feature7Client.order_detail.update({
+            where: {
+                orderDetailId: orderDetailId,
+            },
+            data: {
+                status: "Completed",
+            },
+        });
+        res.status(200).json({ success: true, message: 'Order status changed' });
+    }
+    catch (e) {
+        console.log(e);
+    }
+}
+//--------------Business side---------------//
+//get all menus of venue 
+export const getAllMenus = async (req: any, res: Response) => {
+    try {
+        const businessId = req.businessId;
+        const getVenueId = await feature7Client.property.findFirst({
+            where: {
+                businessId: businessId,
+            },
+        });
+        const venueId = getVenueId?.venueId;
+        const allMenus = await feature7Client.menu.findMany(
+            {
+                where: {
+                    venueId: venueId
+                }
+            }
+        );
+
+        res.status(200).json(allMenus);
+    }
+    catch (e) {
+        console.log(e);
+    }
+}
+export const getAllSets = async (req: any, res: Response) => {
+    try {
+        const businessId = req.businessId;
+        const getVenueId = await feature7Client.property.findFirst({
+            where: {
+                businessId: businessId,
+            },
+        });
+        const venueId = getVenueId?.venueId;
+        const allSets = await feature7Client.sets.findMany(
+            {
+                where: {
+                    venueId: venueId
+                }
+            }
+        );
+
+        res.status(200).json(allSets);
+    }
+    catch (e) {
+        console.log(e);
+    }
+}
 //show availability of menu of all branches
-export const checkMenuAvailabilityOfAllBranches = async (req: Request, res: Response) => {
+export const checkMenuAvailabilityOfAllBranches = async (req: any, res: Response) => {
     try {
         const menuId = req.params.menuId;
-        const venueId = req.params.venueId;
+        const businessId = req.businessId;
+        const getVenueId = await feature7Client.property.findFirst({
+            where: {
+                businessId: businessId,
+            },
+        });
+        const venueId = getVenueId?.venueId;
         const stockRecord = await feature7Client.stocks.findMany({
             where: {
-                venueId: parseInt(venueId),
+                venueId: venueId,
                 menuId: parseInt(menuId),
             },
         });
@@ -668,7 +987,7 @@ export const checkMenuAvailabilityOfAllBranches = async (req: Request, res: Resp
         // Query the venue_branch table to get branch names
         const branchNames = await feature7Client.venue_branch.findMany({
             where: {
-                venueId: parseInt(venueId),
+                venueId: venueId,
                 branchId: { in: branchIds },
             },
             select: {
@@ -699,15 +1018,21 @@ export const checkMenuAvailabilityOfAllBranches = async (req: Request, res: Resp
     }
 }
 //Change menu availability
-export const changeMenuAvailability = async (req: Request, res: Response) => {
+export const changeMenuAvailability = async (req: any, res: Response) => {
     try {
         const menuId = req.params.menuId;
-        const venueId = req.params.venueId;
+        const businessId = req.businessId;
+        const getVenueId = await feature7Client.property.findFirst({
+            where: {
+                businessId: businessId,
+            },
+        });
+        const venueId = getVenueId?.venueId;
         const branchId = req.params.branchId;
         console.log(branchId);
         const availability = await feature7Client.stocks.findFirst({
             where: {
-                venueId: parseInt(venueId),
+                venueId: venueId,
                 branchId: parseInt(branchId),
                 menuId: parseInt(menuId),
             },
@@ -728,59 +1053,99 @@ export const changeMenuAvailability = async (req: Request, res: Response) => {
     }
 }
 //edit menu
-export const editMenu = async (req: any, res: Response) => {
-    try {
-        multerConfig.single('menuImage')(req, res, async (err: any) => {
-            if (err) {
-                return res.status(400).json({ error: err.message });
-            }
-            const menuId = req.params.menuId;
-            const imageFile = await feature7Client.menu.findUnique({ where: { menuId: parseInt(menuId) } });
-            const name = req.body.name;
-            const price = req.body.price;
-            const description = req.body.description;
-            const image = req.file?.filename || imageFile?.image; // Use the filename generated by multer
+// import { MulterFile } from "multer"
 
-            try {
-                const menu = await feature7Client.menu.update({
-                    where: {
-                        menuId: parseInt(menuId),
-                    },
-                    data: {
-                        name: name,
-                        price: price,
-                        description: description,
-                        image: image,
-                    }
-                });
-                return res.status(200).json(menu);
-            } catch (e) {
-                console.error('Error editing menu:', e);
-                return res.status(500).json({ error: 'Internal Server Error' });
+// this version of declaration will fix the ESLint error unlike the last version
+// declare module 'express-serve-static-core' {
+//     interface Request {
+//         files?: MulterFile[]; // Augment Request interface to include 'files' property
+//     }
+// }
+export const editMenu = async (req: any, res: Response) => {
+    // try {
+    //     multerConfig.single('menuImage')(req, res, async (err: any) => {
+    // if (err) {
+    //     return res.status(400).json({ error: err.message });
+    // }
+  
+    if (!req.file) {
+        return res.status(400).json({ error: "Invalid image file" });
+    }
+
+    // const image = req.file as MulterFile;
+
+    // Perform a null check on the image object before accessing its properties
+    // if (!image || !image.path) {
+    //     return res.status(400).json({ error: "Invalid image file path" });
+    // }
+
+    // const image_url = image.path;
+    let imagePath;
+    if (req.file.path.includes("/"))
+        imagePath = "/uploads/" + req.file.path.substring(req.file.path.lastIndexOf('/') + 1);
+    else if (req.file.path.includes("\\"))
+        imagePath = "/uploads/" + req.file.path.substring(req.file.path.lastIndexOf('\\') + 1);
+    const menuId = req.params.menuId;
+
+    await feature7Client.menu.findUnique({ where: { menuId: parseInt(menuId) } });
+    const name = req.body.name;
+    const price = req.body.price;
+    const description = req.body.description;
+    // const image = req.file?.filename || imageFile?.image; // Use the filename generated by multer
+
+    try {
+        const menu = await feature7Client.menu.update({
+            where: {
+                menuId: parseInt(menuId),
+            },
+            data: {
+                name: name,
+                price: price,
+                description: description,
+                image: imagePath,
             }
         });
+        return res.status(200).json(menu);
+    } catch (e) {
+        console.error('Error editing menu:', e);
+        return res.status(500).json({ error: 'Internal Server Error' });
+    }
+    // });
 
-    }
-    catch (e) {
-        console.error('Error editing', e);
-    }
+    // }
+    // catch (e) {
+    //     console.error('Error editing', e);
+    // }
 }
 //add menu
 export const addMenu = async (req: any, res: Response) => {
-    try {
-        const venueId = req.params.venueId;
+
+    if(!req.file){
+        return res.status(400).json({ error: "Invalid image file" });
+    }
+    let imagePath;
+    if (req.file.path.includes("/"))
+        imagePath = "/uploads/" + req.file.path.substring(req.file.path.lastIndexOf('/') + 1);
+    else if (req.file.path.includes("\\"))
+        imagePath = "/uploads/" + req.file.path.substring(req.file.path.lastIndexOf('\\') + 1);
+    // const menuId = req.params.menuId;
+    
+        const businessId = req.businessId;
+        const getVenueId = await feature7Client.property.findFirst({
+            where: {
+                businessId: businessId,
+            },
+        });
+        const venueId = getVenueId?.venueId;
 
         // const image = "menuImage.jpg";
 
         // Use multerConfig middleware to handle file upload
-        multerConfig.single('menuImage')(req, res, async (err: any) => {
-            if (err) {
-                return res.status(400).json({ error: err.message });
-            }
+       
             const name = req.body.name;
             const price = req.body.price;
             const description = req.body.description;
-            const image = req.file ? req.file.filename : ''; // Use the filename generated by multer
+            // const image = req.file ? req.file.filename : ''; // Use the filename generated by multer
 
             try {
                 const menu = await feature7Client.menu.create({
@@ -788,14 +1153,14 @@ export const addMenu = async (req: any, res: Response) => {
                         name: name,
                         price: price,
                         description: description,
-                        image: image,
-                        venueId: parseInt(venueId),
+                        image: imagePath,
+                        venueId: venueId!,
                         menu_no: 0,
                     },
                 });
                 const branchIds = await feature7Client.venue_branch.findMany({
                     where: {
-                        venueId: parseInt(venueId),
+                        venueId: venueId,
                     },
                     select: {
                         branchId: true,
@@ -806,7 +1171,7 @@ export const addMenu = async (req: any, res: Response) => {
                         const createdStock = await feature7Client.stocks.create({
                             data: {
                                 menuId: menu.menuId,
-                                venueId: parseInt(venueId),
+                                venueId: venueId!,
                                 branchId: branchId.branchId,
                             },
                         });
@@ -819,12 +1184,7 @@ export const addMenu = async (req: any, res: Response) => {
                 console.error('Error adding menu:', e);
                 return res.status(500).json({ error: 'Internal Server Error' });
             }
-        });
-    }
-    catch (e) {
-        console.error('Error adding menu', e);
-    }
-}
+        }
 //add menu to set (cookies)
 export const addMenuItemsToSetsInCookies = async (req: Request, res: Response) => {
     try {
@@ -892,18 +1252,38 @@ export const showMenuItemsInCookies = async (req: Request, res: Response) => {
 };
 //add set
 export const addSetWithMenuItems = async (req: any, res: Response) => {
-    try {
 
-        // Create a new set in the Sets table
-        multerConfig.single('menuImage')(req, res, async (err: any) => {
-            if (err) {
-                return res.status(400).json({ error: err.message });
-            }
+
+
+    // try {
+
+    //     // Create a new set in the Sets table
+    //     multerConfig.single('menuImage')(req, res, async (err: any) => {
+    //         if (err) {
+    //             return res.status(400).json({ error: err.message });
+    //         }
+    if (!req.file) {
+        return res.status(400).json({ error: "Invalid image file" });
+    }
+    let imagePath;
+    if (req.file.path.includes("/"))
+        imagePath = "/uploads/" + req.file.path.substring(req.file.path.lastIndexOf('/') + 1);
+    else if (req.file.path.includes("\\"))
+        imagePath = "/uploads/" + req.file.path.substring(req.file.path.lastIndexOf('\\') + 1);
+    // const menuId = req.params.menuId;
+
             const { name, price, description } = req.body;
-            const venueId = req.params.venueId;
+            const businessId = req.businessId;
+            const getVenueId = await feature7Client.property.findFirst({
+                where: {
+                    businessId: businessId,
+                },
+            });
+            const venueId = getVenueId?.venueId;
             const selectedMenuItem = req.cookies.setItems || [];
             const selectedMenuItems = JSON.parse(selectedMenuItem);
-            const image = req.file.filename;
+          //  const image = req.file ? req.file.filename : ''; // Use the filename generated by multer
+
 
             try {
                 const createdSet = await feature7Client.sets.create({
@@ -911,8 +1291,8 @@ export const addSetWithMenuItems = async (req: any, res: Response) => {
                         name,
                         price,
                         description,
-                        image_url: image,
-                        venueId: parseInt(venueId),
+                        image_url: imagePath,
+                        venueId: venueId!,
                     },
                 });
                 const menuItems = selectedMenuItems.filter(item => item.setId === 0);
@@ -932,14 +1312,10 @@ export const addSetWithMenuItems = async (req: any, res: Response) => {
                 console.error('Error adding set:', e);
                 return res.status(500).json({ error: 'Internal Server Error' });
             }
-        });
-
-
-
-    } catch (error) {
-        console.error('Error adding set with menu items:', error);
-        res.status(500).json({ error: 'Internal server error' });
-    }
+    //    catch (error) {
+    //     console.error('Error adding set with menu items:', error);
+    //     res.status(500).json({ error: 'Internal server error' });
+    // }
 };
 //clear set items in cookies by venueid
 export const clearSetItemsInCookies = async (req: Request, res: Response) => {
@@ -1021,42 +1397,91 @@ export const deleteSet = async (req: Request, res: Response) => {
 //delete menu item from set
 export const deleteMenuItemFromSet = async (req: Request, res: Response) => {
     try {
-        const menuId = req.params.menuId;
+        const menuId = req.body.menuId;
         const setId = req.params.setId;
-
         const setItems = await feature7Client.set_items.findFirst({
             where: {
                 setId: parseInt(setId),
                 menuId: parseInt(menuId),
             },
         });
-        const toDelete = await feature7Client.set_items.delete({
-            where: {
-                setItemId: setItems?.setItemId,
-            },
-        });
-        return res.status(200).json(toDelete);
+        if (setItems !== null) {
+            const toDelete = await feature7Client.set_items.delete({
+                where: {
+                    setItemId: setItems?.setItemId,
+                },
+            });
+            const editSetCacheString = req.cookies.setCache || '[]';
+            const editSetCache = JSON.parse(editSetCacheString);
+            editSetCache.push({
+                setId: parseInt(setId),
+                menuId: parseInt(menuId),
+            });
+            return res.status(200).json(toDelete);
+        }
+        else {
+            const selectedMenuItem = req.cookies.setItems || [];
+            console.log(selectedMenuItem);
+            const selectedMenuItems = JSON.parse(selectedMenuItem);
+            const updated = selectedMenuItems.filter(item => item.menuId !== parseInt(menuId) && item.setId !== parseInt(setId));
+            res.cookie('setItems', JSON.stringify(updated));
+            res.status(200).json({ success: true, message: 'Deleted' });
+        }
+
     } catch (e) {
         console.error('Error deleting menu item from set:', e);
         return res.status(500).json({ error: 'Internal Server Error' });
     }
 }
+//cancel delete menu item from set
+export const cancelDeleteMenuItemFromSet = async (req: Request, res: Response) => {
+    try {
+        const editSetCacheString = req.cookies.setCache || '[]';
+        const editSetCache = JSON.parse(editSetCacheString);
+        const addCacheBack = await feature7Client.set_items.createMany({
+            data: editSetCache.map((item: any) => ({
+                setId: item.setId,
+                menuId: item.menuId,
+            })),
+        });
+        res.clearCookie('setCache');
+        return res.status(200).json(addCacheBack);
+    }
+    catch (e) {
+        console.error('Error cancel deleting menu item from set:', e);
+        return res.status(500).json({ error: 'Internal Server Error' });
+    }
+}
 //edit set
 export const editSet = async (req: any, res: Response) => {
-    try {
+    // try {
 
-        // Create a new set in the Sets table
-        multerConfig.single('menuImage')(req, res, async (err: any) => {
-            if (err) {
-                return res.status(400).json({ error: err.message });
-            }
+    //     // Create a new set in the Sets table
+    //     multerConfig.single('menuImage')(req, res, async (err: any) => {
+    //         if (err) {
+    //             return res.status(400).json({ error: err.message });
+    //         }
+    if (!req.file) {
+        return res.status(400).json({ error: "Invalid image file" });
+    }
+    let imagePath;
+    if (req.file.path.includes("/"))
+    imagePath = "/uploads/" + req.file.path.substring(req.file.path.lastIndexOf('/') + 1);
+else if (req.file.path.includes("\\"))
+    imagePath = "/uploads/" + req.file.path.substring(req.file.path.lastIndexOf('\\') + 1);
             const setId = req.params.setId;
-            const imageFile = await feature7Client.sets.findUnique({ where: { setId: parseInt(setId) } });
+            await feature7Client.sets.findUnique({ where: { setId: parseInt(setId) } });
             const { name, price, description } = req.body;
-            const venueId = req.params.venueId;
+            const businessId = req.businessId;
+            const getVenueId = await feature7Client.property.findFirst({
+                where: {
+                    businessId: businessId,
+                },
+            });
+            const venueId = getVenueId?.venueId;
             const selectedMenuItem = req.cookies.setItems || [];
             const selectedMenuItems = JSON.parse(selectedMenuItem);
-            const image = req.file?.filename || imageFile?.image_url; // Use the filename generated by multer
+            // const image = req.file?.filename || imageFile?.image_url; // Use the filename generated by multer
 
             try {
                 const editedSet = await feature7Client.sets.update({
@@ -1067,8 +1492,8 @@ export const editSet = async (req: any, res: Response) => {
                         name,
                         price,
                         description,
-                        image_url: image,
-                        venueId: parseInt(venueId),
+                        image_url: imagePath,
+                        venueId: venueId!,
                     },
                 });
                 const menuItems = selectedMenuItems.filter(item => item.setId === parseInt(setId));
@@ -1081,25 +1506,25 @@ export const editSet = async (req: any, res: Response) => {
                 });
                 const updated = selectedMenuItems.filter(item => item.setId !== parseInt(setId));
                 res.cookie('setItems', JSON.stringify(updated));
+                res.clearCookie('setCache');
                 res.json({ editedSet, setItems });
 
             } catch (e) {
                 console.error('Error adding set:', e);
                 return res.status(500).json({ error: 'Internal Server Error' });
             }
-        });
-
-
-
-    } catch (error) {
-        console.error('Error adding set with menu items:', error);
-        res.status(500).json({ error: 'Internal server error' });
-    }
+       
 };
 //get menu by venue which are not included in specific set
-export const getMenuByVenueNotInSet = async (req: Request, res: Response) => {
+export const getMenuByVenueNotInSet = async (req: any, res: Response) => {
     try {
-        const venueId = req.params.venueId;
+        const businessId = req.businessId;
+        const getVenueId = await feature7Client.property.findFirst({
+            where: {
+                businessId: businessId,
+            },
+        });
+        const venueId = getVenueId?.venueId;
         const setId = req.params.setId;
         const menuItems = await feature7Client.set_items.findMany({
             where: {
@@ -1109,7 +1534,7 @@ export const getMenuByVenueNotInSet = async (req: Request, res: Response) => {
         const menuIds = menuItems.map((item) => item.menuId);
         const menu = await feature7Client.menu.findMany({
             where: {
-                venueId: parseInt(venueId),
+                venueId: venueId,
                 menuId: {
                     notIn: menuIds,
                 },
@@ -1137,6 +1562,21 @@ export const deleteMenuItemBeforeAddingToSet = async (req: Request, res: Respons
         console.log(e);
     }
 }
+// export const deleteMenuItemBeforeAddingToSetForEdit = async (req: Request, res: Response) => {
+//     try {
+//         const menuId = req.body.menuId;
+//         const setId = "0" || req.params.setId;
+//         const selectedMenuItem = req.cookies.setItems || [];
+//         console.log(selectedMenuItem);
+//         const selectedMenuItems = JSON.parse(selectedMenuItem);
+//         const updated = selectedMenuItems.filter(item => item.menuId !== parseInt(menuId) && item.setId !== parseInt(setId));
+//         res.cookie('setItems', JSON.stringify(updated));
+//         res.status(200).json({ success: true, message: 'Deleted' });
+//     }
+//     catch (e) {
+//         console.log(e);
+//     }
+// }
 //show menu items in set
 export const showMenuItemsInSet = async (req: Request, res: Response) => {
     try {
@@ -1160,6 +1600,443 @@ export const showMenuItemsInSet = async (req: Request, res: Response) => {
             menuName: menuItem.name,
         }));
         return res.status(200).json(result);
+    }
+    catch (e) {
+        console.log(e);
+    }
+}
+// show checkedin tables in business
+// export const showCheckedInTablesInBusiness = async (req: any, res: Response) => {
+//     try {
+//         const venueId = req.params.venueId;
+//         const getReservations = await feature7Client.orders.findMany({
+//             where: {
+//                 venueId: parseInt(venueId),
+//             },
+//         });
+//         const getTable = await feature7Client.reservation_table.findMany({
+//             where: {
+//                 reserveId: {
+//                     in: getReservations.map((reservation) => reservation.reservedId).filter((id) => id !== null) as number[],
+//                 },
+//             },
+//         });
+//         res.status(200).json(getTable);
+//     }
+//     catch (e) {
+//         console.log(e);
+//     }
+// }
+//show ongoing order in business
+// export const onGoingOrderDetailsInBusiness = async (req: any, res: Response) => {
+//     try{ const venueId = req.params.venueId;
+//     const getReservations = await feature7Client.orders.findMany({
+//         where: {
+//             venueId: parseInt(venueId),
+//         },
+//     }); 
+//     console.log(getReservations);
+//     const getTable = await feature7Client.reservation_table.findMany({
+//         where: {
+//             reserveId: {
+//                 in: getReservations.map((reservation) => reservation.reservedId).filter((id) => id !== null) as number[],
+//             },
+//         },
+//     });
+//     const getOrderDetailsOfOngoingOrder = await feature7Client.order_detail.findMany({
+//         where: {
+//             orderId: {
+//                 in: getReservations.map((reservation) => reservation.orderId),
+//             },
+//             status: "On_going",
+//             // Filter based on menuId or setId not being null
+//             OR: [
+//                 { menuId: { not: null } },
+//                 { setId: { not: null } },
+//             ],
+//         },
+//     });
+//     const tableOrderDetailsMap = {};
+
+//         // Populate tableOrderDetailsMap using reservationId
+//         getOrderDetailsOfOngoingOrder.forEach((orderDetail) => {
+//             const reservationId = orderDetail.orderId;
+
+//             if (!tableOrderDetailsMap[reservationId]) {
+//                 tableOrderDetailsMap[reservationId] = [];
+//             }
+
+//             tableOrderDetailsMap[reservationId].push(orderDetail);
+//         });
+
+//         const response = getTable.map((table) => {
+//             const reservationId = table.reserveId;
+//             const orderDetails = tableOrderDetailsMap[reservationId] || [];
+
+//             return {
+//                 table,
+//                 orderDetails,
+//             };
+//         });
+
+//         res.status(200).json(response);
+//     }
+//     catch (e) {
+//         console.log(e);
+//     }
+// }
+
+//Show ongoing order in business
+export const onGoingOrderDetailsInBusiness = async (req: any, res: Response) => {
+    try {
+        const businessId = req.businessId;
+        const getVenueId = await feature7Client.property.findFirst({
+            where: {
+                businessId: businessId,
+            },
+        });
+        const venueId = getVenueId?.venueId;
+        const getReservations = await feature7Client.orders.findMany({
+            where: {
+                venueId: venueId,
+            },
+        });
+
+        const getTable = await feature7Client.reservation_table.findMany({
+            where: {
+                reserveId: {
+                    in: getReservations.map((reservation) => reservation.reservedId).filter((id) => id !== null) as number[],
+                },
+            },
+        });
+
+        const getOrderDetailsOfOngoingOrder = await feature7Client.order_detail.findMany({
+            where: {
+                orderId: {
+                    in: getReservations.map((reservation) => reservation.orderId),
+                },
+                status: "On_going",
+                // Filter based on menuId or setId not being null
+                OR: [
+                    { menuId: { not: null } },
+                    { setId: { not: null } },
+                ],
+            },
+        });
+        const tablesWithOrderDetails = getTable.filter((table) => {
+            const reservationId = table.reserveId;
+            return getOrderDetailsOfOngoingOrder.some((orderDetail) => orderDetail.orderId === reservationId);
+        });
+        const orderIds = getOrderDetailsOfOngoingOrder.map((orderDetail) => orderDetail.orderId);
+
+        // Fetch order dates based on orderIds
+        const orderDates = await feature7Client.orders.findMany({
+            where: {
+                orderId: {
+                    in: orderIds,
+                },
+            },
+            select: {
+                orderId: true,
+                order_date: true,
+            },
+        });
+
+        // Create a map of order dates using orderId as the key
+        const orderDateMap = {};
+        orderDates.forEach((order) => {
+            orderDateMap[order.orderId] = order.order_date;
+        });
+        // Get non-null menuIds and setIds
+        const nonNullMenuIds = getOrderDetailsOfOngoingOrder.filter((orderDetail) => orderDetail.menuId !== null).map((orderDetail) => orderDetail.menuId);
+        const nonNullSetIds = getOrderDetailsOfOngoingOrder.filter((orderDetail) => orderDetail.setId !== null).map((orderDetail) => orderDetail.setId);
+
+        // Fetch menu and set names based on non-null menuIds and setIds
+        const nonNullMenuIdsFiltered = nonNullMenuIds.filter((id) => id !== null) as number[];
+
+        const menuNames = await feature7Client.menu.findMany({
+            where: {
+                menuId: {
+                    in: nonNullMenuIdsFiltered,
+                },
+            },
+            select: {
+                menuId: true,
+                name: true,
+            },
+        });
+
+        const setNames = await feature7Client.sets.findMany({
+            where: {
+                setId: {
+                    in: nonNullSetIds.filter((id) => id !== null) as number[],
+                },
+            },
+            select: {
+                setId: true,
+                name: true,
+            },
+        });
+
+        const menuNameMap = {};
+        const setNameMap = {};
+
+        // Populate menuNameMap and setNameMap
+        menuNames.forEach((menu) => {
+            menuNameMap[menu.menuId] = menu.name;
+        });
+
+        setNames.forEach((set) => {
+            setNameMap[set.setId] = set.name;
+        });
+
+        const tableOrderDetailsMap = {};
+
+        // Populate tableOrderDetailsMap using reservationId
+        getOrderDetailsOfOngoingOrder.forEach((orderDetail) => {
+            const reservationId = orderDetail.orderId;
+
+            if (!tableOrderDetailsMap[reservationId]) {
+                tableOrderDetailsMap[reservationId] = [];
+            }
+
+            // Get menu and set names based on non-null menuId or setId
+            const menuName = orderDetail.menuId !== null ? menuNameMap[orderDetail.menuId] : null;
+            const setName = orderDetail.setId !== null ? setNameMap[orderDetail.setId] : null;
+
+            // Add menu and set names to order detail
+            const orderDetailWithNames = {
+                ...orderDetail,
+                menuName,
+                setName,
+            };
+
+            tableOrderDetailsMap[reservationId].push(orderDetailWithNames);
+        });
+
+        const response = tablesWithOrderDetails.map((table) => {
+            const reservationId = table.reserveId;
+            const orderDetails = tableOrderDetailsMap[reservationId] || [];
+            const orderDate = orderDateMap[reservationId];
+
+            return {
+                table: {
+                    ...table,
+                    orderDate,
+                },
+                orderDetails,
+            };
+        });
+
+        res.status(200).json(response);
+    } catch (e) {
+        console.log(e);
+    }
+};
+
+//show completed order in business
+export const completedOrderDetailsInBusiness = async (req: any, res: Response) => {
+    try {
+        const businessId = req.businessId;
+        const getVenueId = await feature7Client.property.findFirst({
+            where: {
+                businessId: businessId,
+            },
+        });
+        const venueId = getVenueId?.venueId;
+        const getReservations = await feature7Client.orders.findMany({
+            where: {
+                venueId: venueId,
+            },
+        });
+
+        const getTable = await feature7Client.reservation_table.findMany({
+            where: {
+                reserveId: {
+                    in: getReservations.map((reservation) => reservation.reservedId).filter((id) => id !== null) as number[],
+                },
+            },
+        });
+
+        const getOrderDetailsOfCompletedOrder = await feature7Client.order_detail.findMany({
+            where: {
+                orderId: {
+                    in: getReservations.map((reservation) => reservation.orderId),
+                },
+                status: "Completed",
+                // Filter based on menuId or setId not being null
+                OR: [
+                    { menuId: { not: null } },
+                    { setId: { not: null } },
+                ],
+            },
+        });
+        const tablesWithOrderDetails = getTable.filter((table) => {
+            const reservationId = table.reserveId;
+            return getOrderDetailsOfCompletedOrder.some((orderDetail) => orderDetail.orderId === reservationId);
+        });
+        const orderIds = getOrderDetailsOfCompletedOrder.map((orderDetail) => orderDetail.orderId);
+
+        // Fetch order dates based on orderIds
+        const orderDates = await feature7Client.orders.findMany({
+            where: {
+                orderId: {
+                    in: orderIds,
+                },
+            },
+            select: {
+                orderId: true,
+                order_date: true,
+            },
+        });
+
+        // Create a map of order dates using orderId as the key
+        const orderDateMap = {};
+        orderDates.forEach((order) => {
+            orderDateMap[order.orderId] = order.order_date;
+        });
+        // Get non-null menuIds and setIds
+        const nonNullMenuIds = getOrderDetailsOfCompletedOrder.filter((orderDetail) => orderDetail.menuId !== null).map((orderDetail) => orderDetail.menuId);
+        const nonNullSetIds = getOrderDetailsOfCompletedOrder.filter((orderDetail) => orderDetail.setId !== null).map((orderDetail) => orderDetail.setId);
+
+        // Fetch menu and set names based on non-null menuIds and setIds
+        const nonNullMenuIdsFiltered = nonNullMenuIds.filter((id) => id !== null) as number[];
+
+        const menuNames = await feature7Client.menu.findMany({
+            where: {
+                menuId: {
+                    in: nonNullMenuIdsFiltered,
+                },
+            },
+            select: {
+                menuId: true,
+                name: true,
+            },
+        });
+
+        const setNames = await feature7Client.sets.findMany({
+            where: {
+                setId: {
+                    in: nonNullSetIds.filter((id) => id !== null) as number[],
+                },
+            },
+            select: {
+                setId: true,
+                name: true,
+            },
+        });
+
+        const menuNameMap = {};
+        const setNameMap = {};
+
+        // Populate menuNameMap and setNameMap
+        menuNames.forEach((menu) => {
+            menuNameMap[menu.menuId] = menu.name;
+        });
+
+        setNames.forEach((set) => {
+            setNameMap[set.setId] = set.name;
+        });
+
+        const tableOrderDetailsMap = {};
+
+        // Populate tableOrderDetailsMap using reservationId
+        getOrderDetailsOfCompletedOrder.forEach((orderDetail) => {
+            const reservationId = orderDetail.orderId;
+
+            if (!tableOrderDetailsMap[reservationId]) {
+                tableOrderDetailsMap[reservationId] = [];
+            }
+
+            // Get menu and set names based on non-null menuId or setId
+            const menuName = orderDetail.menuId !== null ? menuNameMap[orderDetail.menuId] : null;
+            const setName = orderDetail.setId !== null ? setNameMap[orderDetail.setId] : null;
+
+            // Add menu and set names to order detail
+            const orderDetailWithNames = {
+                ...orderDetail,
+                menuName,
+                setName,
+            };
+
+            tableOrderDetailsMap[reservationId].push(orderDetailWithNames);
+        });
+
+        const response = tablesWithOrderDetails.map((table) => {
+            const reservationId = table.reserveId;
+            const orderDetails = tableOrderDetailsMap[reservationId] || [];
+            const orderDate = orderDateMap[reservationId];
+
+            return {
+                table: {
+                    ...table,
+                    orderDate,
+                },
+                orderDetails,
+            };
+        });
+
+        res.status(200).json(response);
+    }
+    catch (e) {
+        console.log(e);
+    }
+}
+//change orderdetail status
+export const changeOrderDetailStatusCompleted = async (req: any, res: Response) => {
+    try {
+        const orderDetailId = req.params.orderDetailId;
+        const orderDetail = await feature7Client.order_detail.update({
+            where: {
+                orderDetailId: parseInt(orderDetailId),
+            },
+            data: {
+                status: "Completed",
+            },
+        });
+        const orderId = orderDetail.orderId;
+        //check every orderDetail in order is completed or not
+        const orderDetails = await feature7Client.order_detail.findMany({
+            where: {
+                orderId: orderId,
+            },
+        });
+        const completed = orderDetails.every((orderDetail) => orderDetail.status === "Completed");
+        //if all orderDetails are completed, change order status to completed
+        if (completed) {
+            await feature7Client.orders.update({
+                where: {
+                    orderId: orderId,
+                },
+                data: {
+                    status: "Completed",
+                },
+            });
+        }
+        res.status(200).json(orderDetail);
+    }
+    catch (e) {
+        console.log(e);
+    }
+}
+//------------------MIK------------------//
+export const addMenuMIK = async (req: any, res: Response) => {
+    try {
+        const venueId = 2;
+        const menuNo = req.body.menu_id;
+        const name = req.body.Menus.menu_name;
+        const price = req.body.Menus.menu_price;
+        const img = req.body.Menus.menu_picture;
+        const iinsertMenu = await feature7Client.menu.createMany({
+            data: {
+                venueId: venueId,
+                menu_no: menuNo,
+                name: name,
+                price: price,
+                image: img,
+            },
+        });
+        return res.status(200).json(iinsertMenu);
     }
     catch (e) {
         console.log(e);
