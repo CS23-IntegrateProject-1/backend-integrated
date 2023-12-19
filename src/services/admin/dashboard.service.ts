@@ -121,18 +121,11 @@ class DashboardService {
 			// const AllTransactionCount = firstTransaction?._sum?.total_amount;
 			// return (await AllTransactionCount);
 			const appTransactionResult = await AppTransaction;
-
-			// Summing up total_amount across all elements in the array
 			const totalAmountSum = appTransactionResult.reduce((sum, transaction) => {
-				// Use optional chaining to handle potential null or undefined values
 				const transactionAmount = transaction?._sum?.total_amount;
-
-				// Convert Decimal to number if necessary
 				const amountToAdd = typeof transactionAmount === 'number'
 					? transactionAmount
 					: transactionAmount?.toNumber() ?? 0;
-
-				// Add the current transaction amount to the sum
 				return sum + amountToAdd;
 			}, 0);
 
