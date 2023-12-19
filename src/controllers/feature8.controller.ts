@@ -137,7 +137,7 @@ export const getTableNoByReservationId = async (
       include: {
         Reservation_table: {
           include: {
-            reserve_table: {
+            Tables: {
               select: {
                 table_no: true,
               },
@@ -151,7 +151,7 @@ export const getTableNoByReservationId = async (
       return res.status(404).json({ error: "Reservation not found" });
     }
 
-    const tableNo = reservation.Reservation_table[0]?.reserve_table.table_no;
+    const tableNo = reservation.Reservation_table[0]?.Tables.table_no;
 
     if (!tableNo) {
       return res
@@ -802,7 +802,7 @@ export const addVenuePromptpay = async (req: Request, res: Response) => {
     const newPromptpay = await feature8Client.venue_promptpay.create({
       data: {
         promptpay_no,
-        venue: {
+        Venue: {
           connect: {
             venueId: req.body.venueId,
           },
@@ -827,7 +827,7 @@ export const createTransactionDetail = async (req: Request, res: Response) => {
           timestamp,
           status,
           total_amount,
-          transaction: {
+          Transaction: {
             connect: {
               transactionId: req.body.transactionId,
             },
@@ -877,7 +877,7 @@ export const addCreditCard = async (req: Request, res: Response) => {
         bank,
         cvc,
         exp,
-        user: {
+        User: {
           connect: {
             userId,
           },
@@ -934,7 +934,7 @@ export const addVenueCreditCard = async (req: Request, res: Response) => {
         bank,
         cvc,
         exp,
-        venue: {
+        Venue: {
           connect: {
             venueId: req.body.venueId,
           },
@@ -1089,7 +1089,7 @@ export const getTransactionDetailsByVenueAndDate = async (
               },
             },
             {
-              transaction: {
+              Transaction: {
                 venueId: Number(venueId),
               },
             },
@@ -1150,7 +1150,7 @@ export const getTransactionDetailByReservationIsPayForTable = async (
               detail: "pay for table",
             },
             {
-              transaction: {
+              Transaction: {
                 venueId: venueId,
               },
             },
@@ -1207,7 +1207,7 @@ export const getTransactionDetailsByVenueAndDateForReservation = async (
               detail: "pay for table",
             },
             {
-              transaction: {
+              Transaction: {
                 venueId: Number(venueId),
               },
             },
@@ -1257,7 +1257,7 @@ export const checkTransactionDetailForOrder = async (
               ],
             },
             {
-              transaction: {
+              Transaction: {
                 venueId: venueId,
               },
             },
@@ -1318,7 +1318,7 @@ export const getTransactionDetailsByVenueAndDateForOrder = async (
               ],
             },
             {
-              transaction: {
+              Transaction: {
                 venueId: venueId,
               },
             },
@@ -1359,7 +1359,7 @@ export const getTransactionDetailForDelivery = async (
               detail: "delivery",
             },
             {
-              transaction: {
+              Transaction: {
                 venueId: venueId,
               },
             },
@@ -1416,7 +1416,7 @@ export const getTransactionDetailsByVenueAndDateForDelivery = async (
               detail: "delivery",
             },
             {
-              transaction: {
+              Transaction: {
                 venueId: Number(venueId),
               },
             },

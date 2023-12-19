@@ -6,7 +6,7 @@ import cookieParser from "cookie-parser";
 import { errorHandler } from "./middlewares/errorHandler";
 import addressTracker from "./middlewares/addressTracker";
 import { AuthRoutes } from "./routes/auth.routes";
-import Feature1Routes from "./routes/feature1.routes";
+// import Feature1Routes from "./routes/feature1.routes";
 import Feature3Routes from "./routes/feature3.routes";
 import Feature4Routes from "./routes/feature4.routes";
 import Feature5Routes from "./routes/feature5.routes";
@@ -20,6 +20,7 @@ import Feature14Routes from "./routes/feature14.routes";
 
 import { httpServer as socketIoServer } from "./socketio";
 import path from "path";
+import { MajorAPIRoutes } from "./routes/MajorAPI.routes";
 import MIKAPIRouter from "./routes/MIKAPI.routes";
 
 loadEnv();
@@ -47,7 +48,7 @@ app.get("/", (req: Request, res: Response) => {
 
 app.use("/api/mik", MIKAPIRouter);
 app.use("/auth", AuthRoutes);
-app.use("/feature1", Feature1Routes);
+// app.use("/feature1", Feature1Routes);
 app.use("/feature3", Feature3Routes);
 app.use("/feature4", Feature4Routes);
 app.use("/feature5", Feature5Routes);
@@ -58,6 +59,7 @@ app.use("/feature10", Feature10Routes);
 app.use("/feature11", Feature11Routes);
 app.use("/feature12", Feature12Routes);
 app.use("/feature14", Feature14Routes);
+app.use("/MajorAPI/", MajorAPIRoutes);
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 app.listen(port, () => {
