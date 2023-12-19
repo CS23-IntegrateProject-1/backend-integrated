@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { compose, path } from "ramda";
+import { compose, identity, path } from "ramda";
 import { z } from "zod";
 
 import {
@@ -7,13 +7,24 @@ import {
   IVenueService,
   VenueRepository,
 } from "../../services/feature1";
-import { makeErrorResponse, makeVenueShowWebResponse } from "./models";
+import {
+  CreditCardCreateRequest,
+  makeCreditCardCreateResponse,
+  makeErrorResponse,
+  makeVenueShowWebResponse,
+} from "./models";
 
 export interface IVenueController {
   update: (req: Request, res: Response) => unknown;
   show: (req: Request, res: Response) => unknown;
   updateOpeningHours: (req: Request, res: Response) => unknown;
   updatePromptPay: (req: Request, res: Response) => unknown;
+
+  createCreditCard: (req: Request, res: Response) => unknown;
+  showCreditCard: (req: Request, res: Response) => unknown;
+  updateCeditCard: (req: Request, res: Response) => unknown;
+  indexCreditCard: (req: Request, res: Response) => unknown;
+  deleteCreditCard: (req: Request, res: Response) => unknown;
 }
 
 const VenueUpdatePayload = z.object({
@@ -45,8 +56,64 @@ const PromptPayPayload = z.object({
 
 const getBusinessId = compose(Number, path(["params", "businessId"]));
 
+const CreateCreditCardPayload = z.object({
+  card_number: z.string(),
+  card_holder_name: z.string(),
+  country: z.string(),
+  bank: z.string(),
+  cvc: z.number(),
+  expiration_date: z.string().datetime(),
+});
+
 class VenueController implements IVenueController {
   private service: IVenueService = new VenueService(new VenueRepository());
+
+  async createCreditCard(req: Request, res: Response) {
+    const businessId = getBusinessId(req);
+
+    const result = await CreateCreditCardPayload.safeParseAsync(req.body);
+
+    if (!result.success) {
+      return res.status(400).json(makeErrorResponse("Invalid request"));
+    }
+
+    const request: CreditCardCreateRequest = {
+      ...result.data,
+      expiration_date: new Date(result.data.expiration_date),
+    };
+
+    try {
+      const response = await this.service.createCreditCard(businessId, request);
+
+      return res.json(makeCreditCardCreateResponse(response));
+    } catch (e) {
+      return res.status(500).json(makeErrorResponse("Internal server error"));
+    }
+  }
+
+  async showCreditCard(req: Request, res: Response) {
+    identity(req);
+    identity(res);
+    throw new Error("Unimplemented");
+  }
+
+  async updateCeditCard(req: Request, res: Response) {
+    identity(req);
+    identity(res);
+    throw new Error("Unimplemented");
+  }
+
+  async indexCreditCard(req: Request, res: Response) {
+    identity(req);
+    identity(res);
+    throw new Error("Unimplemented");
+  }
+
+  async deleteCreditCard(req: Request, res: Response) {
+    identity(req);
+    identity(res);
+    throw new Error("Unimplemented");
+  }
 
   async updatePromptPay(req: Request, res: Response) {
     const businessId = getBusinessId(req);
@@ -54,7 +121,7 @@ class VenueController implements IVenueController {
     const result = await PromptPayPayload.safeParseAsync(promptPay);
 
     if (!result.success) {
-      return res.status(400).json(makeErrorResponse("Invalid requeset"));
+      return res.status(400).json(makeErrorResponse("Invalid request"));
     }
 
     try {

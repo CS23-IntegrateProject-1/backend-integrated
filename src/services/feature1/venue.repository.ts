@@ -1,5 +1,7 @@
+import { Venue_credit_card } from "@prisma/client";
 import { prismaClient } from "../../controllers/feature1.controller";
 import {
+  CreditCardCreateRequest,
   Day,
   OpeningHourUpdateRequest,
   VenueShowDBResponse,
@@ -15,6 +17,11 @@ export interface IVenueRepository {
   updateVenueByBusinessId(businessId: number, data: VenueUpdateRequest);
 
   updatePromptPayByBusinessId(businessId: number, promptPayNumber: number);
+
+  createCreditCard(
+    businessId: number,
+    data: CreditCardCreateRequest,
+  ): Promise<Venue_credit_card>;
 }
 
 function difference<T>(a: Set<T>, b: Set<T>): Set<T> {
@@ -22,6 +29,25 @@ function difference<T>(a: Set<T>, b: Set<T>): Set<T> {
 }
 
 class VenueRepository implements IVenueRepository {
+  async createCreditCard(
+    businessId: number,
+    data: CreditCardCreateRequest,
+  ): Promise<Venue_credit_card> {
+    const venueId = await this.getVenueId(businessId);
+
+    return prismaClient.venue_credit_card.create({
+      data: {
+        card_no: data.card_number,
+        name: data.card_holder_name,
+        country: data.country,
+        bank: data.bank,
+        cvc: data.cvc,
+        exp: data.expiration_date,
+        venueId,
+      },
+    });
+  }
+
   async updatePromptPayByBusinessId(
     businessId: number,
     promptPayNumber: number,
