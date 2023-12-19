@@ -2031,7 +2031,7 @@ const getDepositDynamicPriceId = async (req: Request, res: Response) => {
 //For Seat
 export const createSeatSessionnn = async (req: Request, res: Response) => {
   try {
-    const dynamicPriceId = await getSeatDynamicPriceId();
+    const dynamicPriceId = await getSeatDynamicPriceId(req);
     const session = await stripe.checkout.sessions.create({
       line_items: [
         {
@@ -2050,15 +2050,15 @@ export const createSeatSessionnn = async (req: Request, res: Response) => {
   }
 };
 
-const getSeatDynamicPriceId = async () => {
+const getSeatDynamicPriceId = async (req: Request) => {
   const product = await stripe.products.create({
     name: "Seat",
     description: "Pay for seat",
   });
   //const reservationId = req.body.reservationId;
-
+  const {reservationId} = authService.decodeToken(req.cookies.movieReservationToken)
   const totalPrice: string = (
-    await reservationService.getTotalPriceByReservationId(1)
+    await reservationService.getTotalPriceByReservationId(reservationId)
   ).toString();
   console.log("total price: ", totalPrice);
   const totalAmount2: any = parseFloat(totalPrice).toFixed(2);

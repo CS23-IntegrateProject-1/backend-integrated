@@ -1202,12 +1202,3 @@ export const uploadTableTypeImage = async (req: Request, res: Response) => {
         res.status(500).json({ err: "sorry something wrong" });
     }
 };
-
-//Upload Image
-export const uploadTableTypeImage = async (req: Request, res: Response) => {
-    try {
-        res.status(200).json({ payload: "oh yeaaa" });
-    } catch (err) {
-        res.status(500).json({ err: "sorry something wrong" });
-    }
-};
