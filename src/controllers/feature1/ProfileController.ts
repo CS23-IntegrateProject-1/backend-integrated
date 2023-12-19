@@ -9,7 +9,7 @@ import {
 } from "../../services/feature1";
 import { MulterRequest, makeErrorResponse } from "./models";
 
-const getUserId = compose(Number, path(["params", "userId"]));
+export const getUserId = compose(Number, path(["params", "userId"]));
 
 export interface IProfileController {
   show(req: Request, res: Response): unknown;
