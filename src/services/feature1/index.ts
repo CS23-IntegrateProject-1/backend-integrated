@@ -10,6 +10,10 @@ import GroupService, { IGroupService } from "./group.service";
 import AboutService, { IAboutService } from "./about.service";
 import AboutRepository from "./about.repository";
 
+import SearchRepository from "./search.repository";
+
+import SearchService, { ISearchService } from "./search.service";
+
 export {
   VenueService,
   IVenueService,
@@ -24,4 +28,7 @@ export {
   AboutService,
   IAboutService,
   AboutRepository,
+  SearchRepository,
+  SearchService,
+  ISearchService,
 };

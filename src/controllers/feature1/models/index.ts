@@ -22,6 +22,8 @@ import {
   makeAboutUpdateWebResponse,
 } from "./about.model";
 
+import { SearchDBResponse, makeSearchWebResponse } from "./search.model";
+
 export {
   makeErrorResponse,
   makeVenueShowWebResponse,
@@ -38,4 +40,6 @@ export {
   makeAboutIndexWebResponse,
   makeAboutStoreWebResponse,
   makeAboutUpdateWebResponse,
+  SearchDBResponse,
+  makeSearchWebResponse,
 };
