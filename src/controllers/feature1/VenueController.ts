@@ -1,15 +1,13 @@
 import { Request, Response } from "express";
-import { makeErrorResponse } from "./models/payment_method.model";
+import { compose, path } from "ramda";
+import { z } from "zod";
+
+import VenueRepository from "../../services/feature1/venue.repository";
 import VenueService, {
   IVenueService,
 } from "../../services/feature1/venue.service";
-import VenueRepository from "../../services/feature1/venue.repository";
-import { z } from "zod";
-import {
-  makeVenueUpdateWebResponse,
-  makeVenueShowWebResponse,
-} from "./models/venue.model";
-import { compose, path } from "ramda";
+import { makeErrorResponse } from "./models/payment_method.model";
+import { makeVenueShowWebResponse } from "./models/venue.model";
 
 export interface IVenueController {
   update: (req: Request, res: Response) => unknown;
@@ -46,8 +44,8 @@ class VenueController implements IVenueController {
   private service: IVenueService = new VenueService(new VenueRepository());
 
   async updateOpeningHours(req: Request, res: Response) {
+    const businessId = getBusinessId(req);
     const openingHours = req.body;
-
     const result = await OpeningHourPayload.safeParseAsync(openingHours);
 
     if (!result.success) {
@@ -55,10 +53,7 @@ class VenueController implements IVenueController {
     }
 
     try {
-      await this.service.updateOpeningHours(
-        Number(req.params.businessId),
-        openingHours,
-      );
+      await this.service.updateOpeningHours(businessId, openingHours);
 
       return res.status(200).send();
     } catch (e) {
@@ -67,10 +62,10 @@ class VenueController implements IVenueController {
   }
 
   async show(req: Request, res: Response) {
+    const businessId = getBusinessId(req);
+
     try {
-      const response = await this.service.getVenue(
-        Number(req.params.businessId),
-      );
+      const response = await this.service.getVenue(businessId);
 
       const webResponse = makeVenueShowWebResponse(response);
 
@@ -81,8 +76,8 @@ class VenueController implements IVenueController {
   }
 
   async update(req: Request, res: Response) {
-    const venue = await VenueUpdatePayload.safeParseAsync(req.body);
     const businessId = getBusinessId(req);
+    const venue = await VenueUpdatePayload.safeParseAsync(req.body);
 
     if (!venue.success) {
       return res.status(400).json(makeErrorResponse("Invalid request"));
@@ -91,10 +86,9 @@ class VenueController implements IVenueController {
     try {
       const response = await this.service.updateVenue(businessId, venue.data);
 
-      const webResponse = makeVenueUpdateWebResponse(response);
-
-      return res.json(webResponse);
+      return res.json(response);
     } catch (e) {
+      console.log(e);
       return res.status(500).json(makeErrorResponse("Internal Server Error"));
     }
   }

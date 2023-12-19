@@ -1,7 +1,5 @@
 type VenueCateogry = "club" | "bar" | "restaurant";
 
-export type VenueDBResponse = unknown;
-
 export type VenueUpdateDBResponse = {
   capacity: number;
   category: string;

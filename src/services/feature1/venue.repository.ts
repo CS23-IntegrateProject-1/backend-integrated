@@ -3,12 +3,16 @@ import {
   Day,
   OpeningHourUpdateRequest,
   VenueShowDBResponse,
+  VenueUpdateDBResponse,
+  VenueUpdateRequest,
 } from "../../controllers/feature1/models/venue.model";
 
 interface IVenueRepository {
   updateOpeningHours(businessId: number, data: OpeningHourUpdateRequest);
 
   getVenueByBusinessId(businessId: number): Promise<VenueShowDBResponse>;
+
+  updateVenueByBusinessId(businessId: number, data: VenueUpdateRequest);
 }
 
 class VenueRepository implements IVenueRepository {
@@ -60,6 +64,45 @@ class VenueRepository implements IVenueRepository {
     } else {
       return result.venueId;
     }
+  }
+
+  async updateVenueByBusinessId(
+    businessId: number,
+    data: VenueUpdateRequest,
+  ): Promise<VenueUpdateDBResponse> {
+    const venueId = await this.getVenueId(businessId);
+
+    const result = await prismaClient.venue.update({
+      where: {
+        venueId,
+      },
+      data: {
+        name: data.name,
+        description: data.description,
+        category: data.category,
+        capacity: data.capacity,
+        website_url: data.website,
+        Location: {
+          update: {
+            address: data.address,
+          },
+        },
+      },
+      select: {
+        name: true,
+        description: true,
+        category: true,
+        capacity: true,
+        website_url: true,
+        Location: {
+          select: {
+            address: true,
+          },
+        },
+      },
+    });
+
+    return result as VenueUpdateDBResponse;
   }
 }
 
