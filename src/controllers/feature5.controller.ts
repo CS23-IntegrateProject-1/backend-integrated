@@ -346,18 +346,17 @@ export const VoucherApprove = async (req: Request, res: Response) => {
 
 export const VoucherEditbyId = async (req: Request, res: Response) => {
   try {
-
     const {
       voucherId: voucherId,
       voucherName: voucher_name,
       startDate: start_date,
       endDate: end_date,
-      description,
-      venueId,
+      description: description,
+      venueId: venueId,
     } = req.body;
 
-    const voucher_image =
-      "/uploads/" + req.file.path.substring(req.file.path.lastIndexOf("/") + 1);
+    // const voucher_image =
+    //   "/uploads/" + req.file.path.substring(req.file.path.lastIndexOf("/") + 1);
 
     const isApprove = "In_progress";
 
@@ -366,8 +365,9 @@ export const VoucherEditbyId = async (req: Request, res: Response) => {
         voucherId: voucherId
       },
       data: {
+        voucherId,
         voucher_name,
-        voucher_image,
+        // voucher_image,
         start_date,
         end_date,
         description,
@@ -378,6 +378,7 @@ export const VoucherEditbyId = async (req: Request, res: Response) => {
     res.json(EditVoucher);
   } catch (err) {
     const error = err as Error;
+    console.log(err)
     res.status(500).json({ error: error.message });
   }
 };
