@@ -1,4 +1,4 @@
-import { isNil } from 'ramda';
+import { isNil } from "ramda";
 
 export type AboutIndexWebRequest = unknown;
 

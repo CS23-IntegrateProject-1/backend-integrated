@@ -9,12 +9,12 @@ class showService{
                 date: new Date(date),
             },
             include: {
-                screen: {
+                Screens: {
                     include: {
-                        theater: true
+                        Theaters: true
                     }
                 },
-                film: true
+                Films: true
             },
         });
         return data;
@@ -24,18 +24,18 @@ class showService{
         const prisma = new PrismaClient();
         const data = prisma.shows.findMany({
             where: {
-                screen: {
+                Screens: {
                     theaterId: id,
                 },
                 date: new Date(date),
             },
             include: {
-                screen: {
+                Screens: {
                     include: {
-                        theater: true
+                        Theaters: true
                     }
                 },
-                film: true
+                Films: true
             },
         });
         return data;
