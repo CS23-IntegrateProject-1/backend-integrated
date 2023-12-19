@@ -142,5 +142,10 @@ feature1Router.get(
   userAuthMiddleware,
   qrController.generate.bind(qrController),
 );
+feature1Router.get(
+  "/qr/:username",
+  userAuthMiddleware,
+  qrController.generateByUsername.bind(qrController),
+);
 
 export default feature1Router;
