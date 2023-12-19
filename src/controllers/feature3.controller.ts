@@ -574,3 +574,64 @@ export const postVenuesFavourites = async (req: Request, res: Response) => {
     res.status(500).json(error);
   }
 };
+
+
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+export const getPromotionHomePage = async (req: Request, res: Response) => {
+  try {
+    const PromotionHomePage = await feature3Client.$queryRaw`
+      SELECT P.promotionId, P.name, P.description, P.image_url, P.discount_price, P.isApprove, P.venueId, P.menuId, P.branchId
+      FROM Promotion P
+      WHERE P.isApprove = "Completed"
+      ORDER BY P.promotionId;
+    `;
+
+    return res.json(PromotionHomePage);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json(error);
+  }
+};
+
+export const getVoucherVenueDetail = async (req: Request, res: Response) => {
+  const { branchId } = req.params;
+  const branchIdInt = parseInt(branchId);
+
+  try {
+    const VoucherVenueDetail = await feature3Client.$queryRaw`
+      SELECT Vou.voucherId, Vou.venueId, VB.branchId, Vou.voucher_name, Vou.description, Vou.voucher_image, Vou.isApprove
+      FROM Voucher Vou, Venue V, Venue_branch VB
+      WHERE Vou.venueId = V.venueId AND Vou.isApprove = "Completed" AND VB.branchId = ${branchIdInt} AND VB.venueId = V.venueId
+    `;
+
+    return res.json(VoucherVenueDetail);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json(error);
+  }
+};
+
+export const getVoucherVenueDetailOfUser = async (req: Request, res: Response) => {
+  const { branchId } = req.params;
+  const branchIdInt = parseInt(branchId);
+
+  try {
+    const userId = authService.decodeToken(req.cookies.authToken).userId;
+
+    const VoucherVenueDetail = await feature3Client.$queryRaw`
+      SELECT Vou.voucherId, Vou.venueId, VB.branchId, Vou.voucher_name, Vou.description, Vou.voucher_image, Vou.isApprove
+      FROM Voucher Vou, Venue V, Venue_branch VB, User_Voucher UV
+      WHERE Vou.venueId = V.venueId AND Vou.isApprove = "Completed" AND VB.branchId = ${branchIdInt} AND VB.venueId = V.venueId
+        AND UV.voucherId = Vou.voucherId AND UV.userId = ${userId}
+    `;
+
+    return res.json(VoucherVenueDetail);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json(error);
+  }
+};

@@ -13,13 +13,16 @@ import {
     getVenDetail,
     getVenDetailMenu,
     getStarGraph,
-
+    getPromotionHomePage,
+    getVoucherVenueDetail,
+    getVoucherVenueDetailOfUser,
     
 
 
 
 
 } from "../controllers/feature3.controller";
+import { get } from "http";
 
 const feature3Router = Router();
 
@@ -42,6 +45,13 @@ feature3Router.post("/ReviewDelivery/:branchId", postReviewDelivery); // Post fr
 feature3Router.post("/ReviewReservation/:branchId", postReviewReservation); // Post from Reservation review
 
 feature3Router.post("/VenuesFavourites/:venueId", )
+
+
+// Integrated with feature 5
+feature3Router.get("/PromotionHomePage", getPromotionHomePage) // Get promotion for home page
+
+feature3Router.get("/VoucherVenueDetail/:branchId", getVoucherVenueDetail) // Get voucher for venue detail page
+feature3Router.get("/VoucherVenueDetailOfUser", getVoucherVenueDetailOfUser)
 
 
 export default feature3Router;
