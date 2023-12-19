@@ -56,4 +56,5 @@ feature4Router.post(
   addItemToCookie
 );
 feature4Router.get("/showOrderCart", customVerifyCookie, showCart);
+feature4Router.delete("/removeCartItem/:itemId", customVerifyCookie, showCart);
 export default feature4Router;
