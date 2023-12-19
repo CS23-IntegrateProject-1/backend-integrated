@@ -40,8 +40,6 @@ feature6Router.get("/checkin/status/:reservationId", checkInStatus);
 //Business Side Part
 // GET METHOD
 //Finished
-feature6Router.get("/allTableType", getAllTableTypeByVenueId);
-feature6Router.get("/allTableByVenueId", getAllTableByVenueId);
 feature6Router.get("/MyTable/:tableId", getTableByTableId);
 feature6Router.get("/Dashboard/", getCountPerDay);
 feature6Router.get("/allReservationOfVenue", getAllReservationOfVenue);
