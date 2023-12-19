@@ -75,7 +75,8 @@ io.on("connection", (socket) => {
     const room = id.toString();
     // Broadcast to all clients in room A without sender
     socket.broadcast.to(room).emit("receive-message", {
-      recipients: recipients,
+      id:id,
+      members: recipients,
       sender: sender,
       senderId: user?.userId,
       text,
