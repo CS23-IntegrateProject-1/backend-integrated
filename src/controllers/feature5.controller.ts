@@ -347,22 +347,24 @@ export const VoucherApprove = async (req: Request, res: Response) => {
 export const VoucherEditbyId = async (req: Request, res: Response) => {
   try {
     const {
-      voucherId: voucherId,
+    //   voucherId: voucherId,
       voucherName: voucher_name,
       startDate: start_date,
       endDate: end_date,
       description: description,
-      venueId: venueId,
+    //   venueId: venueId,
     } = req.body;
-
+    console.log("hi", req.body);
+    const voucherId = parseInt(req.body.voucherId);
+    const venueId = parseInt(req.body.venueId)
     // const voucher_image =
     //   "/uploads/" + req.file.path.substring(req.file.path.lastIndexOf("/") + 1);
 
     const isApprove = "In_progress";
 
     const EditVoucher = await feature5Client.voucher.update({
-      where:{
-        voucherId: voucherId
+      where: {
+        voucherId: voucherId,
       },
       data: {
         voucherId,
@@ -378,7 +380,7 @@ export const VoucherEditbyId = async (req: Request, res: Response) => {
     res.json(EditVoucher);
   } catch (err) {
     const error = err as Error;
-    console.log(err)
+    console.log(err);
     res.status(500).json({ error: error.message });
   }
 };
@@ -643,7 +645,7 @@ export const GettierName = async (req: Request, res: Response) => {
         },
       },
     });
-    res.json(gettierName?.tier);
+    res.json(gettierName?.Member_tier?.tier_name);
   } catch (err) {
     const error = err as Error;
     res.status(500).json({ error: error.message });
@@ -664,7 +666,7 @@ export const GetMembertierPrivilleges = async (req: Request, res: Response) => {
       },
     });
 
-    res.json(GetInfoMembertier?.tier);
+    res.json(GetInfoMembertier?.Member_tier?.tier_benefit);
   } catch (err) {
     const error = err as Error;
     res.status(500).json({ error: error.message });

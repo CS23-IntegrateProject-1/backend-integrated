@@ -17,7 +17,7 @@ import { getAllReservationOfVenue } from "../controllers/feature6.controller";
 import { createTable } from "../controllers/feature6.controller";
 import { createTableType } from "../controllers/feature6.controller";
 import { deleteTable } from "../controllers/feature6.controller";
-
+import { uploadTableTypeImage } from "../controllers/feature6.controller";
 import { createOfflineReservation } from "../controllers/feature6.controller";
 
 const feature6Router = Router();
@@ -61,6 +61,7 @@ import { cancelReservation } from "../controllers/feature6.controller";
 import { checkIn } from "../controllers/feature6.controller";
 import { qrCode } from "../controllers/feature6.controller";
 import { checkOut } from "../controllers/feature6.controller";
+import multerConfig from "../multerConfig";
 // import { reservationMW } from "../middlewares/reservationMW";
 
 // Check In
@@ -69,3 +70,7 @@ feature6Router.post("/checkIn/:reservationId", checkIn);
 feature6Router.post("/checkOut/:reservationId", checkOut);
 feature6Router.get("/qrcode/:reservationId", qrCode);
 export default feature6Router;
+
+//Upload Image
+feature6Router.post("/uploadTableTypeImage", multerConfig.array("file"), uploadTableTypeImage);
+
