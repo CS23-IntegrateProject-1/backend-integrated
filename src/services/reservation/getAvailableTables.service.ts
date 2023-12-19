@@ -1,4 +1,4 @@
-import { Day, PrismaClient } from "@prisma/client";
+import { PrismaClient, Opening_day_day } from "@prisma/client";
 import { error } from "console";
 import { addHours } from "date-fns";
 import { Request } from "express";
@@ -62,7 +62,7 @@ export const getAvailableTables = async (req: Request) => {
         const opening = await prisma.opening_day.findMany({
             where: {
                 venueId,
-                day: dayName as Day,
+                day: dayName as Opening_day_day,
             },
         });
         let notOpen = false;
@@ -71,7 +71,7 @@ export const getAvailableTables = async (req: Request) => {
             const openBefore = await prisma.opening_day.findMany({
                 where: {
                     venueId,
-                    day: dayBefore as Day,
+                    day: dayBefore as Opening_day_day,
                 },
             });
             const closeBefore = openBefore[0].closing_hours;
@@ -90,7 +90,7 @@ export const getAvailableTables = async (req: Request) => {
             const openBefore = await prisma.opening_day.findMany({
                 where: {
                     venueId,
-                    day: dayBefore as Day,
+                    day: dayBefore as Opening_day_day,
                 },
             });
             open = openBefore[0].opening_hours;
@@ -141,7 +141,7 @@ export const getAvailableTables = async (req: Request) => {
                 isUsing: true,
             },
             include: {
-                table_type: true,
+                Table_type_detail: true,
             },
         });
 
@@ -161,7 +161,7 @@ export const getAvailableTables = async (req: Request) => {
             .filter((table) => !reservedTableIds.includes(table.tableId))
             .map((table) => ({
                 tableId: table.tableId,
-                capacity: table.table_type.capacity,
+                capacity: table.Table_type_detail.capacity,
             }));
 
         if (

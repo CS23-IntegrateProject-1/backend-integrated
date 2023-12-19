@@ -6,7 +6,6 @@ import { Stripe } from "stripe";
 
 const feature8Client = new PrismaClient();
 
-
 export const getfeature8 = async (req: Request, res: Response) => {
     res.status(200).json({ message: 'This is Feature8' });
 };
@@ -122,19 +121,15 @@ export const getTableNosByVenueId = async (req: Request, res: Response) => {
 };
 
 
-export const getTableNoByReservationId = async (req: Request, res: Response) => {
-    const { reservationId } = req.params;
-  
-    try {
-      const reservation = await feature8Client.reservation.findUnique({
-        where: { reservationId: parseInt(reservationId, 10) },
-        include: {
-          Reservation_table: {
-            include: {
-              reserve_table: {
-                select: {
-                  table_no: true,
-                },
+  try {
+    const reservation = await feature8Client.reservation.findUnique({
+      where: { reservationId: parseInt(reservationId, 10) },
+      include: {
+        Reservation_table: {
+          include: {
+            Tables: {
+              select: {
+                table_no: true,
               },
             },
           },
@@ -158,6 +153,7 @@ export const getTableNoByReservationId = async (req: Request, res: Response) => 
     }
   };
 
+    const tableNo = reservation.Reservation_table[0]?.Tables.table_no;
 
   export const getAllApptransactionByVenueId = async (req: Request, res: Response) => {
     const venueId = parseInt(req.params.venueId, 10);
@@ -750,15 +746,38 @@ export const getAllNotificationAdBusinessMain = async (req: Request, res: Respon
 export const addVenuePromptpay = async (req: Request, res: Response) => {
     const { promptpay_no } = req.body;
 
-    try {
-        const newPromptpay = await feature8Client.venue_promptpay.create({
-            data: {
-                promptpay_no,
-                venue: {
-                    connect: {
-                        venueId: req.body.venueId,
-                    },
-                },
+  try {
+    const newPromptpay = await feature8Client.venue_promptpay.create({
+      data: {
+        promptpay_no,
+        Venue: {
+          connect: {
+            venueId: req.body.venueId,
+          },
+        },
+      },
+    });
+
+    res.status(201).json(newPromptpay);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Failed to create promptpay" });
+  }
+};
+export const createTransactionDetail = async (req: Request, res: Response) => {
+  const { detail, timestamp, status, total_amount } = req.body;
+
+  try {
+    const newTransactionDetail = await feature8Client.transaction_detail.create(
+      {
+        data: {
+          detail,
+          timestamp,
+          status,
+          total_amount,
+          Transaction: {
+            connect: {
+              transactionId: req.body.transactionId,
             },
         });
 
@@ -821,22 +840,22 @@ export const addCreditCard = async (req: Request, res: Response) => {
 
     const encryptedCardNo = encryptData(card_no, secretKey);
 
-    try {
-        const newCreditCard = await feature8Client.credit_card.create({
-            data: {
-                card_no: encryptedCardNo,
-                name,
-                country,
-                bank,
-                cvc,
-                exp,
-                user: {
-                    connect: {
-                        userId,
-                    },
-                },
-            },
-        });
+  try {
+    const newCreditCard = await feature8Client.credit_card.create({
+      data: {
+        card_no: encryptedCardNo,
+        name,
+        country,
+        bank,
+        cvc,
+        exp,
+        User: {
+          connect: {
+            userId,
+          },
+        },
+      },
+    });
 
         res.status(201).json(newCreditCard);
     } catch (error) {
@@ -878,22 +897,22 @@ export const addVenueCreditCard = async (req: Request, res: Response) => {
     const secretKey = 'your-secret-key';
     const encryptedCardNo = encryptData(card_no, secretKey);
 
-    try {
-        const newCreditCard = await feature8Client.venue_credit_card.create({
-            data: {
-                card_no: encryptedCardNo,
-                name,
-                country,
-                bank,
-                cvc,
-                exp,
-                venue: {
-                    connect: {
-                        venueId: req.body.venueId,
-                    },
-                },
-            },
-        });
+  try {
+    const newCreditCard = await feature8Client.venue_credit_card.create({
+      data: {
+        card_no: encryptedCardNo,
+        name,
+        country,
+        bank,
+        cvc,
+        exp,
+        Venue: {
+          connect: {
+            venueId: req.body.venueId,
+          },
+        },
+      },
+    });
 
         res.status(201).json(newCreditCard);
     } catch (error) {
@@ -1017,10 +1036,10 @@ export const getTransactionDetailsByVenueAndDate = async (req: Request, res: Res
               gte: fromDate,
               lte: toDate,
             },
-          },
-          {
-            transaction: {
-              venueId: Number(venueId),
+            {
+              Transaction: {
+                venueId: Number(venueId),
+              },
             },
           },
         ],
@@ -1042,15 +1061,47 @@ export const getTransactionDetailsByVenueAndDate = async (req: Request, res: Res
 };
 
 export const getVenueByVenueId = async (req: Request, res: Response) => {
-    const { venueId } = req.params;
-  
-    try {
-      const venue = await feature8Client.venue.findUnique({
-        where: { venueId: Number(venueId) },
-      });
-  
-      if (!venue) {
-        return res.status(404).json({ error: 'Venue not found' });
+  const { venueId } = req.params;
+
+  try {
+    const venue = await feature8Client.venue.findUnique({
+      where: { venueId: Number(venueId) },
+    });
+
+    if (!venue) {
+      return res.status(404).json({ error: "Venue not found" });
+    }
+
+    res.json(venue);
+  } catch (error) {
+    res.status(500).json({ error: "Something went wrong" });
+  }
+};
+
+export const getTransactionDetailByReservationIsPayForTable = async (
+  req: Request,
+  res: Response
+) => {
+  const venueId = parseInt(req.params.venueId, 10);
+
+  try {
+    const transactionDetails = await feature8Client.transaction_detail.findMany(
+      {
+        where: {
+          AND: [
+            {
+              detail: "pay for table",
+            },
+            {
+              Transaction: {
+                venueId: venueId,
+              },
+            },
+          ],
+        },
+        orderBy: {
+          timestamp: "asc",
+        },
       }
   
       res.json(venue);
@@ -1059,7 +1110,347 @@ export const getVenueByVenueId = async (req: Request, res: Response) => {
     }
   };
 
-export const getTransactionDetailByReservationIsPayForTable = async (req: Request, res: Response) => {
+    res.status(200).json(transactionDetails);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Failed to retrieve transaction details" });
+  }
+};
+
+export const getTransactionDetailsByVenueAndDateForReservation = async (
+  req: Request,
+  res: Response
+) => {
+  const { fromTime, toTime } = req.query;
+  const { venueId } = req.params;
+
+  if (!fromTime || !toTime) {
+    return res
+      .status(400)
+      .json({ error: "Both fromTime and toTime are required." });
+  }
+
+  try {
+    const fromDate = new Date(fromTime as string);
+    const toDate = new Date(toTime as string);
+
+    const transactionDetails = await feature8Client.transaction_detail.findMany(
+      {
+        where: {
+          AND: [
+            {
+              timestamp: {
+                gte: fromDate,
+                lte: toDate,
+              },
+            },
+            {
+              detail: "pay for table",
+            },
+            {
+              Transaction: {
+                venueId: Number(venueId),
+              },
+            },
+          ],
+        },
+        orderBy: {
+          timestamp: "asc",
+        },
+      }
+    );
+
+    if (!transactionDetails || transactionDetails.length === 0) {
+      return res.status(404).json({
+        error:
+          "No transaction details found for the specified venue, date range, and detail",
+      });
+    }
+
+    return res.json(transactionDetails);
+  } catch (error) {
+    console.error(error);
+    return res
+      .status(500)
+      .json({ error: "An error occurred while fetching transaction details." });
+  }
+};
+
+export const checkTransactionDetailForOrder = async (
+  req: Request,
+  res: Response
+) => {
+  const venueId = parseInt(req.params.venueId, 10);
+
+  try {
+    const transactionDetails = await feature8Client.transaction_detail.findMany(
+      {
+        where: {
+          AND: [
+            {
+              OR: [
+                {
+                  detail: "pay a bill",
+                },
+                {
+                  detail: "delivery",
+                },
+              ],
+            },
+            {
+              Transaction: {
+                venueId: venueId,
+              },
+            },
+          ],
+        },
+        orderBy: {
+          timestamp: "asc",
+        },
+      }
+    );
+
+    if (!transactionDetails || transactionDetails.length === 0) {
+      return res.status(404).json({
+        error:
+          "No transaction details found for the specified venue and detail",
+      });
+    }
+
+    res.status(200).json(transactionDetails);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Failed to retrieve transaction details" });
+  }
+};
+
+export const getTransactionDetailsByVenueAndDateForOrder = async (
+  req: Request,
+  res: Response
+) => {
+  const venueId = parseInt(req.params.venueId, 10);
+  const { fromTime, toTime } = req.query;
+
+  if (!fromTime || !toTime) {
+    return res
+      .status(400)
+      .json({ error: "Both fromDate and toDate are required." });
+  }
+
+  try {
+    const transactionDetails = await feature8Client.transaction_detail.findMany(
+      {
+        where: {
+          AND: [
+            {
+              timestamp: {
+                gte: new Date(fromTime as string),
+                lte: new Date(toTime as string),
+              },
+            },
+            {
+              OR: [
+                {
+                  detail: "pay a bill",
+                },
+                {
+                  detail: "delivery",
+                },
+              ],
+            },
+            {
+              Transaction: {
+                venueId: venueId,
+              },
+            },
+          ],
+        },
+        orderBy: {
+          timestamp: "asc",
+        },
+      }
+    );
+
+    if (!transactionDetails || transactionDetails.length === 0) {
+      return res.status(404).json({
+        error:
+          "No transaction details found for the specified venue, date range, and detail",
+      });
+    }
+
+    res.status(200).json(transactionDetails);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Failed to retrieve transaction details" });
+  }
+};
+
+export const getTransactionDetailForDelivery = async (
+  req: Request,
+  res: Response
+) => {
+  const venueId = parseInt(req.params.venueId, 10);
+
+  try {
+    const transactionDetails = await feature8Client.transaction_detail.findMany(
+      {
+        where: {
+          AND: [
+            {
+              detail: "delivery",
+            },
+            {
+              Transaction: {
+                venueId: venueId,
+              },
+            },
+          ],
+        },
+        orderBy: {
+          timestamp: "asc",
+        },
+      }
+    );
+
+    if (!transactionDetails || transactionDetails.length === 0) {
+      return res.status(404).json({
+        error:
+          "No transaction details found for the specified venue and detail",
+      });
+    }
+
+    res.status(200).json(transactionDetails);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Failed to retrieve transaction details" });
+  }
+};
+
+export const getTransactionDetailsByVenueAndDateForDelivery = async (
+  req: Request,
+  res: Response
+) => {
+  const { fromTime, toTime } = req.query;
+  const { venueId } = req.params;
+
+  if (!fromTime || !toTime) {
+    return res
+      .status(400)
+      .json({ error: "Both fromTime and toTime are required." });
+  }
+
+  try {
+    const fromDate = new Date(fromTime as string);
+    const toDate = new Date(toTime as string);
+
+    const transactionDetails = await feature8Client.transaction_detail.findMany(
+      {
+        where: {
+          AND: [
+            {
+              timestamp: {
+                gte: fromDate,
+                lte: toDate,
+              },
+            },
+            {
+              detail: "delivery",
+            },
+            {
+              Transaction: {
+                venueId: Number(venueId),
+              },
+            },
+          ],
+        },
+        orderBy: {
+          timestamp: "asc",
+        },
+      }
+    );
+
+    if (!transactionDetails || transactionDetails.length === 0) {
+      return res.status(404).json({
+        error:
+          "No transaction details found for the specified venue, date range, and detail",
+      });
+    }
+
+    return res.json(transactionDetails);
+  } catch (error) {
+    console.error(error);
+    return res
+      .status(500)
+      .json({ error: "An error occurred while fetching transaction details." });
+  }
+};
+
+export const getTransactionReserveIdByVenueIdAndEqualToStatusCompleted = async (
+  req: Request,
+  res: Response
+) => {
+  const venueId = parseInt(req.params.venueId, 10);
+
+  try {
+    const transactions = await feature8Client.transaction.findMany({
+      where: {
+        venueId: venueId,
+        Transaction_detail: {
+          status: "Completed",
+        },
+      },
+      select: {
+        reserveId: true,
+        Transaction_detail: {
+          select: {
+            timestamp: true,
+          },
+        },
+      },
+    });
+
+    if (!transactions || transactions.length === 0) {
+      return res.status(404).json({
+        error:
+          "No transactions found with completed details for the specified venue",
+      });
+    }
+
+    const ordersPromises = transactions.map((transaction) =>
+      feature8Client.orders
+        .findUnique({
+          where: {
+            reservedId: transaction.reserveId,
+          },
+          select: {
+            reservedId: true,
+            orderId: true,
+            total_amount: true,
+            status: true,
+            order_date: true,
+            isDelivery: true,
+          },
+        })
+        .then((order) =>
+          order
+            ? { ...order, timestamp: transaction.Transaction_detail?.timestamp }
+            : null
+        )
+    );
+
+    const orders = (await Promise.all(ordersPromises)).filter(
+      (order) => order !== null
+    );
+
+    res.status(200).json({ orders });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Failed to retrieve transactions" });
+  }
+};
+
+export const getTransactionReserveIdByVenueIdAndEqualToStatusCompletedAndFiltered =
+  async (req: Request, res: Response) => {
     const venueId = parseInt(req.params.venueId, 10);
 
     try {

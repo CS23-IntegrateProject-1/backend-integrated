@@ -1,4 +1,4 @@
-import { Day, PrismaClient } from "@prisma/client";
+import { Opening_day_day, PrismaClient } from "@prisma/client";
 import authService from "../auth/auth.service";
 import { addHours } from "date-fns";
 import { Request } from "express";
@@ -89,21 +89,21 @@ export const getOfflineAvailableTables = async (req: Request) => {
 
         const dayName = daysOfWeek[day];
         const opening = await prisma.opening_day.findMany({
-            where: {
-                venueId,
-                day: dayName as Day,
-            },
-        });
+			where: {
+				venueId,
+				day: dayName as Opening_day_day,
+			},
+		});
 
         let notOpen = false;
         const dayBefore = daysOfWeek[day - 1];
         if (opening.length === 0) {
             const openBefore = await prisma.opening_day.findMany({
-                where: {
-                    venueId,
-                    day: dayBefore as Day,
-                },
-            });
+				where: {
+					venueId,
+					day: dayBefore as Opening_day_day,
+				},
+			});
             const closeBefore = openBefore[0].closing_hours;
             const closeBeforeString = closeBefore
                 .toISOString()
@@ -119,11 +119,11 @@ export const getOfflineAvailableTables = async (req: Request) => {
         let open, close;
         if (notOpen) {
             const openBefore = await prisma.opening_day.findMany({
-                where: {
-                    venueId,
-                    day: dayBefore as Day,
-                },
-            });
+				where: {
+					venueId,
+					day: dayBefore as Opening_day_day,
+				},
+			});
             open = openBefore[0].opening_hours;
             close = openBefore[0].closing_hours;
             TodayDate.setDate(TodayDate.getDate() - 1);
@@ -174,7 +174,7 @@ export const getOfflineAvailableTables = async (req: Request) => {
                 isUsing: true,
             },
             include: {
-                table_type: true,
+                Table_type_detail: true,
             },
         });
 
@@ -192,7 +192,7 @@ export const getOfflineAvailableTables = async (req: Request) => {
             .filter((table) => !reservedTableIds.includes(table.tableId))
             .map((table) => ({
                 tableId: table.tableId,
-                capacity: table.table_type.capacity,
+                capacity: table.Table_type_detail.capacity,
             }));
 
         if (
