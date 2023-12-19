@@ -224,7 +224,7 @@ export const getAllRestaurant = async (req: Request, res: Response) => {
         },
       },
       include: {
-        Location: true, // Include the location related to each venue
+        location: true, // Include the location related to each venue
       },
     });
 
@@ -351,7 +351,7 @@ export const getPaymentMethods = async (req: Request, res: Response) => {
     // Fetch payment methods for the user
     const paymentMethods = await feature4Client.payment_method.findMany({
       where: { userId: parseInt(userId) },
-      include: { User: true },
+      include: { user: true },
     });
 
     res.status(200).json({
