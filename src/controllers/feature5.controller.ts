@@ -2,7 +2,7 @@ import { PrismaClient } from "@prisma/client";
 import { Response, Request } from "express";
 import { adinfo } from "../interface/Auth/Advertisement";
 import { Redeem } from "../interface/Auth/Redeem.interface";
-import { Promotioninfo } from "../interface/Auth/Promotion";
+// import { Promotioninfo } from "../interface/Auth/Promotion";
 import authService from "../services/auth/auth.service";
 
 import { MulterFile } from "multer";
@@ -49,38 +49,44 @@ export const AdBusiness = async (req: Request, res: Response) => {
 
     const image_url =
       "/uploads/" + req.file.path.substring(req.file.path.lastIndexOf("/") + 1);
-
-    const formattedStartDate = new Date(start_date);
-    const formattedEndDate = new Date(end_date);
-    const newAdvertisement = await feature5Client.ad_business.create({
-      data: {
-        name,
-        description,
-        image_url,
-        start_date: formattedStartDate,
-        end_date: formattedEndDate,
-        cost: Number(cost),
-        customer_type,
-        target_group,
-        businessId,
-        isApprove,
-      },
-    });
+    //date is 2023-12-23 change it to date format
+    const formattedStartDate = new Date(start_date[0]);
+    const formattedEndDate = new Date(end_date[0]);
 
     if (!Array.isArray(Tags)) {
       return res.status(400).json({ error: "Tags must be an array" });
     }
 
-    for (const tag of Tags) {
-      await feature5Client.ad_tag.create({
+    try {
+      const newAdvertisement = await feature5Client.ad_business.create({
         data: {
-          adId: newAdvertisement.advertisementId,
-          tagId: tag,
+          name,
+          description,
+          image_url,
+          start_date: formattedStartDate,
+          end_date: formattedEndDate,
+          cost: Number(cost),
+          customer_type,
+          target_group,
+          businessId,
+          isApprove,
         },
       });
+      console.log(newAdvertisement);
+      for (const tag of Tags) {
+        await feature5Client.ad_tag.create({
+          data: {
+            adId: newAdvertisement.advertisementId,
+            tagId: tag,
+          },
+        });
+      }
+    } catch (e) {
+      console.error(e);
     }
+    return res.status(200);
 
-    res.json(newAdvertisement);
+    // res.json(newAdvertisement);
   } catch (err) {
     // console.log(err);
     // const error = err as Error;
@@ -335,6 +341,44 @@ export const VoucherApprove = async (req: Request, res: Response) => {
   }
 };
 
+export const VoucherEditbyId = async (req: Request, res: Response) => {
+  try {
+
+    const {
+      voucherId: voucherId,
+      voucherName: voucher_name,
+      startDate: start_date,
+      endDate: end_date,
+      description,
+      venueId,
+    } = req.body;
+
+    const voucher_image =
+      "/uploads/" + req.file.path.substring(req.file.path.lastIndexOf("/") + 1);
+
+    const isApprove = "In_progress";
+
+    const EditVoucher = await feature5Client.voucher.update({
+      where:{
+        voucherId: voucherId
+      },
+      data: {
+        voucher_name,
+        voucher_image,
+        start_date,
+        end_date,
+        description,
+        venueId,
+        isApprove,
+      },
+    });
+    res.json(EditVoucher);
+  } catch (err) {
+    const error = err as Error;
+    res.status(500).json({ error: error.message });
+  }
+};
+
 export const GetallVenue = async (req: Request, res: Response) => {
   const { businessId } = authService.decodeToken(req.cookies.authToken);
   try {
@@ -355,7 +399,6 @@ export const GetAllVoucherForUser = async (req: Request, res: Response) => {
       where: {
         isApprove: "Completed",
       },
-      
     });
     res.json(getvoucher);
   } catch (err) {
@@ -366,7 +409,7 @@ export const GetAllVoucherForUser = async (req: Request, res: Response) => {
 
 export const GetVoucherIncludeIsused = async (req: Request, res: Response) => {
   try {
-    const {id} = req.params
+    const { id } = req.params;
     const getvouchers = await feature5Client.voucher.findFirst({
       where: {
         voucherId: parseInt(id),
@@ -386,7 +429,6 @@ export const GetVoucherIncludeIsused = async (req: Request, res: Response) => {
     res.status(500).json({ error: error.message });
   }
 };
-
 
 export const GetAllVoucherForBusiness = async (req: Request, res: Response) => {
   try {
@@ -451,7 +493,14 @@ export const getVoucherById = async (req: Request, res: Response) => {
           },
         },
       });
-      res.json({ ...voucher, voucherType: "Discount" });
+      res.json({
+        ...voucher,
+        voucherType: "Discount",
+        Food_voucher: {
+          mininimun_spend: 0,
+          limitation: 0,
+        },
+      });
     }
     const Foodvoucher = await feature5Client.food_voucher.findFirst({
       where: {
@@ -474,7 +523,16 @@ export const getVoucherById = async (req: Request, res: Response) => {
           },
         },
       });
-      res.json({ ...voucher, voucherType: "Gift" });
+      res.json({
+        ...voucher,
+        voucherType: "Gift",
+        Discountvoucher: {
+          limitation: 0,
+          fix_discount: 0,
+          minimum_spend: 0,
+          percent_discount: 0,
+        },
+      });
     }
   } catch (e) {
     console.log(e);

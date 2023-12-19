@@ -40,7 +40,8 @@ import {
   GetExpireDate,
   GetCompletePromotion,
   GetRedeembyId,
-  GetVoucherIncludeIsused
+  GetVoucherIncludeIsused,
+  VoucherEditbyId
 
 } from "../controllers/feature5.controller";
 
@@ -67,7 +68,8 @@ feature5Router.patch("/VoucherApprove/:id", VoucherApprove); //for approve statu
 feature5Router.get("/AllVoucher", GetAllVoucherForBusiness); //for show all voucher are created
 feature5Router.get("/AllVoucherForUser/", GetAllVoucherForUser); //for show all voucher are created
 feature5Router.get("/AllVoucher/:id", getVoucherById); //for show voucher for updaten  
-feature5Router.get("/AllVoucherForUser/:id", GetVoucherIncludeIsused);
+feature5Router.get("/AllVoucherForUser/:id", GetVoucherIncludeIsused); 
+feature5Router.post("/VoucherEditbyId", VoucherEditbyId); 
 //MyReward
 feature5Router.get("/AllCollectedVoucher/",customVerifyCookie, getCollectedVoucher); //for show collected voucher for update
 feature5Router.post("/CollectVoucher/:id", multerConfig.single("file"),customVerifyCookie, CollectVoucher); //for collect voucher
@@ -93,7 +95,7 @@ feature5Router.get("/GetCompletePromotion", GetCompletePromotion); //for all com
 
 //Redeem
 feature5Router.get("/GetRedeem/", customVerifyCookie,  GetRedeem); //for show redeem of customer depend on their member tier
-feature5Router.post("/createRedeem", multerConfig.single("image"), CreateRedeem); // for create promotion
+feature5Router.post("/createRedeem", multerConfig.single("file"), CreateRedeem); // for create promotion
 feature5Router.get("/GetRedeembyId/:id", GetRedeembyId); 
 
 export default feature5Router;
