@@ -6,13 +6,11 @@ export enum screenType{
     Kids
 }
 
-export interface screen{
+export interface Screen{
     screenId: number;
     theaterId: number;
     capacity: number;
     screenType: screenType;
     screenNumber: number;
     price: number;
-    theater: string;
-    deletedAt: Date;
 }

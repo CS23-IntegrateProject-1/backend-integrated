@@ -1,4 +1,4 @@
-export interface seat{
+export interface Seat{
     seatId: number;
     screenId: number;
     seatTypeId: number;

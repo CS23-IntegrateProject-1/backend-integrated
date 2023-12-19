@@ -1,7 +1,12 @@
-import { Films_genre, PrismaClient } from "@prisma/client";
+import { Films_genre, PrismaClient, Screens_screen_type, Payments_payment_method, Payments_payment_status  } from "@prisma/client";
 import { Axios } from "../../configs/MajorAxiosInstance";
 import { Film } from "../../interface/movie/film.interface";
-// import { Theater } from "../../interface/movie/theater.interface";
+import { Theater } from "../../interface/movie/theater.interface";
+import { Screen } from "../../interface/movie/screen.interface";
+import { Show } from "../../interface/movie/show.interface";
+import { SeatType } from "../../interface/movie/seatType.interface";
+import { Seat } from "../../interface/movie/seat.interface";
+import { Payment } from "../../interface/movie/payment.interface";
 // import theatersService from "./theaters.service";
 
 class MajorAPIService {
@@ -55,241 +60,257 @@ class MajorAPIService {
 //  
     async getScreenFromMajor() {
         try {
-        const response = await Axios.get("/screen/getScreens");
+        const response = await Axios.get("/screen/getAllScreens");
         return response.data;
         } catch (e: any) {
         console.log(e);
         }
     }
 
-//     async addNewScreens(addQueue: Screen[]) {
-//         try {
-//         for (const screen of addQueue) {
-//             await this.prisma.screens.create({
-//             data: {
-//                 screenId: screen.screenId,
-//                 screen_type: screen.screen_type,
-//                 theaterId: screen.theaterId,
-//             },
-//             });
-//         }
-//         } catch (e: any) {
-//         console.log(e);
-//         }
-//     }
+    async addNewScreens(addQueue: Screen[]) {
+        try {
+        for (const screen of addQueue) {
+          const screenType = screen.screenType;
+            await this.prisma.screens.create({
+            data: {
+                screenId: screen.screenId,
+                theaterId: screen.theaterId,
+                capacity: screen.capacity,
+                screen_type: Screens_screen_type[screenType],
+                screen_no: screen.screenNumber,
+                price: screen.price,
+            },
+            });
+        }
+        } catch (e: any) {
+        console.log(e);
+        }
+    }
 
-//     async deleteOutdatedScreens(deleteQueue: Screen[]) {
-//         try {
-//         for (const screen of deleteQueue) {
-//             await this.prisma.screens.delete({
-//             where: {
-//                 screenId: screen.screenId,
-//             },
-//             });
-//         }
-//         } catch (e: any) {
-//         console.log(e);
-//         }
-//     }
-// //
-//   async getTheatersFromMajor() {
-//     try {
-//       const response = await Axios.get("/theater/getTheaters");
-//       return response.data;
-//     } catch (e: any) {
-//       console.log(e);
-//     }
-//   }
+    async deleteOutdatedScreens(deleteQueue: Screen[]) {
+        try {
+        for (const screen of deleteQueue) {
+            await this.prisma.screens.delete({
+            where: {
+                screenId: screen.screenId,
+            },
+            });
+        }
+        } catch (e: any) {
+        console.log(e);
+        }
+    }
+//
+  async getTheatersFromMajor() {
+    try {
+      const response = await Axios.get("/theater/getTheaters");
+      return response.data;
+    } catch (e: any) {
+      console.log(e);
+    }
+  }
 
-//   async addNewTheaters(addQueue: Theater[]) {
-//     try {
-//       for (const theater of addQueue) {
-//         await this.prisma.theaters.create({
-//           data: {
-//             theaterId: theater.theaterId,
-//             name: theater.name,
-//             address: theater.address,
-//             phone_num: theater.phone_num,
-//             promptpay_num: theater.promptpay_num,
-//             latitude: theater.latitude,
-//             longitude: theater.longitude,
-//           },
-//         });
-//       }
-//     } catch (e: any) {
-//       console.log(e);
-//     }
-//   }
+  async addNewTheaters(addQueue: Theater[]) {
+    try {
+      for (const theater of addQueue) {
+        await this.prisma.theaters.create({
+          data: {
+            theaterId: theater.theaterId,
+            name: theater.name,
+            address: theater.address,
+            phone_num: theater.phone_num,
+            promptpay_num: theater.promptpay_num,
+            latitude: theater.latitude,
+            longitude: theater.longitude,
+          },
+        });
+      }
+    } catch (e: any) {
+      console.log(e);
+    }
+  }
 
-//   async deleteOutdatedTheaters(deleteQueue: Theater[]) {
-//     try {
-//       for (const theater of deleteQueue) {
-//         await this.prisma.theaters.delete({
-//           where: {
-//             theaterId: theater.theaterId,
-//           },
-//         });
-//       }
-//     } catch (e: any) {
-//       console.log(e);
-//     }
-//   }
-// //
-//     async getShowFromMajor() {
-//         try {
-//         const response = await Axios.get("/show/getShows");
-//         return response.data;
-//         } catch (e: any) {
-//         console.log(e);
-//         }
-//     }
+  async deleteOutdatedTheaters(deleteQueue: Theater[]) {
+    try {
+      for (const theater of deleteQueue) {
+        await this.prisma.theaters.delete({
+          where: {
+            theaterId: theater.theaterId,
+          },
+        });
+      }
+    } catch (e: any) {
+      console.log(e);
+    }
+  }
+//
+    async getShowFromMajor() {
+        try {
+        const response = await Axios.get("/show/getAllShows");
+        return response.data;
+        } catch (e: any) {
+        console.log(e);
+        }
+    }
 
-//     async addNewShows(addQueue: Show[]) {
-//         try {
-//         for (const show of addQueue) {
-//             await this.prisma.shows.create({
-//             data: {
-//                 showId: show.showId,
-//                 date: show.date,
-//                 time: show.time,
-//                 filmId: show.filmId,
-//                 screenId: show.screenId,
-//             },
-//             });
-//         }
-//         } catch (e: any) {
-//         console.log(e);
-//         }
-//     }
+    async addNewShows(addQueue: Show[]) {
+        try {
+        for (const show of addQueue) {
+            await this.prisma.shows.create({
+            data: {
+                showId: show.showId,
+                screenId: show.screenId,
+                filmId: show.filmId,
+                date: show.date,
+                start_time: show.start_time,
+                end_time: show.end_time,
+                price: show.price,
+            },
+            });
+        }
+        } catch (e: any) {
+        console.log(e);
+        }
+    }
 
-//     async deleteOutdatedShows(deleteQueue: Show[]) {
-//         try {
-//         for (const show of deleteQueue) {
-//             await this.prisma.shows.delete({
-//             where: {
-//                 showId: show.showId,
-//             },
-//             });
-//         }
-//         } catch (e: any) {
-//         console.log(e);
-//         }
-//     }
-// //
-//   async getSeatTypeFromMajor() {
-//     try {
-//       const response = await Axios.get("/seatType/getSeatTypes");
-//       return response.data;
-//     } catch (e: any) {
-//       console.log(e);
-//     }
-//   }
+    async deleteOutdatedShows(deleteQueue: Show[]) {
+        try {
+        for (const show of deleteQueue) {
+            await this.prisma.shows.delete({
+            where: {
+                showId: show.showId,
+            },
+            });
+        }
+        } catch (e: any) {
+        console.log(e);
+        }
+    }
+////////////////////////////////////
+  async getSeatTypeFromMajor() {
+    try {
+      const response = await Axios.get("/seatType/getSeatTypes");
+      return response.data;
+    } catch (e: any) {
+      console.log(e);
+    }
+  }
 
-//   async addNewSeatTypes(addQueue: SeatType[]) {
-//     try {
-//       for (const seatType of addQueue) {
-//         await this.prisma.seatTypes.create({
-//           data: {
-//             seatTypeId: seatType.seatTypeId,
-//             seat_type: seatType.seat_type,
-//           },
-//         });
-//       }
-//     } catch (e: any) {
-//       console.log(e);
-//     }
-//   }
+  async addNewSeatTypes(addQueue: SeatType[]) {
+    try {
+      for (const seatType of addQueue) {
+        await this.prisma.seat_types.create({
+          data: {
+            seatTypeId: seatType.seatTypeId,
+            type_name: seatType.typeName,
+            description: seatType.description,
+            price_modifier: seatType.priceModifier,
+          },
+        });
+      }
+    } catch (e: any) {
+      console.log(e);
+    }
+  }
 
-//   async deleteOutdatedSeatTypes(deleteQueue: SeatType[]) {
-//     try {
-//       for (const seatType of deleteQueue) {
-//         await this.prisma.seatTypes.delete({
-//           where: {
-//             seatTypeId: seatType.seatTypeId,
-//           },
-//         });
-//       }
-//     } catch (e: any) {
-//       console.log(e);
-//     }
-//   }
-// // 
-//   async getSeatFromMajor() {
-//     try {
-//       const response = await Axios.get("/seat/getSeats");
-//       return response.data;
-//     } catch (e: any) {
-//       console.log(e);
-//     }
-//   }
+  async deleteOutdatedSeatTypes(deleteQueue: SeatType[]) {
+    try {
+      for (const seatType of deleteQueue) {
+        await this.prisma.seat_types.delete({
+          where: {
+            seatTypeId: seatType.seatTypeId,
+          },
+        });
+      }
+    } catch (e: any) {
+      console.log(e);
+    }
+  }
+// 
+  async getSeatFromMajor() {
+    try {
+      const response = await Axios.get("/seat/getAllSeats");
+      return response.data;
+    } catch (e: any) {
+      console.log(e);
+    }
+  }
 
-//   async addNewSeats(addQueue: Seat[]) {
-//     try {
-//       for (const seat of addQueue) {
-//         await this.prisma.seats.create({
-//           data: {
-//             seatId: seat.seatId,
-//             seat_type: seat.seat_type,
-//             screenId: seat.screenId,
-//           },
-//         });
-//       }
-//     } catch (e: any) {
-//       console.log(e);
-//     }
-//   }
+  async addNewSeats(addQueue: Seat[]) {
+    try {
+      for (const seat of addQueue) {
+        await this.prisma.seats.create({
+          data: {
+            seatId: seat.seatId,
+            screenId: seat.screenId,
+            seatTypeId: seat.seatTypeId,
+            seat_row: seat.seatRow,
+            seat_no: seat.seatNumber,
+          },
+        });
+      }
+    } catch (e: any) {
+      console.log(e);
+    }
+  }
 
-//   async deleteOutdatedSeats(deleteQueue: Seat[]) {
-//     try {
-//       for (const seat of deleteQueue) {
-//         await this.prisma.seats.delete({
-//           where: {
-//             seatId: seat.seatId,
-//           },
-//         });
-//       }
-//     } catch (e: any) {
-//       console.log(e);
-//     }
-//   }
-// //
-//   async getPaymentFromMajor() {
-//     try {
-//       const response = await Axios.get("/payment/getPayments");
-//       return response.data;
-//     } catch (e: any) {
-//       console.log(e);
-//     }
-//   }
+  async deleteOutdatedSeats(deleteQueue: Seat[]) {
+    try {
+      for (const seat of deleteQueue) {
+        await this.prisma.seats.delete({
+          where: {
+            seatId: seat.seatId,
+          },
+        });
+      }
+    } catch (e: any) {
+      console.log(e);
+    }
+  }
+//
+  async getPaymentFromMajor() {
+    try {
+      const response = await Axios.get("/payment/getAllPayments");
+      return response.data;
+    } catch (e: any) {
+      console.log(e);
+    }
+  }
 
-//   async addNewPayments(addQueue: Payment[]) {
-//     try {
-//       for (const payment of addQueue) {
-//         await this.prisma.payments.create({
-//           data: {
-//             paymentId: payment.paymentId,
-//             payment_type: payment.payment_type,
-//           },
-//         });
-//       }
-//     } catch (e: any) {
-//       console.log(e);
-//     }
-//   }
+  async addNewPayments(addQueue: Payment[]) {
+    try {
+      for (const payment of addQueue) {
+        const payment_method = payment.paymentMethod;
+        const payment_status = payment.paymentStatus;
+        await this.prisma.payments.create({
+          data: {
+            paymentId: payment.paymentId,
+            reservationId: payment.reservationId,
+            payment_date: payment.paymentDate,
+            payment_amount: payment.paymentAmount,
+            payment_method: Payments_payment_method[payment_method],
+            payment_status: Payments_payment_status[payment_status],
+          },
+        });
+      }
+    } catch (e: any) {
+      console.log(e);
+    }
+  }
 
-//   async deleteOutdatedPayments(deleteQueue: Payment[]) {
-//     try {
-//       for (const payment of deleteQueue) {
-//         await this.prisma.payments.delete({
-//           where: {
-//             paymentId: payment.paymentId,
-//           },
-//         });
-//       }
-//     } catch (e: any) {
-//       console.log(e);
-//     }
-//   }
+  async deleteOutdatedPayments(deleteQueue: Payment[]) {
+    try {
+      for (const payment of deleteQueue) {
+        await this.prisma.payments.delete({
+          where: {
+            paymentId: payment.paymentId,
+          },
+        });
+      }
+    } catch (e: any) {
+      console.log(e);
+    }
+  }
   
 }
 

@@ -9,7 +9,7 @@ export enum paymentStatus{
     Cancled
 }
 
-export interface payment{
+export interface Payment{
     paymentId: number;
     reservationId: number;
     paymentDate: Date;

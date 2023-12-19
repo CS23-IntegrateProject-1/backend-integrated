@@ -1,9 +1,9 @@
-export interface show{
+export interface Show{
     showId: number;
     screenId: number;
     filmId: number;
     date: Date;
-    showTime: Date;
-    endTime: Date;
+    start_time: Date;
+    end_time: Date;
     price: number;    
 }
