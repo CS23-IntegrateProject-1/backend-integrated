@@ -30,12 +30,16 @@ class reservationService {
         userId: true,
         Shows: {
           select: {
-            price: true,
-          },
+            Screens: {
+              select: {
+                price: true,
+              }
+            }
+          }
         },
       },
     });
-    const price = Number(priceData?.Shows.price) || 0;
+    const price = Number(priceData?.Shows.Screens.price) || 0;
     const totalPrice = priceModifier * price;
 
     return totalPrice;
