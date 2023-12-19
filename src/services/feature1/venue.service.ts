@@ -16,10 +16,19 @@ export interface IVenueService {
   getVenue(businessId: number): Promise<VenueShowDBResponse>;
 
   updateOpeningHours(businessId: number, data: OpeningHourUpdateRequest);
+
+  updatePromptPay(businessId: number, promptPayNumber: number);
 }
 
 class VenueService implements IVenueService {
   constructor(readonly repository: IVenueRepository) {}
+
+  async updatePromptPay(businessId: number, promptPayNumber: number) {
+    await this.repository.updatePromptPayByBusinessId(
+      businessId,
+      promptPayNumber,
+    );
+  }
 
   async getVenue(businessId: number): Promise<VenueShowDBResponse> {
     return this.repository.getVenueByBusinessId(businessId);

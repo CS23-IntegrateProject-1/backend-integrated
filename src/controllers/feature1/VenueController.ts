@@ -13,6 +13,7 @@ export interface IVenueController {
   update: (req: Request, res: Response) => unknown;
   show: (req: Request, res: Response) => unknown;
   updateOpeningHours: (req: Request, res: Response) => unknown;
+  updatePromptPay: (req: Request, res: Response) => unknown;
 }
 
 const VenueUpdatePayload = z.object({
@@ -38,10 +39,35 @@ const OpeningHourPayload: z.ZodType<DayToString> = z.object({
   ),
 }) as z.ZodTypeAny;
 
+const PromptPayPayload = z.object({
+  promptpay_number: z.number(),
+});
+
 const getBusinessId = compose(Number, path(["params", "businessId"]));
 
 class VenueController implements IVenueController {
   private service: IVenueService = new VenueService(new VenueRepository());
+
+  async updatePromptPay(req: Request, res: Response) {
+    const businessId = getBusinessId(req);
+    const promptPay = req.body;
+    const result = await PromptPayPayload.safeParseAsync(promptPay);
+
+    if (!result.success) {
+      return res.status(400).json(makeErrorResponse("Invalid requeset"));
+    }
+
+    try {
+      await this.service.updatePromptPay(
+        businessId,
+        promptPay.promptpay_number,
+      );
+
+      return res.status(200).send();
+    } catch (e) {
+      return res.status(500).json(makeErrorResponse("Internal Server Error"));
+    }
+  }
 
   async updateOpeningHours(req: Request, res: Response) {
     const businessId = getBusinessId(req);

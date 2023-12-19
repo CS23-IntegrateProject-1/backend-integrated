@@ -13,6 +13,8 @@ export interface IVenueRepository {
   getVenueByBusinessId(businessId: number): Promise<VenueShowDBResponse>;
 
   updateVenueByBusinessId(businessId: number, data: VenueUpdateRequest);
+
+  updatePromptPayByBusinessId(businessId: number, promptPayNumber: number);
 }
 
 function difference<T>(a: Set<T>, b: Set<T>): Set<T> {
@@ -20,6 +22,26 @@ function difference<T>(a: Set<T>, b: Set<T>): Set<T> {
 }
 
 class VenueRepository implements IVenueRepository {
+  async updatePromptPayByBusinessId(
+    businessId: number,
+    promptPayNumber: number,
+  ) {
+    const venueId = await this.getVenueId(businessId);
+
+    return await prismaClient.venue_promptpay.upsert({
+      where: {
+        venueId,
+      },
+      create: {
+        venueId,
+        promptpay_no: promptPayNumber,
+      },
+      update: {
+        promptpay_no: promptPayNumber,
+      },
+    });
+  }
+
   async getOpeningHoursByVenueId(venueId: number) {
     return prismaClient.opening_day.findMany({
       where: {
