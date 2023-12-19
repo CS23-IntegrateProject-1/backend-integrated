@@ -350,7 +350,7 @@ export const getAllMessage = async (req: Request, res: Response) => {
       },
       select: {
         userId: true,
-        user:{
+        User:{
           select:{
             username:true,
             fname:true,
@@ -395,7 +395,7 @@ export const getGroupChatDetail = async (req: Request, res: Response) => {
       },
       select: {
         memberId: true,
-        member: {
+        User: {
           select: {
             username: true,
             userId: true,
@@ -456,7 +456,7 @@ export const getPrivateChatList = async (req: any, res: Response) => {
           },
           select: {
             memberId: true,
-            member: {
+            User: {
               select: {
                 username: true,
                 userId: true,
@@ -581,7 +581,7 @@ export const displayAllQuestionsWrtName = async (
         question: true,
         venueQuestionId: true,
         venueId: true,
-        venue: {
+        Venue: {
           // Include the Venue relation
           select: {
             name: true, // Select the name field from the Venue table
