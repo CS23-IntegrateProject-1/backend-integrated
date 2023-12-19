@@ -40,6 +40,20 @@ class reservationService {
 
     return totalPrice;
   }
+
+  async getReservationById(id: number) {
+    const prisma = new PrismaClient();
+    const data = await prisma.reservation_logs.findUnique({
+      where: { reservationId: id },
+      select: {
+        reservationId: true,
+        showId: true,
+        seatId: true,
+        userId: true, 
+      },
+    });
+    return data;
+  }
 }
 
 export default new reservationService();

@@ -133,3 +133,9 @@ export const getTotalPriceByReservationId = async (req: Request, res: Response) 
     const data = await reservationService.getTotalPriceByReservationId(id);
     res.json(data);
 }
+
+export const getReservationById = async (req: Request, res: Response) => {
+    const id = req.body.id;
+    const data = await reservationService.getReservationById(id);
+    res.json(data);
+}

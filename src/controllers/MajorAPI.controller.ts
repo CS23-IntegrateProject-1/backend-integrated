@@ -117,6 +117,15 @@ class MajorAPIController {
         }
     }
 
+    async postReservationToMajor(req: Request, res: Response) {
+        try {
+        const response = await majorAPIService.postReservationToMajor(req.body);
+        res.status(200).send(response);
+        } catch (e: any) {
+            console.log(e);
+        }
+    }
+
 }
 
 export default new MajorAPIController();
