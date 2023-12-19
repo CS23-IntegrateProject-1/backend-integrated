@@ -203,12 +203,15 @@ export const Voucher = async (req: Request, res: Response) => {
     // const newVch: voucherinfo = req.body;
     const {
       voucherName: voucher_name,
-      startDate: start_date,
-      endDate: end_date,
       description,
-      point_use,
       voucherType: Vouchertype,
     } = req.body;
+
+    const point_use = parseInt(req.body.point_use);
+
+    // const { name, description, start_date, end_date, discount_price } = newAd;
+    const start_date = new Date(req.body.start_date);
+    const end_date = new Date(req.body.end_date);
 
     const voucher_image =
       "/uploads/" + req.file.path.substring(req.file.path.lastIndexOf("/") + 1);
@@ -254,12 +257,10 @@ export const Voucher = async (req: Request, res: Response) => {
     console.log(Vouchertype + "----");
 
     if (Vouchertype == "Discount") {
-      const {
-        fixDiscount: fix_discount,
-        percentage: percent_discount,
-        limitation: limitation,
-        minimum: minimum_spend,
-      } = req.body;
+      const limitation = parseInt(req.body.limitation);
+      const fix_discount = parseInt(req.body.fix_discount);
+      const percent_discount = parseInt(req.body.percent_discount);
+      const minimum_spend = parseInt(req.body.minimum_spend);
 
       await feature5Client.discount_voucher.create({
         data: {
@@ -273,7 +274,9 @@ export const Voucher = async (req: Request, res: Response) => {
     }
 
     if (Vouchertype == "Gift") {
-      const { limitation: limitation, minimum: minimum_spend } = req.body;
+      // const { limitation: limitation, minimum: minimum_spend } = req.body;
+      const minimum_spend = parseInt(req.body.minimum_spend_gift);
+      const limitation = parseInt(req.body.limitation);
 
       await feature5Client.food_voucher.create({
         data: {
