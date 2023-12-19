@@ -1,10 +1,10 @@
 import { prismaClient } from "../../controllers/feature1.controller";
 import {
+  Day,
   OpeningHourUpdateRequest,
   VenueShowDBResponse,
-  VenueUpdateRequest,
-  Day,
   VenueUpdateDBResponse,
+  VenueUpdateRequest,
 } from "../../controllers/feature1/models";
 
 export interface IVenueRepository {
@@ -15,22 +15,65 @@ export interface IVenueRepository {
   updateVenueByBusinessId(businessId: number, data: VenueUpdateRequest);
 }
 
+function difference<T>(a: Set<T>, b: Set<T>): Set<T> {
+  return new Set([...a].filter((x) => !b.has(x)));
+}
+
 class VenueRepository implements IVenueRepository {
+  async getOpeningHoursByVenueId(venueId: number) {
+    return prismaClient.opening_day.findMany({
+      where: {
+        venueId,
+      },
+    });
+  }
+
   async updateOpeningHours(businessId: number, data: OpeningHourUpdateRequest) {
     const venueId = await this.getVenueId(businessId);
+    const openingHours = await this.getOpeningHoursByVenueId(venueId);
 
-    for (const elem in data) {
-      await prismaClient.opening_day.updateMany({
-        where: {
-          venueId,
-          day: elem as Day,
-        },
-        data: {
-          opening_hours: `0001-01-01T${data[elem].open}Z`,
-          closing_hours: `0001-01-01T${data[elem].close}Z`,
-        },
-      });
+    const allDays = new Set([
+      "Mon",
+      "Tue",
+      "Wed",
+      "Wed",
+      "Thu",
+      "Fri",
+      "Sat",
+      "Sun",
+    ]);
+    const existingDays = new Set();
+
+    for (let i = 0; i < openingHours.length; ++i) {
+      existingDays.add(openingHours[i].day);
     }
+
+    const daysToBeCreated = difference(allDays, existingDays);
+
+    Promise.all([
+      ...Array.from(existingDays).map(async (day) => {
+        return await prismaClient.opening_day.updateMany({
+          where: {
+            venueId,
+            day: day as Day,
+          },
+          data: {
+            opening_hours: `0001-01-01T${data[day as Day].open}Z`,
+            closing_hours: `0001-01-01T${data[day as Day].close}Z`,
+          },
+        });
+      }),
+      ...Array.from(daysToBeCreated).map(async (day) => {
+        return await prismaClient.opening_day.create({
+          data: {
+            opening_hours: `0001-01-01T${data[day as Day].open}Z`,
+            closing_hours: `0001-01-01T${data[day as Day].close}Z`,
+            venueId,
+            day: day as Day,
+          },
+        });
+      }),
+    ]);
   }
 
   async getVenueByBusinessId(businessId: number): Promise<VenueShowDBResponse> {
