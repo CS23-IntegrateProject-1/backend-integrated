@@ -1,6 +1,31 @@
 import { PrismaClient } from "@prisma/client";
 import { Response, Request } from "express";
+import authService from "../services/auth/auth.service";
 const feature4Client = new PrismaClient();
+
+export const getUserId = async (req: any, res: Response) => {
+  try {
+        const token = req.cookies.authToken;
+        if (!token) {
+            return res.status(401).json({ error: "No auth token" });
+        }
+        const decodedToken = authService.decodeToken(token);
+        const { userId } = decodedToken;
+
+        if (decodedToken.userType != "user") {
+            return res
+                .status(401)
+                .json({ error: "This user is not customer user" });
+        }
+
+        res.status(200).json({ userId: userId });
+  } catch (error) {
+    console.error("Error Get UserId:", error);
+    res
+      .status(500)
+      .json({ error: "An error occurred while saving location data" });
+  }
+}
 
 //store location data in the database
 export const mapsLocation = async (req: Request, res: Response) => {
@@ -73,14 +98,27 @@ export const deleteLocation = async (req: Request, res: Response) => {
 //========================================================================store user saved location
 export const saveUserLocation = async (req: Request, res: Response) => {
   try {
-    const { userId, name, address, province, district, subdistrict, postcode } =
+    const { name, address, province, district, subdistrict, postcode } =
       req.body;
+
+      const token = req.cookies.authToken;
+      if (!token) {
+          return res.status(401).json({ error: "No auth token" });
+      }
+      const decodedToken = authService.decodeToken(token);
+      const { userId } = decodedToken;
+
+      if (decodedToken.userType != "user") {
+          return res
+              .status(401)
+              .json({ error: "This user is not customer user" });
+      }
 
     // Concatenate the address components into a single string
 
     const savedLocation = await feature4Client.userSaved_location.create({
       data: {
-        userId: parseInt(userId),
+        userId: userId,
         name: name,
         address: address,
         province: province,
@@ -121,12 +159,26 @@ export const GetAllsaveUserLocation = async (req: Request, res: Response) => {
 
 export const GetUserLocationById = async (req: Request, res: Response) => {
   try {
-    const { savedLocId } = req.params; // Use params to get the savedLocId from the URL
-    const parsedSavedLocId = parseInt(savedLocId, 10);
+    const token = req.cookies.authToken;
+      if (!token) {
+          return res.status(401).json({ error: "No auth token" });
+      }
+      const decodedToken = authService.decodeToken(token);
+      const { userId } = decodedToken;
 
-    const savedLocation = await feature4Client.userSaved_location.findUnique({
+      if (decodedToken.userType != "user") {
+          return res
+              .status(401)
+              .json({ error: "This user is not customer user" });
+      }
+
+    // const { savedLocId } = req.params; // Use params to get the savedLocId from the URL
+    // const parsedSavedLocId = parseInt(savedLocId, 10);
+
+    const savedLocation = await feature4Client.userSaved_location.findMany({
       where: {
-        savedLocId: parsedSavedLocId,
+        userId: userId,
+        // savedLocId: parsedSavedLocId,
       },
     });
 
@@ -144,9 +196,20 @@ export const GetUserLocationById = async (req: Request, res: Response) => {
 
 export const updateSavedLocation = async (req: Request, res: Response) => {
   try {
+    const token = req.cookies.authToken;
+      if (!token) {
+          return res.status(401).json({ error: "No auth token" });
+      }
+      const decodedToken = authService.decodeToken(token);
+      const { userId } = decodedToken;
+
+      if (decodedToken.userType != "user") {
+          return res
+              .status(401)
+              .json({ error: "This user is not customer user" });
+      }
     const {
       savedLocId,
-      userId,
       name,
       address,
       province,
@@ -184,7 +247,19 @@ export const updateSavedLocation = async (req: Request, res: Response) => {
 
 export const deleteSavedLocation = async (req: Request, res: Response) => {
   try {
-    const { savedLocId, userId } = req.params;
+    const token = req.cookies.authToken;
+      if (!token) {
+          return res.status(401).json({ error: "No auth token" });
+      }
+      const decodedToken = authService.decodeToken(token);
+      const { userId } = decodedToken;
+
+      if (decodedToken.userType != "user") {
+          return res
+              .status(401)
+              .json({ error: "This user is not customer user" });
+      }
+    const { savedLocId} = req.params;
 
     await feature4Client.userSaved_location.delete({
       where: {
@@ -224,7 +299,7 @@ export const getAllRestaurant = async (req: Request, res: Response) => {
         },
       },
       include: {
-        location: true, // Include the location related to each venue
+        Location: true, // Include the location related to each venue
       },
     });
 
@@ -250,7 +325,7 @@ export const getAllBars = async (req: Request, res: Response) => {
         },
       },
       include: {
-        location: true, // Include the location related to each venue
+        Location: true, // Include the location related to each venue
       },
     });
 
@@ -351,7 +426,7 @@ export const getPaymentMethods = async (req: Request, res: Response) => {
     // Fetch payment methods for the user
     const paymentMethods = await feature4Client.payment_method.findMany({
       where: { userId: parseInt(userId) },
-      include: { user: true },
+      include: { User: true },
     });
 
     res.status(200).json({
