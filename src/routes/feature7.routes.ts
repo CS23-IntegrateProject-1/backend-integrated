@@ -117,7 +117,7 @@ feature7Router.delete("/deleteMenu/:menuId",deleteMenu);
 //delete set
 feature7Router.delete("/deleteSet/:setId",deleteSet);
 //delete menu item from set
-feature7Router.delete("/deleteMenuItemFromSet/:setId/:menuId",deleteMenuItemFromSet);
+feature7Router.post("/deleteMenuItemFromSet/:setId/",deleteMenuItemFromSet);
 //cancel delete menu item from set
 feature7Router.post("/cancelDeleteMenuItemFromSet/",cancelDeleteMenuItemFromSet);
 //edit set

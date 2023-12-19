@@ -1360,7 +1360,7 @@ export const deleteSet = async (req: Request, res: Response) => {
 //delete menu item from set
 export const deleteMenuItemFromSet = async (req: Request, res: Response) => {
     try {
-        const menuId = req.params.menuId;
+        const menuId = req.body.menuId;
         const setId = req.params.setId;
         const setItems = await feature7Client.set_items.findFirst({
             where: {
@@ -1368,18 +1368,29 @@ export const deleteMenuItemFromSet = async (req: Request, res: Response) => {
                 menuId: parseInt(menuId),
             },
         });
-        const toDelete = await feature7Client.set_items.delete({
-            where: {
-                setItemId: setItems?.setItemId,
-            },
-        });
-        const editSetCacheString = req.cookies.setCache || '[]';
-        const editSetCache = JSON.parse(editSetCacheString);
-        editSetCache.push({
-            setId: parseInt(setId),
-            menuId: parseInt(menuId),
-        });
-        return res.status(200).json(toDelete);
+        if(setItems !== null){
+            const toDelete = await feature7Client.set_items.delete({
+                where: {
+                    setItemId: setItems?.setItemId,
+                },
+            });
+            const editSetCacheString = req.cookies.setCache || '[]';
+            const editSetCache = JSON.parse(editSetCacheString);
+            editSetCache.push({
+                setId: parseInt(setId),
+                menuId: parseInt(menuId),
+            });
+            return res.status(200).json(toDelete);
+        }
+        else{
+        const selectedMenuItem = req.cookies.setItems || [];
+        console.log(selectedMenuItem);
+        const selectedMenuItems = JSON.parse(selectedMenuItem);
+        const updated = selectedMenuItems.filter(item => item.menuId !== parseInt(menuId) && item.setId !== parseInt(setId));
+        res.cookie('setItems', JSON.stringify(updated));
+        res.status(200).json({ success: true, message: 'Deleted' });
+        }
+       
     } catch (e) {
         console.error('Error deleting menu item from set:', e);
         return res.status(500).json({ error: 'Internal Server Error' });
