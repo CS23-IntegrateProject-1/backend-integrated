@@ -1,4 +1,3 @@
-import { JsonWebTokenError } from "jsonwebtoken";
 import { Request, Response } from "express";
 
 import GroupRepository from "../../services/feature1/group.repository";
@@ -9,10 +8,14 @@ import { makeErrorResponse } from "./models/payment_method.model";
 import { makeGroupCreateWebResponse } from "./models/group.model";
 import { prismaClient } from "../feature1.controller";
 
+export interface MulterRequest extends Request {
+  file: any;
+}
+
 export interface IGroupController {
   index(req: Request, res: Response): unknown;
 
-  create(req: Request, res: Response): unknown;
+  create(req: MulterRequest, res: Response): unknown;
 }
 
 export default class GroupController implements IGroupController {
@@ -21,15 +24,15 @@ export default class GroupController implements IGroupController {
   async create(req: Request, res: Response) {
     try {
       const { group_name: groupName, members } = req.body;
-      let fileName: string|null;
 
-      if (req['file']) {
-        fileName = req['file'].filename;
-      } else {
-        fileName = null;
-      }
+      const filename = (req as MulterRequest)?.file?.filename ?? null;
 
-      const groups = await this.service.createGroup(Number(req.params.userId), groupName, members.map((m: string) => Number(m)), fileName);
+      const groups = await this.service.createGroup(
+        Number(req.params.userId),
+        groupName,
+        members.map((m: string) => Number(m)),
+        filename,
+      );
 
       const webResponse = makeGroupCreateWebResponse(groups);
 
@@ -55,13 +58,13 @@ export default class GroupController implements IGroupController {
         include: {
           Group_user: {
             include: {
-              member: {
+              User: {
                 select: {
                   userId: true,
                   username: true,
                   profile_picture: true,
-                },
-              },
+                }
+              }
             },
           },
         },
@@ -76,18 +79,14 @@ export default class GroupController implements IGroupController {
         group_name: result.group_name,
         group_avatar: result.group_profile,
         members: result.Group_user.map((user) => ({
-          user_id: user.member.userId,
-          username: user.member.username,
-          avatar: user.member.profile_picture,
+          user_id: user.User.userId,
+          username: user.User.username,
+          avatar: user.User.profile_picture,
         })),
       };
 
       return res.status(200).send(response);
     } catch (e) {
-      if (e instanceof JsonWebTokenError) {
-        return res.status(401).json(makeErrorResponse("Invalid token"));
-      }
-
       return res
         .status(500)
         .json(makeErrorResponse("Unknown Error Encountered"));
@@ -102,24 +101,20 @@ export default class GroupController implements IGroupController {
           memberId: Number(req.params.userId),
         },
         include: {
-          group: true,
+          Group: true,
         },
       });
 
       const response = result.map((r) => {
         return {
-          group_id: r.group.groupId,
-          group_name: r.group.group_name,
-          group_avatar: r.group.group_profile,
+          group_id: r.Group.groupId,
+          group_name: r.Group.group_name,
+          group_avatar: r.Group.group_profile,
         };
       });
 
       return res.status(200).json(response);
     } catch (e) {
-      if (e instanceof JsonWebTokenError) {
-        return res.status(401).json(makeErrorResponse("Invalid token"));
-      }
-
       return res
         .status(500)
         .json(makeErrorResponse("Unknown Error Encountered"));

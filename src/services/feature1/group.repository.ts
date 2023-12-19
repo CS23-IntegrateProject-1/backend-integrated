@@ -1,15 +1,13 @@
 import { Prisma, PrismaClient } from "@prisma/client";
 import { DefaultArgs } from "@prisma/client/runtime/library";
-import {
-  GroupCreateDBResponse,
-} from "../../controllers/feature1/models/group.model";
+import { GroupCreateDBResponse } from "../../controllers/feature1/models/group.model";
 
 export interface IGroupRepository {
   createGroup(
     userId: number,
     groupName: string,
     members: Array<number>,
-    filename: string|null,
+    filename: string | null,
   ): Promise<GroupCreateDBResponse>;
 }
 
@@ -24,7 +22,12 @@ export default class GroupRepository {
     this.prismaClient = new PrismaClient();
   }
 
-  async createGroup(userId: number, groupName: string, members: Array<number>, filename: string) {
+  async createGroup(
+    userId: number,
+    groupName: string,
+    members: Array<number>,
+    filename: string,
+  ) {
     const allMembers = new Set(members);
     allMembers.add(userId);
 
@@ -39,7 +42,7 @@ export default class GroupRepository {
       include: {
         Group_user: {
           include: {
-            member: {
+            User: {
               select: {
                 userId: true,
                 username: true,
