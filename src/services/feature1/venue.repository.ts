@@ -1,13 +1,13 @@
 import { prismaClient } from "../../controllers/feature1.controller";
 import {
-  Day,
   OpeningHourUpdateRequest,
   VenueShowDBResponse,
-  VenueUpdateDBResponse,
   VenueUpdateRequest,
-} from "../../controllers/feature1/models/venue.model";
+  Day,
+  VenueUpdateDBResponse,
+} from "../../controllers/feature1/models";
 
-interface IVenueRepository {
+export interface IVenueRepository {
   updateOpeningHours(businessId: number, data: OpeningHourUpdateRequest);
 
   getVenueByBusinessId(businessId: number): Promise<VenueShowDBResponse>;

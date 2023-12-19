@@ -1,11 +1,11 @@
+import { IVenueRepository } from ".";
 import {
   OpeningHourUpdateRequest,
   VenueShowDBResponse,
   VenueUpdateRequest,
   VenueUpdateWebResponse,
   makeVenueUpdateWebResponse,
-} from "../../controllers/feature1/models/venue.model";
-import IVenueRepository from "./venue.repository";
+} from "../../controllers/feature1/models";
 
 export interface IVenueService {
   updateVenue(

@@ -1,4 +1,4 @@
-import VenueRepository from "./venue.repository";
+import VenueRepository, { IVenueRepository } from "./venue.repository";
 import VenueService, { IVenueService } from "./venue.service";
 
 import { ProfileRepository } from "./profile.repository";
@@ -11,6 +11,7 @@ export {
   VenueService,
   IVenueService,
   VenueRepository,
+  IVenueRepository,
   ProfileService,
   IProfileService,
   ProfileRepository,
