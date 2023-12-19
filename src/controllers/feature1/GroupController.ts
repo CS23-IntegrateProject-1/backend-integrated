@@ -12,14 +12,14 @@ export interface MulterRequest extends Request {
   file: any;
 }
 
-//export interface IGroupController {
-//  index(req: Request, res: Response): unknown;
+export interface IGroupController {
+  index(req: Request, res: Response): unknown;
 
   create(req: MulterRequest, res: Response): unknown;
 }
 
-//export default class GroupController implements IGroupController {
-//  //private service: IGroupService = new GroupService(new GroupRepository());
+export default class GroupController implements IGroupController {
+  private service: IGroupService = new GroupService(new GroupRepository());
 
   async create(req: Request, res: Response) {
     try {
@@ -34,7 +34,7 @@ export interface MulterRequest extends Request {
         filename,
       );
 
-//      //const webResponse = makeGroupCreateWebResponse(groups);
+      const webResponse = makeGroupCreateWebResponse(groups);
 
       return res.status(200).json(webResponse);
     } catch (e) {
@@ -44,11 +44,11 @@ export interface MulterRequest extends Request {
     }
   }
 
-//  // TODO @SoeThandarLwin: Refactor to follow proper structure later
-//  // TODO @SoeThandarLwin: Refactor to follow proper error checking and formatting later
-//  async show(req: Request, res: Response) {
-//    const { id } = req.params;
-//    const groupId = Number(id);
+  // TODO @SoeThandarLwin: Refactor to follow proper structure later
+  // TODO @SoeThandarLwin: Refactor to follow proper error checking and formatting later
+  async show(req: Request, res: Response) {
+    const { id } = req.params;
+    const groupId = Number(id);
 
     try {
       const result = await prismaClient.group.findFirst({
@@ -70,9 +70,9 @@ export interface MulterRequest extends Request {
         },
       });
 
-//      if (!result) {
-//        return res.status(404).json(makeErrorResponse("Group does not exist"));
-//      }
+      if (!result) {
+        return res.status(404).json(makeErrorResponse("Group does not exist"));
+      }
 
       const response = {
         group_id: result.groupId,

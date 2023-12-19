@@ -18,9 +18,9 @@ export default class GroupRepository {
     DefaultArgs
   >;
 
-//  constructor() {
-//    this.prismaClient = new PrismaClient();
-//  }
+  constructor() {
+    this.prismaClient = new PrismaClient();
+  }
 
   async createGroup(
     userId: number,
