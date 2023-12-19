@@ -95,7 +95,7 @@ feature7Router.get("/checkMenuAvailabilityOfAllBranches/:menuId/", businessVerif
 //Change menu availability
 feature7Router.post("/changeMenuAvailability/:menuId/:branchId", businessVerifyCookie, changeMenuAvailability);
 //edit menu
-feature7Router.post("/editMenu/:menuId", multerConfig.single('image'), editMenu);
+feature7Router.post("/editMenu/:menuId", multerConfig.single('menuImage'), editMenu);
 //add menu
 feature7Router.post("/addMenu/", businessVerifyCookie, addMenu);
 //add menu to set (cookies)
