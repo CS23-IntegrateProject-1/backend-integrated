@@ -112,6 +112,7 @@ export const getMyReservationByStatus = async (req: Request, res: Response) => {
                             },
                             take: 1,
                         },
+                        Venue_branch: true,
                     },
                 },
             },
@@ -307,7 +308,7 @@ export const createReservation = async (req: Request, res: Response) => {
                 reservationTableEntry,
             };
             res.status(200).json(responseData);
-        }  // res.status(200).json(newReservation);
+        } // res.status(200).json(newReservation);
     } catch (e) {
         console.log(e);
         return res.status(500).json(e);
@@ -1183,5 +1184,14 @@ export const checkInStatus = async (req: Request, res: Response) => {
         res.json(getstatus);
     } catch (e) {
         return res.status(500).json(e);
+    }
+};
+
+//Upload Image
+export const uploadTableTypeImage = async (req: Request, res: Response) => {
+    try {
+        res.status(200).json({ payload: "oh yeaaa" });
+    } catch (err) {
+        res.status(500).json({ err: "sorry something wrong" });
     }
 };
