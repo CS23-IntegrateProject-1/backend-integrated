@@ -73,3 +73,4 @@ export default feature6Router;
 
 //Upload Image
 feature6Router.post("/uploadTableTypeImage", multerConfig.array("file"), uploadTableTypeImage);
+
