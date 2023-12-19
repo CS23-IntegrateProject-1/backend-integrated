@@ -1,4 +1,4 @@
-import { Customer_type, Target_group } from "@prisma/client";
+import { Ad_business_customer_type, Ad_business_target_group } from "@prisma/client";
 
 enum isApprove {
     Rejected = "Rejected",
@@ -14,8 +14,8 @@ export interface adinfo {
     end_date: Date;
     cost: number;
     isApprove: isApprove;
-    customer_type: Customer_type;
-    target_group: Target_group;
+    customer_type: Ad_business_customer_type;
+    target_group: Ad_business_target_group;
     businessId: number;
     
 }
