@@ -2065,6 +2065,7 @@ export const createSeatSessionnn = async (req: Request, res: Response) => {
   }
 };
 
+
 const getSeatDynamicPriceId = async () => {
   
   const product = await stripe.products.create({
