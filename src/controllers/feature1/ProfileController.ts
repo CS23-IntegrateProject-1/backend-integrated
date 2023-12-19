@@ -5,6 +5,7 @@ import ProfileService, {
 } from "../../services/feature1/profile.service";
 import { makeErrorResponse } from "./models/payment_method.model";
 import { z } from "zod";
+import { MulterRequest } from "./GroupController";
 
 export interface IProfileController {
   show(req: Request, res: Response): unknown;
@@ -26,6 +27,7 @@ export default class ProfileController implements IProfileController {
 
   async update(req: Request, res: Response) {
     const profile = req.body;
+    const filename = (req as MulterRequest)?.file?.filename ?? null;
 
     const result = await ProfilePayload.safeParseAsync(profile);
 
@@ -37,6 +39,7 @@ export default class ProfileController implements IProfileController {
       const response = await this.service.updateUserProfile(
         Number(req.params.userId),
         result.data,
+        filename,
       );
 
       return res.json(response);
