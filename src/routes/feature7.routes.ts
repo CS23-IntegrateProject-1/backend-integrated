@@ -95,9 +95,9 @@ feature7Router.get("/checkMenuAvailabilityOfAllBranches/:menuId/", businessVerif
 //Change menu availability
 feature7Router.post("/changeMenuAvailability/:menuId/:branchId", businessVerifyCookie, changeMenuAvailability);
 //edit menu
-feature7Router.post("/editMenu/:menuId", multerConfig.single('menuImage'), editMenu);
+feature7Router.post("/editMenu/:menuId", multerConfig.single('file'), editMenu);
 //add menu
-feature7Router.post("/addMenu/", businessVerifyCookie, addMenu);
+feature7Router.post("/addMenu/", multerConfig.single('file'), businessVerifyCookie, addMenu);
 //add menu to set (cookies)
 feature7Router.post("/addMenuItemsToSetsInCookies", addMenuItemsToSetsInCookies);
 //add menu to set (cookies) (route for edit set)
@@ -107,7 +107,7 @@ feature7Router.get("/showMenuItemsInCookies", showMenuItemsInCookies);
 //show all set items in cookies (route for edit set)
 feature7Router.get("/showMenuItemsInCookies/:setId", showMenuItemsInCookies);
 //add set
-feature7Router.post("/addSetWithMenuItems/", businessVerifyCookie, addSetWithMenuItems);
+feature7Router.post("/addSetWithMenuItems/", multerConfig.single('file'),businessVerifyCookie, addSetWithMenuItems);
 //clear set items in cookies 
 feature7Router.post("/clearSetItemsInCookies", clearSetItemsInCookies);
 //clear set items in cookies (route for edit set)
@@ -121,7 +121,7 @@ feature7Router.post("/deleteMenuItemFromSet/:setId/", deleteMenuItemFromSet);
 //cancel delete menu item from set
 feature7Router.post("/cancelDeleteMenuItemFromSet/", cancelDeleteMenuItemFromSet);
 //edit set
-feature7Router.post("/editSet/:setId", businessVerifyCookie, editSet);
+feature7Router.post("/editSet/:setId", multerConfig.single('file'),businessVerifyCookie, editSet);
 //get menu by venue which are not included in specific set
 feature7Router.get("/getMenuByVenueIdNotInSet/:setId", businessVerifyCookie, getMenuByVenueNotInSet);
 //delete menu item before adding to set
