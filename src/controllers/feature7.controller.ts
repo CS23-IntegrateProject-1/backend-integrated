@@ -264,7 +264,7 @@ export const deleteMenuFromCookie = async (req: any, res: Response) => {
         // Check if the menu item is already in the cart
         const existingCartItem = existingCart.find((item) => item.menuId === menuId);
         existingCart.pop(existingCartItem);
-        const updatedCart = existingCart.filter(item => item.reservationId == reservationId && item.menuId == menuId);
+        const updatedCart = existingCart.filter(item => item.reservationId == reservationId && item.menuId !== menuId);
         // Update the 'cart' cookie with the modified cart
         res.cookie('cart', JSON.stringify(updatedCart));
         res.status(200).json({ success: true, message: 'Deleted menu from cart' });
@@ -366,7 +366,7 @@ export const deleteSetFromCookie = async (req: any, res: Response) => {
         // Check if the menu item is already in the cart
         const existingCartItem = existingCart.find((item) => item.setId === setId);
         existingCart.pop(existingCartItem);
-        const updatedCart = existingCart.filter(item => item.reservationId == reservationId && item.setId == setId);
+        const updatedCart = existingCart.filter(item => item.reservationId == reservationId && item.setId !== setId);
         // Update the 'cart' cookie with the modified cart
         res.cookie('cart', JSON.stringify(updatedCart));
         res.status(200).json({ success: true, message: 'Deleted set from cart' });
