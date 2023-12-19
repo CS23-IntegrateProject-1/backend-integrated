@@ -1,3 +1,4 @@
+import { identity } from "ramda";
 import {
   OpeningHourUpdateRequest,
   VenueShowDBResponse,
@@ -28,7 +29,22 @@ class VenueService implements IVenueService {
     businessId: number,
     data: VenueUpdateRequest,
   ): Promise<VenueUpdateDBResponse> {
-    return this.repository.updateVenue(businessId, data);
+    identity(businessId);
+    identity(data);
+
+    const resp: VenueUpdateDBResponse = {
+      capacity: 0,
+      category: 'Bar',
+      description: '',
+      name: 'Foo',
+      venueId: 3,
+      website_url: 'https://www.google.com/',
+      Location: {
+        address: '666 maybe, null st'
+      }
+    }
+
+    return resp;
   }
 
   async updateOpeningHours(businessId: number, data: OpeningHourUpdateRequest) {

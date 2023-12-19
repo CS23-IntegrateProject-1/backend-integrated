@@ -63,8 +63,8 @@ export default class GroupController implements IGroupController {
                   userId: true,
                   username: true,
                   profile_picture: true,
-                },
-              },
+                }
+              }
             },
           },
         },
@@ -101,7 +101,7 @@ export default class GroupController implements IGroupController {
           memberId: Number(req.params.userId),
         },
         include: {
-          Group: true
+          Group: true,
         },
       });
 

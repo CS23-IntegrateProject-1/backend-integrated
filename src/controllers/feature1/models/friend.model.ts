@@ -20,7 +20,7 @@ export type FriendDBResponse = UserDBResponse & {
 export type FriendRawDBResponse = {
   since: Date;
   status: Status;
-  friend: {
+  User_Friendship_sencondUserIdToUser: {
     userId: number;
     username: string;
     fname: string;
