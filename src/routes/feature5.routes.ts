@@ -69,7 +69,7 @@ feature5Router.get("/AllVoucher", GetAllVoucherForBusiness); //for show all vouc
 feature5Router.get("/AllVoucherForUser/", GetAllVoucherForUser); //for show all voucher are created
 feature5Router.get("/AllVoucher/:id", getVoucherById); //for show voucher for updaten  
 feature5Router.get("/AllVoucherForUser/:id", GetVoucherIncludeIsused); 
-feature5Router.post("/UpdateVoucherEditbyId/", VoucherEditbyId); 
+feature5Router.post("/UpdateVoucherEditbyId/",multerConfig.single("file"), VoucherEditbyId); 
 //MyReward
 feature5Router.get("/AllCollectedVoucher/",customVerifyCookie, getCollectedVoucher); //for show collected voucher for update
 feature5Router.post("/CollectVoucher/:id", multerConfig.single("file"),customVerifyCookie, CollectVoucher); //for collect voucher
