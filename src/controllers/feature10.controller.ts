@@ -61,11 +61,11 @@ export const getUpcomingFilms = async (req: Request, res: Response) => {
 };
 
 export const getShowsByFilmId = async (req: Request, res: Response) => {
-  const id = Number(req.params.id);
-  const date = req.params.date;
+    const id = Number(req.params.id);
+    // const date = req.params.date;
 
-  const data = await showService.getShowsByFilmId(id, date);
-  res.json(data);
+    const data = await showService.getShowsByFilmId(id);
+    res.json(data);
 };
 
 //make it distinct????????????????????????????????????????????????

@@ -18,12 +18,12 @@ class showService {
     });
   }
 
-  getShowsByFilmId(id: number, date: string): Promise<any[]> {
+  getShowsByFilmId(id: number): Promise<any[]> {
     const prisma = new PrismaClient();
     const data = prisma.shows.findMany({
       where: {
         filmId: id,
-        date: new Date(date),
+        // date: new Date(date),
       },
       include: {
         Screens: {
