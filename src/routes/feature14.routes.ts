@@ -5,13 +5,12 @@ import {
 
 	getDashboardChart,
 	getBusinessDashboard,
-	createReportTicket,
-	getAllReportTicket,
-	createHelpDesk,
+	//createReportTicket,
+	getAllComplainTicket,
+	//createHelpDesk,
 	//createPromotionApproval,
-	getReportTicketByNew,
-	getReportTicketByAssigned,
-	getReportTicketByComplete,
+	//getComplainTicketByPending,
+	//getComplainTicketByComplete,
 	updatePromotionApproval,
 	getInProgressPromotion,
 	updateVoucherApproval,
@@ -27,14 +26,13 @@ const feature14Router = Router();
 feature14Router.get("/getDashboard", getDashboardChart);
 feature14Router.get("/getBusinessDashboard",getBusinessDashboard)
 
-feature14Router.post("/createReportTicket", createReportTicket);
+//feature14Router.post("/createReportTicket", createReportTicket);
 
-feature14Router.post("/createHelpDesk",createHelpDesk);
+//feature14Router.post("/createHelpDesk",createHelpDesk);
 
-feature14Router.get("/getAllReportTicket",getAllReportTicket);
-feature14Router.get("/getReportTicketByNew",getReportTicketByNew);
-feature14Router.get("/getReportTicketByAssigned",getReportTicketByAssigned);
-feature14Router.get("/getReportTicketByComplete", getReportTicketByComplete);
+feature14Router.get("/getAllReportTicket",getAllComplainTicket);
+//feature14Router.get("/getComplainTicketByPending",getComplainTicketByPending);
+//feature14Router.get("/getComplainTicketByComplete", getComplainTicketByComplete);
 
 feature14Router.put("/updatePromotionApproval/:id",updatePromotionApproval);
 feature14Router.get("/getInProgressPromotion",getInProgressPromotion);

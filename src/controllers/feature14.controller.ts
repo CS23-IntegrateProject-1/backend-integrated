@@ -1,4 +1,5 @@
-import { PrismaClient, Status } from "@prisma/client";
+/* eslint-disable no-mixed-spaces-and-tabs */
+import { PrismaClient } from "@prisma/client";
 import { Response, Request } from "express";
 import DashboardService from "../services/admin/dashboard.service";
 
@@ -47,114 +48,117 @@ export const getBusinessDashboard = async (req: Request, res: Response) => {
 };
 
 //===============================Report Ticket==============================
-export const createReportTicket =async (req:Request, res: Response) => {
-	const { title , Status, description, bussinessId } = req.body;
-	try {
-		const report_ticket = await feature14Client.report_ticket.create({
-			data: {
-				title: title, 
-				Status: Status, 
-				description:description,
-				Business_user: {
-					connect: {
-					businessId: bussinessId
-					}
-					}
-			},
-		});
-		return res.json({ report_ticket });
-	}catch (error) {
-		console.log(error);
-		return res.status(500).json({ error });
-	}
+// export const createReportTicket =async (req:Request, res: Response) => {
+// 	const { title , Status, description, bussinessId } = req.body;
+// 	try {
+// 		const report_ticket = await feature14Client.report_ticket.create({
+// 			data: {
+// 				title: title, 
+// 				Status: Status, 
+// 				description:description,
+// 				Business_user: {
+// 					connect: {
+// 					businessId: bussinessId
+// 					}
+// 					}
+// 			},
+// 		});
+// 		return res.json({ report_ticket });
+// 	}catch (error) {
+// 		console.log(error);
+// 		return res.status(500).json({ error });
+// 	}
 	
-};
+// };
 
-export const getAllReportTicket = async (req: Request, res:Response) => {
+export const getAllComplainTicket = async (req: Request, res:Response) => {
 	try {
-			const report_ticket = await feature14Client.report_ticket.findMany();
+			const report_ticket = await feature14Client.complain_ticket.findMany();
 			return res.status(200).json({ report_ticket });
 			} catch (error) {
 				return res.status(500).json({ error });
 			}
 }
 
-export const getReportTicketByNew = async (req: Request, res: Response) => {
-	try{
-		const newStatus = await feature14Client.report_ticket.findMany({
-			where: {
-				Status: {
-					contains: 'New',
-				},
-			  },
-		  });
-		  return res.status(200).json({ newStatus });
+// export const getComplainTicketByPending = async (req: Request, res: Response) => {
+// 	try{
+// 		const newStatus = await feature14Client.complain_ticket.findMany({
+// 			where: {
+// 				status: {
+// 					equals: 'Pending',
+// 				},
+// 			  },
+// 		  });
+// 		  return res.status(200).json({ newStatus });
 
-	} catch (error) {
-		console.log(error);
-		return res.status(500).json({ error });
-	}
-};
+// 	} catch (error) {
+// 		console.log(error);
+// 		return res.status(500).json({ error });
+// 	}
+// };
 
-export const getReportTicketByAssigned = async (req: Request, res: Response) => {
-	try{
-		const assignStatus = await feature14Client.report_ticket.findMany({
-			where: {
-				Status: {
-					contains: 'Assigned',
-				},
-			  },
-		  });
-		  return res.status(200).json({ assignStatus });
 
-	} catch (error) {
-		console.log(error);
-		return res.status(500).json({ error });
-	}
-};
+// export const getComplainTicketByComplete = async (req: Request, res: Response) => {
+// 	try{
+// 		const completeStatus = await feature14Client.complain_ticket.findMany({
+// 			where: {
+// 				status: {
+// 					equals: 'Completed',
+// 				},
+// 			  },
+// 		  });
+// 		  return res.status(200).json({ completeStatus });
 
-export const getReportTicketByComplete = async (req: Request, res: Response) => {
-	try{
-		const completeStatus = await feature14Client.report_ticket.findMany({
-			where: {
-				Status: {
-					contains: 'Complete',
-				},
-			  },
-		  });
-		  return res.status(200).json({ completeStatus });
-
-	} catch (error) {
-		console.log(error);
-		return res.status(500).json({ error });
-	}
-};
+// 	} catch (error) {
+// 		console.log(error);
+// 		return res.status(500).json({ error });
+// 	}
+// };
 //===============================Help Desk==============================
-export const createHelpDesk = async( req:Request, res:Response) => {
-	const { assign_to, description, isApprove, reportTicketId} = req.body;
-	try {
-		const help_desk = await feature14Client.help_desk.create({
+export const createTicketResponse = async( req:Request, res:Response) => {
+	const {response, complainTicketId} = req.body;
+	try{
+		const ticket_response = await feature14Client.ticket_responses.create({
 			data: {
-				assign_to: assign_to,
-				description: description,
-				isApprove: isApprove,
-				Report_ticket: {
+				response: response,
+				Complain_ticket: {
 					connect: {
-						reportTicketId: reportTicketId
+						ComplainTicketId:complainTicketId,
 					}
 				}
 			},
 		});
-		if (isApprove) {
-			return res.json({ result: 'accept', help_desk });
-		} else {
-			return res.json({ result: 'reject', help_desk });
+		return res.status(200).json({ ticket_response });
+	} catch (error) {
+			console.log(error);
+			return res.status(500).json({ error });
 		}
-	}catch (error) {
-		console.log(error);
-		return res.status(500).json({ error });
-	}
 };
+// export const createHelpDesk = async( req:Request, res:Response) => {
+// 	const { assign_to, description, isApprove, reportTicketId} = req.body;
+// 	try {
+// 		const help_desk = await feature14Client.help_desk.create({
+// 			data: {
+// 				assign_to: assign_to,
+// 				description: description,
+// 				isApprove: isApprove,
+// 				Report_ticket: {
+// 					connect: {
+// 						reportTicketId: reportTicketId
+// 					}
+// 				}
+// 			},
+// 		});
+// 		if (isApprove) {
+// 			return res.json({ result: 'accept', help_desk });
+// 		} else {
+// 			return res.json({ result: 'reject', help_desk });
+// 		}
+// 	}catch (error) {
+// 		console.log(error);
+// 		return res.status(500).json({ error });
+// 	}
+// };
 //===============================Promotion Approval==============================
 export const updatePromotionApproval = async (req: Request, res: Response) => {
 	const { id } = req.params;
@@ -241,7 +245,7 @@ export const getAccount = async (req: Request, res: Response) => {
 					name: true,
 					description: true,
 					Opening_day: true,
-					location: true,
+					Location: true,
 					capacity: true,
 					Venue_credit_card: true,
 					Venue_promptpay: true,
@@ -255,7 +259,7 @@ export const getAccount = async (req: Request, res: Response) => {
 	
 	export const updateAccount = async (req: Request, res: Response) => {
 		const { businessId } = req.params;
-		const { phone_num, email, profile_picture, name, description,Opening_day, location, capacity, Venue_credit_card, Venue_promptpay } = req.body;
+		const { phone_num, email, profile_picture, name, description,Opening_day, Location, capacity, Venue_credit_card, Venue_promptpay } = req.body;
 		try {
 			const business_user = await feature14Client.business_user.update({
 				where: {
@@ -275,7 +279,7 @@ export const getAccount = async (req: Request, res: Response) => {
 					name: name,
 					description:description,
 					Opening_day: Opening_day,
-					location: location,
+					Location: Location,
 					capacity: capacity,
 					Venue_credit_card:Venue_credit_card,
 					Venue_promptpay: Venue_promptpay,
