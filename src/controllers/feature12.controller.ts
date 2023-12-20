@@ -323,6 +323,108 @@ createChatRooms();
 //   return res.status(200).json({ userId });
 // };
 
+//get All message (Comminity Chat)
+export const getAllMessageCommunity = async (req: Request, res: Response) => {
+  const { id } = req.params;
+  try {
+    const messages = await feature12Client.message.findMany({
+      where: {
+        roomId: parseInt(id),
+      },
+      select: {
+        userId: true,
+        User: {
+          select: {
+            username: true,
+            fname: true,
+            lname: true,
+            profile_picture: true,
+          },
+        },
+        message: true,
+        date_time: true,
+      },
+      orderBy: {
+        messageId: "asc",
+      },
+    });
+    return res.status(200).json(messages);
+  } catch (error) {
+    return res.status(500).json({ error });
+  }
+};
+
+//get detail of community chat of specific userid
+export const getCommunityChatList = async (req: any, res: Response) => {
+
+  try {
+    const userId = req.userId;
+    const communityList = await feature12Client.chat_Room_Logs.findMany({
+      where: {
+        userId: parseInt(userId),
+      },
+      select: {
+        chatRoomId: true,
+      },
+    });
+
+    const communitygroupDetail = await Promise.all(
+      communityList.map(async (group) => {
+        const id = group.chatRoomId;
+        const groupInfo = await feature12Client.chat_room.findUnique({
+          where: {
+            chatRoomId: id,
+          },
+          select: {
+            roomname: true,
+            community_group_profile: true,
+          },
+        });
+
+        const members = await feature12Client.chat_Room_Logs.findMany({
+          where: {
+            chatRoomId: id,
+          },
+          select: {
+            userId: true,
+            User: {
+              select: {
+                username: true,
+                userId: true,
+                addId: true,
+                profile_picture: true,
+              },
+            },
+            
+          },
+        });
+        
+        const messages = await feature12Client.message.findMany({
+          where: {
+            roomId: id,
+          },
+          select: {
+            userId: true,
+            // message: true,
+            date_time: true,
+            messageId: true,
+          },
+        });
+
+        return {
+          ...groupInfo,
+          id,
+          members,
+          messages,
+        };
+      })
+    );
+    
+    return res.status(200).json(communitygroupDetail);
+  } catch (error) {
+    return res.status(500).json({ error });
+  }
+};
 //get userId from username
 export const getUserId = async (req: Request, res: Response) => {
   const { sender } = req.params;
