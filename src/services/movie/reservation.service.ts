@@ -45,12 +45,30 @@ class reservationService {
     const prisma = new PrismaClient();
     const data = await prisma.reservation_logs.findUnique({
       where: { reservationId: id },
-      select: {
-        reservationId: true,
-        showId: true,
-        seatId: true,
-        userId: true, 
+      include: {
+        Shows: {
+          include: {
+            Films: true,
+            Screens: {
+              include: {
+                Theaters: true,
+              },
+            },
+          },
+        },
+        Seats: {
+          include: {
+            Seat_types: true,
+          },
+        },
       },
+      
+      // select: {
+      //   reservationId: true,
+      //   showId: true,
+      //   seatId: true,
+      //   userId: true, 
+      // },
     });
     return data;
   }

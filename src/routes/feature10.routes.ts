@@ -30,7 +30,7 @@ feature10Router.get("/getFilmsById/:id", getFilmsById);
 feature10Router.get("/getAllFilms", getAllFilms);
 feature10Router.get("/getShowsByFilmId/:id/:date", getShowsByFilmId);
 feature10Router.get("/getSeatsTypeByScreenId/:id", getSeatsTypeByScreenId);
-feature10Router.get("/getShowsByTheaterId/:id/:date", getShowsByTheaterId);
+feature10Router.post("/getShowsByTheaterId", getShowsByTheaterId);
 feature10Router.post("/getFilmsByTheaterId", getFilmsByTheaterId);
 feature10Router.get("/getTheaterById/:id", getTheaterById);
 feature10Router.post("/getSeatByScreenId", getSeatByScreenId);

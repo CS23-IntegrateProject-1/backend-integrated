@@ -10,7 +10,9 @@ router.get("/getScreenFromMajor", MajorAPIController.getScreenFromMajor);
 router.get("/getTheaterFromMajor", MajorAPIController.getTheaterFromMajor);
 router.get("/getSeatTypeFromMajor", MajorAPIController.getSeatTypeFromMajor);
 router.get("/getSeatFromMajor", MajorAPIController.getSeatFromMajor);
-router.get("/getShowFromMajor", MajorAPIController.getShowsFromMajor);
+router.get("/getShowFromMajor", MajorAPIController.getShowFromMajor);
 router.get("/getpaymentFromMajor", MajorAPIController.getPaymentFromMajor);
+
+router.get("/updateData", MajorAPIController.updateData);
 
 export { router as MajorAPIRoutes };

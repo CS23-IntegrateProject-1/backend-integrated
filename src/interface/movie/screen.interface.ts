@@ -10,7 +10,16 @@ export interface Screen{
     screenId: number;
     theaterId: number;
     capacity: number;
-    screenType: screenType;
-    screenNumber: number;
+    scree_type: screenType;
     price: number;
+    screen_no: number;
+}
+
+export interface RecievedScreen {
+  screenId: number;
+  theaterId: number;
+  capacity: number;
+  screenType: screenType;
+  price: number;
+  screen_number: number;
 }

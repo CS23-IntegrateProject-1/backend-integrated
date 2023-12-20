@@ -1,6 +1,13 @@
 export interface SeatType{
     seatTypeId: number;
-    typeName: string;
+    type_name: string;
     description: string;
-    priceModifier: number;
+    price_modifier: number;
+}
+
+export interface RecievedSeatType {
+  seatTypeId: number;
+  typeName: string;
+  description: string;
+  price_modifier: number;
 }
