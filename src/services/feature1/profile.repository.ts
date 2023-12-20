@@ -1,14 +1,16 @@
-import { User_bio } from "@prisma/client";
+import { Member_tier, Point, User_bio } from "@prisma/client";
 import {
   ProfileShowDBResponse,
   ProfileUpdateDBResponse,
   ProfileUpdateRequest,
 } from "../../controllers/feature1/models/profile.model";
-import { omit, pick } from "ramda";
+import { isNil, omit, pick } from "ramda";
 import { prismaClient } from "../../controllers/feature1.controller";
 
 export interface IProfileRepository {
   getUserById(userId: number): Promise<ProfileShowDBResponse>;
+
+  getUserByUserName(username: string): Promise<ProfileShowDBResponse>;
 
   updateUserById(
     userId: number,
@@ -18,15 +20,17 @@ export interface IProfileRepository {
 }
 
 type Profile = {
+  Member_tier: null | Member_tier;
+  Point: null | Array<Point>;
+  User_bio: null | User_bio;
+  email: string;
+  phone: string;
+  profile_picture: string | null;
   userId: number;
   username: string;
-  phone: string;
-  email: string;
-  profile_picture: string | null;
-  User_bio: null | User_bio;
 };
 
-type Gender = 'Male' | 'Female' | 'Others';
+type Gender = "Male" | "Female" | "Others";
 
 type ExpandedProfile = Profile & {
   avatar: string | null;
@@ -40,6 +44,8 @@ const makeProfile = pick([
   "phone",
   "email",
   "User_bio",
+  "Member_tier",
+  "Point",
   "profile_picture",
 ]);
 
@@ -54,7 +60,19 @@ const expandBio = (profile: Profile): ExpandedProfile => {
     profile["gender"] = profile.User_bio!.gender;
   }
 
-  return omit(["User_bio", "profile_picture"])(profile) as ExpandedProfile;
+  profile["member_tier"] = profile.Member_tier?.tier_name;
+
+  if (!isNil(profile.Point) && profile.Point.length >= 1) {
+    profile["member_point"] = profile.Point[0].amount;
+    profile["member_point_used"] = profile.Point[0].amount_used;
+  } else {
+    profile["member_point"] = 0;
+    profile["member_point_used"] = 0;
+  }
+
+  return omit(["User_bio", "profile_picture", "Member_tier", "Point"])(
+    profile,
+  ) as ExpandedProfile;
 };
 
 export class ProfileRepository implements IProfileRepository {
@@ -64,14 +82,13 @@ export class ProfileRepository implements IProfileRepository {
     filename: string,
   ): Promise<ProfileShowDBResponse> {
     const result = await prismaClient.user.update({
-      include: { User_bio: true },
       where: {
         userId: userId,
       },
       data: {
         phone: data.phone,
         email: data.email,
-        profile_picture: filename,
+        profile_picture: `/uploads/${filename}`,
         userId,
         User_bio: {
           connectOrCreate: {
@@ -88,6 +105,16 @@ export class ProfileRepository implements IProfileRepository {
             gender: data.gender,
           },
         },
+      },
+      select: {
+        Member_tier: true,
+        Point: true,
+        User_bio: true,
+        email: true,
+        phone: true,
+        profile_picture: true,
+        userId: true,
+        username: true,
       },
     });
 
@@ -107,8 +134,43 @@ export class ProfileRepository implements IProfileRepository {
       where: {
         userId,
       },
-      include: {
+      select: {
+        Member_tier: true,
+        Point: true,
         User_bio: true,
+        email: true,
+        phone: true,
+        profile_picture: true,
+        userId: true,
+        username: true,
+      },
+    });
+
+    if (!result) {
+      throw new Error("User not found");
+    }
+
+    const profile = makeProfile(result);
+
+    const extendedProfile = expandBio(profile);
+
+    return extendedProfile as ProfileShowDBResponse;
+  }
+
+  async getUserByUserName(username: string): Promise<ProfileShowDBResponse> {
+    const result = await prismaClient.user.findFirst({
+      where: {
+        username,
+      },
+      select: {
+        Member_tier: true,
+        Point: true,
+        User_bio: true,
+        email: true,
+        phone: true,
+        profile_picture: true,
+        userId: true,
+        username: true,
       },
     });
 

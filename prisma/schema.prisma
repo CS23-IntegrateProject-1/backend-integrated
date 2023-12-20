@@ -131,7 +131,6 @@ model Admin_user {
   Admin_privacy_policy       Admin_privacy_policy?
   Admin_system_access        Admin_system_access?
   Admin_terms_of_services    Admin_terms_of_services?
-  Team_member                Team_member[]
 }
 
 model App_transaction {
@@ -206,18 +205,17 @@ model Business_finance {
 }
 
 model Business_user {
-  businessId      Int             @id @default(autoincrement())
+  businessId      Int           @id @default(autoincrement())
   username        String
   hashed_password String
-  email           String?         @unique @db.VarChar(125)
+  email           String?       @unique @db.VarChar(125)
   fname           String?
   lname           String?
-  phone_num       String?         @unique @db.VarChar(10)
+  phone_num       String?       @unique @db.VarChar(10)
   profile_picture String?
   prompt_pay      Int?
   Ad_business     Ad_business[]
   Property        Property[]
-  Report_ticket   Report_ticket[]
 }
 
 model Chat_Room_Logs {
@@ -246,12 +244,12 @@ model Chat_message {
 }
 
 model Chat_room {
-  roomname       String
-  chatRoomId     Int              @id @default(autoincrement())
-  community_group_profile String? @db.Text
-  Chat_Room_Logs Chat_Room_Logs[]
-  Venue          Venue            @relation(fields: [chatRoomId], references: [chatRoomId])
-  Message        Message[]
+  roomname                String
+  chatRoomId              Int              @id @default(autoincrement())
+  community_group_profile String?          @db.Text
+  Chat_Room_Logs          Chat_Room_Logs[]
+  Venue                   Venue            @relation(fields: [chatRoomId], references: [chatRoomId])
+  Message                 Message[]
 }
 
 model Check_in_log {
@@ -287,23 +285,31 @@ model Comments {
 }
 
 model Complain_ticket {
-  ComplainTicketId Int                             @id @default(autoincrement())
-  date             DateTime                        @default(now())
+  ComplainTicketId Int                    @id @default(autoincrement())
+  date             DateTime               @default(now()) @db.Date
+  time             DateTime               @default(now()) @db.Time()
   topic            String
-  complaint        String                          @db.Text
-  ticket_status    Complain_ticket_ticket_status
-  ticket_priority  Complain_ticket_ticket_priority
-  venueId          Int
+  complaint        String                 @db.Text
+  status           Complain_ticket_status
   userId           Int
-  teamId           Int
-  Teams            Teams                           @relation(fields: [teamId], references: [teamId])
-  User             User                            @relation(fields: [userId], references: [userId])
-  Venue            Venue                           @relation(fields: [venueId], references: [venueId])
+  User             User                   @relation(fields: [userId], references: [userId])
   Ticket_responses Ticket_responses[]
 
-  @@index([teamId], map: "Complain_ticket_teamId_fkey")
   @@index([userId], map: "Complain_ticket_userId_fkey")
-  @@index([venueId], map: "Complain_ticket_venueId_fkey")
+}
+
+enum Complain_ticket_status {
+  Pending
+  Completed
+}
+
+model Ticket_responses {
+  ticketResponseId Int             @id @default(autoincrement())
+  complainTicketId Int
+  response         String?         @db.Text
+  Complain_ticket  Complain_ticket @relation(fields: [complainTicketId], references: [ComplainTicketId])
+
+  @@index([complainTicketId], map: "Ticket_responses_complainTicketId_fkey")
 }
 
 model Credit_card {
@@ -366,7 +372,6 @@ model Driver_list {
   driver_rating        Decimal
   driver_vechile_type  String
   Driver_reviews       Driver_reviews[]
-  Orders               Orders[]
 }
 
 model Driver_reviews {
@@ -486,14 +491,6 @@ model Group_user {
   @@index([memberId], map: "Group_user_memberId_fkey")
 }
 
-model Help_desk {
-  reportTicketId Int           @id
-  assign_to      String
-  description    String?
-  isApprove      Boolean       @default(false)
-  Report_ticket  Report_ticket @relation(fields: [reportTicketId], references: [reportTicketId])
-}
-
 model Images {
   url         String  @db.Text
   description String?
@@ -547,21 +544,22 @@ model Member_tier {
 }
 
 model Menu {
-  name             String
-  description      String?            @db.Text
-  price            Decimal            @db.Decimal(10, 2)
-  venueId          Int
-  menu_no          Int
-  image            String?
-  menuId           Int                @id @default(autoincrement())
-  Food_reviews     Food_reviews[]
-  Venue            Venue              @relation(fields: [venueId], references: [venueId])
-  Menu_category    Menu_category[]
-  Order_detail     Order_detail[]
-  Promotion        Promotion[]
-  Set_items        Set_items[]
-  Stocks           Stocks[]
-  menu_ingredients menu_ingredients[]
+  name                 String
+  description          String?                @db.Text
+  price                Decimal                @db.Decimal(10, 2)
+  venueId              Int
+  menu_no              Int
+  image                String?
+  menuId               Int                    @id @default(autoincrement())
+  Food_reviews         Food_reviews[]
+  Venue                Venue                  @relation(fields: [venueId], references: [venueId])
+  Menu_category        Menu_category[]
+  Order_detail         Order_detail[]
+  Promotion            Promotion[]
+  Set_items            Set_items[]
+  Stocks               Stocks[]
+  menu_ingredients     menu_ingredients[]
+  Online_orders_detail Online_orders_detail[]
 
   @@index([venueId], map: "Menu_venueId_fkey")
 }
@@ -694,27 +692,48 @@ model Orders {
   venueId            Int
   order_date         DateTime
   total_amount       Decimal              @db.Decimal(10, 2)
-  addressId          Int?
   branchId           Int
-  driverId           Int?
-  isDelivery         Boolean              @default(false)
   orderId            Int                  @id @default(autoincrement())
   status             Orders_status        @default(On_going)
   reservedId         Int?                 @unique
   Notification_order Notification_order[]
   Order_detail       Order_detail[]
-  Saved_address      Saved_address?       @relation(fields: [addressId], references: [addressId])
   Venue_branch       Venue_branch         @relation(fields: [branchId], references: [branchId])
-  Driver_list        Driver_list?         @relation(fields: [driverId], references: [driverId])
   Reservation        Reservation?         @relation(fields: [reservedId], references: [reservationId], onDelete: Cascade)
   User               User?                @relation(fields: [userId], references: [userId])
   Venue              Venue                @relation(fields: [venueId], references: [venueId])
 
-  @@index([addressId], map: "Orders_addressId_fkey")
   @@index([branchId], map: "Orders_branchId_fkey")
-  @@index([driverId], map: "Orders_driverId_fkey")
   @@index([userId], map: "Orders_userId_fkey")
   @@index([venueId], map: "Orders_venueId_fkey")
+}
+
+model Online_orders {
+  onlineOrderId        Int                    @id @default(autoincrement())
+  userId               Int
+  venueId              Int
+  order_date           DateTime               @default(now())
+  total_amount         Decimal                @db.Decimal(10, 2)
+  address              String
+  branchId             Int
+  driverId             Int
+  driver_note          String                 @db.Text
+  status               Orders_status          @default(On_going)
+  Online_orders_detail Online_orders_detail[]
+}
+
+model Online_orders_detail {
+  onlineOrderDetailId Int           @id @default(autoincrement())
+  onlineOrderId       Int
+  unit_price          Decimal       @db.Decimal(10, 2)
+  order_time          DateTime      @default(now()) @db.Time()
+  menuId              Int
+  quantity            Int
+  status              Orders_status @default(On_going)
+  Online_orders       Online_orders @relation(fields: [onlineOrderId], references: [onlineOrderId])
+  Menu                Menu          @relation(fields: [menuId], references: [menuId])
+
+  @@index([menuId], map: "Online_orders_detail_menuId_fkey")
 }
 
 model Payment_method {
@@ -846,20 +865,6 @@ model Redeem_privilege {
   @@index([memberTier], map: "Redeem_privilege_memberTier_fkey")
 }
 
-model Report_ticket {
-  reportTicketId Int           @id @default(autoincrement())
-  title          String
-  Status         String
-  date           DateTime      @default(now()) @db.Date
-  time           DateTime      @default(now()) @db.Time(0)
-  description    String?       @db.Text
-  bussinessId    Int
-  Help_desk      Help_desk?
-  Business_user  Business_user @relation(fields: [bussinessId], references: [businessId])
-
-  @@index([bussinessId], map: "Report_ticket_bussinessId_fkey")
-}
-
 model Reservation {
   venueId                  Int
   guest_amount             Int
@@ -874,6 +879,7 @@ model Reservation {
   branchId                 Int?
   name                     String?
   phone                    String?                    @db.VarChar(10)
+  isPaymentSuccess         Payment_success            @default(Pending)
   Check_in_log             Check_in_log?
   Notes                    Notes?
   Notification_reservation Notification_reservation[]
@@ -890,6 +896,11 @@ model Reservation {
   @@index([depositId], map: "Reservation_depositId_fkey")
   @@index([userId], map: "Reservation_userId_fkey")
   @@index([venueId], map: "Reservation_venueId_fkey")
+}
+
+enum Payment_success {
+  Completed
+  Pending
 }
 
 model Reservation_logs {
@@ -935,7 +946,6 @@ model Saved_address {
   longtitude     Decimal  @db.Decimal(10, 6)
   address        String   @db.Text
   createdAt      DateTime @default(now()) @db.Timestamp(0)
-  Orders         Orders[]
 }
 
 model Saved_location {
@@ -1125,23 +1135,6 @@ model Tag {
   Article_tags Article_tags[]
 }
 
-model Team_member {
-  teamId     Int
-  adminId    Int
-  Admin_user Admin_user @relation(fields: [adminId], references: [adminId])
-  Teams      Teams      @relation(fields: [teamId], references: [teamId])
-
-  @@id([teamId, adminId])
-  @@index([adminId], map: "Team_member_adminId_fkey")
-}
-
-model Teams {
-  teamId          Int               @id @default(autoincrement())
-  team_name       String
-  Complain_ticket Complain_ticket[]
-  Team_member     Team_member[]
-}
-
 model Term_of_services {
   privacy_consent Boolean @default(false)
   userId          Int     @id @unique
@@ -1157,17 +1150,6 @@ model Theaters {
   latitude      Decimal   @db.Decimal(20, 10)
   longitude     Decimal   @db.Decimal(20, 10)
   Screens       Screens[]
-}
-
-model Ticket_responses {
-  ticketResponseId Int             @id @default(autoincrement())
-  complainTicketId Int
-  response_title   String
-  response_detail  String
-  isApprove        Boolean         @default(false)
-  Complain_ticket  Complain_ticket @relation(fields: [complainTicketId], references: [ComplainTicketId])
-
-  @@index([complainTicketId], map: "Ticket_responses_complainTicketId_fkey")
 }
 
 model Transaction {
@@ -1278,7 +1260,6 @@ model Venue {
   Article_venue     Article_venue[]
   Business_finance  Business_finance[]
   Chat_room         Chat_room?
-  Complain_ticket   Complain_ticket[]
   Deposit           Deposit[]
   Menu              Menu[]
   Opening_day       Opening_day[]
@@ -1511,7 +1492,7 @@ enum Films_genre {
   Horror
   Mystery
   Romance
-  Sci_Fi
+  SciFi
   Thriller
   War
   Western
@@ -1566,23 +1547,9 @@ enum Notfication_ad_business_isApprove {
   Completed
 }
 
-enum Complain_ticket_ticket_status {
-  Pending
-  On_going
-  Completed
-  Dropped
-}
-
 enum Payments_payment_method {
   Cash
   Promptpay
-}
-
-enum Complain_ticket_ticket_priority {
-  Low
-  Medium
-  High
-  Critical
 }
 
 enum Payments_payment_status {
@@ -1644,4 +1611,5 @@ enum Ad_business_target_group {
 enum Orders_status {
   On_going
   Completed
+  Canceled
 }
