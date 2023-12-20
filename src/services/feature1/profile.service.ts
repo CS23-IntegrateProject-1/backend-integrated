@@ -11,6 +11,7 @@ export interface IProfileService {
   updateUserProfile(
     userId: number,
     data: ProfileUpdateRequest,
+    filename: string,
   ): Promise<ProfileUpdateDBResponse>;
 }
 
@@ -24,7 +25,8 @@ export default class ProfileService implements IProfileService {
   async updateUserProfile(
     userId: number,
     data: ProfileUpdateRequest,
+    filename: string,
   ): Promise<ProfileUpdateDBResponse> {
-    return this.repository.updateUserById(userId, data);
+    return this.repository.updateUserById(userId, data, filename);
   }
 }

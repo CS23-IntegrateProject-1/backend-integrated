@@ -3,20 +3,19 @@ import { map } from "ramda";
 type UserMinimalInfo = {
   userId: number;
   username: string;
-  profile_picture: string|null;
+  profile_picture: string | null;
 };
 
 export type GroupCreateDBResponse = {
   groupId: number;
   group_name: string;
-  group_profile: string|null;
+  group_profile: string | null;
   Group_user: Array<{
     groupId: number;
     memberId: number;
     member: UserMinimalInfo;
   }>;
 };
-
 
 export type GroupIndexDBResponse = Array<GroupDBResponse>;
 
@@ -33,7 +32,7 @@ type Status = "Group" | "Pending";
 export type GroupCreateWebResponse = {
   group_name: string;
   group_id: number;
-  group_avatar: string|null;
+  group_avatar: string | null;
   members: Array<{ user_id: number; username: string; avatar: string | null }>;
 };
 
