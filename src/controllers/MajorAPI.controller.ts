@@ -1,13 +1,13 @@
 import { Request, Response } from "express";
 import majorAPIService from "../services/movie/majorAPI.service";
-import filmsService from "../services/movie/films.service";
-import theatersService from "../services/movie/theaters.service";
-import { Film } from "../interface/movie/film.interface";
-import { Theater } from "../interface/movie/theater.interface";
-import { get } from "http";
+// import filmsService from "../services/movie/films.service";
+// import theatersService from "../services/movie/theaters.service";
+// import { Film } from "../interface/movie/film.interface";
+// import { Theater } from "../interface/movie/theater.interface";
+// import { get } from "http";
 
-const getFilmFromHarmoni = filmsService.getAllFilms;
-const getTheaterFromHarmoni = theatersService.getAllTheaters;
+// const getFilmFromHarmoni = filmsService.getAllFilms;
+// const getTheaterFromHarmoni = theatersService.getAllTheaters;
 
 class MajorAPIController {
 //   async getFilmsFromMajor(req: Request, res: Response) {
@@ -111,6 +111,15 @@ class MajorAPIController {
     async getPaymentFromMajor(req: Request, res: Response) {
         try {
         const response = await majorAPIService.getPaymentFromMajor();
+        res.status(200).send(response);
+        } catch (e: any) {
+            console.log(e);
+        }
+    }
+
+    async postReservationToMajor(req: Request, res: Response) {
+        try {
+        const response = await majorAPIService.postReservationToMajor(req.body);
         res.status(200).send(response);
         } catch (e: any) {
             console.log(e);

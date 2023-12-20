@@ -311,6 +311,15 @@ class MajorAPIService {
       console.log(e);
     }
   }
+
+  async postReservationToMajor(reservation: any) {
+    try {
+      const response = await Axios.post("/reservation/getReservationById", reservation);
+      return response.data;
+    } catch (e: any) {
+      console.log(e);
+    }
+  }
   
 }
 
