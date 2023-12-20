@@ -366,6 +366,36 @@ export const getAllCinema = async (req: Request, res: Response) => {
 
 //===========================================================Online Orders
 
+export const getBranchByVenueId = async (req: Request, res: Response) => {
+  try {
+    const venueId = req.params.venueId;
+    const branchId = req.params.branchId;
+    const branch = await feature4Client.venue_branch.findUnique({
+      where: {
+        branchId: parseInt(branchId),
+        venueId: parseInt(venueId),
+      },
+      include: {
+        
+      }
+    });
+
+    const Venue = await feature4Client.venue.findUnique({
+      where: {
+        venueId: parseInt(venueId),
+      },
+    });
+
+    const response = {
+      venue: Venue,
+      branch: branch,
+    }
+    res.status(200).json(response);
+  } catch (e) {
+    console.log(e);
+  }
+}
+
 export const getMenusByVenueId = async (req: Request, res: Response) => {
   try {
     const venueId = req.params.venueId;
@@ -637,3 +667,82 @@ export const updateCartItemQuantity = async (req: any, res: Response) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
+export const showOnGoingOrder = async (req: any, res: Response) => {
+  try {
+    const token = req.cookies.authToken;
+    if (!token) {
+      return res.status(401).json({ error: "No auth token" });
+    }
+    const decodedToken = authService.decodeToken(token);
+    const { userId } = decodedToken;
+
+    const allOrders = await feature4Client.online_orders.findMany({
+      where: {
+        userId: parseInt(userId),
+        status: "On_going",
+      },
+      include: {
+        Online_orders_detail: true,
+      },
+    });
+    res.status(200).json(allOrders);
+  
+} catch (e) {
+  console.log(e);
+}
+}
+
+export const changeOrderStatusCompleted = async (req: any, res: Response) => {
+  try {
+      console.log(req.body);
+      const onlineOrderId = req.body.onlineOrderId;
+      await feature4Client.online_orders.update({
+          where: {
+              onlineOrderId: onlineOrderId,
+          },
+          data: {
+              status: "Completed",
+          },
+      });
+      await feature4Client.online_orders_detail.updateMany({
+        where: {
+            onlineOrderId: onlineOrderId,
+        },
+        data: {
+            status: "Completed",
+        },
+    });
+      res.status(200).json({ success: true, message: 'Order status changed' });
+  }
+  catch (e) {
+      console.log(e);
+  }
+}
+
+export const changeOrderStatusCanceled = async (req: any, res: Response) => {
+  try {
+      console.log(req.body);
+      const onlineOrderId = req.body.onlineOrderId;
+      await feature4Client.online_orders.update({
+          where: {
+              onlineOrderId: onlineOrderId,
+          },
+          data: {
+              status: "Canceled",
+          },
+      });
+      await feature4Client.online_orders_detail.updateMany({
+        where: {
+            onlineOrderId: onlineOrderId,
+        },
+        data: {
+            status: "Canceled",
+        },
+    });
+      res.status(200).json({ success: true, message: 'Order status changed' });
+  }
+  catch (e) {
+      console.log(e);
+  }
+}

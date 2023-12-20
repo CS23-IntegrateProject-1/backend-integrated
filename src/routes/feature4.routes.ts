@@ -14,6 +14,7 @@ import {
   getAllRestaurant,
   getAllBars,
   getAllCinema,
+  getBranchByVenueId,
   getMenuById,
   getMenusByVenueId,
   getPaymentMethods,
@@ -23,6 +24,9 @@ import {
   getTotal,
   deleteItemFromCart,
   updateCartItemQuantity,
+  changeOrderStatusCompleted,
+  changeOrderStatusCanceled,
+  showOnGoingOrder
 } from "../controllers/feature4.controller";
 import { customVerifyCookie } from "../middlewares/verifyCookies";
 const feature4Router = Router();
@@ -44,6 +48,7 @@ feature4Router.get("/restaurants", getAllRestaurant);
 feature4Router.get("/bars", getAllBars);
 feature4Router.get("/cinemas", getAllCinema);
 
+feature4Router.get("/branch/:venueId/:branchId", getBranchByVenueId);
 feature4Router.get("/menu/:id", getMenuById);
 feature4Router.get("/menus/:venueId", getMenusByVenueId);
 feature4Router.get("/payment/:userId", getPaymentMethods);
@@ -57,4 +62,10 @@ feature4Router.post("/saveTotal/:total", saveTotal);
 feature4Router.get("/getTotal", getTotal);
 feature4Router.delete("/removeCartItem/:itemId", deleteItemFromCart);
 feature4Router.post("/updateCartItemQuantity/:itemId",customVerifyCookie, updateCartItemQuantity);
+
+//order here
+feature4Router.patch("/changeOrderStatusCompleted", changeOrderStatusCompleted);
+feature4Router.patch("/changeOrderStatusCanceled", changeOrderStatusCanceled);
+feature4Router.get("/showOnGoingOrder", showOnGoingOrder);
+
 export default feature4Router;
