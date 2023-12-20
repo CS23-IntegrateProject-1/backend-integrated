@@ -1735,6 +1735,137 @@ export const getOrderIdByAppTransactionDetailId = async (
   }
 };
 
+export const getBusinessId = async (req: Request, res: Response) => {
+  const venueId = parseInt(req.params.venueId, 10);
+
+  try {
+    const property = await feature8Client.property.findFirst({
+      where: { venueId: venueId },
+      select: { businessId: true }
+    });
+
+    if (!property) {
+      return res.status(404).json({ error: 'Property not found' });
+    }
+
+    res.status(200).json({ businessId: property.businessId });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Failed to retrieve business ID' });
+  }
+}
+
+export const getOrdersAndTableNos = async (req: Request, res: Response) => {
+  const venueId = parseInt(req.params.venueId, 10);
+
+  try {
+    const orders = await feature8Client.orders.findMany({
+      where: { venueId: venueId },
+      select: { orderId: true, reservedId: true,order_date: true },
+      orderBy: {
+        order_date: 'desc'
+      }
+    });
+
+    const ordersWithTableNos = await Promise.all(
+      orders
+        .filter(order => order.reservedId !== null)
+        .map(async order => {
+          const reservation = await feature8Client.reservation_table.findFirst({
+            where: { reserveId: order.reservedId ?? undefined },
+            select: { tableId: true }
+          });
+
+          if (!reservation) {
+            return { ...order, tableNo: null };
+          }
+
+          const table = await feature8Client.tables.findUnique({
+            where: { tableId: reservation.tableId },
+            select: { table_no: true }
+          });
+
+          return { ...order, tableNo: table?.table_no ?? null };
+        })
+    );
+
+    res.status(200).json(ordersWithTableNos);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Failed to retrieve orders and table numbers' });
+  }
+}
+
+export const getlatestOrderMenuOrderUpdate = async (req: Request, res: Response) => {
+  const orderId = parseInt(req.params.orderId, 10);
+
+  try {
+    const order = await feature8Client.orders.findUnique({
+      where: { orderId: orderId },
+      select: { reservedId: true }
+    });
+
+    const orderdetail = await feature8Client.order_detail.findMany({
+      where: { 
+        orderId : orderId,
+        status: 'On_going',
+      },
+      select: {
+        menuId: true,
+        setId: true,
+        unit_price: true,
+        quantity: true,
+      },
+      orderBy: {
+        order_time: 'desc'
+      }
+    });
+
+    const orderdetailWithNameAndTableNo = await Promise.all(orderdetail.map(async item => {
+      let name = '';
+      let tableNo = NaN;
+      if (item.menuId) {
+        const menu = await feature8Client.menu.findUnique({
+          where: { menuId: item.menuId },
+          select: { name: true }
+        });
+        name = menu?.name ?? '';
+      } else if (item.setId) {
+        const set = await feature8Client.sets.findUnique({
+          where: { setId: item.setId },
+          select: { name: true }
+        });
+        name = set?.name ?? '';
+      }
+
+      if (order?.reservedId) {
+          const reservation = await feature8Client.reservation_table.findFirst({
+              where: { reserveId: order.reservedId },
+                  select: { tableId: true }
+          });
+          if (reservation?.tableId) {
+              const table = await feature8Client.tables.findUnique({
+                  where: { tableId: reservation.tableId },
+                  select: { table_no: true }
+              });
+              tableNo = Number(table?.table_no) ?? NaN;
+          }
+      }
+
+      return { ...item, name, tableNo };
+    }));
+
+    const sumOfAllPrice = orderdetail.reduce((total: number, item) => total + (Number(item.unit_price) * item.quantity), 0).toFixed(2);
+
+    res.status(200).json({orderdetail: orderdetailWithNameAndTableNo, sumOfAllPrice});
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Failed to retrieve order detail' });
+  }
+}
+
+
+
 //token function
 // import jwt, { Secret } from 'jsonwebtoken';
 // interface CustomJwtPayload {
