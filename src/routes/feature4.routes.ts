@@ -24,6 +24,7 @@ import {
   saveTotal,
   getTotal,
   deleteItemFromCart,
+  updateCartItemQuantity,
 } from "../controllers/feature4.controller";
 import { customVerifyCookie } from "../middlewares/verifyCookies";
 const feature4Router = Router();
@@ -59,4 +60,5 @@ feature4Router.get("/showOrderCart", customVerifyCookie, showCart);
 feature4Router.post("/saveTotal/:total", saveTotal);
 feature4Router.get("/getTotal", getTotal);
 feature4Router.delete("/removeCartItem/:itemId", deleteItemFromCart);
+feature4Router.post("/updateCartItemQuantity/:itemId",customVerifyCookie, updateCartItemQuantity);
 export default feature4Router;

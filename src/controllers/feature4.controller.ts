@@ -782,3 +782,45 @@ export const deleteItemFromCart = async (req: any, res: Response) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
+export const updateCartItemQuantity = async (req: any, res: Response) => {
+  try {
+    const token = req.cookies.authToken;
+    if (!token) {
+      return res.status(401).json({ error: "No auth token" });
+    }
+    const decodedToken = authService.decodeToken(token);
+    const { userId } = decodedToken;
+    const quantity = req.body.quantity;
+    const itemId = req.params.itemId;
+
+    // Retrieve existing cart from the 'onlineOrderItemCart' cookie or initialize an empty array
+    const existingCartString = req.cookies.onlineOrderItemCart || "[]";
+    let  existingCart = JSON.parse(existingCartString);
+
+    // Ensure that existingCart is an array
+    if (!Array.isArray(existingCart)) {
+      existingCart = [];
+    }
+
+    console.log("existingCart:", existingCart);
+
+    // Check if the menu item is already in the cart
+    const updatedCart = existingCart.map((item: any) => {
+      if (item.userId === userId && item.itemId === itemId) {
+        // If the item is already in the cart, update the quantity
+        return { ...item, quantity: quantity };
+      }
+      return item;
+    });
+
+    console.log("updatedCart:", updatedCart);
+
+    // Update the 'onlineOrderItemCart' cookie with the modified cart
+    res.cookie("onlineOrderItemCart", JSON.stringify(updatedCart));
+    res.status(200).json({ success: true, message: "Item quantity updated successfully" });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
