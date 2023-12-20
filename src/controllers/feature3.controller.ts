@@ -25,7 +25,7 @@ export const getVenuesPage = async (req: Request, res: Response) => {
   const priceMax = Number(req.query.priceMax || 1000);
   const capacity = String(req.query.capacity || "").split(",").filter((v) => v !== "");
   const category = String(req.query.category || "").split(",").filter((v) => v !== "");
-
+  console.log(category)
   try {
     const [VenuesPage, menus, tables, venues] = await Promise.all([
       feature3Client.$queryRaw<VenueInfo[]>`
@@ -61,6 +61,7 @@ export const getVenuesPage = async (req: Request, res: Response) => {
         .toLowerCase()
         .includes(String(search).trim().toLowerCase())
     )
+    
     .filter((v) => {
         const venueCategoryMatch = venues.filter((vs) => vs.venueId === v.venueId);
         const statements: boolean[] = [];
