@@ -8,6 +8,7 @@ import {
   VenueUpdateDBResponse,
   VenueUpdateRequest,
 } from "../../controllers/feature1/models";
+import { identity } from "ramda";
 
 export interface IVenueRepository {
   updateOpeningHours(businessId: number, data: OpeningHourUpdateRequest);
@@ -22,6 +23,11 @@ export interface IVenueRepository {
     businessId: number,
     data: CreditCardCreateRequest,
   ): Promise<Venue_credit_card>;
+
+  getCreditCardById(
+    businessId: number,
+    creditCardId: number,
+  ): Promise<Venue_credit_card | null>;
 }
 
 function difference<T>(a: Set<T>, b: Set<T>): Set<T> {
@@ -29,6 +35,18 @@ function difference<T>(a: Set<T>, b: Set<T>): Set<T> {
 }
 
 class VenueRepository implements IVenueRepository {
+  async getCreditCardById(
+    businessId: number,
+    creditCardId: number,
+  ): Promise<Venue_credit_card | null> {
+    identity(businessId);
+    return prismaClient.venue_credit_card.findFirst({
+      where: {
+        creditCardId,
+      },
+    });
+  }
+
   async createCreditCard(
     businessId: number,
     data: CreditCardCreateRequest,

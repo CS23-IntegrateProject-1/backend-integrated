@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { compose, identity, path } from "ramda";
+import { compose, identity, isNil, path } from "ramda";
 import { z } from "zod";
 
 import {
@@ -9,7 +9,7 @@ import {
 } from "../../services/feature1";
 import {
   CreditCardCreateRequest,
-  makeCreditCardCreateResponse,
+  makeCreditCardCreateResponse as makeCreditCardResponse,
   makeErrorResponse,
   makeVenueShowWebResponse,
 } from "./models";
@@ -56,6 +56,8 @@ const PromptPayPayload = z.object({
 
 const getBusinessId = compose(Number, path(["params", "businessId"]));
 
+const getCreditCardId = compose(Number, path(["params", "id"]));
+
 const CreateCreditCardPayload = z.object({
   card_number: z.string(),
   card_holder_name: z.string(),
@@ -85,16 +87,33 @@ class VenueController implements IVenueController {
     try {
       const response = await this.service.createCreditCard(businessId, request);
 
-      return res.json(makeCreditCardCreateResponse(response));
+      return res.json(makeCreditCardResponse(response));
     } catch (e) {
       return res.status(500).json(makeErrorResponse("Internal server error"));
     }
   }
 
+  // TODO: handle AuthZ
   async showCreditCard(req: Request, res: Response) {
-    identity(req);
-    identity(res);
-    throw new Error("Unimplemented");
+    const businessId = getBusinessId(req);
+    const creditCardId = getCreditCardId(req);
+
+    try {
+      const response = await this.service.showCreditCard(
+        businessId,
+        creditCardId,
+      );
+
+      if (isNil(response)) {
+        return res
+          .status(404)
+          .json(makeErrorResponse("Credit card with given id does not exist"));
+      }
+
+      return res.json(makeCreditCardResponse(response));
+    } catch (e) {
+      return res.status(500).json(makeErrorResponse("Internal server error"));
+    }
   }
 
   async updateCeditCard(req: Request, res: Response) {
