@@ -12,6 +12,7 @@ import {
   makeCreditCardCreateResponse as makeCreditCardResponse,
   makeErrorResponse,
   makeVenueShowWebResponse,
+  VenuePromptPayShowDBResponse,
 } from "./models";
 import { makeCreditCardListResponse } from "./models/venue.model";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
@@ -21,10 +22,10 @@ export interface IVenueController {
   show: (req: Request, res: Response) => unknown;
   updateOpeningHours: (req: Request, res: Response) => unknown;
   updatePromptPay: (req: Request, res: Response) => unknown;
+  showPromptPay: (req: Request, res: Response) => unknown;
 
   createCreditCard: (req: Request, res: Response) => unknown;
   showCreditCard: (req: Request, res: Response) => unknown;
-  updateCeditCard: (req: Request, res: Response) => unknown;
   indexCreditCard: (req: Request, res: Response) => unknown;
   deleteCreditCard: (req: Request, res: Response) => unknown;
 }
@@ -77,6 +78,22 @@ const makeResponse = compose(
 class VenueController implements IVenueController {
   private service: IVenueService = new VenueService(new VenueRepository());
 
+  async showPromptPay(req: Request, res: Response) {
+    const businessId = getBusinessId(req);
+
+    try {
+      const result = await this.service.showPromptPay(businessId);
+
+      if (isNil(result)) {
+        return res.status(404).json(makeErrorResponse("Prompt Pay Not found"));
+      }
+
+      return res.json(makeVenuePromptPayShowWebResponse(result));
+    } catch (e) {
+      return res.status(500).json(makeErrorResponse("Internal server error"));
+    }
+  }
+
   async createCreditCard(req: Request, res: Response) {
     const businessId = getBusinessId(req);
 
@@ -121,12 +138,6 @@ class VenueController implements IVenueController {
     } catch (e) {
       return res.status(500).json(makeErrorResponse("Internal server error"));
     }
-  }
-
-  async updateCeditCard(req: Request, res: Response) {
-    identity(req);
-    identity(res);
-    throw new Error("Unimplemented");
   }
 
   async indexCreditCard(req: Request, res: Response) {
@@ -236,5 +247,25 @@ class VenueController implements IVenueController {
     }
   }
 }
+
+type VenuePromptPayShowWebResponse = {
+  prompt_pay_number: number;
+  business_phone_number: string;
+};
+
+const makeVenuePromptPayShowWebResponse = (
+  data: VenuePromptPayShowDBResponse,
+): VenuePromptPayShowWebResponse => {
+  let phone_number = "";
+
+  if (!(data.Venue.Property.length === 0)) {
+    phone_number = data.Venue.Property[0].Business_user.phone_num ?? "";
+  }
+
+  return {
+    prompt_pay_number: data.promptpay_no,
+    business_phone_number: phone_number,
+  };
+};
 
 export default VenueController;

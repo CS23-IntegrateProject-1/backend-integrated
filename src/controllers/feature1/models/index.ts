@@ -16,6 +16,7 @@ import {
   VenueUpdateWebResponse,
   makeVenueUpdateWebResponse,
   makeCreditCardCreateResponse,
+  VenuePromptPayShowDBResponse,
 } from "./venue.model";
 
 import {
@@ -48,4 +49,5 @@ export {
   SearchDBResponse,
   makeSearchWebResponse,
   makeCreditCardCreateResponse,
+  VenuePromptPayShowDBResponse,
 };

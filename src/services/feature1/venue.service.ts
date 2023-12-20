@@ -7,6 +7,7 @@ import {
   VenueUpdateWebResponse,
   makeVenueUpdateWebResponse,
   CreditCardCreateRequest,
+  VenuePromptPayShowDBResponse,
 } from "../../controllers/feature1/models";
 
 export interface IVenueService {
@@ -36,6 +37,10 @@ export interface IVenueService {
   ): Promise<Array<Venue_credit_card>>;
 
   deleteCreditCard(businessId: number, creditCardId: number): Promise<boolean>;
+
+  showPromptPay(
+    businessId: number,
+  ): Promise<VenuePromptPayShowDBResponse | null>;
 }
 
 class VenueService implements IVenueService {
@@ -93,6 +98,12 @@ class VenueService implements IVenueService {
 
   async updateOpeningHours(businessId: number, data: OpeningHourUpdateRequest) {
     await this.repository.updateOpeningHours(businessId, data);
+  }
+
+  async showPromptPay(
+    businessId: number,
+  ): Promise<VenuePromptPayShowDBResponse | null> {
+    return this.repository.showPromptPayByBusinessId(businessId);
   }
 }
 

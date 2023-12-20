@@ -4,6 +4,7 @@ import {
   CreditCardCreateRequest,
   Day,
   OpeningHourUpdateRequest,
+  VenuePromptPayShowDBResponse,
   VenueShowDBResponse,
   VenueUpdateDBResponse,
   VenueUpdateRequest,
@@ -16,6 +17,10 @@ export interface IVenueRepository {
   getVenueByBusinessId(businessId: number): Promise<VenueShowDBResponse>;
 
   updateVenueByBusinessId(businessId: number, data: VenueUpdateRequest);
+
+  showPromptPayByBusinessId(
+    businessId: number,
+  ): Promise<VenuePromptPayShowDBResponse | null>;
 
   updatePromptPayByBusinessId(businessId: number, promptPayNumber: number);
 
@@ -44,6 +49,34 @@ function difference<T>(a: Set<T>, b: Set<T>): Set<T> {
 }
 
 class VenueRepository implements IVenueRepository {
+  async showPromptPayByBusinessId(
+    businessId: number,
+  ): Promise<VenuePromptPayShowDBResponse | null> {
+    const venueId = await this.getVenueId(businessId);
+
+    return prismaClient.venue_promptpay.findFirst({
+      where: {
+        venueId,
+      },
+      select: {
+        promptpay_no: true,
+        Venue: {
+          select: {
+            Property: {
+              select: {
+                Business_user: {
+                  select: {
+                    phone_num: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+  }
+
   async deleteCreditCardById(
     businessId: number,
     creditCardId: number,

@@ -126,6 +126,11 @@ feature1Router.put(
   businessAuthMiddleware,
   venueController.update.bind(venueController),
 );
+feature1Router.get(
+  "/venue/promptpay",
+  businessAuthMiddleware,
+  venueController.showPromptPay.bind(venueController),
+);
 feature1Router.put(
   "/venue/promptpay",
   businessAuthMiddleware,

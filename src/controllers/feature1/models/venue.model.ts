@@ -99,3 +99,14 @@ export const makeCreditCardCreateResponse = (
 
 export const makeCreditCardListResponse = (data: Array<Venue_credit_card>) =>
   data.map(makeCreditCardCreateResponse);
+
+export type VenuePromptPayShowDBResponse = {
+  promptpay_no: number;
+  Venue: {
+    Property: Array<{
+      Business_user: {
+        phone_num: string | null;
+      };
+    }>;
+  };
+};
