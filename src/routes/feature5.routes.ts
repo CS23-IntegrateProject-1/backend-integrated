@@ -69,7 +69,7 @@ feature5Router.get("/AllVenue/", GetallVenue); //for show all venues of business
 feature5Router.delete("/DeleteVoucher/:id", DeleteVoucher); // for delete voucher
 feature5Router.patch("/VoucherApprove/:id", VoucherApprove); //for approve status of voucher
 feature5Router.get("/AllVoucher", GetAllVoucherForBusiness); //for show all voucher are created
-feature5Router.get("/AllVoucherForUser/", GetAllVoucherForUser); //for show all voucher are created
+feature5Router.get("/GetVoucherForUser/", GetAllVoucherForUser); //for show all voucher are created
 feature5Router.get("/AllVoucher/:id", getVoucherById); //for show voucher for updaten  
 feature5Router.get("/GetVoucherForUser/:id", GetVoucherIncludeIsused); 
 feature5Router.post("/UpdateVoucherEditbyId/",multerConfig.single("file"), VoucherEditbyId); 
