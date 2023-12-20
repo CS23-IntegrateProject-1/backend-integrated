@@ -41,7 +41,7 @@ export default class GroupRepository {
           create: Array.from(allMembers).map((id) => ({ memberId: id })),
         },
         group_name: secret ? `${groupName}${SECRET_IDENTIFIER}` : groupName,
-        group_profile: filename,
+        group_profile: `/uploads/${filename}`,
       },
       include: {
         Group_user: {
