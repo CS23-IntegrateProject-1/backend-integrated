@@ -27,7 +27,7 @@ feature10Router.get("/getUpcomingFilms", getUpcomingFilms);
 feature10Router.get("/getShowingFilms", getShowingFilms);
 feature10Router.get("/getFilmsById/:id", getFilmsById);
 feature10Router.get("/getAllFilms", getAllFilms);
-feature10Router.get("/getShowsByFilmId/:id/:date", getShowsByFilmId);
+feature10Router.get("/getShowsByFilmId/:id", getShowsByFilmId);
 feature10Router.get("/getSeatsTypeByScreenId/:id", getSeatsTypeByScreenId);
 feature10Router.get("/getShowsByTheaterId/:id/:date", getShowsByTheaterId);
 feature10Router.post("/getFilmsByTheaterId", getFilmsByTheaterId);
