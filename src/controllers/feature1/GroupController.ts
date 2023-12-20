@@ -1,14 +1,17 @@
-import jwt, { JsonWebTokenError } from "jsonwebtoken";
 import { Request, Response } from "express";
 
-import GroupRepository from "../../services/feature1/group.repository";
-import GroupService, {
+import { prismaClient } from "../feature1.controller";
+import {
+  MulterRequest,
+  makeErrorResponse,
+  makeGroupCreateWebResponse,
+} from "./models";
+import {
+  GroupRepository,
+  GroupService,
   IGroupService,
-} from "../../services/feature1/group.service";
-import { extractToken } from "./utils";
-import { makeErrorResponse } from "./models/payment_method.model";
-import { makeGroupCreateWebResponse } from "./models/group.model";
-import { PrismaClient } from "@prisma/client";
+} from "../../services/feature1";
+import { SECRET_IDENTIFIER } from "../../services/feature1/group.repository";
 
 export interface IGroupController {
   index(req: Request, res: Response): unknown;
@@ -20,32 +23,23 @@ export default class GroupController implements IGroupController {
   private service: IGroupService = new GroupService(new GroupRepository());
 
   async create(req: Request, res: Response) {
-    let token: string;
-
     try {
-      token = extractToken(req);
-    } catch (e) {
-      return res.status(401).json(makeErrorResponse("Unauthorized"));
-    }
+      const { group_name: groupName, members, secret } = req.body;
 
-    try {
-      const decoded = jwt.verify(
-        token as string,
-        process.env.JWT_SECRET as string,
+      const filename = (req as MulterRequest)?.file?.filename ?? null;
+
+      const groups = await this.service.createGroup(
+        Number(req.params.userId),
+        groupName,
+        members.map((m: string) => Number(m)),
+        filename,
+        Boolean(secret),
       );
-      const userId = (decoded as jwt.JwtPayload).userId;
-      const { group_name: groupName, members } = req.body;
-
-      const groups = await this.service.createGroup(userId, groupName, members);
 
       const webResponse = makeGroupCreateWebResponse(groups);
 
       return res.status(200).json(webResponse);
     } catch (e) {
-      if (e instanceof JsonWebTokenError) {
-        return res.status(401).json(makeErrorResponse("Invalid token"));
-      }
-
       return res
         .status(500)
         .json(makeErrorResponse("Unknown Error Encountered"));
@@ -58,29 +52,15 @@ export default class GroupController implements IGroupController {
     const { id } = req.params;
     const groupId = Number(id);
 
-    let token: string;
-
     try {
-      token = extractToken(req);
-    } catch (e) {
-      return res.status(401).json(makeErrorResponse("Unauthrozied"));
-    }
-
-    try {
-      const decoded = jwt.verify(
-        token as string,
-        process.env.JWT_SECRET as string,
-      );
-      const userId = (decoded as jwt.JwtPayload).userId;
-      const client = new PrismaClient();
-      const result = await client.group.findFirst({
+      const result = await prismaClient.group.findFirst({
         where: {
           groupId,
         },
         include: {
           Group_user: {
             include: {
-              member: {
+              User: {
                 select: {
                   userId: true,
                   username: true,
@@ -96,22 +76,24 @@ export default class GroupController implements IGroupController {
         return res.status(404).json(makeErrorResponse("Group does not exist"));
       }
 
+      const isSecretGroup = result.group_name.endsWith(SECRET_IDENTIFIER);
+
       const response = {
         group_id: result.groupId,
-        group_name: result.group_name,
+        group_name: isSecretGroup
+          ? result.group_name.replace(SECRET_IDENTIFIER, "")
+          : result.group_name,
+        group_avatar: result.group_profile,
+        is_seceret_group: isSecretGroup,
         members: result.Group_user.map((user) => ({
-          user_id: user.member.userId,
-          username: user.member.username,
-          avatar: user.member.profile_picture,
+          user_id: user.User.userId,
+          username: user.User.username,
+          avatar: user.User.profile_picture,
         })),
       };
 
       return res.status(200).send(response);
     } catch (e) {
-      if (e instanceof JsonWebTokenError) {
-        return res.status(401).json(makeErrorResponse("Invalid token"));
-      }
-
       return res
         .status(500)
         .json(makeErrorResponse("Unknown Error Encountered"));
@@ -120,45 +102,31 @@ export default class GroupController implements IGroupController {
 
   // TODO @SoeThandarLwin: Refactor to follow proper structure later
   async index(req: Request, res: Response) {
-    let token: string;
-
     try {
-      token = extractToken(req);
-    } catch (e) {
-      return res.status(401).json(makeErrorResponse("Unauthrozied"));
-    }
-
-    try {
-      const decoded = jwt.verify(
-        token as string,
-        process.env.JWT_SECRET as string,
-      );
-      const userId = (decoded as jwt.JwtPayload).userId;
-      const client = new PrismaClient();
-      const result = await client.group_user.findMany({
+      const result = await prismaClient.group_user.findMany({
         where: {
-          memberId: userId,
+          memberId: Number(req.params.userId),
         },
         include: {
-          group: true,
+          Group: true,
         },
       });
 
-      client.$disconnect();
-
       const response = result.map((r) => {
+        const isSecretGroup = r.Group.group_name.endsWith(SECRET_IDENTIFIER);
+
         return {
-          group_id: r.group.groupId,
-          group_name: r.group.group_name,
+          group_id: r.Group.groupId,
+          group_name: isSecretGroup
+            ? r.Group.group_name.replace(SECRET_IDENTIFIER, "")
+            : r.Group.group_name,
+          group_avatar: r.Group.group_profile,
+          is_secret_group: isSecretGroup,
         };
       });
 
       return res.status(200).json(response);
     } catch (e) {
-      if (e instanceof JsonWebTokenError) {
-        return res.status(401).json(makeErrorResponse("Invalid token"));
-      }
-
       return res
         .status(500)
         .json(makeErrorResponse("Unknown Error Encountered"));

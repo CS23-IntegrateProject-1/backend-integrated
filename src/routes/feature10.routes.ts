@@ -2,13 +2,21 @@ import { Router } from "express";
 
 // here import your controllers(function)
 import {
-    getfeature10,
     getNowShowingFilms,
     getUpcomingFilms,
     getShowingFilms,
     getFilmsById,
     getAllFilms,
-    getShowsByFilmsId
+    getShowsByFilmId,
+    getSeatsTypeByScreenId,
+    getShowsByTheaterId,
+    getFilmsByTheaterId,
+    getTheaterById,
+    getSeatByScreenId,
+    getTotalPriceByReservationId,
+    
+
+    
 } from "../controllers/feature10.controller";
 
 const feature10Router = Router();
@@ -19,6 +27,15 @@ feature10Router.get("/getUpcomingFilms", getUpcomingFilms);
 feature10Router.get("/getShowingFilms", getShowingFilms);
 feature10Router.get("/getFilmsById/:id", getFilmsById);
 feature10Router.get("/getAllFilms", getAllFilms);
-feature10Router.get("/getShowsByFilmsId/:id", getShowsByFilmsId);
+feature10Router.get("/getShowsByFilmId/:id/:date", getShowsByFilmId);
+feature10Router.get("/getSeatsTypeByScreenId/:id", getSeatsTypeByScreenId);
+feature10Router.get("/getShowsByTheaterId/:id/:date", getShowsByTheaterId);
+feature10Router.post("/getFilmsByTheaterId", getFilmsByTheaterId);
+feature10Router.get("/getTheaterById/:id", getTheaterById);
+feature10Router.post("/getSeatByScreenId", getSeatByScreenId);
+feature10Router.post("/getTotalPriceByReservationId", getTotalPriceByReservationId);
+
+
 
 export default feature10Router;
+

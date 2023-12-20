@@ -11,7 +11,11 @@ import {
   getAllUsers,
   getFriendList,
   forDialogflow,
-  fetchData,
+  // fetchData,
+  getPrivateChatList,
+  getGroupChatDetail,
+  getAllMessage,
+  getUserId,
 } from "../controllers/feature12.controller";
 import { customVerifyCookie } from "../middlewares/verifyCookies";
 
@@ -39,7 +43,12 @@ feature12Router.get("/displayUser", getAllUsers);
 //Get Friend List
 feature12Router.get("/displayFriendList",customVerifyCookie, getFriendList);
 
+feature12Router.get("/displayGroupDetail",customVerifyCookie, getPrivateChatList);
+feature12Router.get("/displaychatDetail/:id", getGroupChatDetail);
+feature12Router.get("/displayAllMessage/:id", getAllMessage);
+feature12Router.get("/displayUserId/:sender", getUserId);
+
 //dialogflow route
 feature12Router.post("/dialogflow", forDialogflow);
-feature12Router.get("/fetchData", fetchData);
+// feature12Router.get("/fetchData", fetchData);
 export default feature12Router;
