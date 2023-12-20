@@ -22,7 +22,7 @@ type Client = {
 };
 
 interface Recipient {
-  member: {
+  User: {
     username: string;
     userId: number;
     addId: string;
@@ -47,15 +47,15 @@ io.on("connection", (socket) => {
   // console.log(id + " join room 1");
 
   socket.on("join-room", (data) => {
-    // console.log("recipients", data.recipients, "and", "group_id", data.group_id);
+    console.log("data", data);
     data.recipients.forEach((recipient: Recipient) => {
       const room = data.id.toString();
       socket.join(room);
-      console.log(recipient.member.username + " Join Room " + room);
+      console.log(recipient.User.username+ " Join Room " + room);
     });
   });
 
-  socket.on("send-message", async ({ recipients, text, id, sender }) => {
+  socket.on("send-Pmessage", async ({ recipients, text, id, sender }) => {
     const user = await feature12Client.user.findFirst({
       where: { username: sender },
     });
@@ -74,8 +74,37 @@ io.on("connection", (socket) => {
 
     const room = id.toString();
     // Broadcast to all clients in room A without sender
-    socket.broadcast.to(room).emit("receive-message", {
-      recipients: recipients,
+    socket.broadcast.to(room).emit("receive-Pmessage", {
+      id:id,
+      members: recipients,
+      sender: sender,
+      senderId: user?.userId,
+      text,
+    });
+  });
+
+  socket.on("send-Cmessage", async ({ recipients, text, id, sender }) => {
+    const user = await feature12Client.user.findFirst({
+      where: { username: sender },
+    });
+    if (user) {
+      await feature12Client.message.create({
+        data: {
+          roomId: parseInt(id),
+          userId: user.userId,
+          message: text,
+          date_time: new Date(),
+      },
+    });
+    } else {
+      console.error(`No user found with username: ${sender}`);
+    }
+
+    const room = id.toString();
+    // Broadcast to all clients in room A without sender
+    socket.broadcast.to(room).emit("receive-Cmessage", {
+      id:id,
+      members: recipients,
       sender: sender,
       senderId: user?.userId,
       text,
