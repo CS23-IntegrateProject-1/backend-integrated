@@ -1,5 +1,4 @@
 import { Response, Request } from "express";
-import jwt, { JsonWebTokenError } from "jsonwebtoken";
 
 import TosRepository from "../../services/feature1/tos.repository";
 import TosService, { ITosService } from "../../services/feature1/tos.service";
@@ -14,7 +13,6 @@ import {
 } from "@prisma/client/runtime/library";
 import { Prisma } from "@prisma/client";
 import { makeErrorResponse } from "./models/payment_method.model";
-import { extractToken } from "./utils";
 
 interface ITosController {
   store: (req: Request, res: Response) => unknown;
@@ -27,173 +25,101 @@ export class TosController implements ITosController {
   private service: ITosService = new TosService(new TosRepository());
 
   async store(req: Request, res: Response) {
-    let token: string;
+    const { consent } = req.body;
 
-    try {
-      token = extractToken(req);
-    } catch (e) {
-      return res.status(401).json(makeErrorResponse("Unauthorized"));
+    if (typeof consent !== "boolean") {
+      res.status(400).json(makeErrorResponse("Malformed request"));
     }
 
     try {
-      const decoded = jwt.verify(
-        token as string,
-        process.env.JWT_SECRET as string,
+      const response = await this.service.storeTos(
+        Number(req.params.userId),
+        consent,
       );
-      const userId = (decoded as jwt.JwtPayload).userId;
 
-      const { consent } = req.body;
+      const webResponse = makeTosStoreWebResponse(response);
 
-      if (typeof consent !== "boolean") {
-        res.status(400).json(makeErrorResponse("Malformed request"));
-      }
-
-      try {
-        const response = await this.service.storeTos(userId, consent);
-
-        const webResponse = makeTosStoreWebResponse(response);
-
-        return res.json(webResponse);
-      } catch (e) {
-        if (e instanceof PrismaClientValidationError) {
-          return res.status(400).send();
-        } else if (e instanceof PrismaClientKnownRequestError) {
-          if (e.code === "P2002") {
-            return res
-              .status(409)
-              .json(
-                makeErrorResponse(
-                  "Term of services already exists for this user",
-                ),
-              )
-              .send();
-          }
-        } else {
-          return res.status(500).send();
-        }
-      }
+      return res.json(webResponse);
     } catch (e) {
-      if (e instanceof JsonWebTokenError) {
-        return res.status(401).json(makeErrorResponse("Invalid token"));
+      if (e instanceof PrismaClientValidationError) {
+        return res.status(400).send();
+      } else if (e instanceof PrismaClientKnownRequestError) {
+        if (e.code === "P2002") {
+          return res
+            .status(409)
+            .json(
+              makeErrorResponse(
+                "Term of services already exists for this user",
+              ),
+            )
+            .send();
+        }
+      } else {
+        return res.status(500).send();
       }
     }
   }
 
   async show(req: Request, res: Response) {
-    let token: string;
-
     try {
-      token = extractToken(req);
-    } catch (e) {
-      return res.status(401).json(makeErrorResponse("Unauthorized"));
-    }
-
-    try {
-      const decoded = jwt.verify(
-        token as string,
-        process.env.JWT_SECRET as string,
+      const response = await this.service.getTosOfUser(
+        Number(req.params.userId),
       );
-      const userId = (decoded as jwt.JwtPayload).userId;
 
-      try {
-        const response = await this.service.getTosOfUser(userId);
+      const webResponse = makeTosWebResponse(response);
 
-        const webResponse = makeTosWebResponse(response);
-
-        return res.json(webResponse);
-      } catch (e) {
-        return res
-          .status(404)
-          .json(makeErrorResponse("User or Term of services not found"));
-      }
+      return res.json(webResponse);
     } catch (e) {
-      if (e instanceof JsonWebTokenError) {
-        return res.status(401).json(makeErrorResponse("Invalid token"));
-      }
+      return res
+        .status(404)
+        .json(makeErrorResponse("User or Term of services not found"));
     }
   }
 
   async update(req: Request, res: Response) {
-    let token: string;
+    const { consent } = req.body;
 
-    try {
-      token = extractToken(req);
-    } catch (e) {
-      return res.status(401).json(makeErrorResponse("Unauthorized"));
+    if (typeof consent !== "boolean") {
+      res.status(400).json(makeErrorResponse("Malformed request"));
     }
 
     try {
-      const decoded = jwt.verify(
-        token as string,
-        process.env.JWT_SECRET as string,
+      const response = await this.service.updateTosOfUser(
+        Number(req.params.userId),
+        consent,
       );
-      const userId = (decoded as jwt.JwtPayload).userId;
 
-      const { consent } = req.body;
+      const webResponse = makeTosUpdateWebResponse(response);
 
-      if (typeof consent !== "boolean") {
-        res.status(400).json(makeErrorResponse("Malformed request"));
-      }
-
-      try {
-        const response = await this.service.updateTosOfUser(userId, consent);
-
-        const webResponse = makeTosUpdateWebResponse(response);
-
-        return res.json(webResponse);
-      } catch (e) {
-        if (e instanceof PrismaClientValidationError) {
-          return res
-            .status(400)
-            .json(makeErrorResponse("Invalid request"))
-            .send();
-        } else {
-          return res
-            .status(404)
-            .json(makeErrorResponse("User or Term of services not found"));
-        }
-      }
+      return res.json(webResponse);
     } catch (e) {
-      if (e instanceof JsonWebTokenError) {
-        return res.status(401).json(makeErrorResponse("Invalid token"));
+      if (e instanceof PrismaClientValidationError) {
+        return res
+          .status(400)
+          .json(makeErrorResponse("Invalid request"))
+          .send();
+      } else {
+        return res
+          .status(404)
+          .json(makeErrorResponse("User or Term of services not found"));
       }
     }
   }
 
   async destroy(req: Request, res: Response) {
-    let token: string;
-
     try {
-      token = extractToken(req);
+      await this.service.deleteTosOfUser(Number(req.params.userId));
+
+      return res.status(200).send();
     } catch (e) {
-      return res.status(401).json(makeErrorResponse("Unauthorized"));
-    }
-
-    try {
-      const decoded = jwt.verify(
-        token as string,
-        process.env.JWT_SECRET as string,
-      );
-      const userId = (decoded as jwt.JwtPayload).userId;
-
-      try {
-        await this.service.deleteTosOfUser(userId);
-
-        return res.status(200).send();
-      } catch (e) {
-        if (e instanceof Prisma.PrismaClientKnownRequestError) {
-          if (e.code === "P2025") {
-            return res
-              .status(404)
-              .json(makeErrorResponse(e.meta!.cause as string));
-          }
-        } else {
-          return res.status(500).send();
+      if (e instanceof Prisma.PrismaClientKnownRequestError) {
+        if (e.code === "P2025") {
+          return res
+            .status(404)
+            .json(makeErrorResponse(e.meta!.cause as string));
         }
-      }
-    } catch (e) {
-      if (e instanceof JsonWebTokenError) {
-        return res.status(401).json(makeErrorResponse("Invalid token"));
+      } else {
+        return res.status(500).send();
       }
     }
   }

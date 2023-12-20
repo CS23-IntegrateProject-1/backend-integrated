@@ -1,6 +1,4 @@
-import {
-  GroupCreateDBResponse,
-} from "../../controllers/feature1/models/group.model";
+import { GroupCreateDBResponse } from "../../controllers/feature1/models/group.model";
 import { IGroupRepository } from "./group.repository";
 
 export interface IGroupService {
@@ -8,7 +6,7 @@ export interface IGroupService {
     userId: number,
     groupName: string,
     members: Array<number>,
-    filename: string|null,
+    filename: string | null,
   ): Promise<GroupCreateDBResponse>;
 }
 
@@ -19,8 +17,13 @@ export default class GroupService implements IGroupService {
     userId: number,
     groupName: string,
     members: Array<number>,
-    filename: string|null,
+    filename: string | null,
   ): Promise<GroupCreateDBResponse> {
-    return await this.repository.createGroup(userId, groupName, members, filename);
+    return await this.repository.createGroup(
+      userId,
+      groupName,
+      members,
+      filename,
+    );
   }
 }
