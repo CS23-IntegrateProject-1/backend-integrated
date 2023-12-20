@@ -1,11 +1,15 @@
 import { Request, Response } from "express";
-import { ProfileRepository } from "../../services/feature1/profile.repository";
-import ProfileService, {
-  IProfileService,
-} from "../../services/feature1/profile.service";
-import { makeErrorResponse } from "./models/payment_method.model";
+import { compose, path } from "ramda";
 import { z } from "zod";
-import { MulterRequest } from "./GroupController";
+
+import {
+  IProfileService,
+  ProfileRepository,
+  ProfileService,
+} from "../../services/feature1";
+import { MulterRequest, makeErrorResponse } from "./models";
+
+export const getUserId = compose(Number, path(["params", "userId"]));
 
 export interface IProfileController {
   show(req: Request, res: Response): unknown;
@@ -50,9 +54,7 @@ export default class ProfileController implements IProfileController {
 
   async show(req: Request, res: Response) {
     try {
-      const response = await this.service.getUserProfile(
-        Number(req.params.userId),
-      );
+      const response = await this.service.getUserProfile(getUserId(req));
 
       return res.json(response);
     } catch (e) {
