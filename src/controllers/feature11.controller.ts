@@ -132,7 +132,7 @@ export const addArticle = async (req: Request, res: Response) => {
 export const editArticle = async (req: Request, res: Response) => {
   try {
     const { articleId, topic, content, category, author_name } = req.body;
-    const venueIds: number[] = req.body.venueIds;
+    const venueIds: string[] = req.body.venueIds;
     const tags: string[] = req.body.tags;
     //const imageDetails: ImageInput[] = req.body.images;
 
@@ -163,8 +163,8 @@ export const editArticle = async (req: Request, res: Response) => {
     for (const venueId of venueIds) {
       newVenue = await prisma.article_venue.create({
         data: {
-          articleId,
-          venueId
+          articleId: parseInt(articleId),
+          venueId: parseInt(venueId)
         }
       })
     }
@@ -204,14 +204,14 @@ export const editArticle = async (req: Request, res: Response) => {
 
           await prisma.article_tags.create({
             data: {
-              articleId,
+              articleId: parseInt(articleId),
               tagId: updatedTag.tagId,
             },
           })
         } else {
           await prisma.article_tags.create({
             data: {
-              articleId,
+              articleId: parseInt(articleId),
               tagId: thisTag[0].tagId,
             },
           })
@@ -226,7 +226,7 @@ export const editArticle = async (req: Request, res: Response) => {
 
         await prisma.article_tags.create({
           data: {
-            articleId,
+            articleId: parseInt(articleId),
             tagId: TagDB.tagId
           }
         })
@@ -1159,14 +1159,7 @@ export const getUserSavedPlace = async (req: Request, res: Response) => {
       }
     })
 
-    const isLike = true;
-
-    const savedPlace_isLike = {
-      ...savedPlace,
-      isLike: isLike
-    };
-
-    res.json(savedPlace_isLike)
+    res.json(savedPlace)
   } catch (error) {
     console.error(error);
     res.status(400).json({ error: "Internal server error" });
@@ -1217,10 +1210,10 @@ export const DeleteSavedPlace = async (req: Request, res: Response) => {
     })
 
     let deletedPlace
-    if (savedId && typeof savedId === 'number') {
+    if (savedId?.id && typeof savedId.id === 'number') {
       deletedPlace = await prisma.saved_place.delete({
         where: {
-          id: savedId
+          id: savedId.id
         },
       });
     }

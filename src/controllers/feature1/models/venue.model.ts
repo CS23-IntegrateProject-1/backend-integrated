@@ -1,6 +1,6 @@
-type VenueCateogry = "club" | "bar" | "restaurant";
+import { Venue_credit_card } from "@prisma/client";
 
-export type VenueDBResponse = unknown;
+type VenueCateogry = "club" | "bar" | "restaurant";
 
 export type VenueUpdateDBResponse = {
   capacity: number;
@@ -9,7 +9,7 @@ export type VenueUpdateDBResponse = {
   name: string;
   venueId: number;
   website_url: string;
-  location: {
+  Location: {
     address: string;
   };
 };
@@ -38,7 +38,7 @@ export function makeVenueUpdateWebResponse(
   return {
     name: data.name,
     description: data.description,
-    address: data.location.address,
+    address: data.Location.address,
     category: data.category as VenueCateogry,
     capacity: data.capacity,
     website: data.website_url,
@@ -71,3 +71,28 @@ export enum Day {
 export type OpeningHourUpdateRequest = {
   [day in Day]: OpeningHour;
 };
+
+export type CreditCardCreateRequest = {
+  card_number: string;
+  card_holder_name: string;
+  country: string;
+  bank: string;
+  cvc: number;
+  expiration_date: Date;
+};
+
+export type CreditCardCreateResponse = CreditCardCreateRequest & {
+  card_id: number;
+};
+
+export const makeCreditCardCreateResponse = (
+  data: Venue_credit_card,
+): CreditCardCreateResponse => ({
+  card_number: data.card_no,
+  card_holder_name: data.name,
+  country: data.country,
+  bank: data.bank,
+  cvc: data.cvc,
+  expiration_date: data.exp,
+  card_id: data.creditCardId,
+});

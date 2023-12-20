@@ -1,15 +1,16 @@
 import { Prisma, PrismaClient } from "@prisma/client";
 import { DefaultArgs } from "@prisma/client/runtime/library";
-import {
-  GroupCreateDBResponse,
-} from "../../controllers/feature1/models/group.model";
+import { GroupCreateDBResponse } from "../../controllers/feature1/models/group.model";
+
+export const SECRET_IDENTIFIER = "aCCTWXRmyi";
 
 export interface IGroupRepository {
   createGroup(
     userId: number,
     groupName: string,
     members: Array<number>,
-    filename: string|null,
+    filename: string | null,
+    secret: boolean,
   ): Promise<GroupCreateDBResponse>;
 }
 
@@ -24,7 +25,13 @@ export default class GroupRepository {
     this.prismaClient = new PrismaClient();
   }
 
-  async createGroup(userId: number, groupName: string, members: Array<number>, filename: string) {
+  async createGroup(
+    userId: number,
+    groupName: string,
+    members: Array<number>,
+    filename: string,
+    secret: boolean,
+  ) {
     const allMembers = new Set(members);
     allMembers.add(userId);
 
@@ -33,8 +40,8 @@ export default class GroupRepository {
         Group_user: {
           create: Array.from(allMembers).map((id) => ({ memberId: id })),
         },
-        group_name: groupName,
-        group_profile: filename,
+        group_name: secret ? `${groupName}${SECRET_IDENTIFIER}` : groupName,
+        group_profile: `/uploads/${filename}`,
       },
       include: {
         Group_user: {

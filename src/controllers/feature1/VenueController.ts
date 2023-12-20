@@ -1,19 +1,30 @@
 import { Request, Response } from "express";
-import { makeErrorResponse } from "./models/payment_method.model";
-import VenueService, {
-  IVenueService,
-} from "../../services/feature1/venue.service";
-import VenueRepository from "../../services/feature1/venue.repository";
+import { compose, identity, path } from "ramda";
 import { z } from "zod";
+
 import {
-  makeVenueUpdateWebResponse,
+  VenueService,
+  IVenueService,
+  VenueRepository,
+} from "../../services/feature1";
+import {
+  CreditCardCreateRequest,
+  makeCreditCardCreateResponse,
+  makeErrorResponse,
   makeVenueShowWebResponse,
-} from "./models/venue.model";
+} from "./models";
 
 export interface IVenueController {
   update: (req: Request, res: Response) => unknown;
   show: (req: Request, res: Response) => unknown;
   updateOpeningHours: (req: Request, res: Response) => unknown;
+  updatePromptPay: (req: Request, res: Response) => unknown;
+
+  createCreditCard: (req: Request, res: Response) => unknown;
+  showCreditCard: (req: Request, res: Response) => unknown;
+  updateCeditCard: (req: Request, res: Response) => unknown;
+  indexCreditCard: (req: Request, res: Response) => unknown;
+  deleteCreditCard: (req: Request, res: Response) => unknown;
 }
 
 const VenueUpdatePayload = z.object({
@@ -39,36 +50,115 @@ const OpeningHourPayload: z.ZodType<DayToString> = z.object({
   ),
 }) as z.ZodTypeAny;
 
+const PromptPayPayload = z.object({
+  promptpay_number: z.number(),
+});
+
+const getBusinessId = compose(Number, path(["params", "businessId"]));
+
+const CreateCreditCardPayload = z.object({
+  card_number: z.string(),
+  card_holder_name: z.string(),
+  country: z.string(),
+  bank: z.string(),
+  cvc: z.number(),
+  expiration_date: z.string().datetime(),
+});
+
 class VenueController implements IVenueController {
   private service: IVenueService = new VenueService(new VenueRepository());
 
-  async updateOpeningHours(req: Request, res: Response) {
-    const openingHours = req.body;
+  async createCreditCard(req: Request, res: Response) {
+    const businessId = getBusinessId(req);
 
-    const result = await OpeningHourPayload.safeParseAsync(openingHours);
+    const result = await CreateCreditCardPayload.safeParseAsync(req.body);
 
     if (!result.success) {
-      return res.status(400).json(makeErrorResponse('Invalid request'));
+      return res.status(400).json(makeErrorResponse("Invalid request"));
+    }
+
+    const request: CreditCardCreateRequest = {
+      ...result.data,
+      expiration_date: new Date(result.data.expiration_date),
+    };
+
+    try {
+      const response = await this.service.createCreditCard(businessId, request);
+
+      return res.json(makeCreditCardCreateResponse(response));
+    } catch (e) {
+      return res.status(500).json(makeErrorResponse("Internal server error"));
+    }
+  }
+
+  async showCreditCard(req: Request, res: Response) {
+    identity(req);
+    identity(res);
+    throw new Error("Unimplemented");
+  }
+
+  async updateCeditCard(req: Request, res: Response) {
+    identity(req);
+    identity(res);
+    throw new Error("Unimplemented");
+  }
+
+  async indexCreditCard(req: Request, res: Response) {
+    identity(req);
+    identity(res);
+    throw new Error("Unimplemented");
+  }
+
+  async deleteCreditCard(req: Request, res: Response) {
+    identity(req);
+    identity(res);
+    throw new Error("Unimplemented");
+  }
+
+  async updatePromptPay(req: Request, res: Response) {
+    const businessId = getBusinessId(req);
+    const promptPay = req.body;
+    const result = await PromptPayPayload.safeParseAsync(promptPay);
+
+    if (!result.success) {
+      return res.status(400).json(makeErrorResponse("Invalid request"));
     }
 
     try {
-      await this.service.updateOpeningHours(
-        Number(req.params.businessId),
-        openingHours,
+      await this.service.updatePromptPay(
+        businessId,
+        promptPay.promptpay_number,
       );
 
       return res.status(200).send();
     } catch (e) {
-      console.log(e);
+      return res.status(500).json(makeErrorResponse("Internal Server Error"));
+    }
+  }
+
+  async updateOpeningHours(req: Request, res: Response) {
+    const businessId = getBusinessId(req);
+    const openingHours = req.body;
+    const result = await OpeningHourPayload.safeParseAsync(openingHours);
+
+    if (!result.success) {
+      return res.status(400).json(makeErrorResponse("Invalid request"));
+    }
+
+    try {
+      await this.service.updateOpeningHours(businessId, openingHours);
+
+      return res.status(200).send();
+    } catch (e) {
       return res.status(500).json(makeErrorResponse("Internal Server Error"));
     }
   }
 
   async show(req: Request, res: Response) {
+    const businessId = getBusinessId(req);
+
     try {
-      const response = await this.service.getVenue(
-        Number(req.params.businessId),
-      );
+      const response = await this.service.getVenue(businessId);
 
       const webResponse = makeVenueShowWebResponse(response);
 
@@ -79,23 +169,17 @@ class VenueController implements IVenueController {
   }
 
   async update(req: Request, res: Response) {
-    const venue = req.body;
+    const businessId = getBusinessId(req);
+    const venue = await VenueUpdatePayload.safeParseAsync(req.body);
 
-    const result = await VenueUpdatePayload.safeParseAsync(venue);
-
-    if (!result.success) {
+    if (!venue.success) {
       return res.status(400).json(makeErrorResponse("Invalid request"));
     }
 
     try {
-      const response = await this.service.updateVenue(
-        Number(req.params.businessId),
-        result.data,
-      );
+      const response = await this.service.updateVenue(businessId, venue.data);
 
-      const webResponse = makeVenueUpdateWebResponse(response);
-
-      return res.json(webResponse);
+      return res.json(response);
     } catch (e) {
       return res.status(500).json(makeErrorResponse("Internal Server Error"));
     }

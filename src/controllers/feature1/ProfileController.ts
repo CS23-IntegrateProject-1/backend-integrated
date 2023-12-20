@@ -1,59 +1,64 @@
-// import { Request, Response } from "express";
-// import { ProfileRepository } from "../../services/feature1/profile.repository";
-// import ProfileService, {
-//   IProfileService,
-// } from "../../services/feature1/profile.service";
-// import { makeErrorResponse } from "./models/payment_method.model";
-// import { z } from "zod";
+import { Request, Response } from "express";
+import { compose, path } from "ramda";
+import { z } from "zod";
 
-// export interface IProfileController {
-//   show(req: Request, res: Response): unknown;
+import {
+  IProfileService,
+  ProfileRepository,
+  ProfileService,
+} from "../../services/feature1";
+import { MulterRequest, makeErrorResponse } from "./models";
 
-//   update(req: Request, res: Response): unknown;
-// }
+export const getUserId = compose(Number, path(["params", "userId"]));
 
-// const ProfilePayload = z.object({
-//   phone: z.string(),
-//   email: z.string().email(),
-//   birthday: z.string().datetime(),
-//   gender: z.enum(["Male", "Female", "Others"]),
-// });
+export interface IProfileController {
+  show(req: Request, res: Response): unknown;
 
-// export default class ProfileController implements IProfileController {
-//   private service: IProfileService = new ProfileService(
-//     new ProfileRepository(),
-//   );
+  update(req: Request, res: Response): unknown;
+}
 
-//   async update(req: Request, res: Response) {
-//     const profile = req.body;
+const ProfilePayload = z.object({
+  phone: z.string(),
+  email: z.string().email(),
+  birthday: z.string().datetime(),
+  gender: z.enum(["Male", "Female", "Others"]),
+});
 
-//     const result = await ProfilePayload.safeParseAsync(profile);
+export default class ProfileController implements IProfileController {
+  private service: IProfileService = new ProfileService(
+    new ProfileRepository(),
+  );
 
-//     if (!result.success) {
-//       return res.status(400).json(makeErrorResponse("Invalid request"));
-//     }
+  async update(req: Request, res: Response) {
+    const profile = req.body;
+    const filename = (req as MulterRequest)?.file?.filename ?? null;
 
-//     try {
-//       const response = await this.service.updateUserProfile(
-//         Number(req.params.userId),
-//         result.data,
-//       );
+    const result = await ProfilePayload.safeParseAsync(profile);
 
-//       return res.json(response);
-//     } catch (e) {
-//       return res.status(404).json(makeErrorResponse("User not found"));
-//     }
-//   }
+    if (!result.success) {
+      return res.status(400).json(makeErrorResponse("Invalid request"));
+    }
 
-//   async show(req: Request, res: Response) {
-//     try {
-//       const response = await this.service.getUserProfile(
-//         Number(req.params.userId),
-//       );
+    try {
+      const response = await this.service.updateUserProfile(
+        Number(req.params.userId),
+        result.data,
+        filename,
+      );
 
-//       return res.json(response);
-//     } catch (e) {
-//       return res.status(404).json(makeErrorResponse("User not found"));
-//     }
-//   }
-// }
+      return res.json(response);
+    } catch (e) {
+      return res.status(404).json(makeErrorResponse("User not found"));
+    }
+  }
+
+  async show(req: Request, res: Response) {
+    try {
+      const response = await this.service.getUserProfile(getUserId(req));
+
+      return res.json(response);
+    } catch (e) {
+      return res.status(404).json(makeErrorResponse("User not found"));
+    }
+  }
+}
