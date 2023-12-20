@@ -14,6 +14,11 @@ import SearchRepository from "./search.repository";
 
 import SearchService, { ISearchService } from "./search.service";
 
+import HelpDeskRepository, {
+  IHelpDeskRepository,
+} from "./help_desk.repository";
+import HelpDeskService, { IHelpDeskService } from "./help_desk.service";
+
 export {
   VenueService,
   IVenueService,
@@ -31,4 +36,8 @@ export {
   SearchRepository,
   SearchService,
   ISearchService,
+  HelpDeskRepository,
+  IHelpDeskRepository,
+  HelpDeskService,
+  IHelpDeskService,
 };

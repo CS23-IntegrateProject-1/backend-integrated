@@ -30,6 +30,15 @@ import {
 
 import { SearchDBResponse, makeSearchWebResponse } from "./search.model";
 
+import {
+  ComplaintTicket,
+  makeComplaintTicketResponse,
+} from "./help_desk.model";
+
+import {
+  NotFoundError,
+} from './errors';
+
 export {
   makeErrorResponse,
   makeVenueShowWebResponse,
@@ -54,4 +63,7 @@ export {
   VenuePromptPayShowDBResponse,
   makeVenuePromptPayShowWebResponse,
   makeCreditCardListResponse,
+  ComplaintTicket,
+  makeComplaintTicketResponse,
+  NotFoundError,
 };

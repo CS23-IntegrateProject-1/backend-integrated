@@ -21,6 +21,7 @@ import SearchController from "../controllers/feature1/SearchController";
 import VenueController from "../controllers/feature1/VenueController";
 import GroupController from "../controllers/feature1/GroupController";
 import QrController from "../controllers/feature1/QrController";
+import { HelpDeskController } from "../controllers/feature1";
 
 const aboutController = new AboutController();
 const friendController = new FriendController();
@@ -29,6 +30,7 @@ const searchController = new SearchController();
 const venueController = new VenueController();
 const groupController = new GroupController();
 const qrController = new QrController();
+const helpDeskController = new HelpDeskController();
 
 const feature1Router = Router();
 
@@ -172,6 +174,17 @@ feature1Router.get(
   "/qr/:username",
   userAuthMiddleware,
   qrController.generateByUsername.bind(qrController),
+);
+
+feature1Router.post(
+  "/help_desk/ticket",
+  userAuthMiddleware,
+  helpDeskController.create.bind(helpDeskController),
+);
+feature1Router.get(
+  "/help_desk/ticket/:id",
+  userAuthMiddleware,
+  helpDeskController.show.bind(helpDeskController),
 );
 
 export default feature1Router;
