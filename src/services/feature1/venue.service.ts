@@ -30,10 +30,20 @@ export interface IVenueService {
     businessId: number,
     creditCardId: number,
   ): Promise<Venue_credit_card | null>;
+
+  listCreditCardsByBusinessId(
+    businessId: number,
+  ): Promise<Array<Venue_credit_card>>;
 }
 
 class VenueService implements IVenueService {
   constructor(readonly repository: IVenueRepository) {}
+
+  async listCreditCardsByBusinessId(
+    businessId: number,
+  ): Promise<Array<Venue_credit_card>> {
+    return this.repository.listCreditCardsByBusinessId(businessId);
+  }
 
   async showCreditCard(
     businessId: number,

@@ -28,6 +28,10 @@ export interface IVenueRepository {
     businessId: number,
     creditCardId: number,
   ): Promise<Venue_credit_card | null>;
+
+  listCreditCardsByBusinessId(
+    businessId: number,
+  ): Promise<Array<Venue_credit_card>>;
 }
 
 function difference<T>(a: Set<T>, b: Set<T>): Set<T> {
@@ -35,6 +39,18 @@ function difference<T>(a: Set<T>, b: Set<T>): Set<T> {
 }
 
 class VenueRepository implements IVenueRepository {
+  async listCreditCardsByBusinessId(
+    businessId,
+  ): Promise<Array<Venue_credit_card>> {
+    const venueId = await this.getVenueId(businessId);
+
+    return prismaClient.venue_credit_card.findMany({
+      where: {
+        venueId,
+      },
+    });
+  }
+
   async getCreditCardById(
     businessId: number,
     creditCardId: number,

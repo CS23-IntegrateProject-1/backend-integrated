@@ -13,6 +13,7 @@ import {
   makeErrorResponse,
   makeVenueShowWebResponse,
 } from "./models";
+import { makeCreditCardListResponse } from "./models/venue.model";
 
 export interface IVenueController {
   update: (req: Request, res: Response) => unknown;
@@ -123,9 +124,18 @@ class VenueController implements IVenueController {
   }
 
   async indexCreditCard(req: Request, res: Response) {
-    identity(req);
-    identity(res);
-    throw new Error("Unimplemented");
+    const businessId = getBusinessId(req);
+
+    try {
+      const response =
+        await this.service.listCreditCardsByBusinessId(businessId);
+
+      return res.json(
+        makeCreditCardListResponse(isNil(response) ? [] : response),
+      );
+    } catch (e) {
+      return res.status(500).json(makeErrorResponse("Internal server error"));
+    }
   }
 
   async deleteCreditCard(req: Request, res: Response) {

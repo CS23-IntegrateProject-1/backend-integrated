@@ -96,3 +96,6 @@ export const makeCreditCardCreateResponse = (
   expiration_date: data.exp,
   card_id: data.creditCardId,
 });
+
+export const makeCreditCardListResponse = (data: Array<Venue_credit_card>) =>
+  data.map(makeCreditCardCreateResponse);
