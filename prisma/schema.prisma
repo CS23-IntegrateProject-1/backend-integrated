@@ -879,6 +879,7 @@ model Reservation {
   branchId                 Int?
   name                     String?
   phone                    String?                    @db.VarChar(10)
+  isPaymentSuccess         Boolean                    @default(false)
   Check_in_log             Check_in_log?
   Notes                    Notes?
   Notification_reservation Notification_reservation[]
