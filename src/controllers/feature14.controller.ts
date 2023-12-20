@@ -10,7 +10,7 @@ export const getDashboardChart = async (req: Request, res: Response) => {
 	try {
 		const userTiers = await DashboardService.getAllUsersTier();
 		const venueTypes = await DashboardService.getVenueTypes();
-		const businessCount = await DashboardService.getBusinessCount();
+		const businessCount = await  DashboardService.getBusinessCount();
 		const revenue = await DashboardService.getAllTransaction();
 		const numberOfReciept = await DashboardService.getNumberOfReciept();
 
@@ -244,22 +244,31 @@ export const getAccount = async (req: Request, res: Response) => {
 				select: {
 					name: true,
 					description: true,
-					Opening_day: true,
-					Location: true,
 					capacity: true,
 					Venue_credit_card: true,
 					Venue_promptpay: true,
 				},
 			});
-			return res.status(200).json({ venue, business_user });
+			const time = await feature14Client.opening_day.findMany({
+				select: {
+					closing_hours: true,
+					opening_hours: true,
+				}
+			});
+			const address = await feature14Client.location.findMany({
+				select: {
+					address: true,
+				}
+			});
+			return res.status(200).json({ venue, business_user ,time ,address });
 		} catch (error) {
 			return res.status(500).json({ error });
 		}
 	};
 	
 	export const updateAccount = async (req: Request, res: Response) => {
-		const { businessId } = req.params;
-		const { phone_num, email, profile_picture, name, description,Opening_day, Location, capacity, Venue_credit_card, Venue_promptpay } = req.body;
+		const { businessId,venueId,openingDayId, locationId } = req.params;
+		const { phone_num, email, profile_picture, name, description, capacity, Venue_credit_card, Venue_promptpay , address, closing_hours, opening_hours} = req.body;
 		try {
 			const business_user = await feature14Client.business_user.update({
 				where: {
@@ -273,19 +282,35 @@ export const getAccount = async (req: Request, res: Response) => {
 			});
 			const venue = await feature14Client.venue.update({
 				where: {
-					venueId: parseInt(businessId),
+					venueId: parseInt(venueId),
 				},
 				data: {
 					name: name,
 					description:description,
-					Opening_day: Opening_day,
-					Location: Location,
 					capacity: capacity,
 					Venue_credit_card:Venue_credit_card,
 					Venue_promptpay: Venue_promptpay,
+
 				},
 			});
-			return res.status(201).json({ business_user, venue });
+			const time = await feature14Client.opening_day.update({
+				where: {
+					openingDayId: parseInt(openingDayId),
+				},
+				data: {
+					closing_hours: closing_hours,
+					opening_hours: opening_hours,
+				}
+			});
+			const location = await feature14Client.location.update({
+				where: {
+					locationId:parseInt(locationId),
+				},
+				data:{
+					address: address,
+				}
+			});
+			return res.status(201).json({ business_user, venue ,time, location});
 		} catch (error) {
 			return res.sendStatus(500).json({ error });
 		}
