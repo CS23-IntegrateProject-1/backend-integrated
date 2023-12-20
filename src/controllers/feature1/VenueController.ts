@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { compose, identity, isNil, path } from "ramda";
+import { ifElse, always, compose, identity, isNil, path } from "ramda";
 import { z } from "zod";
 
 import {
@@ -68,6 +68,11 @@ const CreateCreditCardPayload = z.object({
   expiration_date: z.string().datetime(),
 });
 
+const makeResponse = compose(
+  makeCreditCardListResponse,
+  ifElse(isNil, always([]), identity),
+);
+
 class VenueController implements IVenueController {
   private service: IVenueService = new VenueService(new VenueRepository());
 
@@ -130,9 +135,7 @@ class VenueController implements IVenueController {
       const response =
         await this.service.listCreditCardsByBusinessId(businessId);
 
-      return res.json(
-        makeCreditCardListResponse(isNil(response) ? [] : response),
-      );
+      return res.json(makeResponse(response));
     } catch (e) {
       return res.status(500).json(makeErrorResponse("Internal server error"));
     }
