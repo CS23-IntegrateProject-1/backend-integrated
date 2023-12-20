@@ -1,21 +1,22 @@
 import { Request, Response } from "express";
 
-import GroupRepository from "../../services/feature1/group.repository";
-import GroupService, {
-  IGroupService,
-} from "../../services/feature1/group.service";
-import { makeErrorResponse } from "./models/payment_method.model";
-import { makeGroupCreateWebResponse } from "./models/group.model";
 import { prismaClient } from "../feature1.controller";
-
-export interface MulterRequest extends Request {
-  file: any;
-}
+import {
+  MulterRequest,
+  makeErrorResponse,
+  makeGroupCreateWebResponse,
+} from "./models";
+import {
+  GroupRepository,
+  GroupService,
+  IGroupService,
+} from "../../services/feature1";
+import { SECRET_IDENTIFIER } from "../../services/feature1/group.repository";
 
 export interface IGroupController {
   index(req: Request, res: Response): unknown;
 
-  create(req: MulterRequest, res: Response): unknown;
+  create(req: Request, res: Response): unknown;
 }
 
 export default class GroupController implements IGroupController {
@@ -23,7 +24,7 @@ export default class GroupController implements IGroupController {
 
   async create(req: Request, res: Response) {
     try {
-      const { group_name: groupName, members } = req.body;
+      const { group_name: groupName, members, secret } = req.body;
 
       const filename = (req as MulterRequest)?.file?.filename ?? null;
 
@@ -32,6 +33,7 @@ export default class GroupController implements IGroupController {
         groupName,
         members.map((m: string) => Number(m)),
         filename,
+        Boolean(secret),
       );
 
       const webResponse = makeGroupCreateWebResponse(groups);
@@ -63,8 +65,8 @@ export default class GroupController implements IGroupController {
                   userId: true,
                   username: true,
                   profile_picture: true,
-                }
-              }
+                },
+              },
             },
           },
         },
@@ -74,10 +76,15 @@ export default class GroupController implements IGroupController {
         return res.status(404).json(makeErrorResponse("Group does not exist"));
       }
 
+      const isSecretGroup = result.group_name.endsWith(SECRET_IDENTIFIER);
+
       const response = {
         group_id: result.groupId,
-        group_name: result.group_name,
+        group_name: isSecretGroup
+          ? result.group_name.replace(SECRET_IDENTIFIER, "")
+          : result.group_name,
         group_avatar: result.group_profile,
+        is_seceret_group: isSecretGroup,
         members: result.Group_user.map((user) => ({
           user_id: user.User.userId,
           username: user.User.username,
@@ -106,10 +113,15 @@ export default class GroupController implements IGroupController {
       });
 
       const response = result.map((r) => {
+        const isSecretGroup = r.Group.group_name.endsWith(SECRET_IDENTIFIER);
+
         return {
           group_id: r.Group.groupId,
-          group_name: r.Group.group_name,
+          group_name: isSecretGroup
+            ? r.Group.group_name.replace(SECRET_IDENTIFIER, "")
+            : r.Group.group_name,
           group_avatar: r.Group.group_profile,
+          is_secret_group: isSecretGroup,
         };
       });
 

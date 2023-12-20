@@ -1488,7 +1488,6 @@ export const getTransactionReserveIdByVenueIdAndEqualToStatusCompleted = async (
             total_amount: true,
             status: true,
             order_date: true,
-            isDelivery: true,
           },
         })
         .then((order) =>
@@ -1556,7 +1555,6 @@ export const getTransactionReserveIdByVenueIdAndEqualToStatusCompletedAndFiltere
               total_amount: true,
               status: true,
               order_date: true,
-              isDelivery: true,
             },
           })
           .then((order) =>
