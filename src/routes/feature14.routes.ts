@@ -11,6 +11,7 @@ import {
 	//createPromotionApproval,
 	//getComplainTicketByPending,
 	//getComplainTicketByComplete,
+	createTicketResponse,
 	updatePromotionApproval,
 	getInProgressPromotion,
 	updateVoucherApproval,
@@ -28,7 +29,7 @@ feature14Router.get("/getBusinessDashboard",getBusinessDashboard)
 
 //feature14Router.post("/createReportTicket", createReportTicket);
 
-//feature14Router.post("/createHelpDesk",createHelpDesk);
+feature14Router.post("/createTicketResponse",createTicketResponse);
 
 feature14Router.get("/getAllReportTicket",getAllComplainTicket);
 //feature14Router.get("/getComplainTicketByPending",getComplainTicketByPending);
