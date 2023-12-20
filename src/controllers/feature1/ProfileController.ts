@@ -1,14 +1,15 @@
 import { Request, Response } from "express";
-import { ProfileRepository } from "../../services/feature1/profile.repository";
-import ProfileService, {
-  IProfileService,
-} from "../../services/feature1/profile.service";
-import { makeErrorResponse } from "./models/payment_method.model";
-import { z } from "zod";
-import { MulterRequest } from "./GroupController";
 import { compose, path } from "ramda";
+import { z } from "zod";
 
-const getUserId = compose(Number, path(["params", "userId"]));
+import {
+  IProfileService,
+  ProfileRepository,
+  ProfileService,
+} from "../../services/feature1";
+import { MulterRequest, makeErrorResponse } from "./models";
+
+export const getUserId = compose(Number, path(["params", "userId"]));
 
 export interface IProfileController {
   show(req: Request, res: Response): unknown;

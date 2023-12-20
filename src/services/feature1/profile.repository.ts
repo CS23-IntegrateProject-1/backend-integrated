@@ -10,6 +10,8 @@ import { prismaClient } from "../../controllers/feature1.controller";
 export interface IProfileRepository {
   getUserById(userId: number): Promise<ProfileShowDBResponse>;
 
+  getUserByUserName(username: string): Promise<ProfileShowDBResponse>;
+
   updateUserById(
     userId: number,
     data: ProfileUpdateRequest,
@@ -62,8 +64,10 @@ const expandBio = (profile: Profile): ExpandedProfile => {
 
   if (!isNil(profile.Point) && profile.Point.length >= 1) {
     profile["member_point"] = profile.Point[0].amount;
+    profile["member_point_used"] = profile.Point[0].amount_used;
   } else {
     profile["member_point"] = 0;
+    profile["member_point_used"] = 0;
   }
 
   return omit(["User_bio", "profile_picture", "Member_tier", "Point"])(
@@ -129,6 +133,34 @@ export class ProfileRepository implements IProfileRepository {
     const result = await prismaClient.user.findFirst({
       where: {
         userId,
+      },
+      select: {
+        Member_tier: true,
+        Point: true,
+        User_bio: true,
+        email: true,
+        phone: true,
+        profile_picture: true,
+        userId: true,
+        username: true,
+      },
+    });
+
+    if (!result) {
+      throw new Error("User not found");
+    }
+
+    const profile = makeProfile(result);
+
+    const extendedProfile = expandBio(profile);
+
+    return extendedProfile as ProfileShowDBResponse;
+  }
+
+  async getUserByUserName(username: string): Promise<ProfileShowDBResponse> {
+    const result = await prismaClient.user.findFirst({
+      where: {
+        username,
       },
       select: {
         Member_tier: true,

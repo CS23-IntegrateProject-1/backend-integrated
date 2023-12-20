@@ -5,6 +5,8 @@ export type ProfileShowDBResponse = {
   username: string;
   phone: string;
   email: string;
+  gender: Gender | null;
+  birthday: Date | null;
 };
 
 export type ProfileUpdateRequest = {

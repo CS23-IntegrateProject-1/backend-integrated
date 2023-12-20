@@ -7,6 +7,7 @@ export interface IGroupService {
     groupName: string,
     members: Array<number>,
     filename: string | null,
+    secret: boolean,
   ): Promise<GroupCreateDBResponse>;
 }
 
@@ -18,12 +19,14 @@ export default class GroupService implements IGroupService {
     groupName: string,
     members: Array<number>,
     filename: string | null,
+    secret: boolean,
   ): Promise<GroupCreateDBResponse> {
     return await this.repository.createGroup(
       userId,
       groupName,
       members,
       filename,
+      secret,
     );
   }
 }

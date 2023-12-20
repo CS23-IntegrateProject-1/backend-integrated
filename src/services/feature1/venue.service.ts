@@ -1,11 +1,13 @@
+import { Venue_credit_card } from "@prisma/client";
+import { IVenueRepository } from ".";
 import {
   OpeningHourUpdateRequest,
   VenueShowDBResponse,
   VenueUpdateRequest,
   VenueUpdateWebResponse,
   makeVenueUpdateWebResponse,
-} from "../../controllers/feature1/models/venue.model";
-import IVenueRepository from "./venue.repository";
+  CreditCardCreateRequest,
+} from "../../controllers/feature1/models";
 
 export interface IVenueService {
   updateVenue(
@@ -16,10 +18,31 @@ export interface IVenueService {
   getVenue(businessId: number): Promise<VenueShowDBResponse>;
 
   updateOpeningHours(businessId: number, data: OpeningHourUpdateRequest);
+
+  updatePromptPay(businessId: number, promptPayNumber: number);
+
+  createCreditCard(
+    businessId: number,
+    data: CreditCardCreateRequest,
+  ): Promise<Venue_credit_card>;
 }
 
 class VenueService implements IVenueService {
   constructor(readonly repository: IVenueRepository) {}
+
+  async createCreditCard(
+    businessId: number,
+    data: CreditCardCreateRequest,
+  ): Promise<Venue_credit_card> {
+    return this.repository.createCreditCard(businessId, data);
+  }
+
+  async updatePromptPay(businessId: number, promptPayNumber: number) {
+    await this.repository.updatePromptPayByBusinessId(
+      businessId,
+      promptPayNumber,
+    );
+  }
 
   async getVenue(businessId: number): Promise<VenueShowDBResponse> {
     return this.repository.getVenueByBusinessId(businessId);

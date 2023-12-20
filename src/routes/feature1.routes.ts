@@ -20,6 +20,7 @@ import ProfileController from "../controllers/feature1/ProfileController";
 import SearchController from "../controllers/feature1/SearchController";
 import VenueController from "../controllers/feature1/VenueController";
 import GroupController from "../controllers/feature1/GroupController";
+import QrController from "../controllers/feature1/QrController";
 
 const aboutController = new AboutController();
 const friendController = new FriendController();
@@ -27,6 +28,7 @@ const profileController = new ProfileController();
 const searchController = new SearchController();
 const venueController = new VenueController();
 const groupController = new GroupController();
+const qrController = new QrController();
 
 const feature1Router = Router();
 
@@ -125,9 +127,30 @@ feature1Router.put(
   venueController.update.bind(venueController),
 );
 feature1Router.put(
+  "/venue/promptpay",
+  businessAuthMiddleware,
+  venueController.updatePromptPay.bind(venueController),
+);
+feature1Router.put(
   "/venue/opening_hours",
   businessAuthMiddleware,
   venueController.updateOpeningHours.bind(venueController),
+);
+feature1Router.post(
+  "/venue/credit_card",
+  businessAuthMiddleware,
+  venueController.createCreditCard.bind(venueController),
+);
+
+feature1Router.get(
+  "/qr",
+  userAuthMiddleware,
+  qrController.generate.bind(qrController),
+);
+feature1Router.get(
+  "/qr/:username",
+  userAuthMiddleware,
+  qrController.generateByUsername.bind(qrController),
 );
 
 export default feature1Router;
