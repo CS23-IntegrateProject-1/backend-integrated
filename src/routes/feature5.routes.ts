@@ -44,6 +44,7 @@ import {
   VoucherEditbyId,
   AdvertisementEditbyId,
   PromotionEditbyId,
+  getAllRedeem,
 
 } from "../controllers/feature5.controller";
 
@@ -97,7 +98,8 @@ feature5Router.get("/GetDetailPromotion/:id", getDetailPromotion); //for update 
 feature5Router.get("/GetCompletePromotion", GetCompletePromotion); //for all complete 
 feature5Router.post("/UpdatePromotionEditbyId/",multerConfig.single("file"),PromotionEditbyId);
 //Redeem
-feature5Router.get("/GetRedeem/", customVerifyCookie,  GetRedeem); //for show redeem of customer depend on their member tier
+feature5Router.get("/GetRedeem", customVerifyCookie, GetRedeem); //for show redeem of customer depend on their member tier
+feature5Router.get("/GetAllRedeem", getAllRedeem);
 feature5Router.post("/createRedeem", multerConfig.single("file"), CreateRedeem); // for create promotion
 feature5Router.get("/GetRedeembyId/:id", GetRedeembyId); 
 
