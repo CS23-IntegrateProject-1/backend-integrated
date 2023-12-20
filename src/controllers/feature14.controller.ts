@@ -247,6 +247,7 @@ export const getAccount = async (req: Request, res: Response) => {
 					capacity: true,
 					Venue_credit_card: true,
 					Venue_promptpay: true,
+					venue_picture: true,
 				},
 			});
 			const time = await feature14Client.opening_day.findMany({
@@ -268,7 +269,7 @@ export const getAccount = async (req: Request, res: Response) => {
 	
 	export const updateAccount = async (req: Request, res: Response) => {
 		const { businessId,venueId,openingDayId, locationId } = req.params;
-		const { phone_num, email, profile_picture, name, description, capacity, Venue_credit_card, Venue_promptpay , address, closing_hours, opening_hours} = req.body;
+		const { phone_num, email, profile_picture, name, description, capacity, Venue_credit_card, Venue_promptpay ,venue_picture, address, closing_hours, opening_hours} = req.body;
 		try {
 			const business_user = await feature14Client.business_user.update({
 				where: {
@@ -290,6 +291,7 @@ export const getAccount = async (req: Request, res: Response) => {
 					capacity: capacity,
 					Venue_credit_card:Venue_credit_card,
 					Venue_promptpay: Venue_promptpay,
+					venue_picture:venue_picture,
 
 				},
 			});
