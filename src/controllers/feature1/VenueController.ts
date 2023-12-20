@@ -12,9 +12,9 @@ import {
   makeCreditCardCreateResponse as makeCreditCardResponse,
   makeErrorResponse,
   makeVenueShowWebResponse,
-  VenuePromptPayShowDBResponse,
+  makeCreditCardListResponse,
+  makeVenuePromptPayShowWebResponse,
 } from "./models";
-import { makeCreditCardListResponse } from "./models/venue.model";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 
 export interface IVenueController {
@@ -247,25 +247,5 @@ class VenueController implements IVenueController {
     }
   }
 }
-
-type VenuePromptPayShowWebResponse = {
-  prompt_pay_number: number;
-  business_phone_number: string;
-};
-
-const makeVenuePromptPayShowWebResponse = (
-  data: VenuePromptPayShowDBResponse,
-): VenuePromptPayShowWebResponse => {
-  let phone_number = "";
-
-  if (!(data.Venue.Property.length === 0)) {
-    phone_number = data.Venue.Property[0].Business_user.phone_num ?? "";
-  }
-
-  return {
-    prompt_pay_number: data.promptpay_no,
-    business_phone_number: phone_number,
-  };
-};
 
 export default VenueController;
