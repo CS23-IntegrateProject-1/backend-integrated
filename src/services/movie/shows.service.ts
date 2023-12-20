@@ -37,7 +37,12 @@ class showService {
     return data;
   }
 
-  getShowsByTheaterId(id: number, date: number, month: number, year: number): Promise<any[]> {
+  getShowsByTheaterId(
+    id: number,
+    date: number,
+    month: number,
+    year: number
+  ): Promise<any[]> {
     const prisma = new PrismaClient();
     const dateString = date < 10 ? "0" + date : date.toString();
     const monthString = month < 10 ? "0" + month : month.toString();

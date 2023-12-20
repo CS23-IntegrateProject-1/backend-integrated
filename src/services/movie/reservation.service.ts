@@ -14,9 +14,9 @@ class reservationService {
             Seat_types: {
               select: {
                 price_modifier: true,
-              }
-            }
-          }
+              },
+            },
+          },
         },
       },
     });
@@ -41,6 +41,33 @@ class reservationService {
     return totalPrice;
   }
 
+  async getReservationByUserId(id: number) {
+    const prisma = new PrismaClient();
+    const data = await prisma.reservation_logs.findMany({
+      where: {
+        userId: id,
+      },
+      include: {
+        Shows: {
+          include: {
+            Films: true,
+            Screens: {
+              include: {
+                Theaters: true,
+              },
+            },
+          },
+        },
+        Seats: {
+          include: {
+            Seat_types: true,
+          },
+        },
+      },
+    });
+    return data;
+  }
+
   async getReservationById(id: number) {
     const prisma = new PrismaClient();
     const data = await prisma.reservation_logs.findUnique({
@@ -62,13 +89,6 @@ class reservationService {
           },
         },
       },
-      
-      // select: {
-      //   reservationId: true,
-      //   showId: true,
-      //   seatId: true,
-      //   userId: true, 
-      // },
     });
     return data;
   }

@@ -10,11 +10,17 @@ import { MajorAxios as Axios } from "../../configs/MajorAxiosInstance";
 import filmsService from "./films.service";
 import { Film, RecievedFilm } from "../../interface/movie/film.interface";
 import theatersService from "./theaters.service";
-import { RecievedTheater, Theater } from "../../interface/movie/theater.interface";
+import {
+  RecievedTheater,
+  Theater,
+} from "../../interface/movie/theater.interface";
 import screensService from "./screens.service";
 import { RecievedScreen, Screen } from "../../interface/movie/screen.interface";
 import seatsService from "./seats.service";
-import { RecievedSeatType, SeatType } from "../../interface/movie/seatType.interface";
+import {
+  RecievedSeatType,
+  SeatType,
+} from "../../interface/movie/seatType.interface";
 import { RecievedSeat, Seat } from "../../interface/movie/seat.interface";
 import showsService from "./shows.service";
 import { RecievedShow, Show } from "../../interface/movie/show.interface";
@@ -387,41 +393,6 @@ class MajorAPIService {
       throw e;
     }
   }
-
-  // async addNewPayments(addQueue: Payment[]) {
-  //   try {
-  //     for (const payment of addQueue) {
-  //       const payment_method = payment.paymentMethod;
-  //       const payment_status = payment.paymentStatus;
-  //       await this.prisma.payments.create({
-  //         data: {
-  //           paymentId: payment.paymentId,
-  //           reservationId: payment.reservationId,
-  //           payment_date: payment.paymentDate,
-  //           payment_amount: payment.paymentAmount,
-  //           payment_method: Payments_payment_method[payment_method],
-  //           payment_status: Payments_payment_status[payment_status],
-  //         },
-  //       });
-  //     }
-  //   } catch (e: any) {
-  //     console.log(e);
-  //   }
-  // }
-
-  // async deleteOutdatedPayments(deleteQueue: Payment[]) {
-  //   try {
-  //     for (const payment of deleteQueue) {
-  //       await this.prisma.payments.delete({
-  //         where: {
-  //           paymentId: payment.paymentId,
-  //         },
-  //       });
-  //     }
-  //   } catch (e: any) {
-  //     console.log(e);
-  //   }
-  // }
 
   async postReservationToMajor(reservation: any) {
     try {

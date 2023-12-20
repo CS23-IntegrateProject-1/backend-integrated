@@ -108,45 +108,6 @@ export const getShowsByFilmIdandDate = async (req: Request, res: Response) => {
   }
 };
 
-export const getShowsByFilmId = async (req: Request, res: Response) => {
-    try {const id = Number(req.params.id);
-  // const date = req.params.date;
-
-  const data = await showService.getShowsByFilmId(id);
-  res.json(data);
-    } catch (e: any) {
-      console.log(e);
-      res.status(500).json({ error: e.message });
-    }
-  
-};
-
-//make it distinct????????????????????????????????????????????????
-export const getSeatsTypeByScreenId = async (req: Request, res: Response) => {
-  try {
-    // const id = Number(req.params.id);
-    const seat_types = await prisma.seat_types.findMany({});
-    res.json(seat_types);
-  } catch (err) {
-    const error = err as Error;
-    res.status(500).json({ error: error.message });
-  }
-};
-
-export const getSeatByScreenId = async (req: Request, res: Response) => {
-    try {
-      const id = req.body.id;
-      const data = await seatsService.getSeatByScreenId(id);
-      res.json(data);
-    } catch (e: any) {
-      console.log(e);
-      res.status(500).json({ error: e.message });
-    }
-  
-};
-
-//page4
-
 export const getShowsByTheaterId = async (req: Request, res: Response) => {
     try {
       const id = Number(req.body.id);
@@ -160,24 +121,51 @@ export const getShowsByTheaterId = async (req: Request, res: Response) => {
       console.log(e);
       res.status(500).json({ error: e.message });
     }
-  
 };
 
-export const getFilmsByTheaterId = async (req: Request, res: Response) => {
-    try {
-      const id = req.body.id;
-      const date = req.body.date;
-      const year = req.body.year;
-      const month = req.body.month;
+//ไม่แน่ใจว่าต้องใช้มั้ย ไปใช้ getShowsByTheaterIdอันข้างบน น่าจะดีกว่า
+// export const getFilmsByTheaterId = async (req: Request, res: Response) => {
+//     try {
+//       const id = req.body.id;
+//       const date = req.body.date;
+//       const year = req.body.year;
+//       const month = req.body.month;
 
-      const data = await filmService.getFilmsByTheaterId(id, date, month, year);
-      res.json(data);
+//       const data = await filmService.getFilmsByTheaterId(id, date, month, year);
+//       res.json(data);
+//     } catch (e: any) {
+//       console.log(e);
+//       res.status(500).json({ error: e.message });
+//     } 
+// };
+
+//เปลี่ยนไปใช้ getShowsByFilmIdandDate แทนน่าจะดีกว่า
+// export const getShowsByFilmId = async (req: Request, res: Response) => {
+//     try {const id = Number(req.params.id);
+//   // const date = req.params.date;
+//   const data = await showService.getShowsByFilmId(id);
+//   res.json(data);
+//     } catch (e: any) {
+//       console.log(e);
+//       res.status(500).json({ error: e.message });
+//     }
+  
+// };
+
+//ใช้อันนี้ตอนกดshowแล้วเข้าไปหน้าseat
+export const getSeatByShowId = async (req: Request, res: Response) => {
+    try {
+        const id = Number(req.body.id);
+        const data = await seatsService.getSeatByShowId(id);
+        res.json(data);
     } catch (e: any) {
       console.log(e);
       res.status(500).json({ error: e.message });
     }
-  
-};
+}
+//page4
+
+
 
 export const getTheaterById = async (req: Request, res: Response) => {
     try {
@@ -191,6 +179,7 @@ export const getTheaterById = async (req: Request, res: Response) => {
   
 };
 
+//price * price_modifier
 export const getTotalPriceByReservationId = async (
   req: Request,
   res: Response
@@ -206,6 +195,7 @@ export const getTotalPriceByReservationId = async (
   
 };
 
+//ใช้ทำอะไรจำไม่ได้ละ
 export const getReservationById = async (req: Request, res: Response) => {
     try {
       //select all data
@@ -219,6 +209,19 @@ export const getReservationById = async (req: Request, res: Response) => {
   
 };
 
+//ใช้ตอนจะเอา history ของuserคนนั้น --> เรียกข้อมูลทุกอย่างหมดเลยลึ่มๆ
+export const getReservationByUserId = async (req: Request, res: Response) => {
+    try {
+        const id = Number(req.body.id);
+        const data = await reservationService.getReservationByUserId(id);
+        res.json(data);
+    } catch (e: any) {
+      console.log(e);
+      res.status(500).json({ error: e.message });
+    }
+}
+
+//ใช้ตอนคนกดจองที่นั่งเรียบร้อยแล้วกำลังจะไปหน้า payment ถ้าผ่านอันนี้จะไปจ่ายได้ ถ้าไม่ผ่านแสดงว่ามีคนจองแล้วหรือerror
 export const bookSeatAndSendCookie = async (req: Request, res: Response) => {
   try {
     const showId = Number(req.body.showId);
@@ -258,8 +261,10 @@ export const bookSeatAndSendCookie = async (req: Request, res: Response) => {
       sameSite: "none",
       secure: true,
     });
-
-    const createReservation = await prisma.reservation_logs.create({
+    
+    // ไม่ต้องประกาศก็ได้ มั้งงงง
+    //const createReservation = 
+    await prisma.reservation_logs.create({
       data: {
         showId: showId,
         seatId: seatId,

@@ -11,28 +11,6 @@ class seatService {
   //     return data;
   // }
 
-  // getSeatByRowAndColumn = async (screenId: number, row: number, column: number) => {
-  //     const prisma = new PrismaClient();
-  //     const data = await prisma.seats.findUnique({
-  //         where: {
-  //             screenId_row_column: {
-  //                 screenId: screenId,
-  //                 row: row,
-  //                 column: column
-  //             }
-  //         }
-  //     });
-  //     return data;
-  // }
-  // async getSeatByScreenId(id: number) : Promise<any[]> {
-  //     const prisma = new PrismaClient();
-  //     const data = await prisma.seats.findMany({
-  //         where: {
-  //             screenId: id
-  //         }
-  //     });
-  //     return data;
-  // }
   async getSeatById(id: number): Promise<any[]> {
     const prisma = new PrismaClient();
     const data = await prisma.seats.findMany({});
@@ -59,6 +37,27 @@ class seatService {
   async getAllSeatTypes(): Promise<any[]> {
     const prisma = new PrismaClient();
     const data = await prisma.seat_types.findMany();
+    return data;
+  }
+  async getSeatByShowId(id: number): Promise<any[]> {
+    const prisma = new PrismaClient();
+    const data = await prisma.shows.findMany({
+      where: {
+        showId: id,
+      },
+      include: {
+        Films: true,
+        Screens: {
+          include: {
+            Seats: {
+              include: {
+                Seat_types: true,
+              },
+            },
+          },
+        },
+      },
+    });
     return data;
   }
 }
