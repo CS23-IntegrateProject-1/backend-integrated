@@ -235,9 +235,9 @@ export const getBusinessUser = async (req: Request, res: Response) => {
 		}
 	};
 	
-	export const updateBusinessUser = async (req: Request, res: Response) => {
+	export const updateAccount = async (req: Request, res: Response) => {
 		const { businessId } = req.params;
-		const { phone_num, email, profile_picture } = req.body;
+		const { phone_num, email, profile_picture, name, description,Opening_day, location, capacity, Venue_credit_card, Venue_promptpay } = req.body;
 		try {
 			const business_user = await feature14Client.business_user.update({
 				where: {
@@ -249,19 +249,9 @@ export const getBusinessUser = async (req: Request, res: Response) => {
 					profile_picture: profile_picture,
 				},
 			});
-			return res.status(201).json({ business_user });
-		} catch (error) {
-			return res.sendStatus(500).json({ error });
-		}
-	};
-
-	export const updateBusinessVenue = async (req: Request, res: Response) => {
-		const { venueId } = req.params;
-		const { name, description,Opening_day, location, capacity, Venue_credit_card, Venue_promptpay } = req.body;
-		try{
 			const venue = await feature14Client.venue.update({
 				where: {
-					venueId: parseInt(venueId),
+					venueId: parseInt(businessId),
 				},
 				data: {
 					name: name,
@@ -272,11 +262,35 @@ export const getBusinessUser = async (req: Request, res: Response) => {
 					Venue_credit_card:Venue_credit_card,
 					Venue_promptpay,
 				},
-			})
-		}catch (error) {
+			});
+			return res.status(201).json({ business_user, venue });
+		} catch (error) {
 			return res.sendStatus(500).json({ error });
 		}
 	};
+
+	// export const updateBusinessVenue = async (req: Request, res: Response) => {
+	// 	const { venueId } = req.params;
+	// 	const { name, description,Opening_day, location, capacity, Venue_credit_card, Venue_promptpay } = req.body;
+	// 	try{
+	// 		const venue = await feature14Client.venue.update({
+	// 			where: {
+	// 				venueId: parseInt(venueId),
+	// 			},
+	// 			data: {
+	// 				name: name,
+	// 				description:description,
+	// 				Opening_day: Opening_day,
+	// 				location: location,
+	// 				capacity: capacity,
+	// 				Venue_credit_card:Venue_credit_card,
+	// 				Venue_promptpay,
+	// 			},
+	// 		})
+	// 	}catch (error) {
+	// 		return res.sendStatus(500).json({ error });
+	// 	}
+	// };
 	
 	
 	
