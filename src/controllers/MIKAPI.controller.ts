@@ -204,6 +204,28 @@ export const ApiReserve = async (req: Request, res: Response) => {
             },
         });
 
+        const checkChatRoomId = await mikPrismaClient.venue.findFirst({
+            where: {
+                venueId: newReservation.venueId,
+            },
+            select: {
+                chatRoomId: true,
+            },
+        });
+
+        if (
+            userId != undefined &&
+            checkChatRoomId?.chatRoomId != undefined
+        ) {
+            await mikPrismaClient.chat_Room_Logs.create({
+                data: {
+                    chatRoomId: checkChatRoomId?.chatRoomId,
+                    userId: userId,
+                    access_status: true,
+                },
+            });
+        }
+
         const reservationID = newReservation.reservationId;
 
         const response = await fetch(url, {

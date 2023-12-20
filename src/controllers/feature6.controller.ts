@@ -294,15 +294,6 @@ export const createReservation = async (req: Request, res: Response) => {
                 },
             });
 
-            // Create the reservation table entry for the selected table
-            const reservationTableEntry =
-                await feature6Client.reservation_table.create({
-                    data: {
-                        reserveId: newReservation.reservationId,
-                        tableId: selectedTable[0].tableId,
-                    },
-                });
-
             const checkChatRoomId = await feature6Client.venue.findFirst({
                 where: {
                     venueId: newReservation.venueId,
@@ -324,6 +315,15 @@ export const createReservation = async (req: Request, res: Response) => {
                     },
                 });
             }
+
+            // Create the reservation table entry for the selected table
+            const reservationTableEntry =
+                await feature6Client.reservation_table.create({
+                    data: {
+                        reserveId: newReservation.reservationId,
+                        tableId: selectedTable[0].tableId,
+                    },
+                });
 
             const responseData = {
                 newReservation,
@@ -1104,6 +1104,16 @@ export const qrCode = async (req: Request, res: Response) => {
         const { reservationId } = req.params;
         const authToken = req.cookies.authToken;
 
+        const reservation = await feature6Client.reservation.findUnique({
+            where: { reservationId: parseInt(reservationId) },
+        });
+        if (reservation === null || reservation === undefined) {
+            return res.status(404).json({ error: "Reservation not found" });
+        }
+
+        if(reservation.isPaidDeposit === "Pending"){
+            return res.status(200).send(402);
+        }
         const qrCodeData = {
             reservationId: reservationId,
             authToken: authToken,
@@ -1136,6 +1146,9 @@ export const checkOut = async (req: Request, res: Response) => {
         }
         if (reservation.status !== "Check_in") {
             return res.status(400).json({ error: "Check-Out not success" });
+        }
+        if(reservation.isPaymentSuccess === "Pending"){
+            return res.status(200).send(402);
         }
 
         const checkOutLog = await feature6Client.check_in_log.update({
