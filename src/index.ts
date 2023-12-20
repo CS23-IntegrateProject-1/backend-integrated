@@ -20,6 +20,8 @@ import Feature14Routes from "./routes/feature14.routes";
 
 import { httpServer as socketIoServer } from "./socketio";
 import path from "path";
+import { MajorAPIRoutes } from "./routes/MajorAPI.routes";
+import MIKAPIRouter from "./routes/MIKAPI.routes";
 
 loadEnv();
 
@@ -33,6 +35,9 @@ app.use(cookieParser());
 app.use(addressTracker);
 
 // const routes = new Routes(app);
+//stripe
+// const stripe = require("./routes/stripe");
+// app.use("/stripe", stripe);
 
 const port = process.env.PORT || 8080;
 const socketIoPort = process.env.SOCKET_IO_PORT || 8000;
@@ -41,6 +46,7 @@ app.get("/", (req: Request, res: Response) => {
 	res.send("Hello, Express with TypeScript!");
 });
 
+app.use("/api/mik", MIKAPIRouter);
 app.use("/auth", AuthRoutes);
 app.use("/feature1", Feature1Routes);
 app.use("/feature3", Feature3Routes);
@@ -53,6 +59,7 @@ app.use("/feature10", Feature10Routes);
 app.use("/feature11", Feature11Routes);
 app.use("/feature12", Feature12Routes);
 app.use("/feature14", Feature14Routes);
+app.use("/MajorAPI/", MajorAPIRoutes);
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 app.listen(port, () => {

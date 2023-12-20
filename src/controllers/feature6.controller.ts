@@ -9,9 +9,7 @@ import { getOfflineAvailableTables } from "../services/reservation/getOfflineAva
 import { findSuitableTable } from "../services/reservation/findSuitable.service";
 import qr from "qr-image";
 
-
 const feature6Client = new PrismaClient();
-
 
 //GET METHOD
 export const getAllTable = async (req: Request, res: Response) => {
@@ -41,7 +39,7 @@ export const getVenueById = async (req: Request, res: Response) => {
             where: {
                 venueId: parseInt(venueId),
                 branchId: parseInt(branchId),
-            }
+            },
         });
         const venue = await feature6Client.venue.findUnique({
             where: {
@@ -49,7 +47,7 @@ export const getVenueById = async (req: Request, res: Response) => {
             },
             include: {
                 Venue_photo: true,
-                location: true,
+                Location: true,
             },
         });
         return res.json(venue), branchName;
@@ -73,8 +71,8 @@ export const getReservationById = async (req: Request, res: Response) => {
                 reservationId: parseInt(req.params.reservationId),
             },
             include: {
-                user: true,
-                deposit: true,
+                User: true,
+                Deposit: true,
             },
         });
         return res.json(reservations);
@@ -102,7 +100,7 @@ export const getMyReservationByStatus = async (req: Request, res: Response) => {
                 userId: userId,
             },
             include: {
-                venue: {
+                Venue: {
                     include: {
                         Venue_photo: true,
                         Menu: {
@@ -114,6 +112,7 @@ export const getMyReservationByStatus = async (req: Request, res: Response) => {
                             },
                             take: 1,
                         },
+                        Venue_branch: true,
                     },
                 },
             },
@@ -166,18 +165,18 @@ export const getVenueAndReservationsById = async (
                 reservationId: parseInt(reservationId),
             },
             include: {
-                user: {
+                User: {
                     include: {
                         User_bio: true,
                     },
                 },
-                deposit: true,
+                Deposit: true,
             },
         });
 
         return res.json({ venue, location, reservations });
     } catch (e) {
-        console.log(e)
+        console.log(e);
         return res.status(500).json(e);
     }
 };
@@ -185,9 +184,8 @@ export const getVenueAndReservationsById = async (
 //POST METHOD
 // create Reservation
 // Finished
-var isResponse = true;
 export const createReservation = async (req: Request, res: Response) => {
-    isResponse = true;
+    let isResponse = true;
 
     try {
         const token = req.cookies.authToken;
@@ -203,8 +201,15 @@ export const createReservation = async (req: Request, res: Response) => {
                 .json({ error: "This user is not customer user" });
         }
 
-        const { venueId, guest_amount, reserve_date, time, branchId, name, phone_num } =
-            req.body;
+        const {
+            venueId,
+            guest_amount,
+            reserve_date,
+            time,
+            branchId,
+            name,
+            phone_num,
+        } = req.body;
 
         const concatDatetime = `${reserve_date} ${time}`;
         const reserved_time = new Date(concatDatetime);
@@ -233,7 +238,9 @@ export const createReservation = async (req: Request, res: Response) => {
             getAvailableTablesResponse.error ==
             "Reservation time is not within valid hours"
         ) {
-            return res.status(400).json({ error: "Reservation time is not within valid hours" });
+            return res
+                .status(400)
+                .json({ error: "Reservation time is not within valid hours" });
         } else if (
             getAvailableTablesResponse.error == "No more Available Table"
         ) {
@@ -301,7 +308,7 @@ export const createReservation = async (req: Request, res: Response) => {
                 reservationTableEntry,
             };
             res.status(200).json(responseData);
-        }
+        } // res.status(200).json(newReservation);
     } catch (e) {
         console.log(e);
         return res.status(500).json(e);
@@ -347,7 +354,7 @@ export const getTableByTableId = async (req: Request, res: Response) => {
                 venueId: venueId,
             },
             include: {
-                table_type: true,
+                Table_type_detail: true,
             },
         });
 
@@ -430,7 +437,7 @@ export const getAllTableByVenueId = async (req: Request, res: Response) => {
                 isUsing: true,
             },
             include: {
-                table_type: true,
+                Table_type_detail: true,
             },
         });
 
@@ -676,7 +683,7 @@ export const getAllReservationOfVenue = async (req: Request, res: Response) => {
                 venueId: venueId,
             },
             include: {
-                user: true,
+                User: true,
             },
         });
         return res.json(reservations);
@@ -798,9 +805,8 @@ export const cancelReservation = async (req: Request, res: Response) => {
 
 // OFFLINE RESERVATION
 // Finished
-var isResponse = true;
 export const createOfflineReservation = async (req: Request, res: Response) => {
-    isResponse = true;
+    let isResponse = true;
     try {
         const token = req.cookies.authToken;
         if (!token) {
@@ -942,7 +948,7 @@ export const createOfflineReservation = async (req: Request, res: Response) => {
 
             const defaultCheckoutTime = new Date();
             defaultCheckoutTime.setHours(7, 0, 0, 0);
-            const checkInLog = await feature6Client.check_in_log.create({
+            await feature6Client.check_in_log.create({
                 data: {
                     reserveId: reservationId,
                     check_in_time: checkInTime,
@@ -1020,7 +1026,7 @@ export const checkIn = async (req: Request, res: Response) => {
         defaultCheckoutTime.setHours(7, 0, 0, 0);
         const isSuccess = true;
         if (isSuccess) {
-            const checkInLog = await feature6Client.check_in_log.create({
+            await feature6Client.check_in_log.create({
                 data: {
                     reserveId: reservationId,
                     check_in_time: checkInTime,
@@ -1152,34 +1158,47 @@ export const checkOut = async (req: Request, res: Response) => {
 };
 
 export const checkInStatus = async (req: Request, res: Response) => {
-    try {
-        const { reservationId } = req.params;
-        const token = req.cookies.authToken;
-        if (!token) {
-            return res.status(401).json({ error: "No auth token" });
-        }
+  try {
+    const { reservationId } = req.params;
+    const token = req.cookies.authToken;
+    if (!token) {
+      return res.status(401).json({ error: "No auth token" });
+    }
+    const getstatus = await feature6Client.reservation.findUnique({
+      where: {
+        reservationId: parseInt(reservationId),
+      },
+      select: {
+        status: true,
+      },
+    });
 
-        const status = await feature6Client.reservation.findUnique({
-            where: {
-                reservationId: parseInt(reservationId),
-            },
-            select: {
-                status: true,
-            },
-        });
-        if (status?.status == "Check_in") {
-            // res.cookie("reservationToken")
-            const reservationToken = genToken(parseInt(reservationId));
-            res.cookie("reservationToken", reservationToken, {
-                httpOnly: true,
-                secure: true,
-                sameSite: "none",
-            });
-            
-        }
-        res.json(status?.status);
-       
-    } catch (e) {
-        return res.status(500).json(e);
+    const hasReservationToken = (req: Request): boolean => {
+      const reservationToken = req.cookies.reservationToken;
+      return !!reservationToken; // Returns true if reservationToken exists, false otherwise
+    };
+
+    if (getstatus?.status === "Check_in" && !hasReservationToken(req)) {
+      // Generate and set reservationToken in response headers
+      const reservationToken = genToken(parseInt(reservationId));
+      res.cookie("reservationToken", reservationToken, {
+        httpOnly: true,
+        secure: true,
+        sameSite: "none",
+      });
+    }
+
+    res.json(getstatus?.status);
+  } catch (e) {
+    return res.status(500).json(e);
+  }
+};
+
+//Upload Image
+export const uploadTableTypeImage = async (req: Request, res: Response) => {
+    try {
+        res.status(200).json({ payload: "oh yeaaa" });
+    } catch (err) {
+        res.status(500).json({ err: "sorry something wrong" });
     }
 };
