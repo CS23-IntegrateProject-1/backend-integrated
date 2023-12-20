@@ -94,8 +94,6 @@ export const getTableIdsByVenueId = async (req: Request, res: Response) => {
 };
 
 export const getTableNosByVenueId = async (req: Request, res: Response) => {
-  try {
-    const response = await getTableIdsByVenueId(req, res);
 
     if (!("tableIds" in response) || response.tableIds.length === 0) {
       return res
@@ -154,10 +152,24 @@ export const getTableNoByReservationId = async (
 
     const tableNo = reservation.Reservation_table[0]?.Tables.table_no;
 
-    if (!tableNo) {
-      return res
-        .status(404)
-        .json({ error: "Table not found for the reservation" });
+
+
+  export const getAllApptransactionByVenueId = async (req: Request, res: Response) => {
+    const venueId = parseInt(req.params.venueId, 10);
+
+    try {
+        const apptransactions = await feature8Client.app_transaction.findMany({
+            where: { venueId },
+        });
+
+        if (!apptransactions || apptransactions.length === 0) {
+            return res.status(404).json({ error: 'No app transactions found for the specified venue' });
+        }
+
+        res.status(200).json(apptransactions);
+    } catch (error) {
+        console.error('Error fetching app transactions by venue ID:', error);
+        res.status(500).json({ error: 'Failed to retrieve app transactions' });
     }
 
     res.status(200).json({ tableNo });
@@ -696,45 +708,23 @@ export const getBusinessIdByVenueId = async (req: Request, res: Response) => {
   }
 };
 
-export const getBusinessIdByVenueIdForReal = async (
-  req: Request,
-  res: Response
-) => {
-  const { venueId } = req.params;
 
-  try {
-    const property = await feature8Client.property.findFirst({
-      where: {
-        venueId: parseInt(venueId),
-      },
-      select: {
-        businessId: true,
-      },
-    });
 
-    if (!property) {
-      return res
-        .status(404)
-        .json({ error: "Property not found for the given venueId" });
-    }
-
-    res.json({ businessId: property.businessId });
-  } catch (error) {
-    console.error("Error retrieving businessId:", error);
-    res.status(500).json({ error: "Internal server error" });
-  }
-};
-
-export const getAllNotificationAdBusinessByBusinessId = async (
-  req: Request,
-  res: Response
-) => {
-  const { advertisementId } = req.params;
-
-  try {
-    const notifications = await feature8Client.notfication_ad_business.findMany(
-      {
-        where: { advertisementId: parseInt(advertisementId, 10) },
+export const getBusinessIdByVenueIdForReal = async (req: Request, res: Response) => {
+    const { venueId } = req.params;
+  
+    try {
+      const property = await feature8Client.property.findFirst({
+        where: {
+          venueId: parseInt(venueId),
+        },
+        select: {
+          businessId: true,
+        },
+      });
+  
+      if (!property) {
+        return res.status(404).json({ error: 'Property not found for the given venueId' });
       }
     );
 
@@ -1734,6 +1724,169 @@ export const getOrderIdByAppTransactionDetailId = async (
     res.status(500).json({ error: "Failed to retrieve order" });
   }
 };
+
+export const getAllOrdersByVenueId = async (req: Request, res: Response) => {
+    const { venueId } = req.params;
+  
+    try {
+  
+      const orders = await feature8Client.orders.findMany({
+        where: {
+          venueId: parseInt(venueId),
+        },
+        orderBy: {
+            order_date: 'desc',
+        },
+        select : {
+            order_date: true,
+            orderId: true,
+            total_amount: true,
+            isDelivery: true
+        }
+      });
+  
+      if (!orders || orders.length === 0) {
+        return res.status(404).json({ error: 'No orders found for the specified venue' });
+      }
+  
+      return res.json(orders);
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ error: 'An error occurred while fetching orders.' });
+    }
+  };
+
+
+  export const getlatestOrderMenuOrderUpdate = async (req: Request, res: Response) => {
+    const orderId = parseInt(req.params.orderId, 10);
+  
+    try {
+      const order = await feature8Client.orders.findUnique({
+        where: { orderId: orderId },
+        select: { reservedId: true }
+      });
+  
+      const orderdetail = await feature8Client.order_detail.findMany({
+        where: { 
+          orderId : orderId,
+          status: 'On_going',
+        },
+        select: {
+          menuId: true,
+          setId: true,
+          unit_price: true,
+          quantity: true,
+        },
+        orderBy: {
+          order_time: 'desc'
+        }
+      });
+  
+      const orderdetailWithNameAndTableNo = await Promise.all(orderdetail.map(async item => {
+        let name = '';
+        let tableNo = NaN;
+        if (item.menuId) {
+          const menu = await feature8Client.menu.findUnique({
+            where: { menuId: item.menuId },
+            select: { name: true }
+          });
+          name = menu?.name ?? '';
+        } else if (item.setId) {
+          const set = await feature8Client.sets.findUnique({
+            where: { setId: item.setId },
+            select: { name: true }
+          });
+          name = set?.name ?? '';
+        }
+  
+        if (order?.reservedId) {
+            const reservation = await feature8Client.reservation_table.findFirst({
+                where: { reserveId: order.reservedId },
+                    select: { tableId: true }
+            });
+            if (reservation?.tableId) {
+                const table = await feature8Client.tables.findUnique({
+                    where: { tableId: reservation.tableId },
+                    select: { table_no: true }
+                });
+                tableNo = Number(table?.table_no) ?? NaN;
+            }
+        }
+  
+        return { ...item, name, tableNo };
+      }));
+  
+      const sumOfAllPrice = orderdetail.reduce((total: number, item) => total + (Number(item.unit_price) * item.quantity), 0).toFixed(2);
+  
+      res.status(200).json({orderdetail: orderdetailWithNameAndTableNo, sumOfAllPrice});
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: 'Failed to retrieve order detail' });
+    }
+  }
+
+
+  export const getOrdersAndTableNos = async (req: Request, res: Response) => {
+    const venueId = parseInt(req.params.venueId, 10);
+  
+    try {
+      const orders = await feature8Client.orders.findMany({
+        where: { venueId: venueId },
+        select: { orderId: true, reservedId: true,order_date: true },
+        orderBy: {
+          order_date: 'desc'
+        }
+      });
+  
+      const ordersWithTableNos = await Promise.all(
+        orders
+          .filter(order => order.reservedId !== null)
+          .map(async order => {
+            const reservation = await feature8Client.reservation_table.findFirst({
+              where: { reserveId: order.reservedId ?? undefined },
+              select: { tableId: true }
+            });
+  
+            if (!reservation) {
+              return { ...order, tableNo: null };
+            }
+  
+            const table = await feature8Client.tables.findUnique({
+              where: { tableId: reservation.tableId },
+              select: { table_no: true }
+            });
+  
+            return { ...order, tableNo: table?.table_no ?? null };
+          })
+      );
+  
+      res.status(200).json(ordersWithTableNos);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: 'Failed to retrieve orders and table numbers' });
+    }
+  }
+
+
+  export const getBusinessId = async (req: Request, res: Response) => {
+    const venueId = parseInt(req.params.venueId, 10);
+  
+    try {
+      const property = await feature8Client.property.findFirst({
+        where: { venueId: venueId },
+        select: { businessId: true }
+      });
+  
+      if (!property) {
+        return res.status(404).json({ error: 'Property not found' });
+      }
+  
+      res.status(200).json({ businessId: property.businessId });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: 'Failed to retrieve business ID' });
+    }
+  }
 
 //token function
 // import jwt, { Secret } from 'jsonwebtoken';
