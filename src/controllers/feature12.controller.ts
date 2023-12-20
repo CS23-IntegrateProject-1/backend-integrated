@@ -362,10 +362,14 @@ export const getCommunityChatList = async (req: any, res: Response) => {
     const communityList = await feature12Client.chat_Room_Logs.findMany({
       where: {
         userId: parseInt(userId),
+        access_status: {
+          equals: true,
+        },
       },
       select: {
         chatRoomId: true,
       },
+      distinct: ["chatRoomId"],
     });
 
     const communitygroupDetail = await Promise.all(
