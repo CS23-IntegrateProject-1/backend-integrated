@@ -5,27 +5,41 @@ const feature4Client = new PrismaClient();
 
 export const getUserId = async (req: any, res: Response) => {
   try {
-        const token = req.cookies.authToken;
-        if (!token) {
-            return res.status(401).json({ error: "No auth token" });
-        }
-        const decodedToken = authService.decodeToken(token);
-        const { userId } = decodedToken;
+    const token = req.cookies.authToken;
+    if (!token) {
+      return res.status(401).json({ error: "No auth token" });
+    }
+    const decodedToken = authService.decodeToken(token);
+    const { userId } = decodedToken;
 
-        if (decodedToken.userType != "user") {
-            return res
-                .status(401)
-                .json({ error: "This user is not customer user" });
-        }
+    if (decodedToken.userType != "user") {
+      return res.status(401).json({ error: "This user is not customer user" });
+    }
 
-        res.status(200).json({ userId: userId });
+    res.status(200).json({ userId: userId });
   } catch (error) {
     console.error("Error Get UserId:", error);
     res
       .status(500)
       .json({ error: "An error occurred while saving location data" });
   }
-}
+};
+
+export const saveTotal = async (req: Request, res: Response) => {
+  try {
+    const { total } = req.params; // Use req.params.total to get the total
+    const userId = getUserId; // Note: You might want to call the getUserId function
+    const userData = {
+      userId: userId,
+      totalValue: total,
+    };
+    res.cookie("totalCost", JSON.stringify(userData));
+    res.status(200).json({ success: true, message: "Added to cookies" });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
 
 //store location data in the database
 export const mapsLocation = async (req: Request, res: Response) => {
@@ -101,18 +115,16 @@ export const saveUserLocation = async (req: Request, res: Response) => {
     const { name, address, province, district, subdistrict, postcode } =
       req.body;
 
-      const token = req.cookies.authToken;
-      if (!token) {
-          return res.status(401).json({ error: "No auth token" });
-      }
-      const decodedToken = authService.decodeToken(token);
-      const { userId } = decodedToken;
+    const token = req.cookies.authToken;
+    if (!token) {
+      return res.status(401).json({ error: "No auth token" });
+    }
+    const decodedToken = authService.decodeToken(token);
+    const { userId } = decodedToken;
 
-      if (decodedToken.userType != "user") {
-          return res
-              .status(401)
-              .json({ error: "This user is not customer user" });
-      }
+    if (decodedToken.userType != "user") {
+      return res.status(401).json({ error: "This user is not customer user" });
+    }
 
     // Concatenate the address components into a single string
 
@@ -160,17 +172,15 @@ export const GetAllsaveUserLocation = async (req: Request, res: Response) => {
 export const GetUserLocationById = async (req: Request, res: Response) => {
   try {
     const token = req.cookies.authToken;
-      if (!token) {
-          return res.status(401).json({ error: "No auth token" });
-      }
-      const decodedToken = authService.decodeToken(token);
-      const { userId } = decodedToken;
+    if (!token) {
+      return res.status(401).json({ error: "No auth token" });
+    }
+    const decodedToken = authService.decodeToken(token);
+    const { userId } = decodedToken;
 
-      if (decodedToken.userType != "user") {
-          return res
-              .status(401)
-              .json({ error: "This user is not customer user" });
-      }
+    if (decodedToken.userType != "user") {
+      return res.status(401).json({ error: "This user is not customer user" });
+    }
 
     // const { savedLocId } = req.params; // Use params to get the savedLocId from the URL
     // const parsedSavedLocId = parseInt(savedLocId, 10);
@@ -197,17 +207,15 @@ export const GetUserLocationById = async (req: Request, res: Response) => {
 export const updateSavedLocation = async (req: Request, res: Response) => {
   try {
     const token = req.cookies.authToken;
-      if (!token) {
-          return res.status(401).json({ error: "No auth token" });
-      }
-      const decodedToken = authService.decodeToken(token);
-      const { userId } = decodedToken;
+    if (!token) {
+      return res.status(401).json({ error: "No auth token" });
+    }
+    const decodedToken = authService.decodeToken(token);
+    const { userId } = decodedToken;
 
-      if (decodedToken.userType != "user") {
-          return res
-              .status(401)
-              .json({ error: "This user is not customer user" });
-      }
+    if (decodedToken.userType != "user") {
+      return res.status(401).json({ error: "This user is not customer user" });
+    }
     const {
       savedLocId,
       name,
@@ -248,18 +256,16 @@ export const updateSavedLocation = async (req: Request, res: Response) => {
 export const deleteSavedLocation = async (req: Request, res: Response) => {
   try {
     const token = req.cookies.authToken;
-      if (!token) {
-          return res.status(401).json({ error: "No auth token" });
-      }
-      const decodedToken = authService.decodeToken(token);
-      const { userId } = decodedToken;
+    if (!token) {
+      return res.status(401).json({ error: "No auth token" });
+    }
+    const decodedToken = authService.decodeToken(token);
+    const { userId } = decodedToken;
 
-      if (decodedToken.userType != "user") {
-          return res
-              .status(401)
-              .json({ error: "This user is not customer user" });
-      }
-    const { savedLocId} = req.params;
+    if (decodedToken.userType != "user") {
+      return res.status(401).json({ error: "This user is not customer user" });
+    }
+    const { savedLocId } = req.params;
 
     await feature4Client.userSaved_location.delete({
       where: {
@@ -608,21 +614,36 @@ export const addItemToCookie = async (req: any, res: Response) => {
     const name = req.body.name;
     const price = req.body.price;
     const itemId = req.params.itemId;
+
     // Retrieve existing cart from the 'cart' cookie or initialize an empty array
     const existingCartString = req.cookies.onlineOrderItemCart || "[]";
-    const existingCart = JSON.parse(existingCartString);
+    let existingCart = JSON.parse(existingCartString);
+
+    // Ensure that existingCart is an array
+    if (!Array.isArray(existingCart)) {
+      existingCart = [];
+    }
+
+    console.log("existingCart:", existingCart);
 
     // Check if the menu item is already in the cart
-    const existingCartItem = existingCart.find(
-      (item) => item.itemId === itemId
-    );
+    const updatedCart = existingCart.map((item) => {
+      if (item.userId === userId && item.itemId === itemId) {
+        // If the item is already in the cart, update the quantity
+        return { ...item, quantity: quantity };
+      }
+      return item;
+    });
 
-    if (existingCartItem && userId == existingCartItem.userId) {
-      // If the item is already in the cart, update the quantity
-      existingCartItem.quantity = quantity;
-    } else {
-      // If the item is not in the cart, add it
-      existingCart.push({
+    console.log("updatedCart:", updatedCart);
+
+    // Add a new item if it's not in the cart
+    if (
+      !updatedCart.some(
+        (item) => item.userId === userId && item.itemId === itemId
+      )
+    ) {
+      updatedCart.push({
         userId: parseInt(userId),
         itemId: itemId,
         name: name,
@@ -630,18 +651,32 @@ export const addItemToCookie = async (req: any, res: Response) => {
         price: price,
       });
     }
-    if (quantity == 0) {
-      existingCart.pop();
-    }
-    //if nothing in cart delete cookie
-    if (existingCart.length == 0) {
+
+    console.log("updatedCart after push:", updatedCart);
+
+    // Remove the item if the quantity is 0
+    const filteredCart = updatedCart.filter(
+      (item) =>
+        !(
+          item.quantity === 0 &&
+          item.userId === userId &&
+          item.itemId === itemId
+        )
+    );
+
+    console.log("filteredCart:", filteredCart);
+
+    // If nothing in cart, delete the cookie
+    if (filteredCart.length === 0) {
       res.clearCookie("cart");
     }
+
     // Update the 'cart' cookie with the modified cart
-    res.cookie("onlineOrderItemCart", JSON.stringify(existingCart));
+    res.cookie("onlineOrderItemCart", JSON.stringify(filteredCart));
     res.status(200).json({ success: true, message: "Added to cart" });
   } catch (error) {
     console.log(error);
+    res.status(500).json({ error: "Internal Server Error" });
   }
 };
 
@@ -649,16 +684,17 @@ export const showCart = async (req: any, res: Response) => {
   try {
     const userId = parseInt(req.userId);
     const cartString = req.cookies.onlineOrderItemCart || "[]";
-    console.log(cartString);
+    //console.log(cartString);
     const cart = JSON.parse(cartString);
-    console.log(cart);
+    //console.log(cart);
     const userCart = cart.filter((item: any) => item.userId === userId);
-    console.log(userCart);
+    //console.log(userCart);
     res.status(200).json(userCart);
   } catch (e) {
     console.log(e);
   }
 };
+
 
 export const deleteMenuFromCookie = async (req: any, res: Response) => {
     try {
@@ -678,3 +714,71 @@ export const deleteMenuFromCookie = async (req: any, res: Response) => {
         console.log(error);
     }
 }
+
+export const getTotal = async (req: any, res: Response) => {
+  try {
+    // Retrieve the user's cart from the 'onlineOrderItemCart' cookie or initialize an empty array
+    const cartString = req.cookies.onlineOrderItemCart || "[]";
+    const cart = JSON.parse(cartString);
+
+    // Ensure that cart is an array
+    if (!Array.isArray(cart)) {
+      throw new Error("Invalid cart data");
+    }
+
+    // Calculate the total by summing up the prices
+    const total = cart.reduce((acc: number, item: any) => {
+      return acc + item.quantity * item.price;
+    }, 0);
+
+    res.status(200).json(total);
+  } catch (error) {
+    console.error("Error calculating total:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+export const deleteItemFromCart = async (req: any, res: Response) => {
+  try {
+    const token = req.cookies.authToken;
+    if (!token) {
+      return res.status(401).json({ error: "No auth token" });
+    }
+    const decodedToken = authService.decodeToken(token);
+    const { userId } = decodedToken;
+
+    const itemId = req.params.itemId;
+    console.log(userId);
+    console.log(itemId);
+    // Retrieve the user's cart from the 'cart' cookie or initialize an empty array
+    const existingCartString = req.cookies.onlineOrderItemCart || "[]";
+    let existingCart = JSON.parse(existingCartString);
+
+    // Ensure that existingCart is an array
+    if (!Array.isArray(existingCart)) {
+      existingCart = [];
+    }
+
+    console.log("existingCart before removal:", existingCart);
+
+    // Filter out the item to be removed
+    const updatedCart = existingCart.filter(
+      (item: any) => item.itemId != itemId
+    );
+
+    console.log("updatedCart:", updatedCart);
+
+    // If nothing in cart, delete the cookie
+    if (updatedCart.length === 0) {
+      res.clearCookie("onlineOrderItemCart");
+    } else {
+      // Update the 'cart' cookie with the modified cart
+      res.cookie("onlineOrderItemCart", JSON.stringify(updatedCart));
+    }
+
+    res.status(200).json({ message: "Item removed successfully" });
+  } catch (error) {
+    console.error("Error removing item from cart:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
