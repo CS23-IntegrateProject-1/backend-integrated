@@ -11,7 +11,7 @@ import {
   getAllUsers,
   getFriendList,
   forDialogflow,
-  // fetchData,
+  fetchData,
   getPrivateChatList,
   getGroupChatDetail,
   getAllMessage,
@@ -54,5 +54,5 @@ feature12Router.get("/displayAllMessageCommunity/:id", getAllMessageCommunity);
 
 //dialogflow route
 feature12Router.post("/dialogflow", forDialogflow);
-// feature12Router.get("/fetchData", fetchData);
+feature12Router.get("/fetchData", fetchData);
 export default feature12Router;
