@@ -34,10 +34,19 @@ export interface IVenueService {
   listCreditCardsByBusinessId(
     businessId: number,
   ): Promise<Array<Venue_credit_card>>;
+
+  deleteCreditCard(businessId: number, creditCardId: number): Promise<boolean>;
 }
 
 class VenueService implements IVenueService {
   constructor(readonly repository: IVenueRepository) {}
+
+  async deleteCreditCard(
+    businessId: number,
+    creditCardId: number,
+  ): Promise<boolean> {
+    return this.repository.deleteCreditCardById(businessId, creditCardId);
+  }
 
   async listCreditCardsByBusinessId(
     businessId: number,

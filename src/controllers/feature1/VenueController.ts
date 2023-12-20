@@ -14,6 +14,7 @@ import {
   makeVenueShowWebResponse,
 } from "./models";
 import { makeCreditCardListResponse } from "./models/venue.model";
+import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 
 export interface IVenueController {
   update: (req: Request, res: Response) => unknown;
@@ -141,10 +142,28 @@ class VenueController implements IVenueController {
     }
   }
 
+  // TODO: Handle AuthZ
   async deleteCreditCard(req: Request, res: Response) {
-    identity(req);
-    identity(res);
-    throw new Error("Unimplemented");
+    const businessId = getBusinessId(req);
+    const creditCardId = getCreditCardId(req);
+
+    try {
+      await this.service.deleteCreditCard(businessId, creditCardId);
+
+      return res.status(200).send();
+    } catch (e) {
+      if (e instanceof PrismaClientKnownRequestError) {
+        if (e.code === "P2025") {
+          return res
+            .status(404)
+            .json(
+              makeErrorResponse("Credit card with given id does not exist"),
+            );
+        }
+      }
+
+      return res.status(500).json(makeErrorResponse("Internal server error"));
+    }
   }
 
   async updatePromptPay(req: Request, res: Response) {

@@ -151,6 +151,11 @@ feature1Router.get(
   businessAuthMiddleware,
   venueController.showCreditCard.bind(venueController),
 );
+feature1Router.delete(
+  "/venue/credit_card/:id",
+  businessAuthMiddleware,
+  venueController.deleteCreditCard.bind(venueController),
+);
 
 feature1Router.get(
   "/qr",

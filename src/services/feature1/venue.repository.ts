@@ -32,6 +32,11 @@ export interface IVenueRepository {
   listCreditCardsByBusinessId(
     businessId: number,
   ): Promise<Array<Venue_credit_card>>;
+
+  deleteCreditCardById(
+    businessId: number,
+    creditCardId: number,
+  ): Promise<boolean>;
 }
 
 function difference<T>(a: Set<T>, b: Set<T>): Set<T> {
@@ -39,6 +44,22 @@ function difference<T>(a: Set<T>, b: Set<T>): Set<T> {
 }
 
 class VenueRepository implements IVenueRepository {
+  async deleteCreditCardById(
+    businessId: number,
+    creditCardId: number,
+  ): Promise<boolean> {
+    const venueId = await this.getVenueId(businessId);
+
+    const result = await prismaClient.venue_credit_card.delete({
+      where: {
+        creditCardId,
+        venueId,
+      },
+    });
+
+    return result !== null;
+  }
+
   async listCreditCardsByBusinessId(
     businessId,
   ): Promise<Array<Venue_credit_card>> {
