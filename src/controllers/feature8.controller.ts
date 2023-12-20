@@ -2093,8 +2093,8 @@ export const createDepositSession = async (req: Request, res: Response) => {
           },
         ],
         mode: "payment",
-        success_url: `${process.env.CLIENT_URL}/checkout-success`,
-        cancel_url: `${process.env.CLIENT_URL}/checkout-cancel`,
+        success_url: `${process.env.CLIENT_URL}/deposit-success`,
+        cancel_url: `${process.env.CLIENT_URL}/deposit-cancel`,
       } as any);
 
       await feature8Client.reservation.update({
@@ -2175,8 +2175,8 @@ export const createSeatSessionnn = async (req: Request, res: Response) => {
         },
       ],
       mode: "payment",
-      success_url: `${process.env.CLIENT_URL}/`,
-      cancel_url: `${process.env.CLIENT_URL}/`,
+      success_url: `${process.env.CLIENT_URL}/seat-success`,
+      cancel_url: `${process.env.CLIENT_URL}/seat-cancel`,
     });
 
     res.status(200).json({ url: session.url });
