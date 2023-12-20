@@ -124,6 +124,39 @@ class filmService{
 		return data;
 	}
 
+  getShowsByFilmIdandDate = async (id: number, date: number, month:number, year:number) => {
+    const prisma = new PrismaClient();
+    const dateString = date<10 ? "0"+date : date.toString()
+    const monthString = month<10 ? "0"+month : month.toString()
+    const queryDate = new Date(year+"-"+monthString+"-"+dateString).toISOString()
+    console.log(queryDate);
+    
+    
+    const shows = await prisma.films.findUnique({
+      where: {
+        filmId: id,
+      },
+      include: {
+        Shows: {
+          where: {
+            date: queryDate,
+          },
+          include: {
+            Screens: {
+              include: {
+                Theaters: true,
+              },
+            }
+          },
+        },
+      },
+    });
+
+    return shows;
+  
+  }
+
+
 	async getFilmsByTheaterId(id: number, date: number, month:number, year:number): Promise<any[]> {
 		const prisma = new PrismaClient();
 		const dateString = date<10 ? "0"+date : date.toString()

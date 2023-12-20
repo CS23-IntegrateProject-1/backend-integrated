@@ -16,6 +16,7 @@ import {
     getTotalPriceByReservationId,
     bookSeatAndSendCookie,
     getReservationById,
+    getShowsByFilmIdandDate
 
     
 } from "../controllers/feature10.controller";
@@ -38,6 +39,7 @@ feature10Router.post("/getTotalPriceByReservationId", getTotalPriceByReservation
 
 feature10Router.post("/bookMovieSeat", bookSeatAndSendCookie);
 feature10Router.post("/getReservationById", getReservationById);
+feature10Router.post("/getShowsByFilmIdandDate", getShowsByFilmIdandDate);
 
 
 
