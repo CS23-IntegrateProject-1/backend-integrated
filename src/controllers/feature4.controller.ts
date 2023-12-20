@@ -660,35 +660,21 @@ export const showCart = async (req: any, res: Response) => {
   }
 };
 
-export const deleteItemFromCart = async (req: any, res: Response) => {
-  try {
-    const userId = parseInt(req.userId); // Assuming userId is available in the request
-    const itemId = parseInt(req.params.itemId);
+export const deleteMenuFromCookie = async (req: any, res: Response) => {
+    try {
+        const menuId = req.params.menuId;
+        // Retrieve existing cart from the 'cart' cookie or initialize an empty array
+        const existingCartString = req.cookies.onlineOrderItemCart || '[]';
+        const existingCart = JSON.parse(existingCartString);
 
-    // Retrieve the user's cart from wherever it is stored (e.g., database, session, etc.)
-    const cartString = req.cookies.onlineOrderItemCart || "[]";
-    const cart = JSON.parse(cartString);
-
-    // Filter out the item to be removed
-    const updatedCart = cart.filter((item: any) => !(item.userId === userId && item.itemId === itemId));
-
-    // Update the cart in your storage (e.g., database, session, etc.)
-    // Example: Save the updated cart to a cookie
-
-    const newCartString = req.cookies.onlineOrderItemCart || "[]";
-    console.log("new : " + newCartString);
-    const Newcart = JSON.parse(cartString);
-    console.log("new : " +Newcart);
-    const userCart = Newcart.filter((item: any) => item.userId === userId);
-    console.log("new : " +userCart);
-    
-    res.cookie('onlineOrderItemCart', JSON.stringify(updatedCart));
-  
-    
-
-    res.status(200).json({ message: 'Item removed successfully' });
-  } catch (error) {
-    console.error('Error removing item from cart:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
-  }
+        // Check if the menu item is already in the cart
+        // const existingCartItem = existingCart.find((item) => item.menuId === menuId);
+        // existingCart.pop(existingCartItem);
+        const updatedCart = existingCart.filter(item => item.menuId !== parseInt(menuId));
+        // Update the 'cart' cookie with the modified cart
+        res.cookie('onlineOrderItemCart', JSON.stringify(updatedCart));
+        res.status(200).json({ success: true, message: 'Deleted menu from cart' });
+    } catch (error) {
+        console.log(error);
+    }
 }
