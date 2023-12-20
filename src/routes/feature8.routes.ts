@@ -131,7 +131,7 @@ feature8Router.get("/venuetransactions", getVenuetransaction);
 feature8Router.get("/venuetransactions/:venuetransactionId", getVenuetransactionById);
 feature8Router.get("/venuetransaction_details", getVenuetransactiondetail);
 feature8Router.get("/venuetransaction_details/:venuetransactionId", getVenuetransactiondetailById);
-feature8Router.get("/venue/:venueId", getVenueByVenueId);
+feature8Router.get("/venue", getVenueByVenueId);
 feature8Router.get("/venue/:venueId/getBusinessId" , getBusinessId);
 feature8Router.get("/venue/:venueId/getOrdersAndTableNos", getOrdersAndTableNos);
 feature8Router.get("/venue/orderchecklatest/:orderId", getlatestOrderMenuOrderUpdate);
