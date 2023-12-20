@@ -287,15 +287,20 @@ model Comments {
 model Complain_ticket {
   ComplainTicketId Int                    @id @default(autoincrement())
   date             DateTime               @default(now()) @db.Date
+  time             DateTime               @default(now()) @db.Time()
   topic            String
   complaint        String                 @db.Text
-  userId           Int
   status           Complain_ticket_status
-  time             DateTime               @default(now()) @db.Time(0)
+  userId           Int
   User             User                   @relation(fields: [userId], references: [userId])
   Ticket_responses Ticket_responses[]
 
   @@index([userId], map: "Complain_ticket_userId_fkey")
+}
+
+enum Complain_ticket_status {
+  Pending
+  Completed
 }
 
 model Ticket_responses {
@@ -549,12 +554,12 @@ model Menu {
   Food_reviews         Food_reviews[]
   Venue                Venue                  @relation(fields: [venueId], references: [venueId])
   Menu_category        Menu_category[]
-  Online_orders_detail Online_orders_detail[]
   Order_detail         Order_detail[]
   Promotion            Promotion[]
   Set_items            Set_items[]
   Stocks               Stocks[]
   menu_ingredients     menu_ingredients[]
+  Online_orders_detail Online_orders_detail[]
 
   @@index([venueId], map: "Menu_venueId_fkey")
 }
@@ -721,15 +726,14 @@ model Online_orders_detail {
   onlineOrderDetailId Int           @id @default(autoincrement())
   onlineOrderId       Int
   unit_price          Decimal       @db.Decimal(10, 2)
-  order_time          DateTime      @default(now()) @db.Time(0)
+  order_time          DateTime      @default(now()) @db.Time()
   menuId              Int
   quantity            Int
   status              Orders_status @default(On_going)
-  Menu                Menu          @relation(fields: [menuId], references: [menuId])
   Online_orders       Online_orders @relation(fields: [onlineOrderId], references: [onlineOrderId])
+  Menu                Menu          @relation(fields: [menuId], references: [menuId])
 
   @@index([menuId], map: "Online_orders_detail_menuId_fkey")
-  @@index([onlineOrderId], map: "Online_orders_detail_onlineOrderId_fkey")
 }
 
 model Payment_method {
@@ -1442,11 +1446,6 @@ model userSaved_location {
   User         User     @relation(fields: [userId], references: [userId])
 
   @@index([userId], map: "userSaved_location_userId_fkey")
-}
-
-enum Complain_ticket_status {
-  Pending
-  Completed
 }
 
 enum Payment_method_method {
