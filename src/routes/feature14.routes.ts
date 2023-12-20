@@ -16,6 +16,8 @@ import {
 	getInProgressPromotion,
 	updateVoucherApproval,
 	getInProgressVoucher,
+	getAccount,
+	updateAccount,
 
 } from "../controllers/feature14.controller";
 
@@ -39,6 +41,9 @@ feature14Router.get("/getInProgressPromotion",getInProgressPromotion);
 
 feature14Router.put("/updateVoucherApproval/:id",updateVoucherApproval);
 feature14Router.get("/getInProgressVoucher",getInProgressVoucher);
+
+feature14Router.get("/account",getAccount);
+feature14Router.put("/accountUpdate/:id",updateAccount);
 
 //feature14Router.post("/createPromotionApproval",createPromotionApproval);
 

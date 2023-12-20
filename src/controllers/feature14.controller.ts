@@ -32,10 +32,16 @@ export const getBusinessDashboard = async (req: Request, res: Response) => {
 					select: {
 						name: true,
 						category: true,
-					}
+					},
 				});
-				return res.status(200).json({ business });
+				const profile = await feature14Client.business_user.findMany({
+					select: {
+						profile_picture: true,
+					},
+				});
+				return res.status(200).json({ profile, business });
 			} catch (error) {
+				console.log(error);
 				return res.status(500).json({ error });
 			}
 };
@@ -221,15 +227,27 @@ export const getInProgressVoucher = async (req: Request, res: Response) => {
 	}
  };
 //===============================BusinessUser==============================
-export const getBusinessUser = async (req: Request, res: Response) => {
+export const getAccount = async (req: Request, res: Response) => {
 		try {
 			const business_user = await feature14Client.business_user.findMany({
 				select: {
+					phone_num:true,
 					email: true,
 					profile_picture: true,
-				}
+				},
 			});
-			return res.status(200).json({ business_user });
+			const venue = await feature14Client.venue.findMany({
+				select: {
+					name: true,
+					description: true,
+					Opening_day: true,
+					location: true,
+					capacity: true,
+					Venue_credit_card: true,
+					Venue_promptpay: true,
+				},
+			});
+			return res.status(200).json({ venue, business_user });
 		} catch (error) {
 			return res.status(500).json({ error });
 		}
@@ -260,7 +278,7 @@ export const getBusinessUser = async (req: Request, res: Response) => {
 					location: location,
 					capacity: capacity,
 					Venue_credit_card:Venue_credit_card,
-					Venue_promptpay,
+					Venue_promptpay: Venue_promptpay,
 				},
 			});
 			return res.status(201).json({ business_user, venue });
