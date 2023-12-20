@@ -8,6 +8,8 @@ import { IProfileRepository } from "./profile.repository";
 export interface IProfileService {
   getUserProfile(userId: number): Promise<ProfileShowDBResponse>;
 
+  getUserProfileByUsername(username: string): Promise<ProfileShowDBResponse>;
+
   updateUserProfile(
     userId: number,
     data: ProfileUpdateRequest,
@@ -20,6 +22,12 @@ export default class ProfileService implements IProfileService {
 
   async getUserProfile(userId: number): Promise<ProfileShowDBResponse> {
     return this.repository.getUserById(userId);
+  }
+
+  async getUserProfileByUsername(
+    username: string,
+  ): Promise<ProfileShowDBResponse> {
+    return this.repository.getUserByUserName(username);
   }
 
   async updateUserProfile(

@@ -1,20 +1,20 @@
 import { Response, Request } from "express";
-import AboutService, {
-  IAboutService,
-} from "../../services/feature1/about.service";
-import AboutRepository from "../../services/feature1/about.repository";
-import { makeErrorResponse } from "./models/payment_method.model";
-import {
-  makeAboutShowWebResponse,
-  makeAboutIndexWebResponse,
-  makeAboutStoreWebResponse,
-  makeAboutUpdateWebResponse,
-} from "./models/about.model";
 import {
   PrismaClientKnownRequestError,
   PrismaClientValidationError,
 } from "@prisma/client/runtime/library";
-import { Prisma } from "@prisma/client";
+import {
+  makeAboutIndexWebResponse,
+  makeAboutShowWebResponse,
+  makeAboutStoreWebResponse,
+  makeAboutUpdateWebResponse,
+  makeErrorResponse,
+} from "./models";
+import {
+  AboutRepository,
+  AboutService,
+  IAboutService,
+} from "../../services/feature1";
 
 export interface IAboutController {
   store: (req: Request, res: Response) => unknown;
@@ -136,7 +136,7 @@ export class AboutController implements IAboutController {
 
       return res.status(200).send();
     } catch (e) {
-      if (e instanceof Prisma.PrismaClientKnownRequestError) {
+      if (e instanceof PrismaClientKnownRequestError) {
         if (e.code === "P2025") {
           return res
             .status(404)
