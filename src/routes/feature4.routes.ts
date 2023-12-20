@@ -16,8 +16,6 @@ import {
   getAllCinema,
   getMenuById,
   getMenusByVenueId,
-  getSetById,
-  getSetsByVenueId,
   getPaymentMethods,
   addItemToCookie,
   showCart,
@@ -48,8 +46,6 @@ feature4Router.get("/cinemas", getAllCinema);
 
 feature4Router.get("/menu/:id", getMenuById);
 feature4Router.get("/menus/:venueId", getMenusByVenueId);
-feature4Router.get("/set/:id", getSetById);
-feature4Router.get("/sets/:venueId", getSetsByVenueId);
 feature4Router.get("/payment/:userId", getPaymentMethods);
 feature4Router.post(
   "/addItemToCookie/:itemId",

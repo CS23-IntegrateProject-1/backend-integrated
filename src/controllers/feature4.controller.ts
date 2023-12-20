@@ -381,20 +381,6 @@ export const getMenusByVenueId = async (req: Request, res: Response) => {
   }
 };
 
-export const getSetsByVenueId = async (req: Request, res: Response) => {
-  try {
-    const venueId = req.params.venueId;
-    const allSets = await feature4Client.sets.findMany({
-      where: {
-        venueId: parseInt(venueId),
-      },
-    });
-
-    res.status(200).json(allSets);
-  } catch (e) {
-    console.log(e);
-  }
-};
 
 export const getMenuById = async (req: Request, res: Response) => {
   try {
@@ -410,19 +396,6 @@ export const getMenuById = async (req: Request, res: Response) => {
   }
 };
 
-export const getSetById = async (req: Request, res: Response) => {
-  try {
-    const setId = req.params.id;
-    const set = await feature4Client.sets.findUnique({
-      where: {
-        setId: parseInt(setId),
-      },
-    });
-    return res.status(200).json(set);
-  } catch (e) {
-    console.log(e);
-  }
-};
 
 export const getPaymentMethods = async (req: Request, res: Response) => {
   try {
@@ -444,166 +417,6 @@ export const getPaymentMethods = async (req: Request, res: Response) => {
     res
       .status(500)
       .json({ error: "An error occurred while fetching payment methods" });
-  }
-};
-
-export const checkMenuAvailability = async (req: Request, res: Response) => {
-  try {
-    const menuId = req.params.menuId;
-    const venueId = req.params.venueId;
-    const branchId = req.params.branchId;
-    const stockRecord = await feature4Client.stocks.findFirst({
-      where: {
-        venueId: parseInt(venueId),
-        branchId: parseInt(branchId),
-        menuId: parseInt(menuId),
-      },
-    });
-
-    return res.status(200).json(stockRecord?.availability);
-  } catch (e) {
-    console.error("Error checking stock availability:", e);
-  }
-};
-
-export const checkSetAvailability = async (req: Request, res: Response) => {
-  try {
-    const setItems = await feature4Client.set_items.findMany({
-      where: {
-        setId: parseInt(req.params.setId),
-      },
-    });
-    const menuIds = setItems.map((setItem) => setItem.menuId);
-    const stockRecords = await feature4Client.stocks.findMany({
-      where: {
-        menuId: {
-          in: menuIds,
-        },
-        venueId: parseInt(req.params.venueId),
-        branchId: parseInt(req.params.branchId),
-      },
-    });
-    return res
-      .status(200)
-      .json(stockRecords.every((stockRecord) => stockRecord.availability));
-  } catch (e) {
-    console.log(e);
-  }
-};
-
-export const showOnGoingOrderDetails = async (req: any, res: Response) => {
-  try {
-    const userId = parseInt(req.userId);
-    const venueId = parseInt(req.params.venueId);
-    const orderId = await feature4Client.orders.findFirst({
-      where: {
-        userId: userId,
-        venueId: venueId,
-        // status: "On_going",
-      },
-    });
-    const orderDetails = await feature4Client.order_detail.findMany({
-      where: {
-        orderId: orderId?.orderId,
-        status: "On_going",
-      },
-    });
-    if (orderDetails.length !== 0) {
-      const menuDetails = await feature4Client.menu.findMany({
-        where: {
-          menuId: {
-            in: orderDetails
-              .map((orderDetail) => orderDetail.menuId)
-              .filter((menuId) => menuId !== null) as number[],
-          },
-        },
-      });
-      const setDetails = await feature4Client.sets.findMany({
-        where: {
-          setId: {
-            in: orderDetails
-              .map((orderDetail) => orderDetail.setId)
-              .filter((setId) => setId !== null) as number[],
-          },
-        },
-      });
-      const orderDetailsWithDetails = orderDetails.map((orderDetail) => {
-        const menu = menuDetails.find(
-          (menu) => menu.menuId === orderDetail.menuId
-        );
-        const set = setDetails.find((set) => set.setId === orderDetail.setId);
-
-        return {
-          ...orderDetail,
-          menu: menu,
-          set: set,
-        };
-      });
-      return res.status(200).json(orderDetailsWithDetails);
-    } else {
-      res.status(404).json({ error: "No ongoing order found." });
-    }
-    // res.status(200).json(orderDetails);
-  } catch (e) {
-    console.log(e);
-  }
-};
-
-export const showCompletedOrderDetails = async (req: any, res: Response) => {
-  try {
-    const userId = parseInt(req.userId);
-    const venueId = parseInt(req.params.venueId);
-    const orderId = await feature4Client.orders.findFirst({
-      where: {
-        userId: userId,
-        venueId: venueId,
-        // status: "Completed",
-      },
-    });
-    const orderDetails = await feature4Client.order_detail.findMany({
-      where: {
-        orderId: orderId?.orderId,
-        status: "Completed",
-      },
-    });
-    if (orderDetails.length !== 0) {
-      const menuDetails = await feature4Client.menu.findMany({
-        where: {
-          menuId: {
-            in: orderDetails
-              .map((orderDetail) => orderDetail.menuId)
-              .filter((menuId) => menuId !== null) as number[],
-          },
-        },
-      });
-      const setDetails = await feature4Client.sets.findMany({
-        where: {
-          setId: {
-            in: orderDetails
-              .map((orderDetail) => orderDetail.setId)
-              .filter((setId) => setId !== null) as number[],
-          },
-        },
-      });
-      const orderDetailsWithDetails = orderDetails.map((orderDetail) => {
-        const menu = menuDetails.find(
-          (menu) => menu.menuId === orderDetail.menuId
-        );
-        const set = setDetails.find((set) => set.setId === orderDetail.setId);
-
-        return {
-          ...orderDetail,
-          menu: menu,
-          set: set,
-        };
-      });
-      return res.status(200).json(orderDetailsWithDetails);
-    } else {
-      res.status(404).json({ error: "No ongoing order found." });
-    }
-    // res.status(200).json(orderDetails);
-  } catch (e) {
-    console.log(e);
   }
 };
 
