@@ -15,14 +15,11 @@ import {
     getStarGraph,
     getPromotionHomePage,
     getVoucherVenueDetail,
-    getVoucherVenueDetailOfUser,
-    
 
 
 
 
 } from "../controllers/feature3.controller";
-import { get } from "http";
 
 const feature3Router = Router();
 
@@ -51,7 +48,6 @@ feature3Router.post("/VenuesFavourites/:venueId", )
 feature3Router.get("/PromotionHomePage", getPromotionHomePage) // Get promotion for home page
 
 feature3Router.get("/VoucherVenueDetail/:branchId", getVoucherVenueDetail) // Get voucher for venue detail page
-feature3Router.get("/VoucherVenueDetailOfUser", getVoucherVenueDetailOfUser)
 
 
 export default feature3Router;
