@@ -16,6 +16,7 @@ class showService {
         Films: true,
       },
     });
+    return data;
   }
 
   getShowsByFilmId(id: number): Promise<any[]> {

@@ -13,7 +13,11 @@ class seatService {
 
   async getSeatById(id: number): Promise<any[]> {
     const prisma = new PrismaClient();
-    const data = await prisma.seats.findMany({});
+    const data = await prisma.seats.findMany({
+      where: {
+        seatId: id,
+      },
+    });
     return data;
   }
 
