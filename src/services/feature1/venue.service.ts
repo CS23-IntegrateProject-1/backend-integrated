@@ -14,6 +14,7 @@ export interface IVenueService {
   updateVenue(
     businessId: number,
     data: VenueUpdateRequest,
+    filename: string | null,
   ): Promise<VenueUpdateWebResponse>;
 
   getVenue(businessId: number): Promise<VenueShowDBResponse>;
@@ -87,10 +88,12 @@ class VenueService implements IVenueService {
   async updateVenue(
     businessId: number,
     data: VenueUpdateRequest,
+    filename: string | null,
   ): Promise<VenueUpdateWebResponse> {
     const result = await this.repository.updateVenueByBusinessId(
       businessId,
       data,
+      filename,
     );
 
     return makeVenueUpdateWebResponse(result);

@@ -9,6 +9,7 @@ export type VenueUpdateDBResponse = {
   name: string;
   venueId: number;
   website_url: string;
+  venue_picture: string | null;
   Location: {
     address: string;
   };
@@ -30,6 +31,7 @@ export type VenueUpdateWebResponse = {
   category: VenueCateogry;
   capacity: number;
   website: string;
+  avatar: string | null;
 };
 
 export function makeVenueUpdateWebResponse(
@@ -42,6 +44,7 @@ export function makeVenueUpdateWebResponse(
     category: data.category as VenueCateogry,
     capacity: data.capacity,
     website: data.website_url,
+    avatar: data.venue_picture,
   };
 }
 

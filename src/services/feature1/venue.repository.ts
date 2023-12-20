@@ -9,14 +9,18 @@ import {
   VenueUpdateDBResponse,
   VenueUpdateRequest,
 } from "../../controllers/feature1/models";
-import { identity } from "ramda";
+import { identity, isNil } from "ramda";
 
 export interface IVenueRepository {
   updateOpeningHours(businessId: number, data: OpeningHourUpdateRequest);
 
   getVenueByBusinessId(businessId: number): Promise<VenueShowDBResponse>;
 
-  updateVenueByBusinessId(businessId: number, data: VenueUpdateRequest);
+  updateVenueByBusinessId(
+    businessId: number,
+    data: VenueUpdateRequest,
+    filename: string | null,
+  );
 
   showPromptPayByBusinessId(
     businessId: number,
@@ -248,6 +252,7 @@ class VenueRepository implements IVenueRepository {
   async updateVenueByBusinessId(
     businessId: number,
     data: VenueUpdateRequest,
+    filename: string | null,
   ): Promise<VenueUpdateDBResponse> {
     const venueId = await this.getVenueId(businessId);
 
@@ -261,6 +266,7 @@ class VenueRepository implements IVenueRepository {
         category: data.category,
         capacity: data.capacity,
         website_url: data.website,
+        ...(!isNil(filename) && { venue_picture: `/uploads/${filename}` }),
         Location: {
           update: {
             address: data.address,
@@ -273,6 +279,7 @@ class VenueRepository implements IVenueRepository {
         category: true,
         capacity: true,
         website_url: true,
+        venue_picture: true,
         Location: {
           select: {
             address: true,

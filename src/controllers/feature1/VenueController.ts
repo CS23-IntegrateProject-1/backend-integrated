@@ -14,6 +14,7 @@ import {
   makeVenueShowWebResponse,
   makeCreditCardListResponse,
   makeVenuePromptPayShowWebResponse,
+  MulterRequest,
 } from "./models";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 
@@ -232,14 +233,21 @@ class VenueController implements IVenueController {
 
   async update(req: Request, res: Response) {
     const businessId = getBusinessId(req);
-    const venue = await VenueUpdatePayload.safeParseAsync(req.body);
+    let venueMap = req.body;
+    venueMap = { ...venueMap, capacity: Number(venueMap.capacity) };
+    const venue = await VenueUpdatePayload.safeParseAsync(venueMap);
+    const filename = (req as MulterRequest)?.file?.filename ?? null;
 
     if (!venue.success) {
       return res.status(400).json(makeErrorResponse("Invalid request"));
     }
 
     try {
-      const response = await this.service.updateVenue(businessId, venue.data);
+      const response = await this.service.updateVenue(
+        businessId,
+        venue.data,
+        filename,
+      );
 
       return res.json(response);
     } catch (e) {

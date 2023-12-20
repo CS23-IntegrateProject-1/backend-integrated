@@ -124,6 +124,7 @@ feature1Router.get(
 feature1Router.put(
   "/venue/info",
   businessAuthMiddleware,
+  multerConfig.single("avatar"),
   venueController.update.bind(venueController),
 );
 feature1Router.get(
