@@ -558,7 +558,7 @@ export const addItemToCookie = async (req: any, res: Response) => {
     if (quantity == 0) {
       existingCart.pop();
     }
-    //if nothing in cart delete cookie
+    //if nothing in cart c cookie
     if (existingCart.length == 0) {
       res.clearCookie("cart");
     }
