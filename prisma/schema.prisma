@@ -131,7 +131,6 @@ model Admin_user {
   Admin_privacy_policy       Admin_privacy_policy?
   Admin_system_access        Admin_system_access?
   Admin_terms_of_services    Admin_terms_of_services?
-  Team_member                Team_member[]
 }
 
 model App_transaction {
@@ -206,18 +205,17 @@ model Business_finance {
 }
 
 model Business_user {
-  businessId      Int             @id @default(autoincrement())
+  businessId      Int           @id @default(autoincrement())
   username        String
   hashed_password String
-  email           String?         @unique @db.VarChar(125)
+  email           String?       @unique @db.VarChar(125)
   fname           String?
   lname           String?
-  phone_num       String?         @unique @db.VarChar(10)
+  phone_num       String?       @unique @db.VarChar(10)
   profile_picture String?
   prompt_pay      Int?
   Ad_business     Ad_business[]
   Property        Property[]
-  Report_ticket   Report_ticket[]
 }
 
 model Chat_Room_Logs {
@@ -287,23 +285,31 @@ model Comments {
 }
 
 model Complain_ticket {
-  ComplainTicketId Int                             @id @default(autoincrement())
-  date             DateTime                        @default(now())
+  ComplainTicketId Int                    @id @default(autoincrement())
+  date             DateTime               @default(now()) @db.Date
+  time             DateTime               @default(now()) @db.Time()
   topic            String
-  complaint        String                          @db.Text
-  ticket_status    Complain_ticket_ticket_status
-  ticket_priority  Complain_ticket_ticket_priority
-  venueId          Int
+  complaint        String                 @db.Text
+  status           Complain_ticket_status
   userId           Int
-  teamId           Int
-  Teams            Teams                           @relation(fields: [teamId], references: [teamId])
-  User             User                            @relation(fields: [userId], references: [userId])
-  Venue            Venue                           @relation(fields: [venueId], references: [venueId])
+  User             User                   @relation(fields: [userId], references: [userId])
   Ticket_responses Ticket_responses[]
 
-  @@index([teamId], map: "Complain_ticket_teamId_fkey")
   @@index([userId], map: "Complain_ticket_userId_fkey")
-  @@index([venueId], map: "Complain_ticket_venueId_fkey")
+}
+
+enum Complain_ticket_status {
+  Pending
+  Completed
+}
+
+model Ticket_responses {
+  ticketResponseId Int             @id @default(autoincrement())
+  complainTicketId Int
+  response         String?         @db.Text
+  Complain_ticket  Complain_ticket @relation(fields: [complainTicketId], references: [ComplainTicketId])
+
+  @@index([complainTicketId], map: "Ticket_responses_complainTicketId_fkey")
 }
 
 model Credit_card {
@@ -366,7 +372,6 @@ model Driver_list {
   driver_rating        Decimal
   driver_vechile_type  String
   Driver_reviews       Driver_reviews[]
-  //Orders               Orders[]
 }
 
 model Driver_reviews {
@@ -484,14 +489,6 @@ model Group_user {
 
   @@id([groupId, memberId])
   @@index([memberId], map: "Group_user_memberId_fkey")
-}
-
-model Help_desk {
-  reportTicketId Int           @id
-  assign_to      String
-  description    String?
-  isApprove      Boolean       @default(false)
-  Report_ticket  Report_ticket @relation(fields: [reportTicketId], references: [reportTicketId])
 }
 
 model Images {
@@ -707,7 +704,6 @@ model Orders {
   Venue              Venue                @relation(fields: [venueId], references: [venueId])
 
   @@index([branchId], map: "Orders_branchId_fkey")
-  //@@index([driverId], map: "Orders_driverId_fkey")
   @@index([userId], map: "Orders_userId_fkey")
   @@index([venueId], map: "Orders_venueId_fkey")
 }
@@ -867,20 +863,6 @@ model Redeem_privilege {
   Member_tier Member_tier @relation(fields: [memberTier], references: [tierId])
 
   @@index([memberTier], map: "Redeem_privilege_memberTier_fkey")
-}
-
-model Report_ticket {
-  reportTicketId Int           @id @default(autoincrement())
-  title          String
-  Status         String
-  date           DateTime      @default(now()) @db.Date
-  time           DateTime      @default(now()) @db.Time(0)
-  description    String?       @db.Text
-  bussinessId    Int
-  Help_desk      Help_desk?
-  Business_user  Business_user @relation(fields: [bussinessId], references: [businessId])
-
-  @@index([bussinessId], map: "Report_ticket_bussinessId_fkey")
 }
 
 model Reservation {
@@ -1147,23 +1129,6 @@ model Tag {
   Article_tags Article_tags[]
 }
 
-model Team_member {
-  teamId     Int
-  adminId    Int
-  Admin_user Admin_user @relation(fields: [adminId], references: [adminId])
-  Teams      Teams      @relation(fields: [teamId], references: [teamId])
-
-  @@id([teamId, adminId])
-  @@index([adminId], map: "Team_member_adminId_fkey")
-}
-
-model Teams {
-  teamId          Int               @id @default(autoincrement())
-  team_name       String
-  Complain_ticket Complain_ticket[]
-  Team_member     Team_member[]
-}
-
 model Term_of_services {
   privacy_consent Boolean @default(false)
   userId          Int     @id @unique
@@ -1179,17 +1144,6 @@ model Theaters {
   latitude      Decimal   @db.Decimal(20, 10)
   longitude     Decimal   @db.Decimal(20, 10)
   Screens       Screens[]
-}
-
-model Ticket_responses {
-  ticketResponseId Int             @id @default(autoincrement())
-  complainTicketId Int
-  response_title   String
-  response_detail  String
-  isApprove        Boolean         @default(false)
-  Complain_ticket  Complain_ticket @relation(fields: [complainTicketId], references: [ComplainTicketId])
-
-  @@index([complainTicketId], map: "Ticket_responses_complainTicketId_fkey")
 }
 
 model Transaction {
@@ -1300,7 +1254,6 @@ model Venue {
   Article_venue     Article_venue[]
   Business_finance  Business_finance[]
   Chat_room         Chat_room?
-  Complain_ticket   Complain_ticket[]
   Deposit           Deposit[]
   Menu              Menu[]
   Opening_day       Opening_day[]
@@ -1588,23 +1541,9 @@ enum Notfication_ad_business_isApprove {
   Completed
 }
 
-enum Complain_ticket_ticket_status {
-  Pending
-  On_going
-  Completed
-  Dropped
-}
-
 enum Payments_payment_method {
   Cash
   Promptpay
-}
-
-enum Complain_ticket_ticket_priority {
-  Low
-  Medium
-  High
-  Critical
 }
 
 enum Payments_payment_status {
