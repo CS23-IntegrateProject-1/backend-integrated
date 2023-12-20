@@ -53,15 +53,15 @@ class MajorAPIController {
 
   async updateData(req: Request, res: Response) {
     try {
+      await majorAPIService.addNewTheaters();
+      await majorAPIService.addNewFilms();
       await majorAPIService.addNewScreens();
+      await majorAPIService.addNewShows();
       await majorAPIService.addNewSeatTypes();
       await majorAPIService.addNewSeats();
-      await majorAPIService.addNewShows();
-      await majorAPIService.addNewFilms();
-      await majorAPIService.addNewTheaters();
 
-      await majorAPIService.deleteOutdatedSeatTypes();
       await majorAPIService.deleteOutdatedSeats();
+      await majorAPIService.deleteOutdatedSeatTypes();
       await majorAPIService.deleteOutdatedShows();
       await majorAPIService.deleteOutdatedFilms();
       await majorAPIService.deleteOutdatedScreens();

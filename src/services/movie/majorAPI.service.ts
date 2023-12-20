@@ -5,7 +5,7 @@ import {
   Payments_payment_method,
   Payments_payment_status,
 } from "@prisma/client";
-import { Axios } from "../../configs/MajorAxiosInstance";
+import { MajorAxios as Axios } from "../../configs/MajorAxiosInstance";
 
 import filmsService from "./films.service";
 import { Film, RecievedFilm } from "../../interface/movie/film.interface";

@@ -7,6 +7,8 @@ import seatsService from "../services/movie/seats.service";
 import reservationService from "../services/movie/reservation.service";
 import jwt from "jsonwebtoken";
 import authService from "../services/auth/auth.service";
+import { MajorAxios as Axios } from "../configs/MajorAxiosInstance";
+import { AxiosError } from "axios";
 
 const prisma = new PrismaClient();
 
@@ -61,11 +63,11 @@ export const getUpcomingFilms = async (req: Request, res: Response) => {
 };
 
 export const getShowsByFilmId = async (req: Request, res: Response) => {
-    const id = Number(req.params.id);
-    // const date = req.params.date;
+  const id = Number(req.params.id);
+  // const date = req.params.date;
 
-    const data = await showService.getShowsByFilmId(id);
-    res.json(data);
+  const data = await showService.getShowsByFilmId(id);
+  res.json(data);
 };
 
 //make it distinct????????????????????????????????????????????????
@@ -135,93 +137,53 @@ export const bookSeatAndSendCookie = async (req: Request, res: Response) => {
     const showId = Number(req.body.showId);
     const seatId = Number(req.body.seatId);
     const userId = authService.decodeToken(req.cookies.authToken).userId;
+    let reservationResult;
     try {
-      await prisma.reservation_logs.findFirstOrThrow({
-        where: {
-          showId,
-          seatId,
-        },
+      reservationResult = await Axios.post("/api/reservation/create", {
+        showId,
+        seatId,
       });
-      return res.status(500).json({ available: false });
+
+      console.log(reservationResult.status);
     } catch (e) {
-      // create Reservation
-      await prisma.reservation_logs.create({
-        data: {
-          showId,
-          seatId,
-          userId,
-        },
-      });
-      // Valid reservation
-      const reservationLogResult = await prisma.reservation_logs.findFirst({
-        where: {
-          showId,
-          seatId,
-          userId,
-        },
-        select: {
-          reservationId: true,
-        },
-      });
-
-      if (
-        reservationLogResult === null ||
-        !reservationLogResult ||
-        reservationLogResult.reservationId === undefined
-      ) {
-        return res.status(500).json({ available: false });
+      if (e instanceof AxiosError) {
+        console.log(e.response?.data);
+        return res
+          .status(e.response?.status || 500)
+          .json({ error: e.response?.data.error });
       }
-
-      const reservationId = reservationLogResult.reservationId;
-      const secretKey = process.env.JWT_SECRET as string;
-
-      const movieReservationToken = jwt.sign(
-        { reservationId: reservationId },
-        secretKey,
-        {
-          expiresIn: "7d",
-        }
-      );
-
-      res.cookie("movieReservationToken", movieReservationToken, {
-        httpOnly: true,
-        sameSite: "none",
-        secure: true,
-      });
-      return res.status(200).json({ available: true });
+      return res.status(500).json({ error: "reservation failed" });
     }
+
+    const reservationId = reservationResult.data.reservationId;
+    const secretKey = process.env.JWT_SECRET as string;
+
+    const movieReservationToken = jwt.sign(
+      { reservationId: reservationId, userId: userId },
+      secretKey,
+      {
+        expiresIn: "7d",
+      }
+    );
+
+    res.cookie("movieReservationToken", movieReservationToken, {
+      httpOnly: true,
+      sameSite: "none",
+      secure: true,
+    });
+
+    const createReservation = await prisma.reservation_logs.create({
+      data: {
+        showId: showId,
+        seatId: seatId,
+        userId: userId,
+      },
+    });
+
+    return res.status(200).json({ available: true });
   } catch (e) {
     console.log(e);
     return res.status(500).json({ error: "Unknown Error Encountered" });
   }
 
-  // export const navigateToPayment = async (req: Request, res: Response) => {
-  // try {
-  //     const reservationId = authService.decodeToken(req.cookies.movieReservationToken).reservationId;
-  //     const reservation = await reservationService.getReservationById(reservationId);
-  //     const showId = reservationId.showId;
-  //     const seatId = reservationId.seatId;
-  //     const userId = reservationId.userId;
-  //     const show = await showService.getShowById(showId);
-  //     const seat = await seatsService.getSeatById(seatId);
-  //     const user = await authService.getUserById(userId);
-  //     const film = await filmService.getFilmsById(show.);
-  //     const theater = await theaterService.getTheaterById(show.theaterId);
-  //     const price = await showService.getPriceByShowId(showId);
-  //     const totalPrice = price * seat.priceModifier;
-  //     const data = {
-  //         reservationId: reservationId,
-  //         showId: showId,
-  //         seatId: seatId,
-  //         userId: userId,
-  //         show: show,
-  //         seat: seat,
-  //         user: user,
-  //         film: film,
-  //         theater: theater,
-  //         totalPrice: totalPrice
-  //     }
-  //     res.json(data);
-  // }
-  //}
 };
