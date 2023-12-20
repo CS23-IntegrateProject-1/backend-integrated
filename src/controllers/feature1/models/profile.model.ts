@@ -1,4 +1,4 @@
-import { Gender } from "@prisma/client";
+type Gender = 'Male' | 'Female' | 'Others';
 
 export type ProfileShowDBResponse = {
   userId: number;

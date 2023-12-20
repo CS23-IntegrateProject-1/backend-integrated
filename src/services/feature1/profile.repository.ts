@@ -1,113 +1,125 @@
-// import { Gender, User_bio } from "@prisma/client";
-// import {
-//   ProfileShowDBResponse,
-//   ProfileUpdateDBResponse,
-//   ProfileUpdateRequest,
-// } from "../../controllers/feature1/models/profile.model";
-// import { omit, pick } from "ramda";
-// import { prismaClient } from "../../controllers/feature1.controller";
+import { User_bio } from "@prisma/client";
+import {
+  ProfileShowDBResponse,
+  ProfileUpdateDBResponse,
+  ProfileUpdateRequest,
+} from "../../controllers/feature1/models/profile.model";
+import { omit, pick } from "ramda";
+import { prismaClient } from "../../controllers/feature1.controller";
 
-// export interface IProfileRepository {
-//   getUserById(userId: number): Promise<ProfileShowDBResponse>;
+export interface IProfileRepository {
+  getUserById(userId: number): Promise<ProfileShowDBResponse>;
 
-//   updateUserById(
-//     userId: number,
-//     data: ProfileUpdateRequest,
-//   ): Promise<ProfileUpdateDBResponse>;
-// }
+  updateUserById(
+    userId: number,
+    data: ProfileUpdateRequest,
+    filename: string,
+  ): Promise<ProfileUpdateDBResponse>;
+}
 
-// type Profile = {
-//   userId: number;
-//   username: string;
-//   phone: string;
-//   email: string;
-//   User_bio: null | User_bio;
-// };
+type Profile = {
+  userId: number;
+  username: string;
+  phone: string;
+  email: string;
+  profile_picture: string | null;
+  User_bio: null | User_bio;
+};
 
-// type ExpandedProfile = {
-//   userId: number;
-//   username: string;
-//   phone: string;
-//   email: string;
-//   birthday: Date | null;
-//   gender: Gender | null;
-// };
+type Gender = 'Male' | 'Female' | 'Others';
 
-// const makeProfile = pick(["userId", "username", "phone", "email", "User_bio"]);
+type ExpandedProfile = Profile & {
+  avatar: string | null;
+  birthday: Date | null;
+  gender: Gender | null;
+};
 
-// const expandBio = (profile: Profile): ExpandedProfile => {
-//   if (!profile.User_bio) {
-//     profile["birthday"] = null;
-//     profile["gender"] = null;
-//   } else {
-//     profile["birthday"] = profile.User_bio!.birthday;
-//     profile["gender"] = profile.User_bio!.gender;
-//   }
+const makeProfile = pick([
+  "userId",
+  "username",
+  "phone",
+  "email",
+  "User_bio",
+  "profile_picture",
+]);
 
-//   return omit(["User_bio"])(profile) as ExpandedProfile;
-// };
+const expandBio = (profile: Profile): ExpandedProfile => {
+  profile["avatar"] = profile.profile_picture;
 
-// export class ProfileRepository implements IProfileRepository {
-//   async updateUserById(
-//     userId: number,
-//     data: ProfileUpdateRequest,
-//   ): Promise<ProfileShowDBResponse> {
-//     const result = await prismaClient.user.update({
-//       include: { User_bio: true },
-//       where: {
-//         userId: userId,
-//       },
-//       data: {
-//         phone: data.phone,
-//         email: data.email,
-//         userId,
-//         User_bio: {
-//           connectOrCreate: {
-//             create: {
-//               birthday: data.birthday,
-//               gender: data.gender,
-//             },
-//             where: {
-//               userId,
-//             },
-//           },
-//           update: {
-//             birthday: data.birthday,
-//             gender: data.gender,
-//           },
-//         },
-//       },
-//     });
+  if (!profile.User_bio) {
+    profile["birthday"] = null;
+    profile["gender"] = null;
+  } else {
+    profile["birthday"] = profile.User_bio!.birthday;
+    profile["gender"] = profile.User_bio!.gender;
+  }
 
-//     if (!result) {
-//       throw new Error("User not found");
-//     }
+  return omit(["User_bio", "profile_picture"])(profile) as ExpandedProfile;
+};
 
-//     const profile = makeProfile(result);
+export class ProfileRepository implements IProfileRepository {
+  async updateUserById(
+    userId: number,
+    data: ProfileUpdateRequest,
+    filename: string,
+  ): Promise<ProfileShowDBResponse> {
+    const result = await prismaClient.user.update({
+      include: { User_bio: true },
+      where: {
+        userId: userId,
+      },
+      data: {
+        phone: data.phone,
+        email: data.email,
+        profile_picture: filename,
+        userId,
+        User_bio: {
+          connectOrCreate: {
+            create: {
+              birthday: data.birthday,
+              gender: data.gender,
+            },
+            where: {
+              userId,
+            },
+          },
+          update: {
+            birthday: data.birthday,
+            gender: data.gender,
+          },
+        },
+      },
+    });
 
-//     const extendedProfile = expandBio(profile);
+    if (!result) {
+      throw new Error("User not found");
+    }
 
-//     return extendedProfile as ProfileUpdateDBResponse;
-//   }
+    const profile = makeProfile(result);
 
-//   async getUserById(userId: number): Promise<ProfileShowDBResponse> {
-//     const result = await prismaClient.user.findFirst({
-//       where: {
-//         userId,
-//       },
-//       include: {
-//         User_bio: true,
-//       },
-//     });
+    const extendedProfile = expandBio(profile);
 
-//     if (!result) {
-//       throw new Error("User not found");
-//     }
+    return extendedProfile as ProfileUpdateDBResponse;
+  }
 
-//     const profile = makeProfile(result);
+  async getUserById(userId: number): Promise<ProfileShowDBResponse> {
+    const result = await prismaClient.user.findFirst({
+      where: {
+        userId,
+      },
+      include: {
+        User_bio: true,
+      },
+    });
 
-//     const extendedProfile = expandBio(profile);
+    if (!result) {
+      throw new Error("User not found");
+    }
 
-//     return extendedProfile as ProfileShowDBResponse;
-//   }
-// }
+    const profile = makeProfile(result);
+
+    const extendedProfile = expandBio(profile);
+
+    return extendedProfile as ProfileShowDBResponse;
+  }
+}
