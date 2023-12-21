@@ -80,33 +80,116 @@
     "name": "category",
     "entries": [
       {
-        "value": {
-          "category": "Bar"
-        },
+        "value": "bar",
         "synonyms": [
-          {
-            "category": "Bar"
-          }
+          "bar"
         ]
       },
       {
-        "value": {
-          "category": "Restaurant"
-        },
+        "value": "Restaurant",
         "synonyms": [
-          {
-            "category": "Restaurant"
-          }
+          "Restaurant"
         ]
       },
       {
-        "value": {
-          "category": "Club"
-        },
+        "value": "Club",
         "synonyms": [
-          {
-            "category": "Club"
-          }
+          "Club"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "user",
+    "entries": [
+      {
+        "value": "walkin_user",
+        "synonyms": [
+          "walkin_user"
+        ]
+      },
+      {
+        "value": "woody",
+        "synonyms": [
+          "woody"
+        ]
+      },
+      {
+        "value": "Auth1",
+        "synonyms": [
+          "Auth1"
+        ]
+      },
+      {
+        "value": "bb11",
+        "synonyms": [
+          "bb11"
+        ]
+      },
+      {
+        "value": "cliff",
+        "synonyms": [
+          "cliff"
+        ]
+      },
+      {
+        "value": "Jeff97",
+        "synonyms": [
+          "Jeff97"
+        ]
+      },
+      {
+        "value": "Lek",
+        "synonyms": [
+          "Lek"
+        ]
+      },
+      {
+        "value": "testint",
+        "synonyms": [
+          "testint"
+        ]
+      },
+      {
+        "value": "1234",
+        "synonyms": [
+          "1234"
+        ]
+      },
+      {
+        "value": "asdf",
+        "synonyms": [
+          "asdf"
+        ]
+      },
+      {
+        "value": "p",
+        "synonyms": [
+          "p"
+        ]
+      },
+      {
+        "value": "111",
+        "synonyms": [
+          "111"
+        ]
+      },
+      {
+        "value": "222",
+        "synonyms": [
+          "222"
+        ]
+      },
+      {
+        "value": "333",
+        "synonyms": [
+          "333"
+        ]
+      },
+      {
+        "value": "Test Yo!",
+        "synonyms": [
+          "Test Yo!"
         ]
       }
     ]
