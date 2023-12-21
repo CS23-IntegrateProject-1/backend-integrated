@@ -2041,7 +2041,7 @@ export const getlatestOrderMenuOrderUpdate = async (req: Request, res: Response)
 
 // Stripe code payment v3
 //For Checkout
-//For Checkout
+
 let isNotError = true;
 const stripe = new Stripe(process.env.STRIP_KEY ?? "");
 
@@ -2107,6 +2107,7 @@ const getDynamicPriceId = async (req: Request, res: Response) => {
   }
 };
 
+//For Deposit
 export const createDepositSession = async (req: Request, res: Response) => {
   try {
     const { reservationId } = authService.decodeToken(
@@ -2143,12 +2144,10 @@ export const createDepositSession = async (req: Request, res: Response) => {
   }
 };
 
-
-//For Deposit
 const getDepositDynamicPriceId = async (req: Request, res: Response) => {
   const product = await stripe.products.create({
-    name: "Checkout",
-    description: "Pay for checkout",
+    name: "Deposit",
+    description: "Pay for Deposit",
   });
   const reservationToken = req.cookies.reservationToken;
   const secretKey = process.env.JWT_SECRET as string;
