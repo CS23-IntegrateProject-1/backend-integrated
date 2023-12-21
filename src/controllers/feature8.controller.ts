@@ -2120,7 +2120,7 @@ export const createDepositSession = async (req: Request, res: Response) => {
           },
         ],
         mode: "payment",
-        success_url: `${process.env.CLIENT_URL}/deposit-success`,
+        success_url: `${process.env.CLIENT_URL}/my-reservation`,
         cancel_url: `${process.env.CLIENT_URL}/deposit-cancel`,
       } as any);
 
