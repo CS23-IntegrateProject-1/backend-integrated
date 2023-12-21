@@ -8,8 +8,8 @@ import {
   getFilmsById,
   getAllFilms,
   // getShowsByFilmId,
-  getShowsByTheaterId,
-  // getFilmsByTheaterId,
+  // getShowsByTheaterId,
+  getFilmsByTheaterId,
   getTheaterById,
   getTotalPriceByReservationId,
   bookSeatAndSendCookie,
@@ -28,8 +28,8 @@ feature10Router.get("/getShowingFilms", getShowingFilms);
 feature10Router.get("/getFilmsById/:id", getFilmsById);
 feature10Router.get("/getAllFilms", getAllFilms);
 // feature10Router.get("/getShowsByFilmId/:id", getShowsByFilmId);
-feature10Router.post("/getShowsByTheaterId", getShowsByTheaterId);
-// feature10Router.post("/getFilmsByTheaterId", getFilmsByTheaterId);
+// feature10Router.post("/getShowsByTheaterId", getShowsByTheaterId);
+feature10Router.post("/getFilmsByTheaterId", getFilmsByTheaterId);
 feature10Router.get("/getTheaterById/:id", getTheaterById);
 feature10Router.post(
   "/getTotalPriceByReservationId",

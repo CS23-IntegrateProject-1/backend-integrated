@@ -2,7 +2,7 @@ import { PrismaClient } from "@prisma/client";
 import { Response, Request } from "express";
 import filmService from "../services/movie/films.service";
 import theaterService from "../services/movie/theaters.service";
-import showService from "../services/movie/shows.service";
+//import showService from "../services/movie/shows.service";
 import seatsService from "../services/movie/seats.service";
 import reservationService from "../services/movie/reservation.service";
 import jwt from "jsonwebtoken";
@@ -108,36 +108,35 @@ export const getShowsByFilmIdandDate = async (req: Request, res: Response) => {
   }
 };
 
-export const getShowsByTheaterId = async (req: Request, res: Response) => {
-    try {
-      const id = Number(req.body.id);
-      const date = req.body.date;
-      const year = req.body.year;
-      const month = req.body.month;
-
-      const data = await showService.getShowsByTheaterId(id, date, month, year);
-      res.json(data);
-    } catch (e: any) {
-      console.log(e);
-      res.status(500).json({ error: e.message });
-    }
-};
-
-//ไม่แน่ใจว่าต้องใช้มั้ย ไปใช้ getShowsByTheaterIdอันข้างบน น่าจะดีกว่า
-// export const getFilmsByTheaterId = async (req: Request, res: Response) => {
+// export const getShowsByTheaterId = async (req: Request, res: Response) => {
 //     try {
-//       const id = req.body.id;
+//       const id = Number(req.body.id);
 //       const date = req.body.date;
 //       const year = req.body.year;
 //       const month = req.body.month;
 
-//       const data = await filmService.getFilmsByTheaterId(id, date, month, year);
+//       const data = await showService.getShowsByTheaterId(id, date, month, year);
 //       res.json(data);
 //     } catch (e: any) {
 //       console.log(e);
 //       res.status(500).json({ error: e.message });
-//     } 
+//     }
 // };
+
+export const getFilmsByTheaterId = async (req: Request, res: Response) => {
+    try {
+      const id = req.body.id;
+      const date = req.body.date;
+      const year = req.body.year;
+      const month = req.body.month;
+
+      const data = await filmService.getFilmsByTheaterId(id, date, month, year);
+      res.json(data);
+    } catch (e: any) {
+      console.log(e);
+      res.status(500).json({ error: e.message });
+    } 
+};
 
 //เปลี่ยนไปใช้ getShowsByFilmIdandDate แทนน่าจะดีกว่า
 // export const getShowsByFilmId = async (req: Request, res: Response) => {
