@@ -154,7 +154,8 @@ export const ApiReserve = async (req: Request, res: Response) => {
         const lname = req.body.lname;
 
         const phone = req.body.phone;
-        const email = req.body.email;
+        // const email = req.body.email;
+        const email = "harmoni.social@gmail.com"
 
         if (!token) {
             throw new Error("No auth token");
