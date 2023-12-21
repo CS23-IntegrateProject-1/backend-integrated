@@ -5,7 +5,6 @@ import multerConfig from "../multerConfig";
 import {
   getfeature1,
   paymentMethodHandler,
-  privacyPolicyHandler,
   promptPayHandler,
   groupInfoHandler,
 } from "../controllers/feature1.controller";
@@ -22,6 +21,7 @@ import GroupController from "../controllers/feature1/GroupController";
 import QrController from "../controllers/feature1/QrController";
 import { HelpDeskController } from "../controllers/feature1";
 import TosController from "../controllers/feature1/TosController";
+import PrivacyPolicyController from "../controllers/feature1/PrivacyPolicyController";
 
 const aboutController = new AboutController();
 const friendController = new FriendController();
@@ -32,6 +32,7 @@ const groupController = new GroupController();
 const qrController = new QrController();
 const helpDeskController = new HelpDeskController();
 const tosController = new TosController();
+const privacyPolicyController = new PrivacyPolicyController();
 
 const feature1Router = Router();
 
@@ -85,10 +86,26 @@ feature1Router.post("/payment-method", paymentMethodHandler);
 feature1Router.put("/payment-method", paymentMethodHandler);
 feature1Router.delete("/payment-method", paymentMethodHandler);
 
-feature1Router.get("/privacy-policy", privacyPolicyHandler);
-feature1Router.post("/privacy-policy", privacyPolicyHandler);
-feature1Router.put("/privacy-policy", privacyPolicyHandler);
-feature1Router.delete("/privacy-policy", privacyPolicyHandler);
+feature1Router.get(
+  "/privacy-policy",
+  userAuthMiddleware,
+  privacyPolicyController.show.bind(privacyPolicyController),
+);
+feature1Router.post(
+  "/privacy-policy",
+  userAuthMiddleware,
+  privacyPolicyController.store.bind(privacyPolicyController),
+);
+feature1Router.put(
+  "/privacy-policy",
+  userAuthMiddleware,
+  privacyPolicyController.update.bind(privacyPolicyController),
+);
+feature1Router.delete(
+  "/privacy-policy",
+  userAuthMiddleware,
+  privacyPolicyController.destroy.bind(privacyPolicyController),
+);
 
 feature1Router.get("/promptpay", promptPayHandler);
 feature1Router.put("/promptpay", promptPayHandler);

@@ -1,7 +1,6 @@
 import { Response, Request } from "express";
 
 import { PaymentMethodController } from "./feature1/PaymentMethodController";
-import { PrivacyPolicyController } from "./feature1/PrivacyPolicyController";
 import { PromptPayController } from "./feature1/PromptPayController";
 import GroupController from "./feature1/GroupController";
 import { PrismaClient } from "@prisma/client";
@@ -23,20 +22,6 @@ export const paymentMethodHandler = async (req: Request, res: Response) => {
     case "GET":
     default:
       return new PaymentMethodController().show(req, res);
-  }
-};
-
-export const privacyPolicyHandler = async (req: Request, res: Response) => {
-  switch (req.method) {
-    case "POST":
-      return new PrivacyPolicyController().store(req, res);
-    case "PUT":
-      return new PrivacyPolicyController().update(req, res);
-    case "DELETE":
-      return new PrivacyPolicyController().destroy(req, res);
-    case "GET":
-    default:
-      return new PrivacyPolicyController().show(req, res);
   }
 };
 
