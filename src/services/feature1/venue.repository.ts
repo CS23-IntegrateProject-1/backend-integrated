@@ -28,7 +28,11 @@ export interface IVenueRepository {
     businessId: number,
   ): Promise<VenuePromptPayShowDBResponse | null>;
 
-  updatePromptPayByBusinessId(businessId: number, promptPayNumber: number);
+  updatePromptPayByBusinessId(
+    businessId: number,
+    promptPayNumber: number,
+    phoneNumber: string,
+  );
 
   createCreditCard(
     businessId: number,
@@ -157,21 +161,32 @@ class VenueRepository implements IVenueRepository {
   async updatePromptPayByBusinessId(
     businessId: number,
     promptPayNumber: number,
+    phoneNumber: string,
   ) {
     const venueId = await this.getVenueId(businessId);
 
-    return await prismaClient.venue_promptpay.upsert({
-      where: {
-        venueId,
-      },
-      create: {
-        venueId,
-        promptpay_no: promptPayNumber,
-      },
-      update: {
-        promptpay_no: promptPayNumber,
-      },
-    });
+    await prismaClient.$transaction([
+      prismaClient.venue_promptpay.upsert({
+        where: {
+          venueId,
+        },
+        create: {
+          venueId,
+          promptpay_no: promptPayNumber,
+        },
+        update: {
+          promptpay_no: promptPayNumber,
+        },
+      }),
+      prismaClient.business_user.update({
+        where: {
+          businessId,
+        },
+        data: {
+          phone_num: phoneNumber,
+        },
+      }),
+    ]);
   }
 
   async getOpeningHoursByVenueId(venueId: number) {

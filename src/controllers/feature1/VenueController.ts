@@ -57,6 +57,7 @@ const OpeningHourPayload: z.ZodType<DayToString> = z.object({
 
 const PromptPayPayload = z.object({
   promptpay_number: z.number(),
+  phone_number: z.string(),
 });
 
 const getBusinessId = compose(Number, path(["params", "businessId"]));
@@ -204,6 +205,7 @@ class VenueController implements IVenueController {
       await this.service.updatePromptPay(
         businessId,
         promptPay.promptpay_number,
+        promptPay.phone_number,
       );
 
       return res.status(200).send();

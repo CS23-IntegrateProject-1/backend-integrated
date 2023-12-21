@@ -23,7 +23,11 @@ export interface IVenueService {
 
   updateOpeningHours(businessId: number, data: OpeningHourUpdateRequest);
 
-  updatePromptPay(businessId: number, promptPayNumber: number);
+  updatePromptPay(
+    businessId: number,
+    promptPayNumber: number,
+    phoneNumber: string,
+  );
 
   createCreditCard(
     businessId: number,
@@ -85,10 +89,15 @@ class VenueService implements IVenueService {
     return this.repository.createCreditCard(businessId, data);
   }
 
-  async updatePromptPay(businessId: number, promptPayNumber: number) {
+  async updatePromptPay(
+    businessId: number,
+    promptPayNumber: number,
+    phoneNumber: string,
+  ) {
     await this.repository.updatePromptPayByBusinessId(
       businessId,
       promptPayNumber,
+      phoneNumber,
     );
   }
 
