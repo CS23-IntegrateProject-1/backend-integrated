@@ -33,7 +33,7 @@ export const getVenuesPage = async (req: Request, res: Response) => {
     .filter((v) => v !== "");
   // console.log(category)
   try {
-    const [VenuesPage, menus, tables] = await Promise.all([
+    const [VenuesPage, menus, tables, venues] = await Promise.all([
       feature3Client.$queryRaw<VenueInfo[]>`
     SELECT
       V.venueId,
@@ -58,6 +58,7 @@ export const getVenuesPage = async (req: Request, res: Response) => {
   `,
       feature3Client.menu.findMany({}),
       feature3Client.table_type_detail.findMany({}),
+      feature3Client.venue.findMany({}),
     ]);
 
     const filteredVenues = VenuesPage.filter((v) =>
@@ -195,7 +196,7 @@ export const getRecommendedPlaces = async (req: Request, res: Response) => {
     .filter((v) => v !== "");
   // console.log(category)
   try {
-    const [RecommendedPlaces, menus, tables] = await Promise.all([
+    const [RecommendedPlaces, menus, tables, venues] = await Promise.all([
       feature3Client.$queryRaw<RPVenueInfo[]>`
             SELECT V.venueId, VB.branchId, name, description, category, capacity,
             chatRoomId, locationId, website_url, COALESCE(AVG(VR.rating) , 0) as rating, venue_picture
@@ -207,6 +208,7 @@ export const getRecommendedPlaces = async (req: Request, res: Response) => {
           `,
       feature3Client.menu.findMany({}),
       feature3Client.table_type_detail.findMany({}),
+      feature3Client.venue.findMany({}),
     ]);
 
     const filteredVenues = RecommendedPlaces.filter((v) =>
@@ -268,21 +270,21 @@ export const getRecommendedPlaces = async (req: Request, res: Response) => {
           return true;
         }
 
-        if (capacity.includes("1-4")) {
+        if (capacity.includes("1TO4")) {
           statements.push(
             venueTables.some((t) => t.capacity >= 1 && t.capacity <= 4)
           );
         }
 
-        if (capacity.includes("4-6")) {
+        if (capacity.includes("5TO6")) {
           statements.push(
-            venueTables.some((t) => t.capacity >= 4 && t.capacity <= 6)
+            venueTables.some((t) => t.capacity >= 5 && t.capacity <= 6)
           );
         }
 
-        if (capacity.includes("6-10")) {
+        if (capacity.includes("7TO10")) {
           statements.push(
-            venueTables.some((t) => t.capacity >= 6 && t.capacity <= 10)
+            venueTables.some((t) => t.capacity >= 7 && t.capacity <= 10)
           );
         }
 
@@ -408,7 +410,7 @@ export const getReviewsBranch = async (req: Request, res: Response) => {
     `;
 
     const filteredReviews = reviewsBranch.filter((review) => {
-      console.log(reviewTypes, reviewStars);
+      // console.log(reviewTypes, reviewStars);
       const reviewTypeMatch =
         reviewTypes.length === 0
           ? true

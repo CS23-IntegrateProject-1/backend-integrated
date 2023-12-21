@@ -88,7 +88,7 @@ export class ProfileRepository implements IProfileRepository {
       data: {
         phone: data.phone,
         email: data.email,
-        profile_picture: filename,
+        profile_picture: `/uploads/${filename}`,
         userId,
         User_bio: {
           connectOrCreate: {
