@@ -1,44 +1,39 @@
 import { Router } from "express";
 import multerConfig from "../multerConfig";
 
-// here import your controllers(function)
-import {
-  getfeature1,
-  promptPayHandler,
-  groupInfoHandler,
-} from "../controllers/feature1.controller";
 import {
   userAuthMiddleware,
   businessAuthMiddleware,
 } from "../middlewares/feature1.middleware";
-import { AboutController } from "../controllers/feature1/AboutController";
-import FriendController from "../controllers/feature1/FriendController";
-import ProfileController from "../controllers/feature1/ProfileController";
-import SearchController from "../controllers/feature1/SearchController";
-import VenueController from "../controllers/feature1/VenueController";
-import GroupController from "../controllers/feature1/GroupController";
-import QrController from "../controllers/feature1/QrController";
-import { HelpDeskController } from "../controllers/feature1";
-import TosController from "../controllers/feature1/TosController";
-import PrivacyPolicyController from "../controllers/feature1/PrivacyPolicyController";
-import PaymentMethodController from "../controllers/feature1/PaymentMethodController";
+import {
+  AboutController,
+  FriendController,
+  GroupController,
+  HelpDeskController,
+  PaymentMethodController,
+  PrivacyPolicyController,
+  ProfileController,
+  PromptPayController,
+  QrController,
+  SearchController,
+  TosController,
+  VenueController,
+} from "../controllers/feature1";
 
 const aboutController = new AboutController();
 const friendController = new FriendController();
-const profileController = new ProfileController();
-const searchController = new SearchController();
-const venueController = new VenueController();
 const groupController = new GroupController();
-const qrController = new QrController();
 const helpDeskController = new HelpDeskController();
-const tosController = new TosController();
-const privacyPolicyController = new PrivacyPolicyController();
 const paymentMethodController = new PaymentMethodController();
+const privacyPolicyController = new PrivacyPolicyController();
+const profileController = new ProfileController();
+const promptPayController = new PromptPayController();
+const qrController = new QrController();
+const searchController = new SearchController();
+const tosController = new TosController();
+const venueController = new VenueController();
 
 const feature1Router = Router();
-
-// here define your routes
-feature1Router.get("/", getfeature1);
 
 feature1Router.get(
   "/about",
@@ -124,8 +119,16 @@ feature1Router.delete(
   privacyPolicyController.destroy.bind(privacyPolicyController),
 );
 
-feature1Router.get("/promptpay", promptPayHandler);
-feature1Router.put("/promptpay", promptPayHandler);
+feature1Router.get(
+  "/promptpay",
+  userAuthMiddleware,
+  promptPayController.show.bind(promptPayController),
+);
+feature1Router.put(
+  "/promptpay",
+  userAuthMiddleware,
+  promptPayController.update.bind(promptPayController),
+);
 
 feature1Router.get(
   "/search/friends",
@@ -161,7 +164,11 @@ feature1Router.get(
   userAuthMiddleware,
   groupController.index.bind(groupController),
 );
-feature1Router.get("/group/:id", groupInfoHandler);
+feature1Router.get(
+  "/group/:id",
+  userAuthMiddleware,
+  groupController.show.bind(groupController),
+);
 feature1Router.post(
   "/group/add",
   userAuthMiddleware,

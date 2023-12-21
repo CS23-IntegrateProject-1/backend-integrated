@@ -19,7 +19,7 @@ const TicketCreatePayload = z.object({
   complaint: z.string(),
 });
 
-export class HelpDeskController implements IHelpDeskConroller {
+export default class HelpDeskController implements IHelpDeskConroller {
   private service: IHelpDeskService = new HelpDeskService(
     new HelpDeskRepository(),
   );

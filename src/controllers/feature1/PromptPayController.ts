@@ -12,7 +12,7 @@ interface IPromptPayController {
   update(req: Request, res: Response): unknown;
 }
 
-export class PromptPayController implements IPromptPayController {
+export default class PromptPayController implements IPromptPayController {
   private service: IPromptPayService = new PromptPayService(
     new PromptPayRepository(),
   );

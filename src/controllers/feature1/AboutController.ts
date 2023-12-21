@@ -23,7 +23,7 @@ export interface IAboutController {
   destroy: (req: Request, res: Response) => unknown;
 }
 
-export class AboutController implements IAboutController {
+export default class AboutController implements IAboutController {
   private service: IAboutService = new AboutService(new AboutRepository());
 
   async store(req: Request, res: Response) {
