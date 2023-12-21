@@ -31,15 +31,3 @@ export interface Film {
   poster_img: string;
   rate: number;
 }
-
-export interface RecievedFilm {
-  filmId: number;
-  name: string;
-  genre: Genre;
-  language: string;
-  synopsis: string;
-  releaseDate: string;
-  duration: number;
-  posterImg: string;
-  rate: number;
-}
