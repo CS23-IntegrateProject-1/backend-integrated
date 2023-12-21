@@ -156,7 +156,7 @@ export const forDialogflow = async (req: Request, res: Response) => {
         //update username in database according to sessionID
         await feature12Client.user.update({
           where: {
-            username: sessionId,
+            addId: sessionId,
           },
           data: {
             username: queryText,
