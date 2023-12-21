@@ -182,6 +182,9 @@ interface RPVenueInfo {
 }
 
 export const getRecommendedPlaces = async (req: Request, res: Response) => {
+  const decoded = authService.decodeToken(req.cookies.authToken);
+  const userId = decoded ? decoded.userId : null;
+
   const search = String(req.query.search || "");
   const priceMin = Number(req.query.priceMin || 0);
   const priceMax = Number(req.query.priceMax || 1000);
@@ -291,7 +294,22 @@ export const getRecommendedPlaces = async (req: Request, res: Response) => {
         return statements.some((v) => v === true);
       });
 
-    return res.json(filteredVenues);
+      const filteredVenuesWithFavourite_RP = await Promise.all(
+        filteredVenues.map(async (venue) => {
+          const foundVenue = await feature3Client.saved_place.findFirst({
+            where: {
+              userId,
+              venueId: venue.venueId,
+            },
+          });
+          return {
+            ...venue,
+            isFavourite: foundVenue ? true : false,
+          };
+        })
+      );
+
+    return res.json(filteredVenuesWithFavourite_RP);
   } catch (error) {
     console.error(error);
     return res.status(500).json(error);
