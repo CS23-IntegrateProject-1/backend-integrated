@@ -2227,7 +2227,6 @@ const getSeatDynamicPriceId = async (req: Request) => {
     name: "Seat",
     description: "Pay for seat",
   });
-  //const reservationId = req.body.reservationId;
   const {reservationId} = authService.decodeToken(req.cookies.movieReservationToken)
   const totalPrice: string = (
     await reservationService.getTotalPriceByReservationId(reservationId)
@@ -2245,3 +2244,46 @@ const getSeatDynamicPriceId = async (req: Request) => {
   return price.id;
 };
 
+// export const createDeliverySession = async (req: Request, res: Response) => {
+//   try {
+//     const dynamicPriceId = await getDeliveryDynamicPriceId(req);
+//     const session = await stripe.checkout.sessions.create({
+//       line_items: [
+//         {
+//           price: dynamicPriceId,
+//           quantity: 1,
+//         },
+//       ],
+//       mode: "payment",
+//       success_url: `${process.env.CLIENT_URL}/delivery-success`,
+//       cancel_url: `${process.env.CLIENT_URL}/delivery-cancel`,
+//     });
+
+//     res.status(200).json({ url: session.url });
+//   } catch (error) {
+//     res.status(400).json(error);
+//   }
+// }
+
+// const getDeliveryDynamicPriceId = async (req: Request) => {
+//   // const product = await stripe.products.create({
+//   //   name: "Delivery",
+//   //   description: "Pay for delivery",
+//   // });
+//   // //const reservationId = req.body.reservationId;
+//   // const {reservationId} = authService.decodeToken(req.cookies.movieReservationToken)
+//   // const totalPrice: string = (
+//   //   await reservationService.getTotalPriceByReservationId(reservationId)
+//   // ).toString();
+  
+//   const totalAmount2: any = parseFloat(totalPrice).toFixed(2);
+//   const movedDecimalNumber = totalAmount2 * 100;
+//   const strPrice = movedDecimalNumber.toString();
+//   const price = await stripe.prices.create({
+//     unit_amount_decimal: strPrice,
+//     currency: "thb",
+//     product: product.id,
+//   });
+
+//   return price.id;
+// }
