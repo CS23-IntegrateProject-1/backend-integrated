@@ -869,8 +869,8 @@ model Redeem_privilege {
   description String
   memberTier  Int
   image_url   String?       @db.Text
-  bussinessId Int?
-  bussiness   Business_user? @relation(fields: [bussinessId], references: [businessId])
+  businessId Int?
+  bussiness   Business_user? @relation(fields: [businessId], references: [businessId])
   Member_tier Member_tier   @relation(fields: [memberTier], references: [tierId])
 
   @@index([memberTier], map: "Redeem_privilege_memberTier_fkey")
