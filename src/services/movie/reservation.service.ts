@@ -36,7 +36,7 @@ class reservationService {
       },
     });
     const price = Number(priceData?.Shows.price) || 0;
-    const totalPrice = priceModifier * price;
+    const totalPrice: number = priceModifier * price;
 
     return totalPrice;
   }
