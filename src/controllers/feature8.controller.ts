@@ -2110,9 +2110,10 @@ const getDynamicPriceId = async (req: Request, res: Response) => {
 //For Deposit
 export const createDepositSession = async (req: Request, res: Response) => {
   try {
-    const { reservationId } = authService.decodeToken(
-      req.cookies.reservationToken
-    );
+    // const { reservationId } = authService.decodeToken(
+    //   req.cookies.reservationToken
+    // );
+    const reservationId = parseInt(req.params.reservationId);
     
     const priceResponse = await getDepositDynamicPriceId(req, res);
 
