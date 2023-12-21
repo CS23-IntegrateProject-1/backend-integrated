@@ -228,7 +228,7 @@ async function updateEntityType() {
       } as { entityType: IEntityType };
 
       const [response] = await client.updateEntityType(request);
-      console.log('Entity updated:', response);
+      console.log('DialogflowEntity updated:', response);
     }
   }
 }
@@ -259,7 +259,7 @@ async function updateEntityType() {
 export const fetchData = async (req: Request, res: Response) => {
   await fetchVenuesAndWriteToFile().catch(err => console.error(err));
   await updateEntityType().catch(err => console.error(err));
-  console.log('Data written to file');
+  // console.log('Data written to file');
   res.send('Data written to file');
 }
 
@@ -362,10 +362,14 @@ export const getCommunityChatList = async (req: any, res: Response) => {
     const communityList = await feature12Client.chat_Room_Logs.findMany({
       where: {
         userId: parseInt(userId),
+        access_status: {
+          equals: true,
+        },
       },
       select: {
         chatRoomId: true,
       },
+      distinct: ["chatRoomId"],
     });
 
     const communitygroupDetail = await Promise.all(
