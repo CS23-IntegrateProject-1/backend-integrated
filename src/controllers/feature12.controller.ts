@@ -65,7 +65,7 @@ const detectIntent = async (languageCode, queryText, sessionId) => {
 
     if (result) {
 //     // Now you can safely access properties or methods on 'result'
-        console.log(result);
+        // console.log(result);
         return {
           result: result,
         };
@@ -77,10 +77,10 @@ const detectIntent = async (languageCode, queryText, sessionId) => {
 //Post request for dialogflow with body parameters
 export const forDialogflow = async (req: Request, res: Response) => {
   const languageCode = req.body.languageCode;
-    const queryText = req.body.queryText;
-    const sessionId = req.body.sessionId;
+  const queryText = req.body.queryText;
+  const sessionId = req.body.sessionId;
 
-    const responseData = await detectIntent(languageCode, queryText, sessionId);
+  const responseData = await detectIntent(languageCode, queryText, sessionId);
 
     if (responseData) {
       if(responseData.result.intent?.displayName === 'ShowingVenues'){
@@ -105,7 +105,7 @@ export const forDialogflow = async (req: Request, res: Response) => {
         const category =
           responseData.result?.outputContexts?.[0]?.parameters?.fields?.category
             ?.stringValue;
-        // console.log(category);
+        // console.log(responseData.result?.outputContexts?.[0]?.parameters?.fields);
         try {
           const names = await feature12Client.venue.findMany({
             where: {
@@ -129,9 +129,6 @@ export const forDialogflow = async (req: Request, res: Response) => {
       } else if (
         responseData.result.intent?.displayName === "Ask Restaurant"
       ) {
-          responseData.result?.outputContexts?.[0]?.parameters?.fields?.category
-            ?.stringValue;
-        // console.log(category);
         try {
           const names = await feature12Client.venue.findMany({
             
@@ -149,8 +146,30 @@ export const forDialogflow = async (req: Request, res: Response) => {
         } catch (error) {
           return res.status(500).json({ error });
         }
-      } else {
+      } 
+      else if(responseData.result.intent?.displayName === "Change Username - yes - name"){
+        // const newUsername =responseData.result.parameters?.fields?.user.structValue?.fields?.name.stringValue;
+        // console.log(newUsername);
+        console.log(queryText)
+        console.log(sessionId)
+
+        //update username in database according to sessionID
+        await feature12Client.user.update({
+          where: {
+            addId: sessionId,
+          },
+          data: {
+            username: queryText,
+          },
+        });
+        res.json({
+          fulfillmentText: responseData.result.fulfillmentText,
+        });
+      } 
+      else {
         res.send({ fulfillmentText: responseData.result.fulfillmentText });
+        // console.log(responseData.result.intent);
+        // console.log(responseData.result.outputContexts);
       }
   } else {
     res.send('No response data');
@@ -180,11 +199,25 @@ async function fetchVenuesAndWriteToFile() {
   });
     const categoryData = {
     name: 'category',
-    entries: categories.map(category => ({
-      value: category,
-      synonyms: [category], // synonyms can be the same as the value if you don't have any synonyms
+    entries: categories.map(item => ({
+      value: item.category,
+      synonyms: [item.category], // synonyms can be the same as the value if you don't have any synonyms
     })),
   };
+  
+  // const users = await prisma.user.findMany({
+  //   select: {
+  //     username: true
+  //   },
+  //   distinct: ["username"],
+  // });
+  // const userData = {
+  //   name: 'user',
+  //   entries: users.map(user => ({
+  //     value: user.username,
+  //     synonyms: [user.username], // synonyms can be the same as the value if you don't have any synonyms
+  //   })),
+  // };
 
   fs.writeFileSync('dialogflowData.json', JSON.stringify([venueData,categoryData], null, 2));
 }
@@ -228,7 +261,7 @@ async function updateEntityType() {
       } as { entityType: IEntityType };
 
       const [response] = await client.updateEntityType(request);
-      console.log('Entity updated:', response);
+      console.log('DialogflowEntity updated:', response);
     }
   }
 }
@@ -259,69 +292,8 @@ async function updateEntityType() {
 export const fetchData = async (req: Request, res: Response) => {
   await fetchVenuesAndWriteToFile().catch(err => console.error(err));
   await updateEntityType().catch(err => console.error(err));
-  console.log('Data written to file');
   res.send('Data written to file');
 }
-
-// const existingChatRoom = await feature12Client.chat_room.findUnique({
-//   where: {
-//     //convert data.room to number
-//     chatRoomId: parseInt(data.room),
-//   },
-// });
-
-// if (existingChatRoom) {
-//   socket.join(data.room);
-//   console.log(`user joined room: ${data.room}`);
-
-//   io.to(data.room).emit("serverMsg", data);
-// }
-
-/*
-// Function to create chat rooms on the server and insert data back to the Chat_room DB
-async function createChatRooms() {
-  try {
-    const venues = await feature12Client.venue.findMany();
-
-    venues.forEach(async (venue) => {
-      const roomKey = venue.chatRoomId;
-      const roomName = venue.name;
-
-    
-
-      // Insert chat room data into the database
-      try {
-        await feature12Client.chat_room.create({
-          data: {
-            chatRoomId: roomKey,
-            roomname: roomName,
-          },
-        });
-        console.log(`Chat room ${roomKey} inserted into the database.`);
-        // Server joins the chat room
-        console.log(`Creating chat room: ${roomKey}`);
-
-        socket.emit("joinServerRoom", {"Hi", roomKey});
-
-      } catch {
-        console.log(`Chat room ${roomKey} already created`);
-      }
-    });
-  } catch (error) {
-    console.error("Error creating chat rooms:", error);
-  }
-}
-// Run the function to create chat rooms when the server starts
-createChatRooms();
-*/
-// import authService from "../services/auth.service";
-
-// export const getId = async (req: Request, res: Response) => {
-//   const token = req.cookies.authToken;
-//   const decodedToken = authService.decodeToken(token);
-//   const { userId } = decodedToken;
-//   return res.status(200).json({ userId });
-// };
 
 //get All message (Comminity Chat)
 export const getAllMessageCommunity = async (req: Request, res: Response) => {
@@ -362,10 +334,14 @@ export const getCommunityChatList = async (req: any, res: Response) => {
     const communityList = await feature12Client.chat_Room_Logs.findMany({
       where: {
         userId: parseInt(userId),
+        access_status: {
+          equals: true,
+        },
       },
       select: {
         chatRoomId: true,
       },
+      distinct: ["chatRoomId"],
     });
 
     const communitygroupDetail = await Promise.all(

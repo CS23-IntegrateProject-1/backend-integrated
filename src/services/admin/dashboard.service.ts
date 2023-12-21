@@ -104,6 +104,40 @@ class DashboardService {
 			throw new Error("Error in getting number of reciept");
 		}
 	}
+	async getAllTransaction() {
+		try {
+			const AppTransaction = this.prisma.transaction_detail.groupBy({
+				by: ['total_amount'],
+				_sum: {
+					total_amount: true,
+				},
+				where: {
+					status: "Completed"
+				}
+			});
+			// const appTransactionResult = await AppTransaction;
+			// const firstTransaction = appTransactionResult[0];
+			// const AllTransactionCount = firstTransaction?._sum?.total_amount;
+			// return (await AllTransactionCount);
+			const appTransactionResult = await AppTransaction;
+			const totalAmountSum = appTransactionResult.reduce((sum, transaction) => {
+				const transactionAmount = transaction?._sum?.total_amount;
+				const amountToAdd = typeof transactionAmount === 'number'
+					? transactionAmount
+					: transactionAmount?.toNumber() ?? 0;
+				return sum + amountToAdd;
+			}, 0);
+
+			return {
+				Revenue: totalAmountSum,
+				Partner: totalAmountSum*90/100,
+				NetProfit: totalAmountSum*10/100,
+			}
+		} catch (e) {
+			console.log(e);
+			throw new Error("Error in getting number of transaction");
+		}
+	}
 }
 
 export default new DashboardService();

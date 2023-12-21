@@ -1,8 +1,10 @@
 import { PrismaClient } from "@prisma/client";
-import { Response, Request } from "express";
 import crypto from "crypto";
 import authService from "../services/auth/auth.service";
 import { Stripe } from "stripe";
+import jwt, { JwtPayload } from "jsonwebtoken";
+import { Request, Response } from "express";
+import reservationService from "../services/movie/reservation.service";
 
 const feature8Client = new PrismaClient();
 
@@ -44,6 +46,7 @@ export const getUserById = async (req: Request, res: Response) => {
     console.error(error);
     res.status(500).json({ error: "Failed to retrieve user" });
   }
+  //console.log(userId);
 };
 
 export const getReservationByVenueId = async (req: Request, res: Response) => {
@@ -92,8 +95,6 @@ export const getTableIdsByVenueId = async (req: Request, res: Response) => {
 };
 
 export const getTableNosByVenueId = async (req: Request, res: Response) => {
-  
-
   try {
     const response = await getTableIdsByVenueId(req, res);
 
@@ -1118,12 +1119,41 @@ export const getTransactionDetailsByVenueAndDate = async (
   }
 };
 
+// export const getVenueByVenueId = async (req: Request, res: Response) => {
+//   const { venueId } = req.params;
+//   try {
+//     const venue = await feature8Client.venue.findUnique({
+//       where: { venueId: parseInt(venueId, 10) },
+//     });
+
+//     if (!venue) {
+//       return res.status(404).json({ error: "Venue not found" });
+//     }
+
+//     res.status(200).json(venue);
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).json({ error: "Failed to retrieve venue" });
+//   }
+// }
+
 export const getVenueByVenueId = async (req: Request, res: Response) => {
-  const { venueId } = req.params;
+  //const { venueId } = req.params;
+  const reservationToken = req.cookies.reservationToken;
+  const secretKey = process.env.JWT_SECRET as string;
+  if (!reservationToken) {
+    isNotError = false;
+    return res.status(401).json({ message: "Invalid reservation token." });
+  }
+  const decoded = jwt.verify(reservationToken, secretKey) as JwtPayload;
+  const { reservedId } = decoded;
 
   try {
+    const venueId = await feature8Client.reservation.findUnique({
+      where: { reservationId: Number(reservedId) },
+    });
     const venue = await feature8Client.venue.findUnique({
-      where: { venueId: Number(venueId) },
+      where: { venueId: Number(venueId?.venueId) },
     });
 
     if (!venue) {
@@ -1733,6 +1763,137 @@ export const getOrderIdByAppTransactionDetailId = async (
   }
 };
 
+export const getBusinessId = async (req: Request, res: Response) => {
+  const venueId = parseInt(req.params.venueId, 10);
+
+  try {
+    const property = await feature8Client.property.findFirst({
+      where: { venueId: venueId },
+      select: { businessId: true }
+    });
+
+    if (!property) {
+      return res.status(404).json({ error: 'Property not found' });
+    }
+
+    res.status(200).json({ businessId: property.businessId });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Failed to retrieve business ID' });
+  }
+}
+
+export const getOrdersAndTableNos = async (req: Request, res: Response) => {
+  const venueId = parseInt(req.params.venueId, 10);
+
+  try {
+    const orders = await feature8Client.orders.findMany({
+      where: { venueId: venueId },
+      select: { orderId: true, reservedId: true,order_date: true },
+      orderBy: {
+        order_date: 'desc'
+      }
+    });
+
+    const ordersWithTableNos = await Promise.all(
+      orders
+        .filter(order => order.reservedId !== null)
+        .map(async order => {
+          const reservation = await feature8Client.reservation_table.findFirst({
+            where: { reserveId: order.reservedId ?? undefined },
+            select: { tableId: true }
+          });
+
+          if (!reservation) {
+            return { ...order, tableNo: null };
+          }
+
+          const table = await feature8Client.tables.findUnique({
+            where: { tableId: reservation.tableId },
+            select: { table_no: true }
+          });
+
+          return { ...order, tableNo: table?.table_no ?? null };
+        })
+    );
+
+    res.status(200).json(ordersWithTableNos);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Failed to retrieve orders and table numbers' });
+  }
+}
+
+export const getlatestOrderMenuOrderUpdate = async (req: Request, res: Response) => {
+  const orderId = parseInt(req.params.orderId, 10);
+
+  try {
+    const order = await feature8Client.orders.findUnique({
+      where: { orderId: orderId },
+      select: { reservedId: true }
+    });
+
+    const orderdetail = await feature8Client.order_detail.findMany({
+      where: { 
+        orderId : orderId,
+        status: 'On_going',
+      },
+      select: {
+        menuId: true,
+        setId: true,
+        unit_price: true,
+        quantity: true,
+      },
+      orderBy: {
+        order_time: 'desc'
+      }
+    });
+
+    const orderdetailWithNameAndTableNo = await Promise.all(orderdetail.map(async item => {
+      let name = '';
+      let tableNo = NaN;
+      if (item.menuId) {
+        const menu = await feature8Client.menu.findUnique({
+          where: { menuId: item.menuId },
+          select: { name: true }
+        });
+        name = menu?.name ?? '';
+      } else if (item.setId) {
+        const set = await feature8Client.sets.findUnique({
+          where: { setId: item.setId },
+          select: { name: true }
+        });
+        name = set?.name ?? '';
+      }
+
+      if (order?.reservedId) {
+          const reservation = await feature8Client.reservation_table.findFirst({
+              where: { reserveId: order.reservedId },
+                  select: { tableId: true }
+          });
+          if (reservation?.tableId) {
+              const table = await feature8Client.tables.findUnique({
+                  where: { tableId: reservation.tableId },
+                  select: { table_no: true }
+              });
+              tableNo = Number(table?.table_no) ?? NaN;
+          }
+      }
+
+      return { ...item, name, tableNo };
+    }));
+
+    const sumOfAllPrice = orderdetail.reduce((total: number, item) => total + (Number(item.unit_price) * item.quantity), 0).toFixed(2);
+
+    res.status(200).json({orderdetail: orderdetailWithNameAndTableNo, sumOfAllPrice});
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Failed to retrieve order detail' });
+  }
+}
+
+
+
 //token function
 // import jwt, { Secret } from 'jsonwebtoken';
 // interface CustomJwtPayload {
@@ -1803,7 +1964,6 @@ export const getOrderIdByAppTransactionDetailId = async (
 //   }
 // };
 
-
 // Stripe Code payment v1
 // const YOUR_DOMAIN = 'http://localhost:4000';
 // const stripe = new Stripe(process.env.STRIP_KEY ?? '');
@@ -1830,7 +1990,6 @@ export const getOrderIdByAppTransactionDetailId = async (
 
 //         // res.redirect(303,session.url!);
 // }
-
 
 // Stripe code payment v2
 // const YOUR_DOMAIN = 'http://localhost:4000';
@@ -1874,116 +2033,173 @@ export const getOrderIdByAppTransactionDetailId = async (
 //     return price.id;
 // };
 
-
-
 // Stripe code payment v3
 //For Checkout
-const YOUR_DOMAIN = "http://localhost:4000";
+
+let isNotError = true;
 const stripe = new Stripe(process.env.STRIP_KEY ?? "");
 
 export const createCheckoutSession = async (req: Request, res: Response) => {
   try {
-    const dynamicPriceId = await getDynamicPriceId(req);
+    const priceResponse = await getDynamicPriceId(req, res);
 
-    const session = await stripe.checkout.sessions.create({
-      line_items: [
-        {
-          price: dynamicPriceId,
-          quantity: 1,
-        },
-      ],
-      mode: "payment",
-      success_url: `${YOUR_DOMAIN}/checkout-success`,
-      cancel_url: `${YOUR_DOMAIN}/checkout-cancel`,
-    });
-
-    res.status(200).json({ url: session.url });
-  } catch (error) {
-    res.status(400).json(error);
-  }
-};
-
-const getDynamicPriceId = async (req) => {
-  const product = await stripe.products.create({
-    name: "Checkout",
-    description: "Pay for checkout",
-  });
-  const reservationId = req.body.reservationId;
-
-  const totalAmount = await feature8Client.orders.findUnique({
-    where: { reservedId: reservationId },
-  });
-
-  const totalAmount2: any = totalAmount?.total_amount.toFixed(2);
-  const movedDecimalNumber = totalAmount2 * 100;
-  const strPrice = movedDecimalNumber.toString();
-  const price = await stripe.prices.create({
-    unit_amount_decimal: strPrice,
-    currency: "thb",
-    product: product.id,
-  });
-
-  return price.id;
-};
-
-
-
-//For Deposit
-export const createDepositSession = async (req: Request, res: Response) => {
-    try {
-      const dynamicPriceId = await getDepositDynamicPriceId();
-  
+    if (isNotError) {
       const session = await stripe.checkout.sessions.create({
         line_items: [
           {
-            price: dynamicPriceId,
+            price: priceResponse,
             quantity: 1,
           },
         ],
         mode: "payment",
-        success_url: `${YOUR_DOMAIN}/deposit-success`,
-        cancel_url: `${YOUR_DOMAIN}/deposit-cancel`,
-      });
-  
-      res.status(200).json({ url: session.url });
-    } catch (error) {
-      res.status(400).json(error);
+        success_url: `${process.env.CLIENT_URL}/checkout-success`,
+        cancel_url: `${process.env.CLIENT_URL}/checkout-cancel`,
+      } as any);
+
+      return res.status(200).json({ url: session.url });
     }
-  };
-  
-  const getDepositDynamicPriceId = async () => {
-    const product = await stripe.products.create({
-      name: "Deposit",
-      description: "Pay for Deposit",
+  } catch (error) {
+    return res.json(error);
+  }
+};
+
+const getDynamicPriceId = async (req: Request, res: Response) => {
+  const product = await stripe.products.create({
+    name: "Checkout",
+    description: "Pay for checkout",
+  });
+  const reservationToken = req.cookies.reservationToken;
+  const secretKey = process.env.JWT_SECRET as string;
+  if (!reservationToken) {
+    isNotError = false;
+    return res.status(401).json({ message: "Invalid reservation token." });
+  }
+  try {
+    const decoded = jwt.verify(reservationToken, secretKey) as JwtPayload;
+    const { reservationId } = decoded;
+    // const reservedId = 266
+    console.log(reservationId);
+    const totalAmount = await feature8Client.orders.findUnique({
+      where: { reservedId: reservationId },
     });
-  
-    const totalAmount = await feature8Client.deposit.findUnique({
-      where: { depositId: 2 },
-    });
-      //console.log(totalAmount+"test")
-  
-    const totalAmount2: any = totalAmount?.deposit_amount.toFixed(2);
-        //console.log(totalAmount2+"test2")
-    const movedDecimalNumber = parseFloat(totalAmount2) * 100;
-        //console.log(movedDecimalNumber+"test3")
+    console.log(totalAmount);
+    const totalAmount2: any = totalAmount?.total_amount.toFixed(2);
+    console.log(totalAmount2);
+    const movedDecimalNumber = totalAmount2 * 100;
+    console.log(movedDecimalNumber);
     const strPrice = movedDecimalNumber.toString();
-        //console.log(strPrice+"test4")
-    
+    console.log(strPrice);
     const price = await stripe.prices.create({
       unit_amount_decimal: strPrice,
       currency: "thb",
       product: product.id,
     });
-  
     return price.id;
-  };
-  
+  } catch (e) {
+    console.log(e);
+    return res.status(500).json(e);
+  }
+};
 
-  //For Seat
-export const createSeatSession = async (req: Request, res: Response) => {
+//For Deposit
+export const createDepositSession = async (req: Request, res: Response) => {
+  try {
+    // const { reservationId } = authService.decodeToken(
+    //   req.cookies.reservationToken
+    // );
+    const reservationId = parseInt(req.params.reservationId);
+
+    const priceResponse = await getDepositDynamicPriceId(req, res);
+
+    if (isNotError) {
+      const session = await stripe.checkout.sessions.create({
+        line_items: [
+          {
+            price: priceResponse,
+            quantity: 1,
+          },
+        ],
+        mode: "payment",
+        success_url: `${process.env.CLIENT_URL}/my-reservation`,
+        cancel_url: `${process.env.CLIENT_URL}/deposit-cancel`,
+      } as any);
+
+      await feature8Client.reservation.update({
+        where: {
+          reservationId: reservationId,
+        },
+        data: {
+          isPaidDeposit: "Completed",
+        },
+      });
+
+      return res.status(200).json({ url: session.url });
+    }
+  } catch (error) {
+    return res.json(error);
+  }
+};
+
+const getDepositDynamicPriceId = async (req: Request, res: Response) => {
+  const product = await stripe.products.create({
+    name: "Deposit",
+    description: "Pay for Deposit",
+  });
+  // const reservationToken = req.cookies.reservationToken;
+  // const secretKey = process.env.JWT_SECRET as string;
+  const reservationId = parseInt(req.params.reservationId);
+  // if (!reservationToken) {
+  //   isNotError = false;
+  //   return res.status(401).json({ message: "Invalid reservation token." });
+  // }
+  try {
+    // const decoded = jwt.verify(reservationToken, secretKey) as JwtPayload;
+    // const { reservationId } = decoded;
+
+    const reservation = await feature8Client.reservation.findUnique({
+      where: { reservationId: Number(reservationId) },
+    });
+    const venueId = reservation?.venueId;
+
+    if (!venueId) {
+      return res.status(404).json({ message: "Venue not found" });
+    }
+
+    const depositQueryResult = await feature8Client.deposit.findFirst({
+      where: {
+        venueId: venueId,
+      },
+      select: {
+        depositId: true,
+        deposit_amount: true,
+      },
+    });
+
+    const deposit_amount = depositQueryResult?.deposit_amount;
+    
+    const totalAmount2: any = deposit_amount!.toFixed(2);
+    
+    const movedDecimalNumber = totalAmount2 * 100;
+      console.log(movedDecimalNumber);
+    const strPrice = movedDecimalNumber.toString();
+      console.log(strPrice);
+    const price = await stripe.prices.create({
+      unit_amount_decimal: strPrice,
+      currency: "thb",
+      product: product.id,
+    });
+    return price.id;
+  } catch (e) {
+    console.log(e);
+    return res.status(500).json(e);
+  }
+};
+
+
+//For Seat
+export const createSeatSessionnn = async (req: Request, res: Response) => {
   try {
     const dynamicPriceId = await getSeatDynamicPriceId(req);
-
     const session = await stripe.checkout.sessions.create({
       line_items: [
         {
@@ -1992,8 +2208,8 @@ export const createSeatSession = async (req: Request, res: Response) => {
         },
       ],
       mode: "payment",
-      success_url: `${YOUR_DOMAIN}/`,
-      cancel_url: `${YOUR_DOMAIN}/`,
+      success_url: `${process.env.CLIENT_URL}/seat-success`,
+      cancel_url: `${process.env.CLIENT_URL}/seat-cancel`,
     });
 
     res.status(200).json({ url: session.url });
@@ -2002,18 +2218,22 @@ export const createSeatSession = async (req: Request, res: Response) => {
   }
 };
 
-const getSeatDynamicPriceId = async (req) => {
+const getSeatDynamicPriceId = async (req: Request) => {
   const product = await stripe.products.create({
     name: "Seat",
     description: "Pay for seat",
   });
-  const reservationId = req.body.reservationId;
-
-  const totalAmount = await feature8Client.screens.findUnique({
-    where: { screenId: reservationId },
-  });
-
-  const totalAmount2: any = totalAmount?.price?.toFixed(2);
+  const { reservationIds } = authService.decodeToken(
+    req.cookies.movieReservationToken
+  );
+  let totalPrice = 0;
+  for (const reservationId of reservationIds) {
+    totalPrice += await reservationService.getTotalPriceByReservationId(
+      reservationId
+    );
+  }
+  console.log("total price: ", totalPrice);
+  const totalAmount2: any = totalPrice.toFixed(2);
   const movedDecimalNumber = totalAmount2 * 100;
   const strPrice = movedDecimalNumber.toString();
   const price = await stripe.prices.create({
@@ -2024,3 +2244,47 @@ const getSeatDynamicPriceId = async (req) => {
 
   return price.id;
 };
+
+// export const createDeliverySession = async (req: Request, res: Response) => {
+//   try {
+//     const dynamicPriceId = await getDeliveryDynamicPriceId(req);
+//     const session = await stripe.checkout.sessions.create({
+//       line_items: [
+//         {
+//           price: dynamicPriceId,
+//           quantity: 1,
+//         },
+//       ],
+//       mode: "payment",
+//       success_url: `${process.env.CLIENT_URL}/delivery-success`,
+//       cancel_url: `${process.env.CLIENT_URL}/delivery-cancel`,
+//     });
+
+//     res.status(200).json({ url: session.url });
+//   } catch (error) {
+//     res.status(400).json(error);
+//   }
+// }
+
+// const getDeliveryDynamicPriceId = async (req: Request) => {
+//   // const product = await stripe.products.create({
+//   //   name: "Delivery",
+//   //   description: "Pay for delivery",
+//   // });
+//   // //const reservationId = req.body.reservationId;
+//   // const {reservationId} = authService.decodeToken(req.cookies.movieReservationToken)
+//   // const totalPrice: string = (
+//   //   await reservationService.getTotalPriceByReservationId(reservationId)
+//   // ).toString();
+
+//   const totalAmount2: any = parseFloat(totalPrice).toFixed(2);
+//   const movedDecimalNumber = totalAmount2 * 100;
+//   const strPrice = movedDecimalNumber.toString();
+//   const price = await stripe.prices.create({
+//     unit_amount_decimal: strPrice,
+//     currency: "thb",
+//     product: product.id,
+//   });
+
+//   return price.id;
+// }

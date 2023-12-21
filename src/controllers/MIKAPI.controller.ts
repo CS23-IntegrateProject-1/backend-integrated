@@ -35,14 +35,14 @@ export const ApiConnection = async (req: Request, res: Response) => {
 
 // Check In
 export const ApiConfirmReserve = async (req: Request, res: Response) => {
-    try{
+    try {
         const status = req.body.status;
         const reservationId = req.body.reservation_id;
         // const tableId = req.body.table_id;
-        // const reserved_time = req.body.time;
-        // const reserved_date = req.body.reserve_date;
         // const venueId = req.body.venueId;
+        // const reserved_date = req.body.reserve_date;
         // const branchId = req.body.branchId;
+        // const reserved_time = req.body.time;
         const guest_amount = req.body.guest_amount;
 
         // console.log(venueId,branchId);
@@ -78,7 +78,6 @@ export const ApiConfirmReserve = async (req: Request, res: Response) => {
         const selectedTable = await findSuitableTable(
             getAvailableTablesResponse
         );
-        console.log(selectedTable)
         if (isResponse) {
             if (
                 !selectedTable ||
@@ -91,55 +90,54 @@ export const ApiConfirmReserve = async (req: Request, res: Response) => {
                     .status(401)
                     .json({ error: "No suitable tables available." });
             }
-            console.log(reservationId)
-        const reservationTableEntry =
-        await mikPrismaClient.reservation_table.create({
-            data: {
-                reserveId: reservationId,
-                tableId: selectedTable[0].tableId,
-            },
-        });
+            const reservationTableEntry =
+                await mikPrismaClient.reservation_table.create({
+                    data: {
+                        reserveId: reservationId,
+                        tableId: selectedTable[0].tableId,
+                    },
+                });
 
-        const entry_time = addHours(new Date(), 7);
-        const updateReservation = await mikPrismaClient.reservation.update({
-            where: {
-                reservationId: reservationId,
-            },
-            data: {
-                status: status,
-                entry_time: entry_time,
-            },  
-        });
+            const entry_time = addHours(new Date(), 7);
+            const updateReservation = await mikPrismaClient.reservation.update({
+                where: {
+                    reservationId: reservationId,
+                },
+                data: {
+                    status: status,
+                    entry_time: entry_time,
+                },
+            });
 
-        const checkInTime = addHours(new Date(), 7);
-        const defaultCheckoutTime = new Date();
-        defaultCheckoutTime.setHours(7, 0, 0, 0);
+            const checkInTime = addHours(new Date(), 7);
+            const defaultCheckoutTime = new Date();
+            defaultCheckoutTime.setHours(7, 0, 0, 0);
 
-        await mikPrismaClient.check_in_log.create({
-            data: {
-                reserveId: reservationId,
-                check_in_time: checkInTime,
-                check_out_time: defaultCheckoutTime,
-            },
-        });
+            await mikPrismaClient.check_in_log.create({
+                data: {
+                    reserveId: reservationId,
+                    check_in_time: checkInTime,
+                    check_out_time: defaultCheckoutTime,
+                },
+            });
 
-        await mikPrismaClient.tables.update({
-            where: {
-                tableId: selectedTable[0].tableId,
-                isUsing: true,
-            },
-            data: {
-                status: "Unavailable",
-            },
-        }); 
+            await mikPrismaClient.tables.update({
+                where: {
+                    tableId: selectedTable[0].tableId,
+                    isUsing: true,
+                },
+                data: {
+                    status: "Unavailable",
+                },
+            });
 
-        res.status(200).json({updateReservation, reservationTableEntry});
+            res.status(200).json({ updateReservation, reservationTableEntry });
         }
-    }catch (error) {
+    } catch (error) {
         console.error("Error:", error);
         throw new Error("Failed to fetch data from other website");
     }
-}
+};
 
 export const ApiReserve = async (req: Request, res: Response) => {
     const url =
@@ -156,7 +154,8 @@ export const ApiReserve = async (req: Request, res: Response) => {
         const lname = req.body.lname;
 
         const phone = req.body.phone;
-        const email = req.body.email;
+        // const email = req.body.email;
+        const email = "harmoni.social@gmail.com"
 
         if (!token) {
             throw new Error("No auth token");
@@ -168,9 +167,7 @@ export const ApiReserve = async (req: Request, res: Response) => {
 
         const reserve_time = `${date}T${time}Z`;
 
-        const {
-            branchId,
-        } = req.body;
+        const { branchId } = req.body;
         const { userId } = decodedToken;
         const venueId = 2;
 
@@ -186,7 +183,7 @@ export const ApiReserve = async (req: Request, res: Response) => {
         if (depositId === undefined || !depositId) {
             return res.status(400).json({ error: "No deposit found." });
         }
-        const name = fname+" "+lname
+        const name = fname + " " + lname;
         const newReservation = await mikPrismaClient.reservation.create({
             data: {
                 venueId,
@@ -204,6 +201,25 @@ export const ApiReserve = async (req: Request, res: Response) => {
             },
         });
 
+        const checkChatRoomId = await mikPrismaClient.venue.findFirst({
+            where: {
+                venueId: newReservation.venueId,
+            },
+            select: {
+                chatRoomId: true,
+            },
+        });
+
+        if (userId != undefined && checkChatRoomId?.chatRoomId != undefined) {
+            await mikPrismaClient.chat_Room_Logs.create({
+                data: {
+                    chatRoomId: checkChatRoomId?.chatRoomId,
+                    userId: userId,
+                    access_status: true,
+                },
+            });
+        }
+
         const reservationID = newReservation.reservationId;
 
         const response = await fetch(url, {
@@ -220,11 +236,16 @@ export const ApiReserve = async (req: Request, res: Response) => {
                 date: date,
                 time: time,
                 guest_amount: guest_amount,
-                reservation_id : reservationID,
-                branch_id:branchId
+                reservation_id: reservationID,
+                branch_id: branchId,
             }),
         });
         if (!response.ok) {
+            if (newReservation) {
+                await mikPrismaClient.reservation.delete({
+                    where: { reservationId: newReservation.reservationId },
+                });
+            }
             throw new Error(`HTTP error! Status: ${response.status}`);
         }
         const data = await response.json();
@@ -240,7 +261,8 @@ export const ApiReserve = async (req: Request, res: Response) => {
         });
     } catch (e) {
         console.error(e);
-        res.status(500).json({ error: "Internal server error" });
+        // res.status(500).json({ error: "Internal server error" });
+        res.status(500).json(e);
     }
 };
 
@@ -250,7 +272,7 @@ export const ApiCheckOut = async (req: Request, res: Response) => {
         const reservationId = req.body.reservation_id;
         const checkOutTime = addHours(new Date(), 7);
 
-        console.log(reservationId)
+        console.log(reservationId);
         const checkOutLog = await mikPrismaClient.check_in_log.update({
             where: {
                 reserveId: reservationId,
@@ -267,14 +289,16 @@ export const ApiCheckOut = async (req: Request, res: Response) => {
             },
         });
 
-        const selectedTable = await mikPrismaClient.reservation_table.findFirst({
-            where: {
-                reserveId: reservationId,
-            },
-            select: {
-                tableId: true,
-            },
-        });
+        const selectedTable = await mikPrismaClient.reservation_table.findFirst(
+            {
+                where: {
+                    reserveId: reservationId,
+                },
+                select: {
+                    tableId: true,
+                },
+            }
+        );
         await mikPrismaClient.tables.update({
             where: {
                 tableId: selectedTable?.tableId,
@@ -287,7 +311,6 @@ export const ApiCheckOut = async (req: Request, res: Response) => {
 
         res.clearCookie("reservationToken");
         return res.json({ checkOutLog });
-
     } catch (e) {
         console.error(e);
         res.status(500).json({ error: "Internal server error" });
@@ -319,7 +342,7 @@ export const checkInStatus_MIK = async (req: Request, res: Response) => {
                 sameSite: "none",
             });
         }
-        console.log(getstatus)
+        console.log(getstatus);
         res.json(getstatus);
     } catch (e) {
         return res.status(500).json(e);
