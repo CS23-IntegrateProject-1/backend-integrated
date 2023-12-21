@@ -45,6 +45,7 @@ import {
   AdvertisementEditbyId,
   PromotionEditbyId,
   CheckVouchernotCollected,
+  GetRedeembyBusinessId
 
 } from "../controllers/feature5.controller";
 
@@ -102,5 +103,6 @@ feature5Router.post("/UpdatePromotionEditbyId/",multerConfig.single("file"),Prom
 feature5Router.get("/GetRedeem", customVerifyCookie, GetRedeem); //for show redeem of customer depend on their member tier
 feature5Router.post("/createRedeem", multerConfig.single("file"), CreateRedeem); // for create promotion
 feature5Router.get("/GetRedeembyId/:id", GetRedeembyId); 
+feature5Router.get("/GetRedeembyBusinessId/", GetRedeembyBusinessId); 
 
 export default feature5Router;

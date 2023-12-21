@@ -1204,6 +1204,40 @@ export const GetRedeembyId = async (req: Request, res: Response) => {
 	}
 };
 
+export const GetRedeembyBusinessId = async (req: Request, res: Response) => {
+  try {
+    const token = req.cookies.authToken;
+    if (!token) {
+      return res.status(401).json({ error: "No auth token" });
+    }
+    const decodedToken = authService.decodeToken(token);
+    if (decodedToken.userType != "business") {
+      try {
+        const result = await feature5Client.promotion.findMany({
+          where: {
+            //isApprove: "Completed",
+          },
+        });
+        return res.status(200).send(result);
+      } catch (e: Error | any) {
+        throw new Error(e.message);
+      }
+    }
+    const businessId = decodedToken.businessId;
+
+    const GetRedeembyBusinessId = await feature5Client.redeem_privilege.findMany({
+      where: {
+        businessId: businessId
+      },
+    });
+
+    res.json(GetRedeembyBusinessId);
+  } catch (err) {
+    const error = err as Error;
+    res.status(500).json({ error: error.message });
+  }
+};
+
 export const CreateRedeem = async (req: Request, res: Response) => {
 	try {
 		const Redeem: Redeem = req.body;
