@@ -13,5 +13,6 @@ router.get("/getSeatFromMajor", MajorAPIController.getSeatFromMajor);
 router.get("/getShowFromMajor", MajorAPIController.getShowFromMajor);
 
 router.get("/updateData", MajorAPIController.updateData);
+router.post("/getReserveSeatFromMajor", MajorAPIController.getReserveSeatFromMajor);
 
 export { router as MajorAPIRoutes };

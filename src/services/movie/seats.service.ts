@@ -64,6 +64,17 @@ class seatService {
     });
     return data;
   }
+
+  // async getReserveSeatByShowId(showId: number) {
+  //   const prisma = new PrismaClient();
+  //   const data = await prisma.reservation_logs.findMany({
+  //     where: {
+  //       showId: showId,
+  //     },
+  //   });
+  //   return data;
+  // }
+
 }
 
 export default new seatService();

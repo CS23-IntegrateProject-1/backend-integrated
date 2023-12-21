@@ -73,6 +73,16 @@ class MajorAPIController {
       res.status(500).send("Update failed");
     }
   }
+
+  async getReserveSeatFromMajor(req: Request, res: Response) {
+    try {
+      const showId = Number(req.body.showId);
+      const response = await majorAPIService.getReserveSeatFromMajor(showId); 
+      res.status(200).send(response);
+    } catch (e: any) {
+      console.log(e);
+    }
+  }
 }
 
 export default new MajorAPIController();
