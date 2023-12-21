@@ -46,6 +46,7 @@ export const getUserById = async (req: Request, res: Response) => {
     console.error(error);
     res.status(500).json({ error: "Failed to retrieve user" });
   }
+  //console.log(userId);
 };
 
 export const getReservationByVenueId = async (req: Request, res: Response) => {
@@ -1120,12 +1121,41 @@ export const getTransactionDetailsByVenueAndDate = async (
   }
 };
 
+// export const getVenueByVenueId = async (req: Request, res: Response) => {
+//   const { venueId } = req.params;
+//   try {
+//     const venue = await feature8Client.venue.findUnique({
+//       where: { venueId: parseInt(venueId, 10) },
+//     });
+
+//     if (!venue) {
+//       return res.status(404).json({ error: "Venue not found" });
+//     }
+
+//     res.status(200).json(venue);
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).json({ error: "Failed to retrieve venue" });
+//   }
+// }
+
 export const getVenueByVenueId = async (req: Request, res: Response) => {
-  const { venueId } = req.params;
+  //const { venueId } = req.params;
+  const reservationToken = req.cookies.reservationToken;
+  const secretKey = process.env.JWT_SECRET as string;
+  if (!reservationToken) {
+    isNotError = false;
+    return res.status(401).json({ message: "Invalid reservation token." });
+  }
+    const decoded = jwt.verify(reservationToken, secretKey) as JwtPayload;
+    const { reservedId } = decoded;
 
   try {
+    const venueId = await feature8Client.reservation.findUnique({
+      where: { reservationId: Number(reservedId) },
+    })
     const venue = await feature8Client.venue.findUnique({
-      where: { venueId: Number(venueId) },
+      where: { venueId: Number(venueId?.venueId) },
     });
 
     if (!venue) {
@@ -2011,7 +2041,7 @@ export const getlatestOrderMenuOrderUpdate = async (req: Request, res: Response)
 
 // Stripe code payment v3
 //For Checkout
-//For Checkout
+
 let isNotError = true;
 const stripe = new Stripe(process.env.STRIP_KEY ?? "");
 
@@ -2077,11 +2107,14 @@ const getDynamicPriceId = async (req: Request, res: Response) => {
   }
 };
 
+//For Deposit
 export const createDepositSession = async (req: Request, res: Response) => {
   try {
-    const { reservationId } = authService.decodeToken(
-      req.cookies.reservationToken
-    );
+    // const { reservationId } = authService.decodeToken(
+    //   req.cookies.reservationToken
+    // );
+    const reservationId = parseInt(req.params.reservationId);
+    
     const priceResponse = await getDepositDynamicPriceId(req, res);
 
     if (isNotError) {
@@ -2113,12 +2146,10 @@ export const createDepositSession = async (req: Request, res: Response) => {
   }
 };
 
-
-//For Deposit
 const getDepositDynamicPriceId = async (req: Request, res: Response) => {
   const product = await stripe.products.create({
-    name: "Checkout",
-    description: "Pay for checkout",
+    name: "Deposit",
+    description: "Pay for Deposit",
   });
   const reservationToken = req.cookies.reservationToken;
   const secretKey = process.env.JWT_SECRET as string;
@@ -2130,27 +2161,33 @@ const getDepositDynamicPriceId = async (req: Request, res: Response) => {
     const decoded = jwt.verify(reservationToken, secretKey) as JwtPayload;
     const { reservationId } = decoded;
 
+    const reservation = await feature8Client.reservation.findUnique({
+      where: { reservationId: Number(reservationId) },
+    });
+    const venueId = reservation?.venueId;
+
+    if (!venueId) {
+      return res.status(404).json({ message: "Venue not found" });
+    }
+
     const depositQueryResult = await feature8Client.deposit.findFirst({
       where: {
-        Reservation: {
-          some: {
-            reservationId: reservationId,
-          },
-        },
+        venueId: venueId,
       },
       select: {
         depositId: true,
         deposit_amount: true,
       },
     });
+
     const deposit_amount = depositQueryResult?.deposit_amount;
     
     const totalAmount2: any = deposit_amount!.toFixed(2);
     
     const movedDecimalNumber = totalAmount2 * 100;
-    console.log(movedDecimalNumber);
+      console.log(movedDecimalNumber);
     const strPrice = movedDecimalNumber.toString();
-    console.log(strPrice);
+      console.log(strPrice);
     const price = await stripe.prices.create({
       unit_amount_decimal: strPrice,
       currency: "thb",
@@ -2162,6 +2199,7 @@ const getDepositDynamicPriceId = async (req: Request, res: Response) => {
     return res.status(500).json(e);
   }
 };
+
 
 //For Seat
 export const createSeatSessionnn = async (req: Request, res: Response) => {
@@ -2190,7 +2228,6 @@ const getSeatDynamicPriceId = async (req: Request) => {
     name: "Seat",
     description: "Pay for seat",
   });
-  //const reservationId = req.body.reservationId;
   const {reservationId} = authService.decodeToken(req.cookies.movieReservationToken)
   const totalPrice: string = (
     await reservationService.getTotalPriceByReservationId(reservationId)
@@ -2208,3 +2245,46 @@ const getSeatDynamicPriceId = async (req: Request) => {
   return price.id;
 };
 
+// export const createDeliverySession = async (req: Request, res: Response) => {
+//   try {
+//     const dynamicPriceId = await getDeliveryDynamicPriceId(req);
+//     const session = await stripe.checkout.sessions.create({
+//       line_items: [
+//         {
+//           price: dynamicPriceId,
+//           quantity: 1,
+//         },
+//       ],
+//       mode: "payment",
+//       success_url: `${process.env.CLIENT_URL}/delivery-success`,
+//       cancel_url: `${process.env.CLIENT_URL}/delivery-cancel`,
+//     });
+
+//     res.status(200).json({ url: session.url });
+//   } catch (error) {
+//     res.status(400).json(error);
+//   }
+// }
+
+// const getDeliveryDynamicPriceId = async (req: Request) => {
+//   // const product = await stripe.products.create({
+//   //   name: "Delivery",
+//   //   description: "Pay for delivery",
+//   // });
+//   // //const reservationId = req.body.reservationId;
+//   // const {reservationId} = authService.decodeToken(req.cookies.movieReservationToken)
+//   // const totalPrice: string = (
+//   //   await reservationService.getTotalPriceByReservationId(reservationId)
+//   // ).toString();
+  
+//   const totalAmount2: any = parseFloat(totalPrice).toFixed(2);
+//   const movedDecimalNumber = totalAmount2 * 100;
+//   const strPrice = movedDecimalNumber.toString();
+//   const price = await stripe.prices.create({
+//     unit_amount_decimal: strPrice,
+//     currency: "thb",
+//     product: product.id,
+//   });
+
+//   return price.id;
+// }
