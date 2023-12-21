@@ -12,10 +12,18 @@ export interface IHelpDeskService {
   ): Promise<ComplaintTicket>;
 
   getTicketById(userId: number, ticketId: number): Promise<ComplaintTicket>;
+
+  listTicketsByUserId(userId: number): Promise<Array<ComplaintTicket>>;
 }
 
 export default class HelpDeskService implements IHelpDeskService {
   constructor(readonly repository: IHelpDeskRepository) {}
+
+  async listTicketsByUserId(userId: number): Promise<Array<ComplaintTicket>> {
+    return (await this.repository.listTicketsByUserId(userId)).map((x) =>
+      makeComplaintTicketResponse(x),
+    );
+  }
 
   async getTicketById(
     userId: number,

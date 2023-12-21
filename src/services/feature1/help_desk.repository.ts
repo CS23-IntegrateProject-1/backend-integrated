@@ -13,9 +13,30 @@ export interface IHelpDeskRepository {
     userId: number,
     ticketId: number,
   ): Promise<ComplaintTicketWithResponses>;
+
+  listTicketsByUserId(
+    userId: number,
+  ): Promise<Array<ComplaintTicketWithResponses>>;
 }
 
 export default class HelpDeskRepository implements IHelpDeskRepository {
+  async listTicketsByUserId(
+    userId: number,
+  ): Promise<Array<ComplaintTicketWithResponses>> {
+    const result = prismaClient.complain_ticket.findMany({
+      where: {
+        userId,
+      },
+      include: {
+        Ticket_responses: true,
+      },
+    });
+
+    if (!result) return [];
+
+    return result;
+  }
+
   async getTicketById(
     userId: number,
     ticketId: number,

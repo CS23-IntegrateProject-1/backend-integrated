@@ -186,5 +186,10 @@ feature1Router.get(
   userAuthMiddleware,
   helpDeskController.show.bind(helpDeskController),
 );
+feature1Router.get(
+  "/help_desk/ticket",
+  userAuthMiddleware,
+  helpDeskController.index.bind(helpDeskController),
+);
 
 export default feature1Router;

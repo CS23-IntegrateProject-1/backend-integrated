@@ -11,6 +11,7 @@ import { NotFoundError } from "./models";
 interface IHelpDeskConroller {
   create(req: Request, res: Response): unknown;
   show(req: Request, res: Response): unknown;
+  index(req: Request, res: Response): unknown;
 }
 
 const TicketCreatePayload = z.object({
@@ -22,6 +23,18 @@ export class HelpDeskController implements IHelpDeskConroller {
   private service: IHelpDeskService = new HelpDeskService(
     new HelpDeskRepository(),
   );
+
+  async index(req: Request, res: Response) {
+    const userId = getUserId(req);
+
+    try {
+      const tickets = await this.service.listTicketsByUserId(userId);
+
+      return res.json(tickets);
+    } catch (e) {
+      return res.status(500).json({ message: "Unknown Error Encountered" });
+    }
+  }
 
   async show(req: Request, res: Response) {
     const userId = getUserId(req);
