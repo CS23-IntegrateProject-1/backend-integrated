@@ -4,7 +4,6 @@ import authService from "../services/auth/auth.service";
 
 const feature3Client = new PrismaClient();
 
-
 interface VenueInfo {
   venueId: number;
   branchId: number;
@@ -20,12 +19,19 @@ interface VenueInfo {
 }
 
 export const getVenuesPage = async (req: Request, res: Response) => {
+  const decoded = authService.decodeToken(req.cookies.authToken);
+  const userId = decoded ? decoded.userId : null;
+
   const search = String(req.query.search || "");
   const priceMin = Number(req.query.priceMin || 0);
   const priceMax = Number(req.query.priceMax || 1000);
-  const capacity = String(req.query.capacity || "").split(",").filter((v) => v !== "");
-  const categorys = String(req.query.category || "").split(",").filter((v) => v !== "");
-
+  const capacity = String(req.query.capacity || "")
+    .split(",")
+    .filter((v) => v !== "");
+  const category = String(req.query.category || "")
+    .split(",")
+    .filter((v) => v !== "");
+  // console.log(category)
   try {
     const [VenuesPage, menus, tables] = await Promise.all([
       feature3Client.$queryRaw<VenueInfo[]>`
@@ -61,8 +67,34 @@ export const getVenuesPage = async (req: Request, res: Response) => {
         .includes(String(search).trim().toLowerCase())
     )
       .filter((v) => {
-        const venueCategoryMatch = categorys.length === 0 ? true : categorys.includes(v.category);
-        return venueCategoryMatch;
+        const venueCategoryMatch = venues.filter(
+          (vs) => vs.venueId === v.venueId
+        );
+        const statements: boolean[] = [];
+
+        if (category.length === 0) {
+          return true;
+        }
+
+        if (category.includes("Restaurant")) {
+          statements.push(
+            venueCategoryMatch.some((vs) => vs.category == "Restaurant")
+          );
+        }
+
+        if (category.includes("Club")) {
+          statements.push(
+            venueCategoryMatch.some((vs) => vs.category == "Club")
+          );
+        }
+
+        if (category.includes("Bar")) {
+          statements.push(
+            venueCategoryMatch.some((vs) => vs.category == "Bar")
+          );
+        }
+
+        return statements.some((v) => v === true);
       })
       .filter((v) => {
         const venueMenus = menus.filter((m) => m.venueId === v.venueId);
@@ -106,14 +138,28 @@ export const getVenuesPage = async (req: Request, res: Response) => {
         }
 
         if (capacity.includes("11M")) {
-          statements.push(
-            venueTables.some((t) => t.capacity >= 11)
-            );
+          statements.push(venueTables.some((t) => t.capacity >= 11));
         }
         return statements.some((v) => v === true);
-      })
+      });
 
-    return res.json(filteredVenues);
+    const filteredVenuesWithFavourite = await Promise.all(
+      filteredVenues.map(async (venue) => {
+        const foundVenue = await feature3Client.saved_place.findFirst({
+          where: {
+            userId,
+            venueId: venue.venueId,
+          },
+        });
+        return {
+          ...venue,
+          isFavourite: foundVenue ? true : false,
+        };
+      })
+    );
+
+    console.log(filteredVenuesWithFavourite)
+    return res.json(filteredVenuesWithFavourite);
   } catch (error) {
     console.error(error);
     return res.status(500).json({ error: "Internal Server Error" });
@@ -135,13 +181,19 @@ interface RPVenueInfo {
 }
 
 export const getRecommendedPlaces = async (req: Request, res: Response) => {
+  const decoded = authService.decodeToken(req.cookies.authToken);
+  const userId = decoded ? decoded.userId : null;
+
   const search = String(req.query.search || "");
   const priceMin = Number(req.query.priceMin || 0);
   const priceMax = Number(req.query.priceMax || 1000);
   const capacity = String(req.query.capacity || "")
     .split(",")
     .filter((v) => v !== "");
-
+  const category = String(req.query.category || "")
+    .split(",")
+    .filter((v) => v !== "");
+  // console.log(category)
   try {
     const [RecommendedPlaces, menus, tables] = await Promise.all([
       feature3Client.$queryRaw<RPVenueInfo[]>`
@@ -163,6 +215,36 @@ export const getRecommendedPlaces = async (req: Request, res: Response) => {
         .toLowerCase()
         .includes(String(search).trim().toLowerCase())
     )
+      .filter((v) => {
+        const venueCategoryMatch = venues.filter(
+          (vs) => vs.venueId === v.venueId
+        );
+        const statements: boolean[] = [];
+
+        if (category.length === 0) {
+          return true;
+        }
+
+        if (category.includes("Restaurant")) {
+          statements.push(
+            venueCategoryMatch.some((vs) => vs.category == "Restaurant")
+          );
+        }
+
+        if (category.includes("Club")) {
+          statements.push(
+            venueCategoryMatch.some((vs) => vs.category == "Club")
+          );
+        }
+
+        if (category.includes("Bar")) {
+          statements.push(
+            venueCategoryMatch.some((vs) => vs.category == "Bar")
+          );
+        }
+
+        return statements.some((v) => v === true);
+      })
       .filter((v) => {
         const venueMenus = menus.filter((m) => m.venueId === v.venueId);
         const statements: boolean[] = [];
@@ -204,12 +286,28 @@ export const getRecommendedPlaces = async (req: Request, res: Response) => {
           );
         }
 
-        if (capacity.includes("10M")) {
-          statements.push(venueTables.some((t) => t.capacity >= 10));
+        if (capacity.includes("11M")) {
+          statements.push(venueTables.some((t) => t.capacity >= 11));
         }
         return statements.some((v) => v === true);
       });
-    return res.json(filteredVenues);
+
+      const filteredVenuesWithFavourite_RP = await Promise.all(
+        filteredVenues.map(async (venue) => {
+          const foundVenue = await feature3Client.saved_place.findFirst({
+            where: {
+              userId,
+              venueId: venue.venueId,
+            },
+          });
+          return {
+            ...venue,
+            isFavourite: foundVenue ? true : false,
+          };
+        })
+      );
+
+    return res.json(filteredVenuesWithFavourite_RP);
   } catch (error) {
     console.error(error);
     return res.status(500).json(error);
@@ -290,7 +388,6 @@ export const getVenDetailMenu = async (req: Request, res: Response) => {
   }
 };
 
-
 export const getReviewsBranch = async (req: Request, res: Response) => {
   try {
     const { branchId } = req.params;
@@ -329,7 +426,6 @@ export const getReviewsBranch = async (req: Request, res: Response) => {
     res.status(500).json(error);
   }
 };
-
 
 interface ReviewsBranchOverAll_Interface {
   branchId: number;
@@ -555,22 +651,57 @@ export const postVenuesFavourites = async (req: Request, res: Response) => {
 
       return res.status(200).json(toggledFavourite);
     } else {
-      const newFavourite = await feature3Client.user.update({
-        where: {
-          userId,
-        },
+      const newFavourite = await feature3Client.saved_place.create({
         data: {
-          // Saved_place: {
-          //   create: {
-          //     venueId: venueIdInt
-          //   }
-          // }
+          userId,
+          venueId: venueIdInt,
         },
+        // Saved_place: {
+        //   create: {
+        //     venueId: venueIdInt
+        //   }
+        // }
       });
       return res.status(201).json(newFavourite);
     }
   } catch (error) {
     console.error("Error creating favourite:", error);
     res.status(500).json(error);
+  }
+};
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+export const getPromotionHomePage = async (req: Request, res: Response) => {
+  try {
+    const PromotionHomePage = await feature3Client.$queryRaw`
+      SELECT P.promotionId, P.name, P.description, P.image_url, P.isApprove, P.venueId, P.menuId, P.branchId
+      FROM Promotion P
+      WHERE P.isApprove = "Completed"
+      ORDER BY P.promotionId;
+    `;
+
+    return res.json(PromotionHomePage);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json(error);
+  }
+};
+
+export const getVoucherVenueDetail = async (req: Request, res: Response) => {
+  const { branchId } = req.params;
+  const branchIdInt = parseInt(branchId);
+
+  try {
+    const VoucherVenueDetail = await feature3Client.$queryRaw`
+      SELECT Vou.voucherId, Vou.venueId, VB.branchId, Vou.voucher_name, Vou.description, Vou.voucher_image, Vou.isApprove
+      FROM Voucher Vou, Venue V, Venue_branch VB
+      WHERE Vou.venueId = V.venueId AND Vou.isApprove = "Completed" AND VB.branchId = ${branchIdInt} AND VB.venueId = V.venueId
+    `;
+
+    return res.json(VoucherVenueDetail);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json(error);
   }
 };

@@ -48,6 +48,7 @@ export const getVenueById = async (req: Request, res: Response) => {
             include: {
                 Venue_photo: true,
                 Location: true,
+                Deposit: true,
             },
         });
         return res.json(venue), branchName;

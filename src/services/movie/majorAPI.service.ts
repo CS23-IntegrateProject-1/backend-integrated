@@ -294,5 +294,35 @@ class MajorAPIService {
 }
 
 
+    for (const seat of deletedDataMajor) {
+      await this.prisma.seats.delete({
+        where: {
+          seatId: seat.seatId,
+        },
+      });
+    }
+  }
+  //
+  async getPaymentFromMajor() {
+    const response = await Axios.get("/payment/getAllPayments");
+    return response.data;
+  }
+
+  async postReservationToMajor(reservation: any) {
+    const response = await Axios.post(
+      "/reservation/getReservationById",
+      reservation
+    );
+    return response.data;
+  }
+
+  async getReserveSeatFromMajor(showId: number) {
+    const response = await Axios.post(
+      "/reservation/getReserveSeatByShowId",
+      { showId }
+    );
+    return response.data;
+  }
+}
 
 export default new MajorAPIService();

@@ -39,6 +39,7 @@ export const ApiConfirmReserve = async (req: Request, res: Response) => {
         const status = req.body.status;
         const reservationId = req.body.reservation_id;
         // const tableId = req.body.table_id;
+        // const venueId = req.body.venueId;
         // const reserved_time = req.body.time;
         // const reserved_date = req.body.reserve_date;
         // const venueId = req.body.venueId;
@@ -156,7 +157,8 @@ export const ApiReserve = async (req: Request, res: Response) => {
         const lname = req.body.lname;
 
         const phone = req.body.phone;
-        const email = req.body.email;
+        // const email = req.body.email;
+        const email = "harmoni.social@gmail.com"
 
         if (!token) {
             throw new Error("No auth token");
@@ -225,6 +227,11 @@ export const ApiReserve = async (req: Request, res: Response) => {
             }),
         });
         if (!response.ok) {
+            if (newReservation) {
+                await mikPrismaClient.reservation.delete({
+                    where: { reservationId: newReservation.reservationId },
+                });
+            }
             throw new Error(`HTTP error! Status: ${response.status}`);
         }
         const data = await response.json();
@@ -240,7 +247,8 @@ export const ApiReserve = async (req: Request, res: Response) => {
         });
     } catch (e) {
         console.error(e);
-        res.status(500).json({ error: "Internal server error" });
+        // res.status(500).json({ error: "Internal server error" });
+        res.status(500).json(e);
     }
 };
 

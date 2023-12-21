@@ -1,10 +1,13 @@
 import { PrismaClient } from "@prisma/client";
 import { Response, Request } from "express";
 import filmService from "../services/movie/films.service";
+
 import  theaterService  from "../services/movie/theaters.service";
 import showService from "../services/movie/shows.service";
 import seatsService from "../services/movie/seats.service";
 import reservationService from "../services/movie/reservation.service";
+
+//import majorAPIService from "../services/movie/majorAPI.service";
 
 const prisma = new PrismaClient();
 
@@ -35,6 +38,32 @@ export const getShowingFilms = async (req: Request, res: Response) => {
         data = await filmService.getAllFilms();
     }
     res.status(200).send(data);
+};
+
+export const getShowingFilms = async (req: Request, res: Response) => {
+	try {
+		const params = req.query;
+		let data: any[];
+		if (params.type) {
+			if (params.type === "IMAX") {
+				data = await filmService.getShowingImaxFilms();
+			} else if (params.type === "Standard") {
+				data = await filmService.getShowingStandardFilms();
+			} else if (params.type === "X3D") {
+				data = await filmService.getShowing3DFilms();
+			} else if (params.type === "X4D") {
+				data = await filmService.getShowing4DFilms();
+			} else {
+				data = await filmService.getShowingKidFilms();
+			}
+		} else {
+			data = await filmService.getAllFilms();
+		}
+		res.status(200).send(data);
+	} catch (e: any) {
+		console.log(e);
+		res.status(500).json({ error: e.message });
+	}
 };
 
 export const getFilmsById = async (req: Request, res: Response) => {
@@ -87,7 +116,7 @@ export const getSeatsTypeByScreenId = async (req: Request, res: Response) => {
 }
 
 
-
+//page4
 
 
 export const getSeatByScreenId = async (req: Request, res: Response) => {
