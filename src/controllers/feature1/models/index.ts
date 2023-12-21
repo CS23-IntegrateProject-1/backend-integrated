@@ -33,11 +33,10 @@ import { SearchDBResponse, makeSearchWebResponse } from "./search.model";
 import {
   ComplaintTicket,
   makeComplaintTicketResponse,
+  ComplaintTicketWithResponses,
 } from "./help_desk.model";
 
-import {
-  NotFoundError,
-} from './errors';
+import { NotFoundError } from "./errors";
 
 export {
   makeErrorResponse,
@@ -66,4 +65,5 @@ export {
   ComplaintTicket,
   makeComplaintTicketResponse,
   NotFoundError,
+  ComplaintTicketWithResponses,
 };

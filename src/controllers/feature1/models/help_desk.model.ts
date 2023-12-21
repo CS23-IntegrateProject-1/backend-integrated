@@ -1,4 +1,9 @@
-import { Complain_ticket } from "@prisma/client";
+import { Prisma } from "@prisma/client";
+import { isNil } from "ramda";
+
+export type ComplaintTicketWithResponses = Prisma.Complain_ticketGetPayload<{
+  include: { Ticket_responses: true };
+}>;
 
 export type ComplaintTicket = {
   ticket_id: number;
@@ -8,16 +13,22 @@ export type ComplaintTicket = {
   status: string;
   date: Date;
   time: Date;
+  responses: Array<string | null>;
 };
 
 export const makeComplaintTicketResponse = (
-  data: Complain_ticket,
-): ComplaintTicket => ({
-  ticket_id: data.ComplainTicketId,
-  date: data.date,
-  topic: data.topic,
-  complaint: data.complaint,
-  user_id: data.userId,
-  status: data.status,
-  time: data.time,
-});
+  data: ComplaintTicketWithResponses,
+): ComplaintTicket => {
+  return {
+    ticket_id: data.ComplainTicketId,
+    date: data.date,
+    topic: data.topic,
+    complaint: data.complaint,
+    user_id: data.userId,
+    status: data.status,
+    time: data.time,
+    responses: data.Ticket_responses.map(
+      (response) => response.response,
+    ).filter((response) => !isNil(response)),
+  };
+};

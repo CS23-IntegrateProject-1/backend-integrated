@@ -1,5 +1,5 @@
-import { Complain_ticket } from "@prisma/client";
 import { prismaClient } from "../../controllers/feature1";
+import { ComplaintTicketWithResponses } from "../../controllers/feature1/models";
 import { NotFoundError } from "../../controllers/feature1/models/errors";
 
 export interface IHelpDeskRepository {
@@ -7,20 +7,26 @@ export interface IHelpDeskRepository {
     userId: number,
     topic: string,
     complaint: string,
-  ): Promise<Complain_ticket>;
+  ): Promise<ComplaintTicketWithResponses>;
 
-  getTicketById(userId: number, ticketId: number): Promise<Complain_ticket>;
+  getTicketById(
+    userId: number,
+    ticketId: number,
+  ): Promise<ComplaintTicketWithResponses>;
 }
 
 export default class HelpDeskRepository implements IHelpDeskRepository {
   async getTicketById(
     userId: number,
     ticketId: number,
-  ): Promise<Complain_ticket> {
+  ): Promise<ComplaintTicketWithResponses> {
     const result = await prismaClient.complain_ticket.findFirst({
       where: {
         userId,
         ComplainTicketId: ticketId,
+      },
+      include: {
+        Ticket_responses: true,
       },
     });
 
@@ -33,13 +39,16 @@ export default class HelpDeskRepository implements IHelpDeskRepository {
     userId: number,
     topic: string,
     complaint: string,
-  ): Promise<Complain_ticket> {
+  ): Promise<ComplaintTicketWithResponses> {
     return prismaClient.complain_ticket.create({
       data: {
         userId,
         topic,
         complaint,
         status: "Pending",
+      },
+      include: {
+        Ticket_responses: true,
       },
     });
   }

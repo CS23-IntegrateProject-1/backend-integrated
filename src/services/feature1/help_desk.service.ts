@@ -31,8 +31,8 @@ export default class HelpDeskService implements IHelpDeskService {
     topic: string,
     complaint: string,
   ): Promise<ComplaintTicket> {
-    return makeComplaintTicketResponse(
-      await this.repository.createTicket(userId, topic, complaint),
-    );
+    const result = await this.repository.createTicket(userId, topic, complaint);
+
+    return makeComplaintTicketResponse(result);
   }
 }
