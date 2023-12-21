@@ -33,7 +33,8 @@ export const getMenusByVenueId = async (req: any, res: Response) => {
         const allMenus = await feature7Client.menu.findMany(
             {
                 where: {
-                    venueId: venueId
+                    venueId: venueId,
+                    isused: true
                 }
             }
         );
@@ -56,7 +57,8 @@ export const getSetsByVenueId = async (req: any, res: Response) => {
         const allSets = await feature7Client.sets.findMany(
             {
                 where: {
-                    venueId: venueId
+                    venueId: venueId,
+                    isused : true
                 }
             }
         );
@@ -1108,7 +1110,8 @@ export const getAllMenus = async (req: any, res: Response) => {
         const allMenus = await feature7Client.menu.findMany(
             {
                 where: {
-                    venueId: venueId
+                    venueId: venueId,
+                    isused: true,
                 }
             }
         );
@@ -1131,7 +1134,8 @@ export const getAllSets = async (req: any, res: Response) => {
         const allSets = await feature7Client.sets.findMany(
             {
                 where: {
-                    venueId: venueId
+                    venueId: venueId,
+                    isused: true
                 }
             }
         );
@@ -1541,9 +1545,12 @@ export const deleteMenu = async (req: Request, res: Response) => {
                 }
             },
         });
-        await feature7Client.menu.delete({
+        await feature7Client.menu.update({
             where: {
                 menuId: parseInt(menuId),
+            },
+            data: {
+                isused: false,
             },
         });
         return res.status(200).json(deleteSet);
@@ -1561,9 +1568,12 @@ export const deleteSet = async (req: Request, res: Response) => {
                 setId: parseInt(setId),
             },
         });
-        const set = await feature7Client.sets.delete({
+        const set = await feature7Client.sets.update({
             where: {
                 setId: parseInt(setId),
+            },
+            data: {
+                isused: false,
             },
         });
         return res.status(200).json(set);
