@@ -2113,6 +2113,7 @@ export const createDepositSession = async (req: Request, res: Response) => {
     const { reservationId } = authService.decodeToken(
       req.cookies.reservationToken
     );
+    
     const priceResponse = await getDepositDynamicPriceId(req, res);
 
     if (isNotError) {
@@ -2159,27 +2160,33 @@ const getDepositDynamicPriceId = async (req: Request, res: Response) => {
     const decoded = jwt.verify(reservationToken, secretKey) as JwtPayload;
     const { reservationId } = decoded;
 
+    const reservation = await feature8Client.reservation.findUnique({
+      where: { reservationId: Number(reservationId) },
+    });
+    const venueId = reservation?.venueId;
+
+    if (!venueId) {
+      return res.status(404).json({ message: "Venue not found" });
+    }
+
     const depositQueryResult = await feature8Client.deposit.findFirst({
       where: {
-        Reservation: {
-          some: {
-            reservationId: reservationId,
-          },
-        },
+        venueId: venueId,
       },
       select: {
         depositId: true,
         deposit_amount: true,
       },
     });
+
     const deposit_amount = depositQueryResult?.deposit_amount;
     
     const totalAmount2: any = deposit_amount!.toFixed(2);
     
     const movedDecimalNumber = totalAmount2 * 100;
-    console.log(movedDecimalNumber);
+      console.log(movedDecimalNumber);
     const strPrice = movedDecimalNumber.toString();
-    console.log(strPrice);
+      console.log(strPrice);
     const price = await stripe.prices.create({
       unit_amount_decimal: strPrice,
       currency: "thb",
@@ -2191,6 +2198,7 @@ const getDepositDynamicPriceId = async (req: Request, res: Response) => {
     return res.status(500).json(e);
   }
 };
+
 
 //For Seat
 export const createSeatSessionnn = async (req: Request, res: Response) => {
