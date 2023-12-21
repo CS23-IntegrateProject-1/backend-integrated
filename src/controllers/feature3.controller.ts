@@ -24,10 +24,10 @@ export const getVenuesPage = async (req: Request, res: Response) => {
   const priceMin = Number(req.query.priceMin || 0);
   const priceMax = Number(req.query.priceMax || 1000);
   const capacity = String(req.query.capacity || "").split(",").filter((v) => v !== "");
-  const category = String(req.query.category || "").split(",").filter((v) => v !== "");
-  // console.log(category)
+  const categorys = String(req.query.category || "").split(",").filter((v) => v !== "");
+
   try {
-    const [VenuesPage, menus, tables, venues] = await Promise.all([
+    const [VenuesPage, menus, tables] = await Promise.all([
       feature3Client.$queryRaw<VenueInfo[]>`
     SELECT
       V.venueId,
@@ -52,7 +52,6 @@ export const getVenuesPage = async (req: Request, res: Response) => {
   `,
       feature3Client.menu.findMany({}),
       feature3Client.table_type_detail.findMany({}),
-      feature3Client.venue.findMany({}),
     ]);
 
     const filteredVenues = VenuesPage.filter((v) =>
@@ -61,33 +60,9 @@ export const getVenuesPage = async (req: Request, res: Response) => {
         .toLowerCase()
         .includes(String(search).trim().toLowerCase())
     )
-    .filter((v) => {
-        const venueCategoryMatch = venues.filter((vs) => vs.venueId === v.venueId);
-        const statements: boolean[] = [];
-
-        if (category.length === 0) {
-          return true;
-        }
-
-        if (category.includes("Restaurant")) {
-          statements.push(
-            venueCategoryMatch.some((vs) => vs.category == "Restaurant")
-          );
-        }
-
-        if (category.includes("Club")) {
-          statements.push(
-            venueCategoryMatch.some((vs) => vs.category == "Club")
-          );
-        }
-
-        if (category.includes("Bar")) {
-          statements.push(
-            venueCategoryMatch.some((vs) => vs.category == "Bar")
-          );
-        }
-
-        return statements.some((v) => v === true);
+      .filter((v) => {
+        const venueCategoryMatch = categorys.length === 0 ? true : categorys.includes(v.category);
+        return venueCategoryMatch;
       })
       .filter((v) => {
         const venueMenus = menus.filter((m) => m.venueId === v.venueId);
@@ -163,11 +138,12 @@ export const getRecommendedPlaces = async (req: Request, res: Response) => {
   const search = String(req.query.search || "");
   const priceMin = Number(req.query.priceMin || 0);
   const priceMax = Number(req.query.priceMax || 1000);
-  const capacity = String(req.query.capacity || "").split(",").filter((v) => v !== "");
-  const category = String(req.query.category || "").split(",").filter((v) => v !== "");
-  // console.log(category)
+  const capacity = String(req.query.capacity || "")
+    .split(",")
+    .filter((v) => v !== "");
+
   try {
-    const [RecommendedPlaces, menus, tables, venues] = await Promise.all([
+    const [RecommendedPlaces, menus, tables] = await Promise.all([
       feature3Client.$queryRaw<RPVenueInfo[]>`
             SELECT V.venueId, VB.branchId, name, description, category, capacity,
             chatRoomId, locationId, website_url, COALESCE(AVG(VR.rating) , 0) as rating, venue_picture
@@ -179,7 +155,6 @@ export const getRecommendedPlaces = async (req: Request, res: Response) => {
           `,
       feature3Client.menu.findMany({}),
       feature3Client.table_type_detail.findMany({}),
-      feature3Client.venue.findMany({}),
     ]);
 
     const filteredVenues = RecommendedPlaces.filter((v) =>
@@ -188,34 +163,6 @@ export const getRecommendedPlaces = async (req: Request, res: Response) => {
         .toLowerCase()
         .includes(String(search).trim().toLowerCase())
     )
-    .filter((v) => {
-      const venueCategoryMatch = venues.filter((vs) => vs.venueId === v.venueId);
-      const statements: boolean[] = [];
-
-      if (category.length === 0) {
-        return true;
-      }
-
-      if (category.includes("Restaurant")) {
-        statements.push(
-          venueCategoryMatch.some((vs) => vs.category == "Restaurant")
-        );
-      }
-
-      if (category.includes("Club")) {
-        statements.push(
-          venueCategoryMatch.some((vs) => vs.category == "Club")
-        );
-      }
-
-      if (category.includes("Bar")) {
-        statements.push(
-          venueCategoryMatch.some((vs) => vs.category == "Bar")
-        );
-      }
-
-      return statements.some((v) => v === true);
-    })
       .filter((v) => {
         const venueMenus = menus.filter((m) => m.venueId === v.venueId);
         const statements: boolean[] = [];
@@ -239,32 +186,29 @@ export const getRecommendedPlaces = async (req: Request, res: Response) => {
           return true;
         }
 
-        if (capacity.includes("1TO4")) {
+        if (capacity.includes("1-4")) {
           statements.push(
             venueTables.some((t) => t.capacity >= 1 && t.capacity <= 4)
           );
         }
 
-        if (capacity.includes("5TO6")) {
+        if (capacity.includes("4-6")) {
           statements.push(
-            venueTables.some((t) => t.capacity >= 5 && t.capacity <= 6)
+            venueTables.some((t) => t.capacity >= 4 && t.capacity <= 6)
           );
         }
 
-        if (capacity.includes("7TO10")) {
+        if (capacity.includes("6-10")) {
           statements.push(
-            venueTables.some((t) => t.capacity >= 7 && t.capacity <= 10)
+            venueTables.some((t) => t.capacity >= 6 && t.capacity <= 10)
           );
         }
 
-        if (capacity.includes("11M")) {
-          statements.push(
-            venueTables.some((t) => t.capacity >= 11)
-            );
+        if (capacity.includes("10M")) {
+          statements.push(venueTables.some((t) => t.capacity >= 10));
         }
         return statements.some((v) => v === true);
       });
-
     return res.json(filteredVenues);
   } catch (error) {
     console.error(error);
@@ -367,7 +311,7 @@ export const getReviewsBranch = async (req: Request, res: Response) => {
     `;
 
     const filteredReviews = reviewsBranch.filter((review) => {
-      // console.log(reviewTypes, reviewStars);
+      console.log(reviewTypes, reviewStars);
       const reviewTypeMatch =
         reviewTypes.length === 0
           ? true
@@ -628,45 +572,5 @@ export const postVenuesFavourites = async (req: Request, res: Response) => {
   } catch (error) {
     console.error("Error creating favourite:", error);
     res.status(500).json(error);
-  }
-};
-
-
-
-
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-export const getPromotionHomePage = async (req: Request, res: Response) => {
-  try {
-    const PromotionHomePage = await feature3Client.$queryRaw`
-      SELECT P.promotionId, P.name, P.description, P.image_url, P.isApprove, P.venueId, P.menuId, P.branchId
-      FROM Promotion P
-      WHERE P.isApprove = "Completed"
-      ORDER BY P.promotionId;
-    `;
-
-    return res.json(PromotionHomePage);
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json(error);
-  }
-};
-
-export const getVoucherVenueDetail = async (req: Request, res: Response) => {
-  const { branchId } = req.params;
-  const branchIdInt = parseInt(branchId);
-
-  try {
-    const VoucherVenueDetail = await feature3Client.$queryRaw`
-      SELECT Vou.voucherId, Vou.venueId, VB.branchId, Vou.voucher_name, Vou.description, Vou.voucher_image, Vou.isApprove
-      FROM Voucher Vou, Venue V, Venue_branch VB
-      WHERE Vou.venueId = V.venueId AND Vou.isApprove = "Completed" AND VB.branchId = ${branchIdInt} AND VB.venueId = V.venueId
-    `;
-
-    return res.json(VoucherVenueDetail);
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json(error);
   }
 };

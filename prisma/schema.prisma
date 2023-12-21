@@ -879,7 +879,6 @@ model Reservation {
   branchId                 Int?
   name                     String?
   phone                    String?                    @db.VarChar(10)
-  isPaymentSuccess         Payment_success            @default(Pending)
   Check_in_log             Check_in_log?
   Notes                    Notes?
   Notification_reservation Notification_reservation[]
@@ -896,11 +895,6 @@ model Reservation {
   @@index([depositId], map: "Reservation_depositId_fkey")
   @@index([userId], map: "Reservation_userId_fkey")
   @@index([venueId], map: "Reservation_venueId_fkey")
-}
-
-enum Payment_success {
-  Completed
-  Pending
 }
 
 model Reservation_logs {
@@ -1492,7 +1486,7 @@ enum Films_genre {
   Horror
   Mystery
   Romance
-  SciFi
+  Sci_Fi
   Thriller
   War
   Western

@@ -2,21 +2,21 @@ import { Router } from "express";
 
 // here import your controllers(function)
 import {
-  getNowShowingFilms,
-  getUpcomingFilms,
-  getShowingFilms,
-  getFilmsById,
-  getAllFilms,
-  // getShowsByFilmId,
-  getShowsByTheaterId,
-  // getFilmsByTheaterId,
-  getTheaterById,
-  getTotalPriceByReservationId,
-  bookSeatAndSendCookie,
-  getReservationById,
-  getShowsByFilmIdandDate,
-  getSeatByShowId,
-  getReservationByUserId,
+    getNowShowingFilms,
+    getUpcomingFilms,
+    getShowingFilms,
+    getFilmsById,
+    getAllFilms,
+    getShowsByFilmId,
+    getSeatsTypeByScreenId,
+    getShowsByTheaterId,
+    getFilmsByTheaterId,
+    getTheaterById,
+    getSeatByScreenId,
+    getTotalPriceByReservationId,
+    
+
+    
 } from "../controllers/feature10.controller";
 
 const feature10Router = Router();
@@ -27,18 +27,15 @@ feature10Router.get("/getUpcomingFilms", getUpcomingFilms);
 feature10Router.get("/getShowingFilms", getShowingFilms);
 feature10Router.get("/getFilmsById/:id", getFilmsById);
 feature10Router.get("/getAllFilms", getAllFilms);
-// feature10Router.get("/getShowsByFilmId/:id", getShowsByFilmId);
-feature10Router.post("/getShowsByTheaterId", getShowsByTheaterId);
-// feature10Router.post("/getFilmsByTheaterId", getFilmsByTheaterId);
+feature10Router.get("/getShowsByFilmId/:id/:date", getShowsByFilmId);
+feature10Router.get("/getSeatsTypeByScreenId/:id", getSeatsTypeByScreenId);
+feature10Router.get("/getShowsByTheaterId/:id/:date", getShowsByTheaterId);
+feature10Router.post("/getFilmsByTheaterId", getFilmsByTheaterId);
 feature10Router.get("/getTheaterById/:id", getTheaterById);
-feature10Router.post(
-  "/getTotalPriceByReservationId",
-  getTotalPriceByReservationId
-);
-feature10Router.post("/bookMovieSeat", bookSeatAndSendCookie);
-feature10Router.post("/getReservationById", getReservationById);
-feature10Router.post("/getShowsByFilmIdandDate", getShowsByFilmIdandDate);
-feature10Router.get("/getSeatByShowId", getSeatByShowId);
-feature10Router.get("/getReservationByUserId", getReservationByUserId);
+feature10Router.post("/getSeatByScreenId", getSeatByScreenId);
+feature10Router.post("/getTotalPriceByReservationId", getTotalPriceByReservationId);
+
+
 
 export default feature10Router;
+
