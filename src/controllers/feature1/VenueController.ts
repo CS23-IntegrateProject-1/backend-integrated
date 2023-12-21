@@ -21,6 +21,7 @@ import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 export interface IVenueController {
   update: (req: Request, res: Response) => unknown;
   show: (req: Request, res: Response) => unknown;
+  showOpeningHours: (req: Request, res: Response) => unknown;
   updateOpeningHours: (req: Request, res: Response) => unknown;
   updatePromptPay: (req: Request, res: Response) => unknown;
   showPromptPay: (req: Request, res: Response) => unknown;
@@ -78,6 +79,18 @@ const makeResponse = compose(
 
 class VenueController implements IVenueController {
   private service: IVenueService = new VenueService(new VenueRepository());
+
+  async showOpeningHours(req: Request, res: Response) {
+    const businessId = getBusinessId(req);
+
+    try {
+      const result = await this.service.showOpeningHours(businessId);
+
+      return res.json(result);
+    } catch (e) {
+      return res.status(500).json(makeErrorResponse("Internal server error"));
+    }
+  }
 
   async showPromptPay(req: Request, res: Response) {
     const businessId = getBusinessId(req);

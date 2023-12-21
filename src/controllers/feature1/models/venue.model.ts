@@ -1,4 +1,5 @@
-import { Venue_credit_card } from "@prisma/client";
+import { Opening_day, Venue_credit_card } from "@prisma/client";
+import { format } from "date-fns";
 
 type VenueCateogry = "club" | "bar" | "restaurant";
 
@@ -56,7 +57,7 @@ export type VenueShowWebResponse = VenueUpdateWebResponse;
 
 export type OpeningHourUpdateDBResponse = unknown;
 
-type OpeningHour = {
+export type OpeningHour = {
   open: string;
   close: string;
 };
@@ -73,6 +74,34 @@ export enum Day {
 
 export type OpeningHourUpdateRequest = {
   [day in Day]: OpeningHour;
+};
+
+export type OpeningEntry = OpeningHourUpdateRequest;
+
+export const makeOpeningEntry = (data: Array<Opening_day>): OpeningEntry => {
+  const result = data
+    .map((item: Opening_day) => ({
+      [item.day as Day]: {
+        open: format(item.opening_hours, "HH:mm:ss"),
+        close: format(item.closing_hours, "HH:mm:ss"),
+      },
+    }))
+    .reduce((acc, item) => {
+      const [key, value] = Object.entries(item)[0];
+      acc[key] = value;
+      return acc;
+    }, {});
+
+  ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].forEach((day) => {
+    if (!result[day]) {
+      result[day] = {
+        open: "00:00:00",
+        close: "00:00:00",
+      };
+    }
+  });
+
+  return result as OpeningEntry;
 };
 
 export type CreditCardCreateRequest = {

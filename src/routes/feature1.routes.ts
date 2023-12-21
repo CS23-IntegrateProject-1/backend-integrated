@@ -144,6 +144,11 @@ feature1Router.put(
   businessAuthMiddleware,
   venueController.updateOpeningHours.bind(venueController),
 );
+feature1Router.get(
+  "/venue/opening_hours",
+  businessAuthMiddleware,
+  venueController.showOpeningHours.bind(venueController),
+);
 feature1Router.post(
   "/venue/credit_card",
   businessAuthMiddleware,

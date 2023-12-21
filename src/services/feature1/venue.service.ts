@@ -8,6 +8,8 @@ import {
   makeVenueUpdateWebResponse,
   CreditCardCreateRequest,
   VenuePromptPayShowDBResponse,
+  OpeningEntry,
+  makeOpeningEntry,
 } from "../../controllers/feature1/models";
 
 export interface IVenueService {
@@ -42,10 +44,19 @@ export interface IVenueService {
   showPromptPay(
     businessId: number,
   ): Promise<VenuePromptPayShowDBResponse | null>;
+
+  showOpeningHours(businessId: number): Promise<OpeningEntry>;
 }
 
 class VenueService implements IVenueService {
   constructor(readonly repository: IVenueRepository) {}
+
+  async showOpeningHours(businessId: number): Promise<OpeningEntry> {
+    const result =
+      await this.repository.getOpeningHoursByBusinessId(businessId);
+
+    return makeOpeningEntry(result);
+  }
 
   async deleteCreditCard(
     businessId: number,

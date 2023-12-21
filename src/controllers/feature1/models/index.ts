@@ -19,6 +19,9 @@ import {
   makeCreditCardListResponse,
   VenuePromptPayShowDBResponse,
   makeVenuePromptPayShowWebResponse,
+  OpeningHour,
+  OpeningEntry,
+  makeOpeningEntry,
 } from "./venue.model";
 
 import {
@@ -66,4 +69,7 @@ export {
   makeComplaintTicketResponse,
   NotFoundError,
   ComplaintTicketWithResponses,
+  OpeningHour,
+  OpeningEntry,
+  makeOpeningEntry,
 };

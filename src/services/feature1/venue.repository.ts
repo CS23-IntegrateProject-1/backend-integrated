@@ -1,4 +1,4 @@
-import { Venue_credit_card } from "@prisma/client";
+import { Opening_day, Venue_credit_card } from "@prisma/client";
 import { prismaClient } from "../../controllers/feature1.controller";
 import {
   CreditCardCreateRequest,
@@ -12,6 +12,8 @@ import {
 import { identity, isNil } from "ramda";
 
 export interface IVenueRepository {
+  getOpeningHoursByBusinessId(businessId: number): Promise<Array<Opening_day>>;
+
   updateOpeningHours(businessId: number, data: OpeningHourUpdateRequest);
 
   getVenueByBusinessId(businessId: number): Promise<VenueShowDBResponse>;
@@ -53,6 +55,18 @@ function difference<T>(a: Set<T>, b: Set<T>): Set<T> {
 }
 
 class VenueRepository implements IVenueRepository {
+  async getOpeningHoursByBusinessId(
+    businessId: number,
+  ): Promise<Array<Opening_day>> {
+    const venueId = await this.getVenueId(businessId);
+
+    return prismaClient.opening_day.findMany({
+      where: {
+        venueId,
+      },
+    });
+  }
+
   async showPromptPayByBusinessId(
     businessId: number,
   ): Promise<VenuePromptPayShowDBResponse | null> {
