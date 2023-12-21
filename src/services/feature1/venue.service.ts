@@ -10,6 +10,8 @@ import {
   VenuePromptPayShowDBResponse,
   OpeningEntry,
   makeOpeningEntry,
+  makePriceRange,
+  PriceRange,
 } from "../../controllers/feature1/models";
 
 export interface IVenueService {
@@ -50,10 +52,18 @@ export interface IVenueService {
   ): Promise<VenuePromptPayShowDBResponse | null>;
 
   showOpeningHours(businessId: number): Promise<OpeningEntry>;
+
+  getPriceRange(businessId: number): Promise<PriceRange>;
 }
 
 class VenueService implements IVenueService {
   constructor(readonly repository: IVenueRepository) {}
+
+  async getPriceRange(businessId: number): Promise<PriceRange> {
+    return makePriceRange(
+      await this.repository.getPriceRangeByBusinessId(businessId),
+    );
+  }
 
   async showOpeningHours(businessId: number): Promise<OpeningEntry> {
     const result =

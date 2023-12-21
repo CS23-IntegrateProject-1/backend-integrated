@@ -1,4 +1,5 @@
 import { Opening_day, Venue_credit_card } from "@prisma/client";
+import { Decimal } from "@prisma/client/runtime/library";
 import { format } from "date-fns";
 
 type VenueCateogry = "club" | "bar" | "restaurant";
@@ -77,6 +78,27 @@ export type OpeningHourUpdateRequest = {
 };
 
 export type OpeningEntry = OpeningHourUpdateRequest;
+
+export type PriceRangeDBResponse = {
+  _max: {
+    price: Decimal | null;
+  };
+  _min: {
+    price: Decimal | null;
+  };
+};
+
+export type PriceRange = {
+  max: Decimal | number;
+  min: Decimal | number;
+};
+
+export const makePriceRange = (data: PriceRangeDBResponse): PriceRange => {
+  return {
+    max: data._max.price ?? 0,
+    min: data._min.price ?? 0,
+  };
+};
 
 export const makeOpeningEntry = (data: Array<Opening_day>): OpeningEntry => {
   const result = data

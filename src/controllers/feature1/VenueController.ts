@@ -30,6 +30,8 @@ export interface IVenueController {
   showCreditCard: (req: Request, res: Response) => unknown;
   indexCreditCard: (req: Request, res: Response) => unknown;
   deleteCreditCard: (req: Request, res: Response) => unknown;
+
+  showPriceRange: (req: Request, res: Response) => unknown;
 }
 
 const VenueUpdatePayload = z.object({
@@ -263,6 +265,18 @@ class VenueController implements IVenueController {
         venue.data,
         filename,
       );
+
+      return res.json(response);
+    } catch (e) {
+      return res.status(500).json(makeErrorResponse("Internal Server Error"));
+    }
+  }
+
+  async showPriceRange(req: Request, res: Response) {
+    const businessId = getBusinessId(req);
+
+    try {
+      const response = await this.service.getPriceRange(businessId);
 
       return res.json(response);
     } catch (e) {

@@ -4,6 +4,7 @@ import {
   CreditCardCreateRequest,
   Day,
   OpeningHourUpdateRequest,
+  PriceRangeDBResponse,
   VenuePromptPayShowDBResponse,
   VenueShowDBResponse,
   VenueUpdateDBResponse,
@@ -12,6 +13,8 @@ import {
 import { identity, isNil } from "ramda";
 
 export interface IVenueRepository {
+  getPriceRangeByBusinessId(businessId: number): Promise<PriceRangeDBResponse>;
+
   getOpeningHoursByBusinessId(businessId: number): Promise<Array<Opening_day>>;
 
   updateOpeningHours(businessId: number, data: OpeningHourUpdateRequest);
@@ -59,6 +62,26 @@ function difference<T>(a: Set<T>, b: Set<T>): Set<T> {
 }
 
 class VenueRepository implements IVenueRepository {
+  async getPriceRangeByBusinessId(
+    businessId: number,
+  ): Promise<PriceRangeDBResponse> {
+    const venueId = await this.getVenueId(businessId);
+
+    const result = prismaClient.menu.aggregate({
+      where: {
+        venueId,
+      },
+      _max: {
+        price: true,
+      },
+      _min: {
+        price: true,
+      },
+    });
+
+    return result;
+  }
+
   async getOpeningHoursByBusinessId(
     businessId: number,
   ): Promise<Array<Opening_day>> {

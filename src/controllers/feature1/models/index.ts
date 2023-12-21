@@ -22,6 +22,9 @@ import {
   OpeningHour,
   OpeningEntry,
   makeOpeningEntry,
+  PriceRangeDBResponse,
+  makePriceRange,
+  PriceRange,
 } from "./venue.model";
 
 import {
@@ -72,4 +75,7 @@ export {
   OpeningHour,
   OpeningEntry,
   makeOpeningEntry,
+  PriceRangeDBResponse,
+  makePriceRange,
+  PriceRange,
 };

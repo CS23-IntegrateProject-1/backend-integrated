@@ -169,6 +169,11 @@ feature1Router.delete(
   businessAuthMiddleware,
   venueController.deleteCreditCard.bind(venueController),
 );
+feature1Router.get(
+  "/venue/price_range",
+  businessAuthMiddleware,
+  venueController.showPriceRange.bind(venueController),
+);
 
 feature1Router.get(
   "/qr",
