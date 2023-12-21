@@ -1240,6 +1240,40 @@ export const GetRedeembyId = async (req: Request, res: Response) => {
   }
 };
 
+export const GetDeleteRedeembyId = async (req: Request, res: Response) => {
+	try {
+		const { redeemId } = req.params;
+		const GetDeletebyId = await feature5Client.redeem_privilege.delete({
+			where: {
+				redeemId: parseInt(redeemId),
+			},
+		});
+
+		res.json(GetDeletebyId);
+	} catch (err) {
+		const error = err as Error;
+    console.log(err)
+		res.status(500).json({ error: error.message });
+	}
+};
+
+export const GetDeleteRedeembyId = async (req: Request, res: Response) => {
+	try {
+		const { redeemId } = req.params;
+		const GetDeletebyId = await feature5Client.redeem_privilege.delete({
+			where: {
+				redeemId: parseInt(redeemId),
+			},
+		});
+
+		res.json(GetDeletebyId);
+	} catch (err) {
+		const error = err as Error;
+    console.log(err)
+		res.status(500).json({ error: error.message });
+	}
+};
+
 export const GetRedeembyBusinessId = async (req: Request, res: Response) => {
   try {
     const token = req.cookies.authToken;
@@ -1276,25 +1310,26 @@ export const GetRedeembyBusinessId = async (req: Request, res: Response) => {
 };
 
 export const CreateRedeem = async (req: Request, res: Response) => {
-  try {
-    const Redeem: Redeem = req.body;
-    const { title, description, memberTier } = Redeem;
+	try {
+		const Redeem: Redeem = req.body;
+		const { title, description, memberTier } = Redeem;
 
-    const image_url =
-      "/uploads/" + req.file.path.substring(req.file.path.lastIndexOf("/") + 1);
+		const image_url =
+			"/uploads/" +
+			req.file.path.substring(req.file.path.lastIndexOf("/") + 1);
 
-    const newRedeem = await feature5Client.redeem_privilege.create({
-      data: {
-        title,
-        description,
-        image_url,
-        memberTier,
-      },
-    });
+		const newRedeem = await feature5Client.redeem_privilege.create({
+			data: {
+				title,
+				description,
+				image_url,
+				memberTier,
+			},
+		});
 
-    res.json(newRedeem);
-  } catch (err) {
-    const error = err as Error;
-    res.status(500).json({ error: error.message });
-  }
+		res.json(newRedeem);
+	} catch (err) {
+		const error = err as Error;
+		res.status(500).json({ error: error.message });
+	}
 };
