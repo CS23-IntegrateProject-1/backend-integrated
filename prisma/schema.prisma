@@ -205,17 +205,18 @@ model Business_finance {
 }
 
 model Business_user {
-  businessId      Int           @id @default(autoincrement())
-  username        String
-  hashed_password String
-  email           String?       @unique @db.VarChar(125)
-  fname           String?
-  lname           String?
-  phone_num       String?       @unique @db.VarChar(10)
-  profile_picture String?
-  prompt_pay      Int?
-  Ad_business     Ad_business[]
-  Property        Property[]
+  businessId       Int                @id @default(autoincrement())
+  username         String
+  hashed_password  String
+  email            String?            @unique @db.VarChar(125)
+  fname            String?
+  lname            String?
+  phone_num        String?            @unique @db.VarChar(10)
+  profile_picture  String?
+  prompt_pay       Int?
+  Ad_business      Ad_business[]
+  Property         Property[]
+  Redeem_privilege Redeem_privilege[]
 }
 
 model Chat_Room_Logs {
@@ -863,12 +864,14 @@ model Recommendation {
 }
 
 model Redeem_privilege {
-  redeemId    Int         @id @default(autoincrement())
+  redeemId    Int           @id @default(autoincrement())
   title       String
   description String
   memberTier  Int
-  image_url   String?     @db.Text
-  Member_tier Member_tier @relation(fields: [memberTier], references: [tierId])
+  image_url   String?       @db.Text
+  businessId Int?
+  bussiness   Business_user? @relation(fields: [businessId], references: [businessId])
+  Member_tier Member_tier   @relation(fields: [memberTier], references: [tierId])
 
   @@index([memberTier], map: "Redeem_privilege_memberTier_fkey")
 }
@@ -1586,6 +1589,7 @@ enum Ad_business_isApprove {
   Rejected
   In_progress
   Completed
+  Awaiting_payment
 }
 
 enum Voucher_isApprove {
