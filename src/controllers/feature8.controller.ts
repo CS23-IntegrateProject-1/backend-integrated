@@ -2145,15 +2145,16 @@ const getDepositDynamicPriceId = async (req: Request, res: Response) => {
     name: "Deposit",
     description: "Pay for Deposit",
   });
-  const reservationToken = req.cookies.reservationToken;
-  const secretKey = process.env.JWT_SECRET as string;
-  if (!reservationToken) {
-    isNotError = false;
-    return res.status(401).json({ message: "Invalid reservation token." });
-  }
+  // const reservationToken = req.cookies.reservationToken;
+  // const secretKey = process.env.JWT_SECRET as string;
+  const reservationId = parseInt(req.params.reservationId);
+  // if (!reservationToken) {
+  //   isNotError = false;
+  //   return res.status(401).json({ message: "Invalid reservation token." });
+  // }
   try {
-    const decoded = jwt.verify(reservationToken, secretKey) as JwtPayload;
-    const { reservationId } = decoded;
+    // const decoded = jwt.verify(reservationToken, secretKey) as JwtPayload;
+    // const { reservationId } = decoded;
 
     const reservation = await feature8Client.reservation.findUnique({
       where: { reservationId: Number(reservationId) },
