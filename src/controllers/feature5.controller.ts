@@ -1187,15 +1187,6 @@ export const GetRedeem = async (req: Request, res: Response) => {
 	}
 };
 
-export const getAllRedeem = async (req: Request, res: Response) => {
-	try {
-		const getRedeem = await feature5Client.redeem_privilege.findMany();
-		res.json(getRedeem);
-	} catch (err) {
-		const error = err as Error;
-		res.status(500).json({ error: error.message });
-	}
-};
 
 export const GetRedeembyId = async (req: Request, res: Response) => {
 	try {
