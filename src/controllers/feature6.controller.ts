@@ -294,6 +294,28 @@ export const createReservation = async (req: Request, res: Response) => {
                 },
             });
 
+            const checkChatRoomId = await feature6Client.venue.findFirst({
+                where: {
+                    venueId: newReservation.venueId,
+                },
+                select: {
+                    chatRoomId: true,
+                },
+            });
+
+            if (
+                userId != undefined &&
+                checkChatRoomId?.chatRoomId != undefined
+            ) {
+                await feature6Client.chat_Room_Logs.create({
+                    data: {
+                        chatRoomId: checkChatRoomId?.chatRoomId,
+                        userId: userId,
+                        access_status: true,
+                    },
+                });
+            }
+
             // Create the reservation table entry for the selected table
             const reservationTableEntry =
                 await feature6Client.reservation_table.create({
@@ -1082,6 +1104,16 @@ export const qrCode = async (req: Request, res: Response) => {
         const { reservationId } = req.params;
         const authToken = req.cookies.authToken;
 
+        const reservation = await feature6Client.reservation.findUnique({
+            where: { reservationId: parseInt(reservationId) },
+        });
+        if (reservation === null || reservation === undefined) {
+            return res.status(404).json({ error: "Reservation not found" });
+        }
+
+        if(reservation.isPaidDeposit === "Pending"){
+            return res.status(200).send(402);
+        }
         const qrCodeData = {
             reservationId: reservationId,
             authToken: authToken,
@@ -1114,6 +1146,9 @@ export const checkOut = async (req: Request, res: Response) => {
         }
         if (reservation.status !== "Check_in") {
             return res.status(400).json({ error: "Check-Out not success" });
+        }
+        if(reservation.isPaymentSuccess === "Pending"){
+            return res.status(200).send(402);
         }
 
         const checkOutLog = await feature6Client.check_in_log.update({
@@ -1158,40 +1193,40 @@ export const checkOut = async (req: Request, res: Response) => {
 };
 
 export const checkInStatus = async (req: Request, res: Response) => {
-  try {
-    const { reservationId } = req.params;
-    const token = req.cookies.authToken;
-    if (!token) {
-      return res.status(401).json({ error: "No auth token" });
+    try {
+        const { reservationId } = req.params;
+        const token = req.cookies.authToken;
+        if (!token) {
+            return res.status(401).json({ error: "No auth token" });
+        }
+        const getstatus = await feature6Client.reservation.findUnique({
+            where: {
+                reservationId: parseInt(reservationId),
+            },
+            select: {
+                status: true,
+            },
+        });
+
+        const hasReservationToken = (req: Request): boolean => {
+            const reservationToken = req.cookies.reservationToken;
+            return !!reservationToken; // Returns true if reservationToken exists, false otherwise
+        };
+
+        if (getstatus?.status === "Check_in" && !hasReservationToken(req)) {
+            // Generate and set reservationToken in response headers
+            const reservationToken = genToken(parseInt(reservationId));
+            res.cookie("reservationToken", reservationToken, {
+                httpOnly: true,
+                secure: true,
+                sameSite: "none",
+            });
+        }
+
+        res.json(getstatus?.status);
+    } catch (e) {
+        return res.status(500).json(e);
     }
-    const getstatus = await feature6Client.reservation.findUnique({
-      where: {
-        reservationId: parseInt(reservationId),
-      },
-      select: {
-        status: true,
-      },
-    });
-
-    const hasReservationToken = (req: Request): boolean => {
-      const reservationToken = req.cookies.reservationToken;
-      return !!reservationToken; // Returns true if reservationToken exists, false otherwise
-    };
-
-    if (getstatus?.status === "Check_in" && !hasReservationToken(req)) {
-      // Generate and set reservationToken in response headers
-      const reservationToken = genToken(parseInt(reservationId));
-      res.cookie("reservationToken", reservationToken, {
-        httpOnly: true,
-        secure: true,
-        sameSite: "none",
-      });
-    }
-
-    res.json(getstatus?.status);
-  } catch (e) {
-    return res.status(500).json(e);
-  }
 };
 
 //Upload Image
