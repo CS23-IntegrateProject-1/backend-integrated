@@ -5,7 +5,6 @@ import multerConfig from "../multerConfig";
 import {
   getfeature1,
   paymentMethodHandler,
-  tosHandler,
   privacyPolicyHandler,
   promptPayHandler,
   groupInfoHandler,
@@ -22,6 +21,7 @@ import VenueController from "../controllers/feature1/VenueController";
 import GroupController from "../controllers/feature1/GroupController";
 import QrController from "../controllers/feature1/QrController";
 import { HelpDeskController } from "../controllers/feature1";
+import TosController from "../controllers/feature1/TosController";
 
 const aboutController = new AboutController();
 const friendController = new FriendController();
@@ -31,6 +31,7 @@ const venueController = new VenueController();
 const groupController = new GroupController();
 const qrController = new QrController();
 const helpDeskController = new HelpDeskController();
+const tosController = new TosController();
 
 const feature1Router = Router();
 
@@ -58,10 +59,26 @@ feature1Router.delete(
   aboutController.destroy.bind(aboutController),
 );
 
-feature1Router.get("/term-of-services", tosHandler);
-feature1Router.post("/term-of-services", tosHandler);
-feature1Router.put("/term-of-services", tosHandler);
-feature1Router.delete("/term-of-services", tosHandler);
+feature1Router.get(
+  "/term-of-services",
+  userAuthMiddleware,
+  tosController.show.bind(tosController),
+);
+feature1Router.post(
+  "/term-of-services",
+  userAuthMiddleware,
+  tosController.store.bind(tosController),
+);
+feature1Router.put(
+  "/term-of-services",
+  userAuthMiddleware,
+  tosController.update.bind(tosController),
+);
+feature1Router.delete(
+  "/term-of-services",
+  userAuthMiddleware,
+  tosController.destroy.bind(tosController),
+);
 
 feature1Router.get("/payment-method", paymentMethodHandler);
 feature1Router.post("/payment-method", paymentMethodHandler);

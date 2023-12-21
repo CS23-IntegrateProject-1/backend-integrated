@@ -1,7 +1,6 @@
 import { Response, Request } from "express";
 
 import { PaymentMethodController } from "./feature1/PaymentMethodController";
-import { TosController } from "./feature1/TosController";
 import { PrivacyPolicyController } from "./feature1/PrivacyPolicyController";
 import { PromptPayController } from "./feature1/PromptPayController";
 import GroupController from "./feature1/GroupController";
@@ -24,20 +23,6 @@ export const paymentMethodHandler = async (req: Request, res: Response) => {
     case "GET":
     default:
       return new PaymentMethodController().show(req, res);
-  }
-};
-
-export const tosHandler = async (req: Request, res: Response) => {
-  switch (req.method) {
-    case "POST":
-      return new TosController().store(req, res);
-    case "PUT":
-      return new TosController().update(req, res);
-    case "DELETE":
-      return new TosController().destroy(req, res);
-    case "GET":
-    default:
-      return new TosController().show(req, res);
   }
 };
 
