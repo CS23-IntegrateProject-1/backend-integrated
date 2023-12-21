@@ -45,7 +45,6 @@ import {
   AdvertisementEditbyId,
   PromotionEditbyId,
   CheckVouchernotCollected,
-  getAllRedeem
 
 } from "../controllers/feature5.controller";
 
