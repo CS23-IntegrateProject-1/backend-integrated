@@ -49,55 +49,40 @@ export const AdBusiness = async (req: Request, res: Response) => {
 			target_group,
 		} = newAd;
 
-		const image_url =
-			"/uploads/" +
-			req.file.path.substring(req.file.path.lastIndexOf("/") + 1);
-		//date is 2023-12-23 change it to date format
-		const formattedStartDate = new Date(start_date[0]);
-		const formattedEndDate = new Date(end_date[0]);
+    const image_url =
+      "/uploads/" + req.file.path.substring(req.file.path.lastIndexOf("/") + 1);
+
+    //date is 2023-12-23 change it to date format
+    const formattedStartDate = new Date(start_date[0]);
+    const formattedEndDate = new Date(end_date[0]);
 
 		if (!Array.isArray(Tags)) {
 			return res.status(400).json({ error: "Tags must be an array" });
 		}
 
-		try {
-			const newAdvertisement = await feature5Client.ad_business.create({
-				data: {
-					name,
-					description,
-					image_url,
-					start_date: formattedStartDate,
-					end_date: formattedEndDate,
-					cost: Number(cost),
-					customer_type,
-					target_group,
-					businessId,
-					isApprove,
-				},
-			});
-			console.log(newAdvertisement);
-			for (const tag of Tags) {
-				await feature5Client.ad_tag.create({
-					data: {
-						adId: newAdvertisement.advertisementId,
-						tagId: tag,
-					},
-				});
-			}
-		} catch (e) {
-			console.error(e);
-		}
-		return res.status(200).json("create success");
-
-		// res.json(newAdvertisement);
-	} catch (err) {
-		// console.log(err);
-		// const error = err as Error;
-		// res.status(500).json({ error: error.message });
-		const error = err as Error & { code?: string };
-		console.error("Prisma error:", error);
-		res.status(500).json({ err });
-	}
+    const newAdvertisement = await feature5Client.ad_business.create({
+      data: {
+        name,
+        description,
+        image_url,
+        start_date: formattedStartDate,
+        end_date: formattedEndDate,
+        cost: Number(cost),
+        customer_type,
+        target_group,
+        businessId,
+        isApprove,
+      },
+    });
+    res.json(newAdvertisement);
+  } catch (err) {
+    // console.log(err);
+    // const error = err as Error;
+    // res.status(500).json({ error: error.message });
+    const error = err as Error & { code?: string };
+    console.error("Prisma error:", error);
+    res.status(500).json({ err });
+  }
 };
 
 export const DeleteAdvertisement = async (req: Request, res: Response) => {
@@ -135,21 +120,26 @@ export const getAdvertisementById = async (req: Request, res: Response) => {
 };
 
 export const AdvertisementEditbyId = async (req: Request, res: Response) => {
-	try {
-		const {
-			advertisementId: advertisementId,
-			name: name,
-			description: description,
-			cost: cost,
-			start_date: start_date,
-			endDate: end_date,
-			customer_type: customer_type,
-			target_group: target_group,
-		} = req.body;
+  try {
+    const {
+      name: name,
+      description: description,
+      cost: cost,
+      start_date: start_date,
+      end_date: end_date,
+      customer_type: customer_type,
+      target_group: target_group,
+    } = req.body;
 
-		const image_url =
-			"/uploads/" +
-			req.file.path.substring(req.file.path.lastIndexOf("/") + 1);
+    const advertisementId = Number(req.body.advertisementId)
+
+    // const image_url =
+    //   "/uploads/" + req.file.path.substring(req.file.path.lastIndexOf("/") + 1);
+    let image_url;
+    if (req.file.path.includes("/"))
+   image_url = "/uploads/" + req.file.path.substring(req.file.path.lastIndexOf('/') + 1);
+    else if (req.file.path.includes("\\"))
+   image_url = "/uploads/" + req.file.path.substring(req.file.path.lastIndexOf('\\') + 1);
 
 		const isApprove = "In_progress";
 
@@ -395,28 +385,31 @@ export const VoucherApprove = async (req: Request, res: Response) => {
 };
 
 export const VoucherEditbyId = async (req: Request, res: Response) => {
-	try {
-		const {
-			// voucherId,
-			voucher_name,
-			start_date,
-			end_date,
-			description,
-			// venueId,
-		} = req.body;
-		// const imageFile = req.file as MulterFile;
-		const venueId = parseInt(req.body.venueId);
-		const voucherId = parseInt(req.body.voucherId);
-		let voucher_image;
-		if (req.file.path.includes("/")) {
-			voucher_image =
-				"/uploads/" +
-				req.file.path.substring(req.file.path.lastIndexOf("/") + 1);
-		} else if (req.file.path.includes("\\")) {
-			voucher_image =
-				"/uploads/" +
-				req.file.path.substring(req.file.path.lastIndexOf("\\") + 1);
-		}
+  try {
+    const {
+      // voucherId,
+      voucher_name,
+      start_date,
+      end_date,
+      description,
+      // venueId,
+    } = req.body;
+    // const imageFile = req.file as MulterFile;
+    const venueId = parseInt(req.body.venueId)
+    const voucherId = parseInt(req.body.voucherId)
+
+    let voucher_image;
+    if (req.file.path.includes("/"))
+    {
+      voucher_image =
+        "/uploads/" +
+        req.file.path.substring(req.file.path.lastIndexOf("/") + 1);
+    }
+    else if (req.file.path.includes("\\")) {
+      voucher_image =
+        "/uploads/" +
+        req.file.path.substring(req.file.path.lastIndexOf("\\") + 1);
+    }
 
 		const isApprove = "In_progress";
 
@@ -456,6 +449,7 @@ export const GetallVenue = async (req: Request, res: Response) => {
 	}
 };
 
+
 export const GetAllVoucherForUser = async (req: Request, res: Response) => {
 	try {
 		const getvoucher = await feature5Client.voucher.findMany({
@@ -468,6 +462,25 @@ export const GetAllVoucherForUser = async (req: Request, res: Response) => {
 		const error = err as Error;
 		res.status(500).json({ error: error.message });
 	}
+};
+
+
+export const CheckVouchernotCollected = async (req: Request, res: Response) => {
+  const { userId } = authService.decodeToken(req.cookies.authToken);
+  const { voucherId } = req.params;
+  try {
+    const getvoucher = await feature5Client.user_voucher.findFirst({
+      where: {
+        userId: userId,
+        voucherId: parseInt(voucherId)
+      },
+    });
+    res.json({ hasVoucher: !!getvoucher}); 
+  } catch (err) {
+    const error = err as Error;
+    console.log(err)
+    res.status(500).json({ error: error.message });
+  }
 };
 
 export const GetVoucherIncludeIsused = async (req: Request, res: Response) => {
@@ -1224,3 +1237,6 @@ export const CreateRedeem = async (req: Request, res: Response) => {
 		res.status(500).json({ error: error.message });
 	}
 };
+
+
+

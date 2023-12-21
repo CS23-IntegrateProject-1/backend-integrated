@@ -44,7 +44,8 @@ import {
   VoucherEditbyId,
   AdvertisementEditbyId,
   PromotionEditbyId,
-  getAllRedeem,
+  CheckVouchernotCollected,
+  getAllRedeem
 
 } from "../controllers/feature5.controller";
 
@@ -74,9 +75,10 @@ feature5Router.get("/GetVoucherForUser/", GetAllVoucherForUser); //for show all 
 feature5Router.get("/AllVoucher/:id", getVoucherById); //for show voucher for updaten  
 feature5Router.get("/GetVoucherForUser/:id", GetVoucherIncludeIsused); 
 feature5Router.post("/UpdateVoucherEditbyId/",multerConfig.single("file"), VoucherEditbyId); 
+feature5Router.get("/CheckVoucher/:voucherId", customVerifyCookie, CheckVouchernotCollected);  //for check each voucher is not collected
 //MyReward
 feature5Router.get("/AllCollectedVoucher/",customVerifyCookie, getCollectedVoucher); //for show collected voucher for update
-feature5Router.post("/CollectVoucher/:id", multerConfig.single("file"),customVerifyCookie, CollectVoucher); //for collect voucher
+feature5Router.post("/CollectVoucher/:id",customVerifyCookie, CollectVoucher); //for collect voucher
 feature5Router.patch("/UpdateUsedVoucher/:id", multerConfig.single("file"),customVerifyCookie, UpdateUsedVoucher); //for collect voucher for update
 
 //Membertier
