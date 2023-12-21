@@ -3,21 +3,21 @@
     "name": "venue",
     "entries": [
       {
-        "value": "zyx",
+        "value": "Foo Bar Baz",
         "synonyms": [
-          "zyx"
+          "Foo Bar Baz"
         ]
       },
       {
-        "value": "abc",
+        "value": "MIK",
         "synonyms": [
-          "abc"
+          "MIK"
         ]
       },
       {
-        "value": "ABC Mart",
+        "value": "Foo Bar Baz_Club",
         "synonyms": [
-          "ABC Mart"
+          "Foo Bar Baz_Club"
         ]
       },
       {
@@ -81,11 +81,11 @@
     "entries": [
       {
         "value": {
-          "category": "Club"
+          "category": "Bar"
         },
         "synonyms": [
           {
-            "category": "Club"
+            "category": "Bar"
           }
         ]
       },
@@ -101,21 +101,11 @@
       },
       {
         "value": {
-          "category": "Bar"
+          "category": "Club"
         },
         "synonyms": [
           {
-            "category": "Bar"
-          }
-        ]
-      },
-      {
-        "value": {
-          "category": "A LaCarte"
-        },
-        "synonyms": [
-          {
-            "category": "A LaCarte"
+            "category": "Club"
           }
         ]
       }
