@@ -1156,10 +1156,37 @@ export const getUserSavedPlace = async (req: Request, res: Response) => {
             website_url: true
           }
         }
-      }
-    })
+      }})
 
-    res.json(savedPlace)
+      const venueRating = await Promise.all(
+        savedPlace.map(async (save) => {
+          const rate = await prisma.venue_branch.findMany({
+            where: { venueId: save.venueId },
+            include: {
+              Venue_reviews: {
+                select: {
+                  rating: true,
+                }
+              }
+            }
+            })
+    
+            const allRatings = rate.flatMap((item) =>
+            item.Venue_reviews.map((review) => review.rating)
+          );
+      
+          // Calculating the average rating
+          const sum = allRatings.reduce((acc, val) => acc + val, 0);
+          const averageRating = sum / allRatings.length;
+          const formattedRating = parseFloat(averageRating.toFixed(2));
+          return {
+            ...save,
+            rating: formattedRating
+          };
+        })
+      );
+
+    res.json(venueRating)
   } catch (error) {
     console.error(error);
     res.status(400).json({ error: "Internal server error" });
