@@ -319,6 +319,14 @@ class MajorAPIService {
     );
     return response.data;
   }
+
+  async getReserveSeatFromMajor(showId: number) {
+    const response = await Axios.post(
+      "/reservation/getReserveSeatByShowId",
+      { showId }
+    );
+    return response.data;
+  }
 }
 
 export default new MajorAPIService();
