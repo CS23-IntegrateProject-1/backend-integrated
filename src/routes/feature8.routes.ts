@@ -60,10 +60,13 @@ import {
     getTransactionReserveIdByVenueIdAndEqualToStatusCompleted,
     createCheckoutSession,
     createDepositSession,
-    createSeatSession,
+    createSeatSessionnn,
     getTransactionReserveIdByVenueIdAndEqualToStatusCompletedAndFiltered,
     getReceipt,
-    getOrderIdByAppTransactionDetailId
+    getOrderIdByAppTransactionDetailId,
+    getlatestOrderMenuOrderUpdate,
+    getOrdersAndTableNos,
+    getBusinessId,
 } from "../controllers/feature8.controller";
 
 const feature8Router = Router();
