@@ -19,7 +19,15 @@ import HelpDeskRepository, {
 } from "./help_desk.repository";
 import HelpDeskService, { IHelpDeskService } from "./help_desk.service";
 
+import PaymentMethodRepository from "./payment_method.repository";
+import PaymentMethodService, {
+  IPaymentMethodService,
+} from "./payment_method.service";
+
 export {
+  PaymentMethodRepository,
+  PaymentMethodService,
+  IPaymentMethodService,
   VenueService,
   IVenueService,
   VenueRepository,

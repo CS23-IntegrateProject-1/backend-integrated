@@ -1,5 +1,3 @@
-import { makeErrorResponse } from "./payment_method.model";
-
 import { MulterRequest } from "./multer_request.model";
 
 import { makeGroupCreateWebResponse } from "./group.model";
@@ -44,7 +42,17 @@ import {
 
 import { NotFoundError } from "./errors";
 
+import {
+  makePaymentMethodStoreWebResponse,
+  makePaymentMethodUpdateWebResponse,
+  makePaymentMethodWebResponse,
+  makeErrorResponse,
+} from "./payment_method.model";
+
 export {
+  makePaymentMethodStoreWebResponse,
+  makePaymentMethodUpdateWebResponse,
+  makePaymentMethodWebResponse,
   makeErrorResponse,
   makeVenueShowWebResponse,
   MulterRequest,

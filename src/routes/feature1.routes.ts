@@ -4,7 +4,6 @@ import multerConfig from "../multerConfig";
 // here import your controllers(function)
 import {
   getfeature1,
-  paymentMethodHandler,
   promptPayHandler,
   groupInfoHandler,
 } from "../controllers/feature1.controller";
@@ -22,6 +21,7 @@ import QrController from "../controllers/feature1/QrController";
 import { HelpDeskController } from "../controllers/feature1";
 import TosController from "../controllers/feature1/TosController";
 import PrivacyPolicyController from "../controllers/feature1/PrivacyPolicyController";
+import PaymentMethodController from "../controllers/feature1/PaymentMethodController";
 
 const aboutController = new AboutController();
 const friendController = new FriendController();
@@ -33,6 +33,7 @@ const qrController = new QrController();
 const helpDeskController = new HelpDeskController();
 const tosController = new TosController();
 const privacyPolicyController = new PrivacyPolicyController();
+const paymentMethodController = new PaymentMethodController();
 
 const feature1Router = Router();
 
@@ -81,10 +82,26 @@ feature1Router.delete(
   tosController.destroy.bind(tosController),
 );
 
-feature1Router.get("/payment-method", paymentMethodHandler);
-feature1Router.post("/payment-method", paymentMethodHandler);
-feature1Router.put("/payment-method", paymentMethodHandler);
-feature1Router.delete("/payment-method", paymentMethodHandler);
+feature1Router.get(
+  "/payment-method",
+  userAuthMiddleware,
+  paymentMethodController.show.bind(paymentMethodController),
+);
+feature1Router.post(
+  "/payment-method",
+  userAuthMiddleware,
+  paymentMethodController.store.bind(paymentMethodController),
+);
+feature1Router.put(
+  "/payment-method",
+  userAuthMiddleware,
+  paymentMethodController.update.bind(paymentMethodController),
+);
+feature1Router.delete(
+  "/payment-method",
+  userAuthMiddleware,
+  paymentMethodController.destroy.bind(paymentMethodController),
+);
 
 feature1Router.get(
   "/privacy-policy",

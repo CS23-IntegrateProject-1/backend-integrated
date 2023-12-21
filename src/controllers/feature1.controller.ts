@@ -1,6 +1,5 @@
 import { Response, Request } from "express";
 
-import { PaymentMethodController } from "./feature1/PaymentMethodController";
 import { PromptPayController } from "./feature1/PromptPayController";
 import GroupController from "./feature1/GroupController";
 import { PrismaClient } from "@prisma/client";
@@ -9,20 +8,6 @@ export const prismaClient = new PrismaClient();
 
 export const getfeature1 = async (req: Request, res: Response) => {
   return res.json({});
-};
-
-export const paymentMethodHandler = async (req: Request, res: Response) => {
-  switch (req.method) {
-    case "POST":
-      return new PaymentMethodController().store(req, res);
-    case "PUT":
-      return new PaymentMethodController().update(req, res);
-    case "DELETE":
-      return new PaymentMethodController().destroy(req, res);
-    case "GET":
-    default:
-      return new PaymentMethodController().show(req, res);
-  }
 };
 
 export const promptPayHandler = async (req: Request, res: Response) => {

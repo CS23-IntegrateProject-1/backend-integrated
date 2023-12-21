@@ -1,20 +1,22 @@
 import { Response, Request } from "express";
 
-import PaymentMethodRepository from "../../services/feature1/payment_method.repository";
-import PaymentMethodService, {
-  IPaymentMethodService,
-} from "../../services/feature1/payment_method.service";
-import {
-  makeErrorResponse,
-  makePaymentMethodStoreWebResponse,
-  makePaymentMethodUpdateWebResponse,
-  makePaymentMethodWebResponse,
-} from "./models/payment_method.model";
 import {
   PrismaClientKnownRequestError,
   PrismaClientValidationError,
 } from "@prisma/client/runtime/library";
 import { Prisma } from "@prisma/client";
+import { getUserId } from ".";
+import {
+  makeErrorResponse,
+  makePaymentMethodStoreWebResponse,
+  makePaymentMethodUpdateWebResponse,
+  makePaymentMethodWebResponse,
+} from "./models";
+import {
+  IPaymentMethodService,
+  PaymentMethodRepository,
+  PaymentMethodService,
+} from "../../services/feature1";
 
 interface IPaymentMethodController {
   store: (req: Request, res: Response) => unknown;
@@ -23,7 +25,9 @@ interface IPaymentMethodController {
   destroy: (req: Request, res: Response) => unknown;
 }
 
-export class PaymentMethodController implements IPaymentMethodController {
+export default class PaymentMethodController
+  implements IPaymentMethodController
+{
   private service: IPaymentMethodService = new PaymentMethodService(
     new PaymentMethodRepository(),
   );
@@ -33,7 +37,7 @@ export class PaymentMethodController implements IPaymentMethodController {
       const { method } = req.body;
 
       const response = await this.service.storePaymentMethod(
-        Number(req.params.userId),
+        getUserId(req),
         method,
       );
 
@@ -61,7 +65,7 @@ export class PaymentMethodController implements IPaymentMethodController {
   async show(req: Request, res: Response) {
     try {
       const response = await this.service.getPaymentMethodOfUser(
-        Number(req.params.userId),
+        getUserId(req),
       );
 
       const webResponse = makePaymentMethodWebResponse(response);
@@ -79,7 +83,7 @@ export class PaymentMethodController implements IPaymentMethodController {
 
     try {
       const response = await this.service.updatePaymentMethodOfUser(
-        Number(req.params.userId),
+        getUserId(req),
         method,
       );
 
@@ -102,7 +106,7 @@ export class PaymentMethodController implements IPaymentMethodController {
 
   async destroy(req: Request, res: Response) {
     try {
-      await this.service.deletePaymentMethodOfUser(Number(req.params.userId));
+      await this.service.deletePaymentMethodOfUser(getUserId(req));
 
       return res.status(200).send();
     } catch (e) {
