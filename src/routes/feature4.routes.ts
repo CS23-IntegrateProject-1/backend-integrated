@@ -27,6 +27,8 @@ import {
   changeOrderStatusCompleted,
   changeOrderStatusCanceled,
   showOnGoingOrder,
+  showCompletedOrder,
+  showCanceledOrder,
   createOnlineOrder,
   getReceipt,
 } from "../controllers/feature4.controller";
@@ -69,6 +71,8 @@ feature4Router.post("/updateCartItemQuantity/:itemId",customVerifyCookie, update
 feature4Router.patch("/changeOrderStatusCompleted", changeOrderStatusCompleted);
 feature4Router.patch("/changeOrderStatusCanceled", changeOrderStatusCanceled);
 feature4Router.get("/showOnGoingOrder", showOnGoingOrder);
+feature4Router.get("/showCompletedOrder", showCompletedOrder);
+feature4Router.get("/showCanceledOrder", showCanceledOrder);
 feature4Router.post("/createOnlineOrder",customVerifyCookie, createOnlineOrder);
 feature4Router.get("/getReceipt", getReceipt)
 

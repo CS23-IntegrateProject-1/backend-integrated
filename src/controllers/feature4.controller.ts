@@ -749,64 +749,64 @@ export const createOnlineOrder = async (req: any, res: Response) => {
   }
 }
 
-export const getReceipt = async (req: any, res: Response) => {
-  try {
-      const orderId = req.body.onlineOrderId;
-      const orderInfo = await feature4Client.online_orders.findUnique({
-          where: {
-              onlineOrderId: orderId,
-          },          
-      });
-      const orderDetails = await feature4Client.online_orders_detail.findMany({
-          where: {
-              onlineOrderId: orderId,
-          },
-      });
-      //menu name
-      const menuIds = orderDetails
-          .map((orderDetail) => orderDetail.menuId)
-          .filter((menuId) => menuId !== null) as number[];
-      const menu = await feature4Client.menu.findMany({
-          where: {
-              menuId: {
-                  in: menuIds,
-              },
-          },
-      });
-      // Calculate item count, total count, and total amount only once
-      const itemCount = orderDetails.length;
-      const totalCount = orderDetails.reduce((total, orderDetail) => total + orderDetail.quantity, 0);
-      const totalAmount = orderInfo?.total_amount;
+  export const getReceipt = async (req: any, res: Response) => {
+    try {
+        const orderId = req.body.onlineOrderId;
+        const orderInfo = await feature4Client.online_orders.findUnique({
+            where: {
+                onlineOrderId: orderId,
+            },          
+        });
+        const orderDetails = await feature4Client.online_orders_detail.findMany({
+            where: {
+                onlineOrderId: orderId,
+            },
+        });
+        //menu name
+        const menuIds = orderDetails
+            .map((orderDetail) => orderDetail.menuId)
+            .filter((menuId) => menuId !== null) as number[];
+        const menu = await feature4Client.menu.findMany({
+            where: {
+                menuId: {
+                    in: menuIds,
+                },
+            },
+        });
+        // Calculate item count, total count, and total amount only once
+        const itemCount = orderDetails.length;
+        const totalCount = orderDetails.reduce((total, orderDetail) => total + orderDetail.quantity, 0);
+        const totalAmount = orderInfo?.total_amount;
 
-      // Process order details and add calculated values
-      const orderDetailsWithDetails = orderDetails.map((orderDetail) => {
-          const quantity = orderDetail.quantity;
-          const menuName = menu.find((menu) => menu.menuId === orderDetail.menuId)?.name;
-          const menuPrice = menu.find((menu) => menu.menuId === orderDetail.menuId)?.price;
-          return {
+        // Process order details and add calculated values
+        const orderDetailsWithDetails = orderDetails.map((orderDetail) => {
+            const quantity = orderDetail.quantity;
+            const menuName = menu.find((menu) => menu.menuId === orderDetail.menuId)?.name;
+            const menuPrice = menu.find((menu) => menu.menuId === orderDetail.menuId)?.price;
+            return {
 
-              menuName: menuName,
-              quantity: quantity,
-              menuPrice: menuPrice,
-          };
-      });
+                menuName: menuName,
+                quantity: quantity,
+                menuPrice: menuPrice,
+            };
+        });
 
-      // Add calculated values to the response
-      const finalResponse = {
-          orderId: orderInfo?.onlineOrderId,
-          orderDate: orderInfo?.order_date,
-          orderDetails: orderDetailsWithDetails,
-          itemCount: itemCount,
-          totalCount: totalCount,
-          totalAmount: totalAmount,
-      };
+        // Add calculated values to the response
+        const finalResponse = {
+            orderId: orderInfo?.onlineOrderId,
+            orderDate: orderInfo?.order_date,
+            orderDetails: orderDetailsWithDetails,
+            itemCount: itemCount,
+            totalCount: totalCount,
+            totalAmount: totalAmount,
+        };
 
-      res.status(200).json(finalResponse);
+        res.status(200).json(finalResponse);
+    }
+    catch (e) {
+        console.log(e);
+    }
   }
-  catch (e) {
-      console.log(e);
-  }
-}
 
 export const showOnGoingOrder = async (req: any, res: Response) => {
   try {
@@ -824,6 +824,59 @@ export const showOnGoingOrder = async (req: any, res: Response) => {
       },
       include: {
         Online_orders_detail: true,
+        
+      },
+    });
+    res.status(200).json(allOrders);
+  
+} catch (e) {
+  console.log(e);
+}
+}
+
+export const showCompletedOrder = async (req: any, res: Response) => {
+  try {
+    const token = req.cookies.authToken;
+    if (!token) {
+      return res.status(401).json({ error: "No auth token" });
+    }
+    const decodedToken = authService.decodeToken(token);
+    const { userId } = decodedToken;
+
+    const allOrders = await feature4Client.online_orders.findMany({
+      where: {
+        userId: parseInt(userId),
+        status: "Completed",
+      },
+      include: {
+        Online_orders_detail: true,
+        
+      },
+    });
+    res.status(200).json(allOrders);
+  
+} catch (e) {
+  console.log(e);
+}
+}
+
+export const showCanceledOrder = async (req: any, res: Response) => {
+  try {
+    const token = req.cookies.authToken;
+    if (!token) {
+      return res.status(401).json({ error: "No auth token" });
+    }
+    const decodedToken = authService.decodeToken(token);
+    const { userId } = decodedToken;
+
+    const allOrders = await feature4Client.online_orders.findMany({
+      where: {
+        userId: parseInt(userId),
+        status: "Canceled",
+      },
+      include: {
+        Online_orders_detail: true,
+        
       },
     });
     res.status(200).json(allOrders);
@@ -854,14 +907,14 @@ export const changeOrderStatusCompleted = async (req: any, res: Response) => {
         },
     });
 
-    await feature4Client.driver_list.update({
-      where: {
-          driverId: req.body.driverId,
-      },
-      data: {
-          driver_status: "Available",
-      },
-    });
+    // await feature4Client.driver_list.update({
+    //   where: {
+    //       driverId: req.body.driverId,
+    //   },
+    //   data: {
+    //       driver_status: "Available",
+    //   },
+    // });
       res.status(200).json({ success: true, message: 'Order status changed' });
   }
   catch (e) {
