@@ -49,7 +49,10 @@ import {
   makeErrorResponse,
 } from "./payment_method.model";
 
+import { makePromptPayUpdateWebResponse } from "./promptpay.model";
+
 export {
+  makePromptPayUpdateWebResponse,
   makePaymentMethodStoreWebResponse,
   makePaymentMethodUpdateWebResponse,
   makePaymentMethodWebResponse,

@@ -24,7 +24,13 @@ import PaymentMethodService, {
   IPaymentMethodService,
 } from "./payment_method.service";
 
+import PromptPayRepository from "./promptpay.repository";
+import PromptPayService, { IPromptPayService } from "./promptpay.service";
+
 export {
+  PromptPayRepository,
+  PromptPayService,
+  IPromptPayService,
   PaymentMethodRepository,
   PaymentMethodService,
   IPaymentMethodService,

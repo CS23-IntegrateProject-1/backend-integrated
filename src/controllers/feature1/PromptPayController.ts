@@ -1,16 +1,23 @@
 import { Request, Response } from "express";
-import { makeErrorResponse } from "./models/payment_method.model";
 import { PrismaClientValidationError } from "@prisma/client/runtime/library";
-import PromptPayRepository from "../../services/feature1/promptpay.repository";
-import PromptPayService, {
+import { z } from "zod";
+import { getUserId } from ".";
+import {
   IPromptPayService,
-} from "../../services/feature1/promptpay.service";
-import { makePromptPayUpdateWebResponse } from "./models/promptpay.model";
+  PromptPayRepository,
+  PromptPayService,
+} from "../../services/feature1";
+import { makeErrorResponse, makePromptPayUpdateWebResponse } from "./models";
 
 interface IPromptPayController {
   show(req: Request, res: Response): unknown;
   update(req: Request, res: Response): unknown;
 }
+
+const PromptPayPayload = z.object({
+  promptpay_number: z.number(),
+  phone_number: z.string(),
+});
 
 export default class PromptPayController implements IPromptPayController {
   private service: IPromptPayService = new PromptPayService(
@@ -39,28 +46,17 @@ export default class PromptPayController implements IPromptPayController {
   }
 
   async update(req: Request, res: Response) {
-    const { promptpay_number, phone_number } = req.body;
-    const promptPayNum = Number(promptpay_number);
+    const promptPayPayload = await PromptPayPayload.safeParseAsync(req.body);
 
-    if (
-      !promptpay_number ||
-      isNaN(promptPayNum) ||
-      typeof phone_number !== "string"
-    ) {
-      res
-        .status(400)
-        .json(
-          makeErrorResponse(
-            "Promptpay number or Phone number not present or invalid",
-          ),
-        );
+    if (!promptPayPayload.success) {
+      return res.status(400).json(makeErrorResponse("Invalid request")).send();
     }
 
     try {
       const response = await this.service.updatePromptPayOfUser(
-        Number(req.params.userId),
-        promptpay_number,
-        phone_number,
+        getUserId(req),
+        promptPayPayload.data.promptpay_number,
+        promptPayPayload.data.phone_number,
       );
 
       const webResponse = makePromptPayUpdateWebResponse(response);
