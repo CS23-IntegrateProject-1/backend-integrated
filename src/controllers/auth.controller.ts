@@ -336,5 +336,5 @@ class AuthController implements IAuthController {
 		}
 	}
 }
-// test TC build
+
 export default new AuthController();
