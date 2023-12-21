@@ -824,7 +824,8 @@ export const showOnGoingOrder = async (req: any, res: Response) => {
       },
       include: {
         Online_orders_detail: true,
-        
+        Driver_list: true,
+        Venue_branch: true,
       },
     });
     res.status(200).json(allOrders);
@@ -833,6 +834,7 @@ export const showOnGoingOrder = async (req: any, res: Response) => {
   console.log(e);
 }
 }
+
 
 export const showCompletedOrder = async (req: any, res: Response) => {
   try {
