@@ -3,21 +3,21 @@
     "name": "venue",
     "entries": [
       {
-        "value": "zyx",
+        "value": "Foo Bar Baz",
         "synonyms": [
-          "zyx"
+          "Foo Bar Baz"
         ]
       },
       {
-        "value": "abc",
+        "value": "MIK",
         "synonyms": [
-          "abc"
+          "MIK"
         ]
       },
       {
-        "value": "ABC Mart",
+        "value": "Foo Bar Baz_Club",
         "synonyms": [
-          "ABC Mart"
+          "Foo Bar Baz_Club"
         ]
       },
       {
@@ -31,48 +31,6 @@
         "synonyms": [
           "Mixue"
         ]
-      },
-      {
-        "value": "Venue4",
-        "synonyms": [
-          "Venue4"
-        ]
-      },
-      {
-        "value": "Venue5",
-        "synonyms": [
-          "Venue5"
-        ]
-      },
-      {
-        "value": "Venue6",
-        "synonyms": [
-          "Venue6"
-        ]
-      },
-      {
-        "value": "Venue7",
-        "synonyms": [
-          "Venue7"
-        ]
-      },
-      {
-        "value": "Venue8",
-        "synonyms": [
-          "Venue8"
-        ]
-      },
-      {
-        "value": "Venue9",
-        "synonyms": [
-          "Venue9"
-        ]
-      },
-      {
-        "value": "Venue10",
-        "synonyms": [
-          "Venue10"
-        ]
       }
     ]
   },
@@ -80,43 +38,21 @@
     "name": "category",
     "entries": [
       {
-        "value": {
-          "category": "Club"
-        },
+        "value": "bar",
         "synonyms": [
-          {
-            "category": "Club"
-          }
+          "bar"
         ]
       },
       {
-        "value": {
-          "category": "Restaurant"
-        },
+        "value": "Restaurant",
         "synonyms": [
-          {
-            "category": "Restaurant"
-          }
+          "Restaurant"
         ]
       },
       {
-        "value": {
-          "category": "Bar"
-        },
+        "value": "Club",
         "synonyms": [
-          {
-            "category": "Bar"
-          }
-        ]
-      },
-      {
-        "value": {
-          "category": "A LaCarte"
-        },
-        "synonyms": [
-          {
-            "category": "A LaCarte"
-          }
+          "Club"
         ]
       }
     ]
