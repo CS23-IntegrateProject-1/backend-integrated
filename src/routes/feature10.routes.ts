@@ -8,8 +8,8 @@ import {
   getFilmsById,
   getAllFilms,
   // getShowsByFilmId,
-  getShowsByTheaterId,
-  // getFilmsByTheaterId,
+  // getShowsByTheaterId,
+  getFilmsByTheaterId,
   getTheaterById,
   getTotalPriceByReservationId,
   bookSeatAndSendCookie,
@@ -17,6 +17,7 @@ import {
   getShowsByFilmIdandDate,
   getSeatByShowId,
   getReservationByUserId,
+
 } from "../controllers/feature10.controller";
 
 const feature10Router = Router();
@@ -28,17 +29,17 @@ feature10Router.get("/getShowingFilms", getShowingFilms);
 feature10Router.get("/getFilmsById/:id", getFilmsById);
 feature10Router.get("/getAllFilms", getAllFilms);
 // feature10Router.get("/getShowsByFilmId/:id", getShowsByFilmId);
-feature10Router.post("/getShowsByTheaterId", getShowsByTheaterId);
-// feature10Router.post("/getFilmsByTheaterId", getFilmsByTheaterId);
+// feature10Router.post("/getShowsByTheaterId", getShowsByTheaterId);
+feature10Router.post("/getFilmsByTheaterId", getFilmsByTheaterId);
 feature10Router.get("/getTheaterById/:id", getTheaterById);
-feature10Router.post(
-  "/getTotalPriceByReservationId",
-  getTotalPriceByReservationId
-);
+feature10Router.post("/getTotalPriceByReservationId",getTotalPriceByReservationId);
 feature10Router.post("/bookMovieSeat", bookSeatAndSendCookie);
 feature10Router.post("/getReservationById", getReservationById);
 feature10Router.post("/getShowsByFilmIdandDate", getShowsByFilmIdandDate);
 feature10Router.get("/getSeatByShowId", getSeatByShowId);
 feature10Router.get("/getReservationByUserId", getReservationByUserId);
 
+
+
 export default feature10Router;
+

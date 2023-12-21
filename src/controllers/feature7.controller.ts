@@ -33,7 +33,8 @@ export const getMenusByVenueId = async (req: any, res: Response) => {
         const allMenus = await feature7Client.menu.findMany(
             {
                 where: {
-                    venueId: venueId
+                    venueId: venueId,
+                    isused: true
                 }
             }
         );
@@ -56,7 +57,8 @@ export const getSetsByVenueId = async (req: any, res: Response) => {
         const allSets = await feature7Client.sets.findMany(
             {
                 where: {
-                    venueId: venueId
+                    venueId: venueId,
+                    isused : true
                 }
             }
         );
@@ -839,6 +841,7 @@ export const getReceipt = async (req: any, res: Response) => {
         const menuIds = orderDetails
             .map((orderDetail) => orderDetail.menuId)
             .filter((menuId) => menuId !== null) as number[];
+        // console.log(menuIds);
         const menu = await feature7Client.menu.findMany({
             where: {
                 menuId: {
@@ -857,6 +860,20 @@ export const getReceipt = async (req: any, res: Response) => {
                 },
             },
         });
+        const getPromotionVouchers = await feature7Client.promotion.findMany({
+            where: {
+                isApprove: "Completed",
+                venueId: orderInfo?.venueId,
+                menuId: {
+                    in: menuIds,
+                },
+                start_date: { lt: orderInfo?.order_date },
+                end_date: { gt: orderInfo?.order_date },
+            }
+        });
+        const promotionAmount = getPromotionVouchers.reduce((sum, voucher) => {
+            return sum + voucher.discount_price;
+        }, 0);
         // Calculate item count, total count, and total amount only once
         const itemCount = orderDetails.length;
         const totalCount = orderDetails.reduce((total, orderDetail) => total + orderDetail.quantity, 0);
@@ -888,6 +905,7 @@ export const getReceipt = async (req: any, res: Response) => {
             itemCount: itemCount,
             totalCount: totalCount,
             totalAmount: totalAmount,
+            promotionAmount: promotionAmount,
         };
 
         res.status(200).json(finalResponse);
@@ -896,7 +914,169 @@ export const getReceipt = async (req: any, res: Response) => {
         console.log(e);
     }
 }
-//change order status
+//get all user Vouchers
+export const getAllUserVouchers = async (req: any, res: Response) => {
+    try {
+        const userId = req.userId;
+        const reservationId = req.reservationId;
+        const orderId = reservationId;
+        const orderInfo = await feature7Client.orders.findUnique({
+            where: {
+                orderId: orderId,
+            },
+        });
+        const totalAmount = orderInfo?.total_amount;
+        const activeVouchers = await feature7Client.user_voucher.findMany({
+            where: {
+                userId: userId,
+                isUsed: false,
+            },
+        });
+        console.log(activeVouchers);
+        const voucherIds = activeVouchers.map((voucher) => voucher.voucherId);
+        const vouchers = await feature7Client.discount_voucher.findMany({
+            where: {
+                voucherId: {
+                    in: voucherIds,
+                },
+                minimum_spend: {
+                    lte: Number(totalAmount),
+                },
+            },
+        });
+        console.log(vouchers);
+        const discountVouchers = vouchers.map((voucher) => voucher.voucherId);
+        console.log(discountVouchers);
+        console.log(orderInfo?.order_date);
+        const promotionVouchers = await feature7Client.voucher.findMany({
+            where: {
+                voucherId: {
+                    in: discountVouchers,
+                },
+                isApprove: "Completed",
+                start_date: { lt: orderInfo?.order_date },
+                end_date: { gt: orderInfo?.order_date },
+            },
+        });
+        console.log(promotionVouchers);
+        res.status(200).json(promotionVouchers);
+    }
+    catch (e) {
+        console.log(e);
+    }
+}
+//select voucher
+export const selectVoucher = async (req: any, res: Response) => {
+    try {
+        const userId = req.userId;
+        const voucherId = req.body.voucherId;
+        const reservationId = req.reservationId;
+        const orderId = reservationId;
+        const orderInfo = await feature7Client.orders.findUnique({
+            where: {
+                orderId: orderId,
+            },
+        });
+        const totalAmount = orderInfo?.total_amount;
+        const voucherDetail = await feature7Client.discount_voucher.findUnique({
+            where: {
+                voucherId: voucherId,
+            },
+        });
+        const voucherName = await feature7Client.voucher.findUnique({
+            where: {
+                voucherId: voucherId,
+            },
+        });
+        const percentage = voucherDetail?.percent_discount;
+        const maximum = voucherDetail?.fix_discount;
+        let discountEarned = (percentage! / 100) * Number(totalAmount);
+
+        // If discount exceeds the maximum fix discount, use the fix discount instead
+        if (maximum && discountEarned > maximum) {
+            discountEarned = maximum;
+        }
+        const discount = req.cookies.discount || '[]';
+        const discountCookies = JSON.parse(discount);
+        discountCookies.push({
+            userId: userId,
+            voucherId: voucherId,
+            voucherName: voucherName?.voucher_name,
+            voucherDescription: voucherName?.description,
+            discountEarned: discountEarned,
+        });
+        await feature7Client.user_voucher.update({
+            where: {
+                userId_voucherId: {
+                    userId: userId,
+                    voucherId: voucherId,
+                },
+            },
+            data: {
+                isUsed: true,
+            },
+        });
+        res.cookie('discount', JSON.stringify(discountCookies));
+        const showDiscount = discountCookies[0];
+        res.status(200).json(showDiscount);
+
+    }
+    catch (e) {
+        console.log(e);
+    }
+}
+//remove voucher
+export const removeVoucher = async (req: any, res: Response) => {
+    try {
+        const userId = req.userId;
+        const voucherString = req.cookies.discount || '[]';
+        const voucher = JSON.parse(voucherString);
+        const voucherId = voucher[0].voucherId;
+        await feature7Client.user_voucher.update({
+            where: {
+                userId_voucherId: {
+                    userId: userId,
+                    voucherId: voucherId,
+                },
+            },
+            data: {
+                isUsed: false,
+            },
+        });
+        res.clearCookie('discount');
+        res.status(200).json({ success: true, message: 'Voucher removed' });
+    }
+    catch (e) {
+        console.log(e);
+    }
+}
+//go to payment
+export const proceedPayment = async (req: any, res: Response) => {
+    try {
+        const reservationId = req.reservationId;
+        const orderId = reservationId;
+        const newTotal = req.body.newTotal;
+        // Check if there is a discount cookie
+        if (req.cookies.discount) {
+            // Clear the discount cookie
+            res.clearCookie('discount');
+            console.log('Discount cookie cleared');
+        }
+        const updateTotal = await feature7Client.orders.update({
+            where: {
+                orderId: orderId,
+            },
+            data: {
+                total_amount: newTotal,
+            },
+        });
+        res.status(200).json(updateTotal);
+    }
+    catch (e) {
+        console.log(e);
+    }
+}
+//change order status MK
 export const changeOrderStatus = async (req: any, res: Response) => {
     try {
         console.log(req.body);
@@ -930,7 +1110,8 @@ export const getAllMenus = async (req: any, res: Response) => {
         const allMenus = await feature7Client.menu.findMany(
             {
                 where: {
-                    venueId: venueId
+                    venueId: venueId,
+                    isused: true,
                 }
             }
         );
@@ -953,7 +1134,8 @@ export const getAllSets = async (req: any, res: Response) => {
         const allSets = await feature7Client.sets.findMany(
             {
                 where: {
-                    venueId: venueId
+                    venueId: venueId,
+                    isused: true
                 }
             }
         );
@@ -1067,7 +1249,7 @@ export const editMenu = async (req: any, res: Response) => {
     // if (err) {
     //     return res.status(400).json({ error: err.message });
     // }
-  
+
     if (!req.file) {
         return res.status(400).json({ error: "Invalid image file" });
     }
@@ -1120,7 +1302,7 @@ export const editMenu = async (req: any, res: Response) => {
 //add menu
 export const addMenu = async (req: any, res: Response) => {
 
-    if(!req.file){
+    if (!req.file) {
         return res.status(400).json({ error: "Invalid image file" });
     }
     let imagePath;
@@ -1129,62 +1311,62 @@ export const addMenu = async (req: any, res: Response) => {
     else if (req.file.path.includes("\\"))
         imagePath = "/uploads/" + req.file.path.substring(req.file.path.lastIndexOf('\\') + 1);
     // const menuId = req.params.menuId;
-    
-        const businessId = req.businessId;
-        const getVenueId = await feature7Client.property.findFirst({
-            where: {
-                businessId: businessId,
+
+    const businessId = req.businessId;
+    const getVenueId = await feature7Client.property.findFirst({
+        where: {
+            businessId: businessId,
+        },
+    });
+    const venueId = getVenueId?.venueId;
+
+    // const image = "menuImage.jpg";
+
+    // Use multerConfig middleware to handle file upload
+
+    const name = req.body.name;
+    const price = req.body.price;
+    const description = req.body.description;
+    // const image = req.file ? req.file.filename : ''; // Use the filename generated by multer
+
+    try {
+        const menu = await feature7Client.menu.create({
+            data: {
+                name: name,
+                price: price,
+                description: description,
+                image: imagePath,
+                venueId: venueId!,
+                menu_no: 0,
             },
         });
-        const venueId = getVenueId?.venueId;
-
-        // const image = "menuImage.jpg";
-
-        // Use multerConfig middleware to handle file upload
-       
-            const name = req.body.name;
-            const price = req.body.price;
-            const description = req.body.description;
-            // const image = req.file ? req.file.filename : ''; // Use the filename generated by multer
-
-            try {
-                const menu = await feature7Client.menu.create({
+        const branchIds = await feature7Client.venue_branch.findMany({
+            where: {
+                venueId: venueId,
+            },
+            select: {
+                branchId: true,
+            },
+        });
+        await Promise.all(
+            branchIds.map(async (branchId) => {
+                const createdStock = await feature7Client.stocks.create({
                     data: {
-                        name: name,
-                        price: price,
-                        description: description,
-                        image: imagePath,
+                        menuId: menu.menuId,
                         venueId: venueId!,
-                        menu_no: 0,
+                        branchId: branchId.branchId,
                     },
                 });
-                const branchIds = await feature7Client.venue_branch.findMany({
-                    where: {
-                        venueId: venueId,
-                    },
-                    select: {
-                        branchId: true,
-                    },
-                });
-                await Promise.all(
-                    branchIds.map(async (branchId) => {
-                        const createdStock = await feature7Client.stocks.create({
-                            data: {
-                                menuId: menu.menuId,
-                                venueId: venueId!,
-                                branchId: branchId.branchId,
-                            },
-                        });
-                        return createdStock;
-                    })
-                );
+                return createdStock;
+            })
+        );
 
-                return res.status(200).json(menu);
-            } catch (e) {
-                console.error('Error adding menu:', e);
-                return res.status(500).json({ error: 'Internal Server Error' });
-            }
-        }
+        return res.status(200).json(menu);
+    } catch (e) {
+        console.error('Error adding menu:', e);
+        return res.status(500).json({ error: 'Internal Server Error' });
+    }
+}
 //add menu to set (cookies)
 export const addMenuItemsToSetsInCookies = async (req: Request, res: Response) => {
     try {
@@ -1272,46 +1454,46 @@ export const addSetWithMenuItems = async (req: any, res: Response) => {
         imagePath = "/uploads/" + req.file.path.substring(req.file.path.lastIndexOf('\\') + 1);
     // const menuId = req.params.menuId;
 
-            const { name, price, description } = req.body;
-            const businessId = req.businessId;
-            const getVenueId = await feature7Client.property.findFirst({
-                where: {
-                    businessId: businessId,
-                },
-            });
-            const venueId = getVenueId?.venueId;
-            const selectedMenuItem = req.cookies.setItems || [];
-            const selectedMenuItems = JSON.parse(selectedMenuItem);
-          //  const image = req.file ? req.file.filename : ''; // Use the filename generated by multer
+    const { name, price, description } = req.body;
+    const businessId = req.businessId;
+    const getVenueId = await feature7Client.property.findFirst({
+        where: {
+            businessId: businessId,
+        },
+    });
+    const venueId = getVenueId?.venueId;
+    const selectedMenuItem = req.cookies.setItems || [];
+    const selectedMenuItems = JSON.parse(selectedMenuItem);
+    //  const image = req.file ? req.file.filename : ''; // Use the filename generated by multer
 
 
-            try {
-                const createdSet = await feature7Client.sets.create({
-                    data: {
-                        name,
-                        price,
-                        description,
-                        image_url: imagePath,
-                        venueId: venueId!,
-                    },
-                });
-                const menuItems = selectedMenuItems.filter(item => item.setId === 0);
-                // Create set items in the SetItems table for the extracted menuId values
-                const setItems = await feature7Client.set_items.createMany({
-                    data: menuItems.map((item) => ({
-                        menuId: item.menuId,
-                        setId: createdSet.setId,
-                    })),
-                });
+    try {
+        const createdSet = await feature7Client.sets.create({
+            data: {
+                name,
+                price,
+                description,
+                image_url: imagePath,
+                venueId: venueId!,
+            },
+        });
+        const menuItems = selectedMenuItems.filter(item => item.setId === 0);
+        // Create set items in the SetItems table for the extracted menuId values
+        const setItems = await feature7Client.set_items.createMany({
+            data: menuItems.map((item) => ({
+                menuId: item.menuId,
+                setId: createdSet.setId,
+            })),
+        });
 
-                const updated = selectedMenuItems.filter(item => item.setId !== 0);
-                res.cookie('setItems', JSON.stringify(updated));
-                res.json({ createdSet, setItems });
+        const updated = selectedMenuItems.filter(item => item.setId !== 0);
+        res.cookie('setItems', JSON.stringify(updated));
+        res.json({ createdSet, setItems });
 
-            } catch (e) {
-                console.error('Error adding set:', e);
-                return res.status(500).json({ error: 'Internal Server Error' });
-            }
+    } catch (e) {
+        console.error('Error adding set:', e);
+        return res.status(500).json({ error: 'Internal Server Error' });
+    }
     //    catch (error) {
     //     console.error('Error adding set with menu items:', error);
     //     res.status(500).json({ error: 'Internal server error' });
@@ -1363,9 +1545,12 @@ export const deleteMenu = async (req: Request, res: Response) => {
                 }
             },
         });
-        await feature7Client.menu.delete({
+        await feature7Client.menu.update({
             where: {
                 menuId: parseInt(menuId),
+            },
+            data: {
+                isused: false,
             },
         });
         return res.status(200).json(deleteSet);
@@ -1383,9 +1568,12 @@ export const deleteSet = async (req: Request, res: Response) => {
                 setId: parseInt(setId),
             },
         });
-        const set = await feature7Client.sets.delete({
+        const set = await feature7Client.sets.update({
             where: {
                 setId: parseInt(setId),
+            },
+            data: {
+                isused: false,
             },
         });
         return res.status(200).json(set);
@@ -1466,54 +1654,54 @@ export const editSet = async (req: any, res: Response) => {
     }
     let imagePath;
     if (req.file.path.includes("/"))
-    imagePath = "/uploads/" + req.file.path.substring(req.file.path.lastIndexOf('/') + 1);
-else if (req.file.path.includes("\\"))
-    imagePath = "/uploads/" + req.file.path.substring(req.file.path.lastIndexOf('\\') + 1);
-            const setId = req.params.setId;
-            await feature7Client.sets.findUnique({ where: { setId: parseInt(setId) } });
-            const { name, price, description } = req.body;
-            const businessId = req.businessId;
-            const getVenueId = await feature7Client.property.findFirst({
-                where: {
-                    businessId: businessId,
-                },
-            });
-            const venueId = getVenueId?.venueId;
-            const selectedMenuItem = req.cookies.setItems || [];
-            const selectedMenuItems = JSON.parse(selectedMenuItem);
-            // const image = req.file?.filename || imageFile?.image_url; // Use the filename generated by multer
+        imagePath = "/uploads/" + req.file.path.substring(req.file.path.lastIndexOf('/') + 1);
+    else if (req.file.path.includes("\\"))
+        imagePath = "/uploads/" + req.file.path.substring(req.file.path.lastIndexOf('\\') + 1);
+    const setId = req.params.setId;
+    await feature7Client.sets.findUnique({ where: { setId: parseInt(setId) } });
+    const { name, price, description } = req.body;
+    const businessId = req.businessId;
+    const getVenueId = await feature7Client.property.findFirst({
+        where: {
+            businessId: businessId,
+        },
+    });
+    const venueId = getVenueId?.venueId;
+    const selectedMenuItem = req.cookies.setItems || [];
+    const selectedMenuItems = JSON.parse(selectedMenuItem);
+    // const image = req.file?.filename || imageFile?.image_url; // Use the filename generated by multer
 
-            try {
-                const editedSet = await feature7Client.sets.update({
-                    where: {
-                        setId: parseInt(setId),
-                    },
-                    data: {
-                        name,
-                        price,
-                        description,
-                        image_url: imagePath,
-                        venueId: venueId!,
-                    },
-                });
-                const menuItems = selectedMenuItems.filter(item => item.setId === parseInt(setId));
-                // Create set items in the SetItems table for the extracted menuId values
-                const setItems = await feature7Client.set_items.createMany({
-                    data: menuItems.map((item) => ({
-                        menuId: item.menuId,
-                        setId: parseInt(setId),
-                    })),
-                });
-                const updated = selectedMenuItems.filter(item => item.setId !== parseInt(setId));
-                res.cookie('setItems', JSON.stringify(updated));
-                res.clearCookie('setCache');
-                res.json({ editedSet, setItems });
+    try {
+        const editedSet = await feature7Client.sets.update({
+            where: {
+                setId: parseInt(setId),
+            },
+            data: {
+                name,
+                price,
+                description,
+                image_url: imagePath,
+                venueId: venueId!,
+            },
+        });
+        const menuItems = selectedMenuItems.filter(item => item.setId === parseInt(setId));
+        // Create set items in the SetItems table for the extracted menuId values
+        const setItems = await feature7Client.set_items.createMany({
+            data: menuItems.map((item) => ({
+                menuId: item.menuId,
+                setId: parseInt(setId),
+            })),
+        });
+        const updated = selectedMenuItems.filter(item => item.setId !== parseInt(setId));
+        res.cookie('setItems', JSON.stringify(updated));
+        res.clearCookie('setCache');
+        res.json({ editedSet, setItems });
 
-            } catch (e) {
-                console.error('Error adding set:', e);
-                return res.status(500).json({ error: 'Internal Server Error' });
-            }
-       
+    } catch (e) {
+        console.error('Error adding set:', e);
+        return res.status(500).json({ error: 'Internal Server Error' });
+    }
+
 };
 //get menu by venue which are not included in specific set
 export const getMenuByVenueNotInSet = async (req: any, res: Response) => {

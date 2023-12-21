@@ -9,13 +9,3 @@ export interface Theater {
   latitude: Decimal;
   longitude: Decimal;
 }
-
-export interface RecievedTheater {
-  theaterId: number;
-  name: string;
-  address: string;
-  phoneNum: string;
-  promptPayNum: string;
-  latitude: Decimal;
-  longitude: Decimal;
-}

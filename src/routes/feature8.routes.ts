@@ -60,13 +60,10 @@ import {
     getTransactionReserveIdByVenueIdAndEqualToStatusCompleted,
     createCheckoutSession,
     createDepositSession,
-    createSeatSessionnn,
+    createSeatSession,
     getTransactionReserveIdByVenueIdAndEqualToStatusCompletedAndFiltered,
     getReceipt,
-    getOrderIdByAppTransactionDetailId,
-    getlatestOrderMenuOrderUpdate,
-    getOrdersAndTableNos,
-    getBusinessId,
+    getOrderIdByAppTransactionDetailId
 } from "../controllers/feature8.controller";
 
 const feature8Router = Router();
@@ -131,7 +128,7 @@ feature8Router.get("/venuetransactions", getVenuetransaction);
 feature8Router.get("/venuetransactions/:venuetransactionId", getVenuetransactionById);
 feature8Router.get("/venuetransaction_details", getVenuetransactiondetail);
 feature8Router.get("/venuetransaction_details/:venuetransactionId", getVenuetransactiondetailById);
-feature8Router.get("/venue/:venueId", getVenueByVenueId);
+feature8Router.get("/venue", getVenueByVenueId);
 feature8Router.get("/venue/:venueId/getBusinessId" , getBusinessId);
 feature8Router.get("/venue/:venueId/getOrdersAndTableNos", getOrdersAndTableNos);
 feature8Router.get("/venue/orderchecklatest/:orderId", getlatestOrderMenuOrderUpdate);
@@ -144,7 +141,7 @@ feature8Router.post("/add_creditcard", addCreditCard);
 feature8Router.post("/add_venue_creditcard", addVenueCreditCard);
 feature8Router.post("/add_venue_promptpay", addVenuePromptpay);
 feature8Router.post("/create-checkout-session", createCheckoutSession);
-feature8Router.post("/create-deposit-session", createDepositSession);
+feature8Router.post("/create-deposit-session/:reservationId", createDepositSession);
 feature8Router.post("/create-seat-session", createSeatSessionnn);
 
 // patch method

@@ -4,7 +4,6 @@ import authService from "../services/auth/auth.service";
 
 const feature3Client = new PrismaClient();
 
-
 interface VenueInfo {
   venueId: number;
   branchId: number;
@@ -20,14 +19,21 @@ interface VenueInfo {
 }
 
 export const getVenuesPage = async (req: Request, res: Response) => {
+  const decoded = authService.decodeToken(req.cookies.authToken);
+  const userId = decoded ? decoded.userId : null;
+
   const search = String(req.query.search || "");
   const priceMin = Number(req.query.priceMin || 0);
   const priceMax = Number(req.query.priceMax || 1000);
-  const capacity = String(req.query.capacity || "").split(",").filter((v) => v !== "");
-  const category = String(req.query.category || "").split(",").filter((v) => v !== "");
+  const capacity = String(req.query.capacity || "")
+    .split(",")
+    .filter((v) => v !== "");
+  const category = String(req.query.category || "")
+    .split(",")
+    .filter((v) => v !== "");
   // console.log(category)
   try {
-    const [VenuesPage, menus, tables, venues] = await Promise.all([
+    const [VenuesPage, menus, tables] = await Promise.all([
       feature3Client.$queryRaw<VenueInfo[]>`
     SELECT
       V.venueId,
@@ -52,7 +58,6 @@ export const getVenuesPage = async (req: Request, res: Response) => {
   `,
       feature3Client.menu.findMany({}),
       feature3Client.table_type_detail.findMany({}),
-      feature3Client.venue.findMany({}),
     ]);
 
     const filteredVenues = VenuesPage.filter((v) =>
@@ -61,8 +66,10 @@ export const getVenuesPage = async (req: Request, res: Response) => {
         .toLowerCase()
         .includes(String(search).trim().toLowerCase())
     )
-    .filter((v) => {
-        const venueCategoryMatch = venues.filter((vs) => vs.venueId === v.venueId);
+      .filter((v) => {
+        const venueCategoryMatch = venues.filter(
+          (vs) => vs.venueId === v.venueId
+        );
         const statements: boolean[] = [];
 
         if (category.length === 0) {
@@ -131,14 +138,28 @@ export const getVenuesPage = async (req: Request, res: Response) => {
         }
 
         if (capacity.includes("11M")) {
-          statements.push(
-            venueTables.some((t) => t.capacity >= 11)
-            );
+          statements.push(venueTables.some((t) => t.capacity >= 11));
         }
         return statements.some((v) => v === true);
-      })
+      });
 
-    return res.json(filteredVenues);
+    const filteredVenuesWithFavourite = await Promise.all(
+      filteredVenues.map(async (venue) => {
+        const foundVenue = await feature3Client.saved_place.findFirst({
+          where: {
+            userId,
+            venueId: venue.venueId,
+          },
+        });
+        return {
+          ...venue,
+          isFavourite: foundVenue ? true : false,
+        };
+      })
+    );
+
+    console.log(filteredVenuesWithFavourite)
+    return res.json(filteredVenuesWithFavourite);
   } catch (error) {
     console.error(error);
     return res.status(500).json({ error: "Internal Server Error" });
@@ -160,14 +181,21 @@ interface RPVenueInfo {
 }
 
 export const getRecommendedPlaces = async (req: Request, res: Response) => {
+  const decoded = authService.decodeToken(req.cookies.authToken);
+  const userId = decoded ? decoded.userId : null;
+
   const search = String(req.query.search || "");
   const priceMin = Number(req.query.priceMin || 0);
   const priceMax = Number(req.query.priceMax || 1000);
-  const capacity = String(req.query.capacity || "").split(",").filter((v) => v !== "");
-  const category = String(req.query.category || "").split(",").filter((v) => v !== "");
+  const capacity = String(req.query.capacity || "")
+    .split(",")
+    .filter((v) => v !== "");
+  const category = String(req.query.category || "")
+    .split(",")
+    .filter((v) => v !== "");
   // console.log(category)
   try {
-    const [RecommendedPlaces, menus, tables, venues] = await Promise.all([
+    const [RecommendedPlaces, menus, tables] = await Promise.all([
       feature3Client.$queryRaw<RPVenueInfo[]>`
             SELECT V.venueId, VB.branchId, name, description, category, capacity,
             chatRoomId, locationId, website_url, COALESCE(AVG(VR.rating) , 0) as rating, venue_picture
@@ -179,7 +207,6 @@ export const getRecommendedPlaces = async (req: Request, res: Response) => {
           `,
       feature3Client.menu.findMany({}),
       feature3Client.table_type_detail.findMany({}),
-      feature3Client.venue.findMany({}),
     ]);
 
     const filteredVenues = RecommendedPlaces.filter((v) =>
@@ -188,34 +215,36 @@ export const getRecommendedPlaces = async (req: Request, res: Response) => {
         .toLowerCase()
         .includes(String(search).trim().toLowerCase())
     )
-    .filter((v) => {
-      const venueCategoryMatch = venues.filter((vs) => vs.venueId === v.venueId);
-      const statements: boolean[] = [];
-
-      if (category.length === 0) {
-        return true;
-      }
-
-      if (category.includes("Restaurant")) {
-        statements.push(
-          venueCategoryMatch.some((vs) => vs.category == "Restaurant")
+      .filter((v) => {
+        const venueCategoryMatch = venues.filter(
+          (vs) => vs.venueId === v.venueId
         );
-      }
+        const statements: boolean[] = [];
 
-      if (category.includes("Club")) {
-        statements.push(
-          venueCategoryMatch.some((vs) => vs.category == "Club")
-        );
-      }
+        if (category.length === 0) {
+          return true;
+        }
 
-      if (category.includes("Bar")) {
-        statements.push(
-          venueCategoryMatch.some((vs) => vs.category == "Bar")
-        );
-      }
+        if (category.includes("Restaurant")) {
+          statements.push(
+            venueCategoryMatch.some((vs) => vs.category == "Restaurant")
+          );
+        }
 
-      return statements.some((v) => v === true);
-    })
+        if (category.includes("Club")) {
+          statements.push(
+            venueCategoryMatch.some((vs) => vs.category == "Club")
+          );
+        }
+
+        if (category.includes("Bar")) {
+          statements.push(
+            venueCategoryMatch.some((vs) => vs.category == "Bar")
+          );
+        }
+
+        return statements.some((v) => v === true);
+      })
       .filter((v) => {
         const venueMenus = menus.filter((m) => m.venueId === v.venueId);
         const statements: boolean[] = [];
@@ -239,33 +268,46 @@ export const getRecommendedPlaces = async (req: Request, res: Response) => {
           return true;
         }
 
-        if (capacity.includes("1TO4")) {
+        if (capacity.includes("1-4")) {
           statements.push(
             venueTables.some((t) => t.capacity >= 1 && t.capacity <= 4)
           );
         }
 
-        if (capacity.includes("5TO6")) {
+        if (capacity.includes("4-6")) {
           statements.push(
-            venueTables.some((t) => t.capacity >= 5 && t.capacity <= 6)
+            venueTables.some((t) => t.capacity >= 4 && t.capacity <= 6)
           );
         }
 
-        if (capacity.includes("7TO10")) {
+        if (capacity.includes("6-10")) {
           statements.push(
-            venueTables.some((t) => t.capacity >= 7 && t.capacity <= 10)
+            venueTables.some((t) => t.capacity >= 6 && t.capacity <= 10)
           );
         }
 
         if (capacity.includes("11M")) {
-          statements.push(
-            venueTables.some((t) => t.capacity >= 11)
-            );
+          statements.push(venueTables.some((t) => t.capacity >= 11));
         }
         return statements.some((v) => v === true);
       });
 
-    return res.json(filteredVenues);
+      const filteredVenuesWithFavourite_RP = await Promise.all(
+        filteredVenues.map(async (venue) => {
+          const foundVenue = await feature3Client.saved_place.findFirst({
+            where: {
+              userId,
+              venueId: venue.venueId,
+            },
+          });
+          return {
+            ...venue,
+            isFavourite: foundVenue ? true : false,
+          };
+        })
+      );
+
+    return res.json(filteredVenuesWithFavourite_RP);
   } catch (error) {
     console.error(error);
     return res.status(500).json(error);
@@ -346,7 +388,6 @@ export const getVenDetailMenu = async (req: Request, res: Response) => {
   }
 };
 
-
 export const getReviewsBranch = async (req: Request, res: Response) => {
   try {
     const { branchId } = req.params;
@@ -367,7 +408,7 @@ export const getReviewsBranch = async (req: Request, res: Response) => {
     `;
 
     const filteredReviews = reviewsBranch.filter((review) => {
-      // console.log(reviewTypes, reviewStars);
+      console.log(reviewTypes, reviewStars);
       const reviewTypeMatch =
         reviewTypes.length === 0
           ? true
@@ -385,7 +426,6 @@ export const getReviewsBranch = async (req: Request, res: Response) => {
     res.status(500).json(error);
   }
 };
-
 
 interface ReviewsBranchOverAll_Interface {
   branchId: number;
@@ -611,17 +651,16 @@ export const postVenuesFavourites = async (req: Request, res: Response) => {
 
       return res.status(200).json(toggledFavourite);
     } else {
-      const newFavourite = await feature3Client.user.update({
-        where: {
-          userId,
-        },
+      const newFavourite = await feature3Client.saved_place.create({
         data: {
-          // Saved_place: {
-          //   create: {
-          //     venueId: venueIdInt
-          //   }
-          // }
+          userId,
+          venueId: venueIdInt,
         },
+        // Saved_place: {
+        //   create: {
+        //     venueId: venueIdInt
+        //   }
+        // }
       });
       return res.status(201).json(newFavourite);
     }
@@ -630,10 +669,6 @@ export const postVenuesFavourites = async (req: Request, res: Response) => {
     res.status(500).json(error);
   }
 };
-
-
-
-
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

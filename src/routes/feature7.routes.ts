@@ -42,6 +42,10 @@ import {
     getAllSets,
     cancelDeleteMenuItemFromSet,
     changeOrderStatus,
+    getAllUserVouchers,
+    selectVoucher,
+    removeVoucher,
+    proceedPayment,
 } from "../controllers/feature7.controller";
 import { customVerifyCookie } from "../middlewares/verifyCookies";
 import { businessVerifyCookie } from "../middlewares/businessVerifyCookies";
@@ -82,6 +86,16 @@ feature7Router.post("/addCartToOrderDetailsOfDineIn/", customVerifyCookie, reser
 feature7Router.get("/showOngoingOrderDetails/", customVerifyCookie, reservationMW, showOnGoingOrderDetails);
 //show Completed Order details
 feature7Router.get("/showCompletedOrderDetails/", customVerifyCookie, reservationMW, showCompletedOrderDetails);
+//get receipt
+feature7Router.get("/getReceipt/", reservationMW, customVerifyCookie, getReceipt);
+//get all user Vouchers
+feature7Router.get("/getAllUserVouchers/", customVerifyCookie, reservationMW, getAllUserVouchers);
+//select vouchers
+feature7Router.post("/selectVoucher/", customVerifyCookie, reservationMW, selectVoucher);
+//remove Voucher
+feature7Router.post("/removeVoucher/", customVerifyCookie, removeVoucher);
+//proceed Payment
+feature7Router.post("/proceedPayment/", customVerifyCookie, reservationMW, proceedPayment);
 //change order status
 feature7Router.patch("/changeOrderStatus/", changeOrderStatus);
 //-------------------Business-------------------//
@@ -107,7 +121,7 @@ feature7Router.get("/showMenuItemsInCookies", showMenuItemsInCookies);
 //show all set items in cookies (route for edit set)
 feature7Router.get("/showMenuItemsInCookies/:setId", showMenuItemsInCookies);
 //add set
-feature7Router.post("/addSetWithMenuItems/", multerConfig.single('file'),businessVerifyCookie, addSetWithMenuItems);
+feature7Router.post("/addSetWithMenuItems/", multerConfig.single('file'), businessVerifyCookie, addSetWithMenuItems);
 //clear set items in cookies 
 feature7Router.post("/clearSetItemsInCookies", clearSetItemsInCookies);
 //clear set items in cookies (route for edit set)
@@ -121,7 +135,7 @@ feature7Router.post("/deleteMenuItemFromSet/:setId/", deleteMenuItemFromSet);
 //cancel delete menu item from set
 feature7Router.post("/cancelDeleteMenuItemFromSet/", cancelDeleteMenuItemFromSet);
 //edit set
-feature7Router.post("/editSet/:setId", multerConfig.single('file'),businessVerifyCookie, editSet);
+feature7Router.post("/editSet/:setId", multerConfig.single('file'), businessVerifyCookie, editSet);
 //get menu by venue which are not included in specific set
 feature7Router.get("/getMenuByVenueIdNotInSet/:setId", businessVerifyCookie, getMenuByVenueNotInSet);
 //delete menu item before adding to set
@@ -136,7 +150,5 @@ feature7Router.get("/onGoingOrderDetailsInBusiness/", businessVerifyCookie, onGo
 feature7Router.get("/completedOrderDetailsInBusiness/", businessVerifyCookie, completedOrderDetailsInBusiness);
 //change orderdetails status completed
 feature7Router.post("/changeOrderDetailsStatusCompleted/:orderDetailId/", changeOrderDetailStatusCompleted);
-//get receipt
-feature7Router.get("/getReceipt/", reservationMW, customVerifyCookie, getReceipt);
 feature7Router.post("/addMenuMIK", addMenuMIK)
 export default feature7Router;

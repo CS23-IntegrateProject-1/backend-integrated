@@ -205,17 +205,18 @@ model Business_finance {
 }
 
 model Business_user {
-  businessId      Int           @id @default(autoincrement())
-  username        String
-  hashed_password String
-  email           String?       @unique @db.VarChar(125)
-  fname           String?
-  lname           String?
-  phone_num       String?       @unique @db.VarChar(10)
-  profile_picture String?
-  prompt_pay      Int?
-  Ad_business     Ad_business[]
-  Property        Property[]
+  businessId       Int                @id @default(autoincrement())
+  username         String
+  hashed_password  String
+  email            String?            @unique @db.VarChar(125)
+  fname            String?
+  lname            String?
+  phone_num        String?            @unique @db.VarChar(10)
+  profile_picture  String?
+  prompt_pay       Int?
+  Ad_business      Ad_business[]
+  Property         Property[]
+  Redeem_privilege Redeem_privilege[]
 }
 
 model Chat_Room_Logs {
@@ -791,29 +792,31 @@ model Privacy_policies {
 }
 
 model Promotion {
-  promotionId    Int                 @id @default(autoincrement())
-  name           String
-  description    String?
-  image_url      String?             @db.Text
-  start_date     DateTime
-  end_date       DateTime
-  discount_price Float
-  isApprove      Promotion_isApprove @default(In_progress)
-  venueId        Int
-  menuId         Int
-  branchId       Int?
-  Venue_branch   Venue_branch?       @relation(fields: [branchId], references: [branchId])
-  Menu           Menu                @relation(fields: [menuId], references: [menuId])
-  Venue          Venue               @relation(fields: [venueId], references: [venueId])
+  promotionId        Int                  @id @default(autoincrement())
+  name               String
+  description        String?
+  image_url          String?              @db.Text
+  start_date         DateTime
+  end_date           DateTime
+  discount_price     Float
+  isApprove          Promotion_isApprove  @default(In_progress)
+  venueId            Int
+  menuId             Int
+  branchId           Int?
+  Venue_branch       Venue_branch?        @relation(fields: [branchId], references: [branchId])
+  Menu               Menu                 @relation(fields: [menuId], references: [menuId])
+  Venue              Venue                @relation(fields: [venueId], references: [venueId])
+  Promotion_response Promotion_response[]
 
   @@index([branchId], map: "Promotion_branchId_fkey")
   @@index([menuId], map: "Promotion_menuId_fkey")
   @@index([venueId], map: "Promotion_venueId_fkey")
 }
 
-model Promotion_approval {
-  promotionId Int     @id
-  isApprove   Boolean @default(false)
+model Promotion_response {
+  promotionId Int       @id
+  response    String    @db.Text
+  promotion   Promotion @relation(fields: [promotionId], references: [promotionId])
 }
 
 model Property {
@@ -861,12 +864,14 @@ model Recommendation {
 }
 
 model Redeem_privilege {
-  redeemId    Int         @id @default(autoincrement())
+  redeemId    Int           @id @default(autoincrement())
   title       String
   description String
   memberTier  Int
-  image_url   String?     @db.Text
-  Member_tier Member_tier @relation(fields: [memberTier], references: [tierId])
+  image_url   String?       @db.Text
+  businessId Int?
+  bussiness   Business_user? @relation(fields: [businessId], references: [businessId])
+  Member_tier Member_tier   @relation(fields: [memberTier], references: [tierId])
 
   @@index([memberTier], map: "Redeem_privilege_memberTier_fkey")
 }
@@ -885,7 +890,6 @@ model Reservation {
   branchId                 Int?
   name                     String?
   phone                    String?                    @db.VarChar(10)
-  isPaymentSuccess         Payment_success            @default(Pending)
   Check_in_log             Check_in_log?
   Notes                    Notes?
   Notification_reservation Notification_reservation[]
@@ -902,11 +906,6 @@ model Reservation {
   @@index([depositId], map: "Reservation_depositId_fkey")
   @@index([userId], map: "Reservation_userId_fkey")
   @@index([venueId], map: "Reservation_venueId_fkey")
-}
-
-enum Payment_success {
-  Completed
-  Pending
 }
 
 model Reservation_logs {
@@ -1044,7 +1043,7 @@ model Sets {
   image_url    String?        @db.Text
   venueId      Int
   setId        Int            @id @default(autoincrement())
-  isused      Boolean @default(true)
+  isused       Boolean        @default(true)
   Order_detail Order_detail[]
   Set_items    Set_items[]
   Venue        Venue          @relation(fields: [venueId], references: [venueId])
@@ -1424,19 +1423,26 @@ model Venue_transaction_detail {
 model Voucher {
   voucher_name     String
   voucher_image    String
-  start_date       DateTime          @db.Date
-  end_date         DateTime          @db.Date
+  start_date       DateTime           @db.Date
+  end_date         DateTime           @db.Date
   description      String
   point_use        Int?
   venueId          Int
   isApprove        Voucher_isApprove
-  voucherId        Int               @id @default(autoincrement())
+  voucherId        Int                @id @default(autoincrement())
   Discount_voucher Discount_voucher?
   Food_voucher     Food_voucher?
   User_voucher     User_voucher[]
-  Venue            Venue             @relation(fields: [venueId], references: [venueId])
+  Venue            Venue              @relation(fields: [venueId], references: [venueId])
+  Voucher_response Voucher_response[]
 
   @@index([venueId], map: "Voucher_venueId_fkey")
+}
+
+model Voucher_response {
+  voucherId Int     @id
+  response  String  @db.Text
+  voucher   Voucher @relation(fields: [voucherId], references: [voucherId])
 }
 
 model menu_ingredients {
@@ -1502,7 +1508,7 @@ enum Films_genre {
   Horror
   Mystery
   Romance
-  SciFi
+  Sci_Fi
   Thriller
   War
   Western
@@ -1577,6 +1583,7 @@ enum Ad_business_isApprove {
   Rejected
   In_progress
   Completed
+  Awaiting_payment
 }
 
 enum Voucher_isApprove {
