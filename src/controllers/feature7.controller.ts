@@ -839,6 +839,7 @@ export const getReceipt = async (req: any, res: Response) => {
         const menuIds = orderDetails
             .map((orderDetail) => orderDetail.menuId)
             .filter((menuId) => menuId !== null) as number[];
+        // console.log(menuIds);
         const menu = await feature7Client.menu.findMany({
             where: {
                 menuId: {
@@ -857,8 +858,22 @@ export const getReceipt = async (req: any, res: Response) => {
                 },
             },
         });
-        // Calculate item count, total count, and total amount only once
-        const itemCount = orderDetails.length;
+        const getPromotionVouchers= await feature7Client.promotion.findMany({
+                where:{
+                    isApprove: "Completed",
+                    venueId: orderInfo?.venueId,
+                    menuId: {
+                        in: menuIds,
+                    },
+                    start_date :{lt:orderInfo?.order_date},
+                    end_date :{gt:orderInfo?.order_date},
+                }
+            });
+            const promotionAmount = getPromotionVouchers.reduce((sum, voucher) => {
+                return sum + voucher.discount_price;
+            }, 0);
+            // Calculate item count, total count, and total amount only once
+            const itemCount = orderDetails.length;
         const totalCount = orderDetails.reduce((total, orderDetail) => total + orderDetail.quantity, 0);
         const totalAmount = orderInfo?.total_amount;
 
@@ -888,6 +903,7 @@ export const getReceipt = async (req: any, res: Response) => {
             itemCount: itemCount,
             totalCount: totalCount,
             totalAmount: totalAmount,
+            promotionAmount: promotionAmount,
         };
 
         res.status(200).json(finalResponse);
@@ -896,7 +912,169 @@ export const getReceipt = async (req: any, res: Response) => {
         console.log(e);
     }
 }
-//change order status
+//get all user Vouchers
+export const getAllUserVouchers = async (req: any, res: Response) => {
+    try{
+        const userId = req.userId;
+        const reservationId = req.reservationId;
+        const orderId = reservationId;
+        const orderInfo = await feature7Client.orders.findUnique({
+            where: {
+                orderId: orderId,
+            },
+        });
+        const totalAmount = orderInfo?.total_amount;
+        const activeVouchers = await feature7Client.user_voucher.findMany({
+            where:{
+                userId: userId,
+                isUsed: false,
+            },
+        });
+        console.log(activeVouchers);
+        const voucherIds = activeVouchers.map((voucher) => voucher.voucherId);
+        const vouchers = await feature7Client.discount_voucher.findMany({
+            where: {
+                voucherId: {
+                    in: voucherIds,
+                },
+                minimum_spend: {
+                    lte: Number(totalAmount), 
+                },
+            },
+        });
+        console.log(vouchers);
+        const discountVouchers = vouchers.map((voucher) => voucher.voucherId);
+        console.log(discountVouchers);
+        console.log(orderInfo?.order_date);
+        const promotionVouchers = await feature7Client.voucher.findMany({
+            where: {
+                voucherId: {
+                    in: discountVouchers,
+                },
+                isApprove: "Completed",
+                start_date :{lt:orderInfo?.order_date},
+                end_date :{gt:orderInfo?.order_date},
+            },
+        });
+        console.log(promotionVouchers);
+        res.status(200).json(promotionVouchers);
+    }
+    catch(e){
+        console.log(e);
+    }
+}
+//select voucher
+export const selectVoucher = async (req: any, res: Response) => {
+    try{
+        const userId=req.userId;
+        const voucherId = req.body.voucherId;
+        const reservationId = req.reservationId;
+        const orderId = reservationId;
+        const orderInfo = await feature7Client.orders.findUnique({
+            where: {
+                orderId: orderId,
+            },
+        });
+        const totalAmount = orderInfo?.total_amount;
+        const voucherDetail = await feature7Client.discount_voucher.findUnique({
+            where: {
+                voucherId: voucherId,
+            },
+        });
+        const voucherName = await feature7Client.voucher.findUnique({
+            where:{
+                voucherId: voucherId,
+            },
+            });
+        const percentage = voucherDetail?.percent_discount;
+        const maximum = voucherDetail?.fix_discount;
+        let discountEarned = (percentage! / 100) * Number(totalAmount);
+
+    // If discount exceeds the maximum fix discount, use the fix discount instead
+    if (maximum && discountEarned > maximum) {
+        discountEarned = maximum;
+    }
+    const discount = req.cookies.discount || '[]';
+    const discountCookies = JSON.parse(discount);
+    discountCookies.push({
+        userId: userId,
+        voucherId: voucherId,
+        voucherName: voucherName?.voucher_name,
+        voucherDescription: voucherName?.description,
+        discountEarned: discountEarned,
+    });
+    await feature7Client.user_voucher.update({
+        where: {
+            userId_voucherId: {
+                userId: userId,
+                voucherId: voucherId,
+            },
+        },
+        data: {
+            isUsed: true,
+        },
+    });
+    res.cookie('discount', JSON.stringify(discountCookies));
+    const showDiscount =discountCookies[0];
+    res.status(200).json(showDiscount);
+
+    }
+    catch(e){
+        console.log(e);
+    }
+}
+//remove voucher
+export const removeVoucher = async (req: any, res: Response) => {
+    try{
+        const userId=req.userId;
+        const voucherString = req.cookies.discount || '[]';
+        const voucher = JSON.parse(voucherString);
+        const voucherId = voucher[0].voucherId;
+        await feature7Client.user_voucher.update({
+            where: {
+                userId_voucherId: {
+                    userId: userId,
+                    voucherId: voucherId,
+                },
+            },
+            data: {
+                isUsed: false,
+            },
+        });
+        res.clearCookie('discount');
+        res.status(200).json({ success: true, message: 'Voucher removed' });
+    }
+    catch(e){
+        console.log(e);
+    }
+}
+//go to payment
+export const proceedPayment = async (req: any, res: Response) => {
+    try{
+        const reservationId = req.reservationId;
+        const orderId = reservationId;
+        const newTotal= req.body.newTotal;
+        // Check if there is a discount cookie
+        if (req.cookies.discount) {
+            // Clear the discount cookie
+            res.clearCookie('discount');
+            console.log('Discount cookie cleared');
+        }
+        const updateTotal = await feature7Client.orders.update({
+            where: {
+                orderId: orderId,
+            },
+            data: {
+                total_amount: newTotal,
+            },
+        });
+        res.status(200).json(updateTotal);
+    }
+    catch(e){
+        console.log(e);
+    }
+}
+//change order status MK
 export const changeOrderStatus = async (req: any, res: Response) => {
     try {
         console.log(req.body);
