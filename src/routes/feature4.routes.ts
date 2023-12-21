@@ -26,7 +26,9 @@ import {
   updateCartItemQuantity,
   changeOrderStatusCompleted,
   changeOrderStatusCanceled,
-  showOnGoingOrder
+  showOnGoingOrder,
+  createOnlineOrder,
+  getReceipt,
 } from "../controllers/feature4.controller";
 import { customVerifyCookie } from "../middlewares/verifyCookies";
 const feature4Router = Router();
@@ -67,5 +69,7 @@ feature4Router.post("/updateCartItemQuantity/:itemId",customVerifyCookie, update
 feature4Router.patch("/changeOrderStatusCompleted", changeOrderStatusCompleted);
 feature4Router.patch("/changeOrderStatusCanceled", changeOrderStatusCanceled);
 feature4Router.get("/showOnGoingOrder", showOnGoingOrder);
+feature4Router.post("/createOnlineOrder",customVerifyCookie, createOnlineOrder);
+feature4Router.get("/getReceipt", getReceipt)
 
 export default feature4Router;

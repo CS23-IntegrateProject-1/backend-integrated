@@ -667,6 +667,146 @@ export const updateCartItemQuantity = async (req: any, res: Response) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
+//totalCost
+//{"totalValue":"1222"}
+//%7B%22totalValue%22%3A%221222%22%7D
+
+//onlineOrderItemCart
+//[{"userId":2,"itemId":"38","name":"demo","quantity":1,"price":"222"},{"userId":2,"itemId":"25","name":"Win","quantity":1,"price":"1000"}]
+//%5B%7B%22userId%22%3A2%2C%22itemId%22%3A%2225%22%2C%22name%22%3A%22Win%22%2C%22quantity%22%3A1%2C%22price%22%3A%221000%22%7D%2C%7B%22userId%22%3A2%2C%22itemId%22%3A%2238%22%2C%22name%22%3A%22demo%22%2C%22quantity%22%3A1%2C%22price%22%3A%22222%22%7D%5D
+
+export const createOnlineOrder = async (req: any, res: Response) => {
+  try {
+    const userId = req.userId;
+    const venueId = req.body.venueId;
+    const branchId = req.body.branchId;
+    const address = req.body.address;
+    const driverNote = req.body.driverNote;
+
+    const findDriver = await feature4Client.driver_list.findFirst({
+        where: {
+          driver_status: "Available",
+        }
+    });
+
+    const driverId = findDriver?.driverId;
+
+    const cartString = req.cookies.onlineOrderItemCart || "[]";
+    const cart = JSON.parse(cartString);
+    const userCart = cart.filter((item: any) => item.userId === userId);
+
+    const totalCostString = req.cookies.totalCost || '{"totalValue": "0"}';
+    const totalCost = JSON.parse(totalCostString).totalValue;
+
+    const newOrder = await feature4Client.online_orders.create({
+      data: {
+        userId: parseInt(userId),
+        venueId: parseInt(venueId),
+        order_date: new Date(),
+        total_amount: parseFloat(totalCost),  
+        address: address,
+        branchId: parseInt(branchId),
+        driverId: driverId??0,
+        driver_note: driverNote,
+        status: "On_going",
+      },
+    });
+
+    console.log("this is new order "+ newOrder.onlineOrderId);
+     const menuIds = userCart
+            .filter((item) => item.itemId !== null) // Filter out null values
+            .map((item) => parseInt(item.itemId));
+        const menu = await feature4Client.menu.findMany({
+            where: {
+                menuId: {
+                    in: menuIds.map((id) => parseInt(id))
+                }
+            }
+        });
+        console.log("Menu IDs:", menuIds);
+        console.log("Menu:", menu);
+        
+
+        await feature4Client.online_orders_detail.createMany({
+            data: userCart
+                .filter((item) => item.itemId !== null) // Filter out null menuId values
+                .map((item) => ({
+                    onlineOrderId: newOrder.onlineOrderId,
+                    menuId: (parseInt(item.itemId)),
+                    unit_price: menu.find((menu) => menu.menuId === parseInt(item.itemId, 10))?.price,
+                    quantity: parseInt(item.quantity),
+                    order_time: new Date(),
+                    status: "On_going",
+                })),
+        });
+
+    res.status(201).json({
+      message: "Order created successfully",
+      order: newOrder,
+    });
+  }catch (e) {
+    console.log(e);
+  }
+}
+
+export const getReceipt = async (req: any, res: Response) => {
+  try {
+      const orderId = req.body.onlineOrderId;
+      const orderInfo = await feature4Client.online_orders.findUnique({
+          where: {
+              onlineOrderId: orderId,
+          },          
+      });
+      const orderDetails = await feature4Client.online_orders_detail.findMany({
+          where: {
+              onlineOrderId: orderId,
+          },
+      });
+      //menu name
+      const menuIds = orderDetails
+          .map((orderDetail) => orderDetail.menuId)
+          .filter((menuId) => menuId !== null) as number[];
+      const menu = await feature4Client.menu.findMany({
+          where: {
+              menuId: {
+                  in: menuIds,
+              },
+          },
+      });
+      // Calculate item count, total count, and total amount only once
+      const itemCount = orderDetails.length;
+      const totalCount = orderDetails.reduce((total, orderDetail) => total + orderDetail.quantity, 0);
+      const totalAmount = orderInfo?.total_amount;
+
+      // Process order details and add calculated values
+      const orderDetailsWithDetails = orderDetails.map((orderDetail) => {
+          const quantity = orderDetail.quantity;
+          const menuName = menu.find((menu) => menu.menuId === orderDetail.menuId)?.name;
+          const menuPrice = menu.find((menu) => menu.menuId === orderDetail.menuId)?.price;
+          return {
+
+              menuName: menuName,
+              quantity: quantity,
+              menuPrice: menuPrice,
+          };
+      });
+
+      // Add calculated values to the response
+      const finalResponse = {
+          orderId: orderInfo?.onlineOrderId,
+          orderDate: orderInfo?.order_date,
+          orderDetails: orderDetailsWithDetails,
+          itemCount: itemCount,
+          totalCount: totalCount,
+          totalAmount: totalAmount,
+      };
+
+      res.status(200).json(finalResponse);
+  }
+  catch (e) {
+      console.log(e);
+  }
+}
 
 export const showOnGoingOrder = async (req: any, res: Response) => {
   try {
@@ -713,6 +853,15 @@ export const changeOrderStatusCompleted = async (req: any, res: Response) => {
             status: "Completed",
         },
     });
+
+    await feature4Client.driver_list.update({
+      where: {
+          driverId: req.body.driverId,
+      },
+      data: {
+          driver_status: "Available",
+      },
+    });
       res.status(200).json({ success: true, message: 'Order status changed' });
   }
   catch (e) {
@@ -746,3 +895,4 @@ export const changeOrderStatusCanceled = async (req: any, res: Response) => {
       console.log(e);
   }
 }
+
