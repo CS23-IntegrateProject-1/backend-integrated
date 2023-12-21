@@ -44,6 +44,7 @@ feature11Router.post("/addLike", addLike);
 feature11Router.post("/addCommentByCreator", CreatorLikeComment)
 feature11Router.post("/fetchUserArticle", getUserArticle)
 
+//------------saved place------------------------------
 feature11Router.post("/addSavedPlace", CreateSavedPLace)
 
 // * DELETE
@@ -55,6 +56,7 @@ feature11Router.delete("/deleteVenue", deleteVenue);
 feature11Router.delete("/deleteTag", deleteTag);
 feature11Router.delete("/deleteCommentLikeByCreator", deleteCommentLikeByCreator)
 
+//------------saved place------------------------------
 feature11Router.delete("/deleteSavedPlace", DeleteSavedPlace)
 
 // * UPDATE
@@ -67,6 +69,7 @@ feature11Router.get("/fetchAllVenueName", getAllVenueName);
 feature11Router.get("/fetchArticleHistory", getArticleHistory);
 feature11Router.get("/fetchCommentHistory", getCommentHistory);
 
+//------------saved place------------------------------
 feature11Router.get("/fetchUserSavedPlace", getUserSavedPlace);
 
 // parameter = article id
