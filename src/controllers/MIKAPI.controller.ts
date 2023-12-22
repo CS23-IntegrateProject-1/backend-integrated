@@ -61,7 +61,7 @@ export const ApiConfirmReserve = async (req: Request, res: Response) => {
                 },
             });
 
-        const entry_time = addHours(new Date(), 0);
+        const entry_time = addHours(new Date(), 7);
         const updateReservation = await mikPrismaClient.reservation.update({
             where: {
                 reservationId: reservationId,
