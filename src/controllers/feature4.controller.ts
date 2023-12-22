@@ -850,15 +850,42 @@ export const showOnGoingOrderDetail = async (req: any, res: Response) => {
       include: {
         Online_orders_detail: true,
         Driver_list: true,
-        Venue_branch: true, 
-        
+        Venue_branch: true,
       },
     });
-    res.status(200).json(allOrders[0]);
-  }catch (e) {
-      console.log(e);
+
+    // Fetch menu names based on menuIds
+    const menuIds = allOrders[0]?.Online_orders_detail.map(
+      (orderDetail) => orderDetail.menuId
+    );
+
+    if (menuIds && menuIds.length > 0) {
+      const menuData = await feature4Client.menu.findMany({
+        where: {
+          menuId: {
+            in: menuIds,
+          },
+        },
+      });
+
+      // Map menu data to each order detail
+      allOrders[0].Online_orders_detail.forEach((orderDetail: any) => {
+        const menuInfo = menuData.find(
+          (menu: any) => menu.menuId === orderDetail.menuId
+        );
+        if (menuInfo) {
+          orderDetail.menuName = menuInfo.name;
+        }
+      });
     }
-}
+
+    res.status(200).json(allOrders[0]);
+  } catch (e) {
+    console.log(e);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+};
+
 
 
 export const showCompletedOrder = async (req: any, res: Response) => {
@@ -904,6 +931,30 @@ export const showCompletedOrderDetail = async (req: any, res: Response) => {
         
       },
     });
+     // Fetch menu names based on menuIds
+     const menuIds = allOrders[0]?.Online_orders_detail.map(
+      (orderDetail) => orderDetail.menuId
+    );
+
+    if (menuIds && menuIds.length > 0) {
+      const menuData = await feature4Client.menu.findMany({
+        where: {
+          menuId: {
+            in: menuIds,
+          },
+        },
+      });
+
+      // Map menu data to each order detail
+      allOrders[0].Online_orders_detail.forEach((orderDetail: any) => {
+        const menuInfo = menuData.find(
+          (menu: any) => menu.menuId === orderDetail.menuId
+        );
+        if (menuInfo) {
+          orderDetail.menuName = menuInfo.name;
+        }
+      });
+    }
     res.status(200).json(allOrders[0]);
   }catch (e) {
       console.log(e);
@@ -949,9 +1000,32 @@ export const showCanceledOrderDetail = async (req: any, res: Response) => {
         Online_orders_detail: true,
         Driver_list: true,
         Venue_branch: true, 
-        
       },
     });
+     // Fetch menu names based on menuIds
+     const menuIds = allOrders[0]?.Online_orders_detail.map(
+      (orderDetail) => orderDetail.menuId
+    );
+
+    if (menuIds && menuIds.length > 0) {
+      const menuData = await feature4Client.menu.findMany({
+        where: {
+          menuId: {
+            in: menuIds,
+          },
+        },
+      });
+
+      // Map menu data to each order detail
+      allOrders[0].Online_orders_detail.forEach((orderDetail: any) => {
+        const menuInfo = menuData.find(
+          (menu: any) => menu.menuId === orderDetail.menuId
+        );
+        if (menuInfo) {
+          orderDetail.menuName = menuInfo.name;
+        }
+      });
+    }
     res.status(200).json(allOrders[0]);
   }catch (e) {
       console.log(e);
