@@ -74,6 +74,49 @@ class MajorAPIService {
       });
     }
   }
+
+  async editFilm() {
+    const majorData: Film[] = await this.getFilmsFromMajor();
+    const harmoniData: Film[] = await getFilmFromHarmoni();
+
+    for (const film of majorData) {
+      const harmoniFilm = harmoniData.find(
+        (hFilm) => hFilm.filmId === film.filmId
+      );
+
+      if (harmoniFilm) {
+        const hasChanged =
+          film.name !== harmoniFilm.name ||
+          film.genre !== harmoniFilm.genre ||
+          film.language !== harmoniFilm.language ||
+          film.synopsis !== harmoniFilm.synopsis ||
+          film.release_date !== harmoniFilm.release_date ||
+          film.duration !== harmoniFilm.duration ||
+          film.poster_img !== harmoniFilm.poster_img ||
+          film.rate !== harmoniFilm.rate;
+
+        if (hasChanged) {
+          //const genre = majorFilm.genre;
+          this.prisma.films.update({
+            where: {
+              filmId: film.filmId,
+            },
+            data: {
+              name: film.name,
+              genre: Films_genre[film.genre],
+              language: film.language,
+              synopsis: film.synopsis,
+              release_date: film.release_date,
+              duration: film.duration,
+              poster_img: film.poster_img,
+              rate: film.rate,
+            },
+          });
+        }
+      }
+      console.log("edit filmId: " + film.filmId);
+    }
+  }
   //
   async getScreenFromMajor() {
     const response = await Axios.get("/screen/getAllScreens");
@@ -122,6 +165,43 @@ class MajorAPIService {
       });
     }
   }
+
+  async editScreen() {
+    const majorData: Screen[] = await this.getScreenFromMajor();
+    const harmoniData: Screen[] = await getScreenFromHarmoni();
+
+    for (const screen of majorData) {
+      const harmoniScreen = harmoniData.find(
+        (hScreen) => hScreen.screenId === screen.screenId
+      );
+
+      if (harmoniScreen) {
+        const hasChanged =
+          screen.theaterId !== harmoniScreen.theaterId ||
+          screen.capacity !== harmoniScreen.capacity ||
+          screen.screen_type !== harmoniScreen.screen_type ||
+          screen.price !== harmoniScreen.price ||
+          screen.screen_no !== harmoniScreen.screen_no;
+
+        if (hasChanged) {
+          this.prisma.screens.update({
+            where: {
+              screenId: screen.screenId,
+            },
+            data: {
+              theaterId: screen.theaterId,
+              capacity: screen.capacity,
+              screen_type: Screens_screen_type[screen.screen_type],
+              price: screen.price,
+              screen_no: screen.screen_no,
+            },
+          });
+        }
+      }
+      console.log("edit screenId: " + screen.screenId);
+    }
+  }
+
   //
   async getTheatersFromMajor() {
     const response = await Axios.get("/theater/getTheaters");
@@ -170,9 +250,47 @@ class MajorAPIService {
       });
     }
   }
+  async editTheater() {
+    const majorData: Theater[] = await this.getTheatersFromMajor();
+    const harmoniData: Theater[] = await getTheaterFromHarmoni();
+
+    for (const theater of majorData) {
+      const harmoniTheater = harmoniData.find(
+        (hTheater) => hTheater.theaterId === theater.theaterId
+      );
+
+      if (harmoniTheater) {
+        const hasChanged =
+          theater.name !== harmoniTheater.name ||
+          theater.address !== harmoniTheater.address ||
+          theater.phone_num !== harmoniTheater.phone_num ||
+          theater.promptpay_num !== harmoniTheater.promptpay_num ||
+          theater.latitude !== harmoniTheater.latitude ||
+          theater.longitude !== harmoniTheater.longitude;
+
+        if (hasChanged) {
+          this.prisma.theaters.update({
+            where: {
+              theaterId: theater.theaterId,
+            },
+            data: {
+              name: theater.name,
+              address: theater.address,
+              phone_num: theater.phone_num,
+              promptpay_num: theater.promptpay_num,
+              latitude: theater.latitude,
+              longitude: theater.longitude,
+            },
+          });
+        }
+      }
+      console.log("edit theaterId: " + theater.theaterId);
+    }
+  }
   //
   async getShowFromMajor() {
     const response = await Axios.get("/show/getAllShows");
+    //console.log(response.data);
     return response.data;
   }
 
@@ -213,6 +331,43 @@ class MajorAPIService {
           showId: show.showId,
         },
       });
+    }
+  }
+  async editShow() {
+    const majorData: Show[] = await this.getShowFromMajor();
+    const harmoniData: Show[] = await getShowFromHarmoni();
+
+    for (const show of majorData) {
+      const harmoniShow = harmoniData.find(
+        (hShow) => hShow.showId === show.showId
+      );
+
+      if (harmoniShow) {
+        const hasChanged =
+          show.screenId !== harmoniShow.screenId ||
+          show.filmId !== harmoniShow.filmId ||
+          show.date !== harmoniShow.date ||
+          show.start_time !== harmoniShow.start_time ||
+          show.end_time !== harmoniShow.end_time ||
+          show.price !== harmoniShow.price;
+
+        if (hasChanged) {
+          this.prisma.shows.update({
+            where: {
+              showId: show.showId,
+            },
+            data: {
+              screenId: show.screenId,
+              filmId: show.filmId,
+              date: show.date,
+              start_time: show.start_time,
+              end_time: show.end_time,
+              price: show.price,
+            },
+          });
+        }
+      }
+      console.log("edit showId: " + show.showId);
     }
   }
   ////////////////////////////////////
@@ -263,6 +418,37 @@ class MajorAPIService {
       });
     }
   }
+  async editSeatType() {
+    const majorData: SeatType[] = await this.getSeatTypeFromMajor();
+    const harmoniData: SeatType[] = await getSeatTypeFromHarmoni();
+
+    for (const seatType of majorData) {
+      const harmoniSeatType = harmoniData.find(
+        (hSeatType) => hSeatType.seatTypeId === seatType.seatTypeId
+      );
+
+      if (harmoniSeatType) {
+        const hasChanged =
+          seatType.type_name !== harmoniSeatType.type_name ||
+          seatType.description !== harmoniSeatType.description ||
+          seatType.price_modifier !== harmoniSeatType.price_modifier;
+
+        if (hasChanged) {
+          this.prisma.seat_types.update({
+            where: {
+              seatTypeId: seatType.seatTypeId,
+            },
+            data: {
+              type_name: seatType.type_name,
+              description: seatType.description,
+              price_modifier: seatType.price_modifier,
+            },
+          });
+        }
+      }
+      console.log("edit seatTypeId: " + seatType.seatTypeId);
+    }
+  }
   //
   async getSeatFromMajor() {
     const response = await Axios.get("/seat/getAllSeats");
@@ -306,6 +492,40 @@ class MajorAPIService {
       });
     }
   }
+  async editSeat() {
+    const majorData: Seat[] = await this.getSeatFromMajor();
+    const harmoniData: Seat[] = await getSeatFromHarmoni();
+
+    for (const seat of majorData) {
+      const harmoniSeat = harmoniData.find(
+        (hSeat) => hSeat.seatId === seat.seatId
+      );
+
+      if (harmoniSeat) {
+        const hasChanged =
+          seat.screenId !== harmoniSeat.screenId ||
+          seat.seatTypeId !== harmoniSeat.seatTypeId ||
+          seat.seat_row !== harmoniSeat.seat_row ||
+          seat.seat_no !== harmoniSeat.seat_no;
+
+        if (hasChanged) {
+          // await this.prisma.seats.update({4
+          this.prisma.seats.update({
+            where: {
+              seatId: seat.seatId,
+            },
+            data: {
+              screenId: seat.screenId,
+              seatTypeId: seat.seatTypeId,
+              seat_row: seat.seat_row,
+              seat_no: seat.seat_no,
+            },
+          });
+        }
+      }
+      console.log("edit seatId: " + seat.seatId);
+    }
+  }
   //
   async getPaymentFromMajor() {
     const response = await Axios.get("/payment/getAllPayments");
@@ -321,10 +541,9 @@ class MajorAPIService {
   }
 
   async getReserveSeatFromMajor(showId: number) {
-    const response = await Axios.post(
-      "/reservation/getReserveSeatByShowId",
-      { showId }
-    );
+    const response = await Axios.post("/reservation/getReserveSeatByShowId", {
+      showId,
+    });
     return response.data;
   }
 }

@@ -1,7 +1,9 @@
 import { MajorAxios as Axios } from "../../configs/MajorAxiosInstance";
 import jwt from "jsonwebtoken";
+import { PrismaClient } from "@prisma/client";
 
 class bookSeatService {
+	prisma = new PrismaClient();
 	async getMinorAvilableSeats(showId: number, seatId: number) {
 		return await Axios.post("/api/reservation/check", {
 			showId: showId,
@@ -26,6 +28,15 @@ class bookSeatService {
 		return jwt.sign({ reservationIds, userId }, secretKey, {
 			expiresIn: 5 * 60,
 		});
+	}
+
+	async deleteLog(id: number) {
+		const response = await this.prisma.reservation_logs.deleteMany({
+			where: {
+				reservationId: id,
+			}
+		})
+		return response;
 	}
 }
 
