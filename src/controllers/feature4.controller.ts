@@ -835,6 +835,27 @@ export const showOnGoingOrder = async (req: any, res: Response) => {
 }
 }
 
+export const showOnGoingOrderDetail = async (req: any, res: Response) => {
+  try {
+    const orderId = req.params.orderId;
+    const allOrders = await feature4Client.online_orders.findMany({
+      where: {
+        onlineOrderId: parseInt(orderId),
+        status: "On_going",
+      },
+      include: {
+        Online_orders_detail: true,
+        Driver_list: true,
+        Venue_branch: true, 
+        
+      },
+    });
+    res.status(200).json(allOrders[0]);
+  }catch (e) {
+      console.log(e);
+    }
+}
+
 
 export const showCompletedOrder = async (req: any, res: Response) => {
   try {
@@ -852,6 +873,8 @@ export const showCompletedOrder = async (req: any, res: Response) => {
       },
       include: {
         Online_orders_detail: true,
+        Driver_list: true,
+        Venue_branch: true, 
         
       },
     });
@@ -860,6 +883,27 @@ export const showCompletedOrder = async (req: any, res: Response) => {
 } catch (e) {
   console.log(e);
 }
+}
+
+export const showCompletedOrderDetail = async (req: any, res: Response) => {
+  try {
+    const orderId = req.params.orderId;
+    const allOrders = await feature4Client.online_orders.findMany({
+      where: {
+        onlineOrderId: parseInt(orderId),
+        status: "Completed",
+      },
+      include: {
+        Online_orders_detail: true,
+        Driver_list: true,
+        Venue_branch: true, 
+        
+      },
+    });
+    res.status(200).json(allOrders[0]);
+  }catch (e) {
+      console.log(e);
+    }
 }
 
 export const showCanceledOrder = async (req: any, res: Response) => {
@@ -887,6 +931,27 @@ export const showCanceledOrder = async (req: any, res: Response) => {
 } catch (e) {
   console.log(e);
 }
+}
+
+export const showCanceledOrderDetail = async (req: any, res: Response) => {
+  try {
+    const orderId = req.params.orderId;
+    const allOrders = await feature4Client.online_orders.findMany({
+      where: {
+        onlineOrderId: parseInt(orderId),
+        status: "Canceled",
+      },
+      include: {
+        Online_orders_detail: true,
+        Driver_list: true,
+        Venue_branch: true, 
+        
+      },
+    });
+    res.status(200).json(allOrders[0]);
+  }catch (e) {
+      console.log(e);
+    }
 }
 
 export const changeOrderStatusCompleted = async (req: any, res: Response) => {

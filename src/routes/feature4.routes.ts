@@ -27,10 +27,14 @@ import {
   changeOrderStatusCompleted,
   changeOrderStatusCanceled,
   showOnGoingOrder,
+  showOnGoingOrderDetail,
   showCompletedOrder,
+  showCompletedOrderDetail,
   showCanceledOrder,
+  showCanceledOrderDetail,
   createOnlineOrder,
   getReceipt,
+
 } from "../controllers/feature4.controller";
 import { customVerifyCookie } from "../middlewares/verifyCookies";
 const feature4Router = Router();
@@ -75,5 +79,8 @@ feature4Router.get("/showCompletedOrder", showCompletedOrder);
 feature4Router.get("/showCanceledOrder", showCanceledOrder);
 feature4Router.post("/createOnlineOrder",customVerifyCookie, createOnlineOrder);
 feature4Router.get("/getReceipt", getReceipt)
+feature4Router.get("/showOnGoingOrderDetail/:orderId", showOnGoingOrderDetail);
+feature4Router.get("/showCompletedOrderDetail/:orderId", showCompletedOrderDetail);
+feature4Router.get("/showCanceledOrderDetail/:orderId", showCanceledOrderDetail);
 
 export default feature4Router;
