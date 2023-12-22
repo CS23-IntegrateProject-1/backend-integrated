@@ -10,6 +10,7 @@ import authService from "../services/auth/auth.service";
 import { MajorAxios as Axios } from "../configs/MajorAxiosInstance";
 import { AxiosError } from "axios";
 import filmsService from "../services/movie/films.service";
+import bookSeatService from "../services/movie/bookSeat.service";
 
 //import majorAPIService from "../services/movie/majorAPI.service";
 
@@ -232,32 +233,18 @@ export const bookSeatAndSendCookie = async (req: Request, res: Response) => {
 		console.log("showId: ", showId);
 
 		const userId = authService.decodeToken(req.cookies.authToken).userId;
-		const reservationIds: any[] = [];
 		try {
 			for (const seatId of seatIds) {
-				const isSeatAvailable = await Axios.post(
-					"/api/reservation/check",
-					{
-						showId: showId,
-						seatId: seatId,
-					}
-				);
+				const isSeatAvailable =
+					await bookSeatService.getMinorAvilableSeats(showId, seatId);
 				if (!isSeatAvailable.data) {
 					return res.status(400).json({
 						error: `Seat ${seatId} is not available`,
 					});
 				}
 			}
-			for (const seatId of seatIds) {
-				const createReservation = await Axios.post(
-					"/api/reservation/create",
-					{
-						showId,
-						seatId,
-					}
-				);
-				reservationIds.push(createReservation.data.reservationId);
-			}
+			const reservationIds: number[] =
+				await bookSeatService.createMinorReservation(seatIds, showId);
 			console.log("Created Reservation in major with id: ");
 			for (const reservationId of reservationIds) {
 				console.log(reservationId);
@@ -295,23 +282,17 @@ export const bookSeatAndSendCookie = async (req: Request, res: Response) => {
 				.json({ error: "Cannot Create harmoni reservation logs" });
 		}
 
-		const secretKey = process.env.JWT_SECRET as string;
-
 		console.log("Creating Cookies");
 
-		const movieReservationToken = jwt.sign(
-			{ reservationIds: harmoniLogs, userId: userId },
-			secretKey,
+		res.cookie(
+			"movieReservationToken",
+			bookSeatService.createCookie(harmoniLogs, userId),
 			{
-				expiresIn: 5 * 60, //5 mins
+				httpOnly: true,
+				sameSite: "none",
+				secure: true,
 			}
 		);
-
-		res.cookie("movieReservationToken", movieReservationToken, {
-			httpOnly: true,
-			sameSite: "none",
-			secure: true,
-		});
 
 		console.log("Sent Cookies");
 
