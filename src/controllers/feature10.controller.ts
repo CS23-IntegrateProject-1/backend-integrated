@@ -275,13 +275,32 @@ export const bookSeatAndSendCookie = async (req: Request, res: Response) => {
 		}
 
 		console.log("Create Major reservation success");
+		console.log("Creating Harmoni reservation logs");
+		const harmoniLogs: number[] = [];
+		try {
+			for (const seatId of seatIds) {
+				const response = await prisma.reservation_logs.create({
+					data: {
+						showId: showId,
+						seatId: seatId,
+						userId: userId,
+					},
+				});
+				harmoniLogs.push(response.reservationId);
+			}
+		} catch (e) {
+			console.log(e);
+			return res
+				.status(500)
+				.json({ error: "Cannot Create harmoni reservation logs" });
+		}
 
 		const secretKey = process.env.JWT_SECRET as string;
 
 		console.log("Creating Cookies");
 
 		const movieReservationToken = jwt.sign(
-			{ reservationIds: reservationIds, userId: userId },
+			{ reservationIds: harmoniLogs, userId: userId },
 			secretKey,
 			{
 				expiresIn: 5 * 60, //5 mins
@@ -295,24 +314,6 @@ export const bookSeatAndSendCookie = async (req: Request, res: Response) => {
 		});
 
 		console.log("Sent Cookies");
-
-		console.log("Creating Harmoni reservation logs");
-		try {
-			for (const seatId of seatIds) {
-				await prisma.reservation_logs.create({
-					data: {
-						showId: showId,
-						seatId: seatId,
-						userId: userId,
-					},
-				});
-			}
-		} catch (e) {
-			console.log(e);
-			return res
-				.status(500)
-				.json({ error: "Cannot Create harmoni reservation logs" });
-		}
 
 		console.log("Create Harmoni reservation logs success");
 
