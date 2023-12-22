@@ -1726,6 +1726,7 @@ export const getMenuByVenueNotInSet = async (req: any, res: Response) => {
                 menuId: {
                     notIn: menuIds,
                 },
+                isused: true,
             },
         });
         return res.status(200).json(menu);
@@ -1780,6 +1781,7 @@ export const showMenuItemsInSet = async (req: Request, res: Response) => {
                 menuId: {
                     in: menuIds,
                 },
+                isused: true,
             },
         });
         const result = menu.map((menuItem) => ({
