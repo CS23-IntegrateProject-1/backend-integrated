@@ -10,7 +10,7 @@ import {
   VenueUpdateDBResponse,
   VenueUpdateRequest,
 } from "../../controllers/feature1/models";
-import { identity, isNil } from "ramda";
+import { isNil } from "ramda";
 
 export interface IVenueRepository {
   getPriceRangeByBusinessId(businessId: number): Promise<PriceRangeDBResponse>;
@@ -154,10 +154,12 @@ class VenueRepository implements IVenueRepository {
     businessId: number,
     creditCardId: number,
   ): Promise<Venue_credit_card | null> {
-    identity(businessId);
+    const venueId = await this.getVenueId(businessId);
+
     return prismaClient.venue_credit_card.findFirst({
       where: {
         creditCardId,
+        venueId,
       },
     });
   }
