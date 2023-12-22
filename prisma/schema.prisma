@@ -779,6 +779,7 @@ model Point {
   amount        Int
   month_created DateTime @default(now())
   userId        Int
+  amount_used   Int?
   pointId       Int      @id @default(autoincrement())
   User          User     @relation(fields: [userId], references: [userId])
 
