@@ -61,7 +61,7 @@ export const ApiConfirmReserve = async (req: Request, res: Response) => {
                 },
             });
 
-        const entry_time = addHours(new Date(), 7);
+        const entry_time = addHours(new Date(), 0);
         const updateReservation = await mikPrismaClient.reservation.update({
             where: {
                 reservationId: reservationId,
@@ -73,9 +73,9 @@ export const ApiConfirmReserve = async (req: Request, res: Response) => {
             },
         });
 
-        const checkInTime = addHours(new Date(), 7);
+        const checkInTime = addHours(new Date(), 0);
         const defaultCheckoutTime = new Date();
-        defaultCheckoutTime.setHours(7, 0, 0, 0);
+        defaultCheckoutTime.setHours(0, 0, 0, 0);
 
         await mikPrismaClient.check_in_log.create({
             data: {
@@ -237,7 +237,7 @@ export const ApiReserve = async (req: Request, res: Response) => {
 export const ApiCheckOut = async (req: Request, res: Response) => {
     try {
         const reservationId = req.body.reservation_id;
-        const checkOutTime = addHours(new Date(), 7);
+        const checkOutTime = addHours(new Date(), 0);
 
         const checkOutLog = await mikPrismaClient.check_in_log.update({
             where: {
