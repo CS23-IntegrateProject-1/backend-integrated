@@ -1,6 +1,7 @@
 export interface Redeem{   
   title: string;
   description: string;
-  memberTier:  number;
+  memberTier:  string;
   image_url?:   string; 
+  businessId : number;
 }

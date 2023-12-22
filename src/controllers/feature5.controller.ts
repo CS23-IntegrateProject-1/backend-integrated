@@ -134,54 +134,54 @@ export const AdvertisementEditbyId = async (req: Request, res: Response) => {
     // const image_url =
     //   "/uploads/" + req.file.path.substring(req.file.path.lastIndexOf("/") + 1);
     if (req.file) {
-	let image_url;
-	if (req.file.path.includes("/")) {
-	image_url =
-		"/uploads/" + req.file.path.substring(req.file.path.lastIndexOf("/") + 1);
-	} else if (req.file.path.includes("\\")) {
-	image_url =
-		"/uploads/" +
-		req.file.path.substring(req.file.path.lastIndexOf("\\") + 1);
-	}
-	const isApprove = "In_progress";
+      let image_url;
+      if (req.file.path.includes("/")) {
+        image_url =
+          "/uploads/" +
+          req.file.path.substring(req.file.path.lastIndexOf("/") + 1);
+      } else if (req.file.path.includes("\\")) {
+        image_url =
+          "/uploads/" +
+          req.file.path.substring(req.file.path.lastIndexOf("\\") + 1);
+      }
+      const isApprove = "In_progress";
 
-	const EditAd = await feature5Client.ad_business.update({
-	where: {
-		advertisementId: advertisementId,
-	},
-	data: {
-		name,
-		description,
-		image_url,
-		cost,
-		start_date,
-		end_date,
-		customer_type,
-		target_group,
-		isApprove,
-	},
-	});
-	res.json(EditAd);
-    }
-    else{
-	const isApprove = "In_progress";
+      const EditAd = await feature5Client.ad_business.update({
+        where: {
+          advertisementId: advertisementId,
+        },
+        data: {
+          name,
+          description,
+          image_url,
+          cost,
+          start_date,
+          end_date,
+          customer_type,
+          target_group,
+          isApprove,
+        },
+      });
+      res.json(EditAd);
+    } else {
+      const isApprove = "In_progress";
 
-	const EditAd = await feature5Client.ad_business.update({
-	where: {
-		advertisementId: advertisementId,
-	},
-	data: {
-		name,
-		description,
-		cost,
-		start_date,
-		end_date,
-		customer_type,
-		target_group,
-		isApprove,
-	},
-	});
-	res.json(EditAd);
+      const EditAd = await feature5Client.ad_business.update({
+        where: {
+          advertisementId: advertisementId,
+        },
+        data: {
+          name,
+          description,
+          cost,
+          start_date,
+          end_date,
+          customer_type,
+          target_group,
+          isApprove,
+        },
+      });
+      res.json(EditAd);
     }
   } catch (err) {
     const error = err as Error;
@@ -418,53 +418,51 @@ export const VoucherEditbyId = async (req: Request, res: Response) => {
     const voucherId = parseInt(req.body.voucherId);
 
     if (req.file) {
-	let voucher_image;
-		if (req.file.path.includes("/")) {
-		voucher_image =
-			"/uploads/" + req.file.path.substring(req.file.path.lastIndexOf("/") + 1);
-		} else if (req.file.path.includes("\\")) {
-		voucher_image =
-			"/uploads/" +
-			req.file.path.substring(req.file.path.lastIndexOf("\\") + 1);
-		}
-		const isApprove = "In_progress";
+      let voucher_image;
+      if (req.file.path.includes("/")) {
+        voucher_image =
+          "/uploads/" +
+          req.file.path.substring(req.file.path.lastIndexOf("/") + 1);
+      } else if (req.file.path.includes("\\")) {
+        voucher_image =
+          "/uploads/" +
+          req.file.path.substring(req.file.path.lastIndexOf("\\") + 1);
+      }
+      const isApprove = "In_progress";
 
-		const EditVoucher = await feature5Client.voucher.update({
-		where: {
-			voucherId: voucherId,
-		},
-		data: {
-			voucher_name,
-			voucher_image,
-			start_date,
-			end_date,
-			description,
-			venueId,
-			isApprove,
-		},
-		});
-		res.json(EditVoucher);
-	}
-	else{
-		const isApprove = "In_progress";
+      const EditVoucher = await feature5Client.voucher.update({
+        where: {
+          voucherId: voucherId,
+        },
+        data: {
+          voucher_name,
+          voucher_image,
+          start_date,
+          end_date,
+          description,
+          venueId,
+          isApprove,
+        },
+      });
+      res.json(EditVoucher);
+    } else {
+      const isApprove = "In_progress";
 
-		const EditVoucher = await feature5Client.voucher.update({
-			where: {
-			voucherId: voucherId,
-			},
-			data: {
-			voucher_name,
-			start_date,
-			end_date,
-			description,
-			venueId,
-			isApprove,
-			},
-		});
-		res.json(EditVoucher);
-	}
-
-    
+      const EditVoucher = await feature5Client.voucher.update({
+        where: {
+          voucherId: voucherId,
+        },
+        data: {
+          voucher_name,
+          start_date,
+          end_date,
+          description,
+          venueId,
+          isApprove,
+        },
+      });
+      res.json(EditVoucher);
+    }
   } catch (err) {
     const error = err as Error;
     console.log(err);
@@ -663,6 +661,39 @@ export const CollectVoucher = async (req: Request, res: Response) => {
         isUsed: false,
       },
     });
+
+    const GetPoint = await feature5Client.voucher.findUnique({
+      where: {
+        voucherId: parseInt(id),
+      },
+      select: {
+        point_use: true,
+      },
+    });
+
+    const GetOriginalPoint = await feature5Client.point.findFirst({
+      where: {
+        userId: userId,
+      },
+      select: {
+        amount: true,
+        pointId: true,
+      },
+    });
+    if (GetOriginalPoint && GetPoint) {
+      const newAmount = GetOriginalPoint?.amount - (GetPoint?.point_use || 0);
+
+      const deductPoint = await feature5Client.point.update({
+        where: {
+          pointId: GetOriginalPoint?.pointId,
+        },
+        data: {
+          amount: newAmount,
+        },
+      });
+      console.log(deductPoint);
+    }
+
     res.json(voucher);
   } catch (e) {
     console.log(e);
@@ -843,19 +874,11 @@ export const Getpointused = async (req: Request, res: Response) => {
         pointId: userId,
       },
       select: {
-        amount_used: true,
         amount: true,
       },
     });
 
-    if (Getpointused?.amount_used != null) {
-      const Getpoint = Getpointused?.amount - Getpointused?.amount_used;
-      res.json(Getpoint);
-    } else {
-      const Getpoint = Getpointused?.amount;
-      res.json(Getpoint);
-    }
-    // res.json(Getpointused);
+    res.json(Getpointused);
   } catch (err) {
     const error = err as Error;
     res.status(500).json({ error: error.message });
@@ -1281,22 +1304,21 @@ export const GetRedeembyId = async (req: Request, res: Response) => {
   }
 };
 
-
 export const GetDeleteRedeembyId = async (req: Request, res: Response) => {
-	try {
-		const { redeemId } = req.params;
-		const GetDeletebyId = await feature5Client.redeem_privilege.delete({
-			where: {
-				redeemId: parseInt(redeemId),
-			},
-		});
+  try {
+    const { redeemId } = req.params;
+    const GetDeletebyId = await feature5Client.redeem_privilege.delete({
+      where: {
+        redeemId: parseInt(redeemId),
+      },
+    });
 
-		res.json(GetDeletebyId);
-	} catch (err) {
-		const error = err as Error;
-    console.log(err)
-		res.status(500).json({ error: error.message });
-	}
+    res.json(GetDeletebyId);
+  } catch (err) {
+    const error = err as Error;
+    console.log(err);
+    res.status(500).json({ error: error.message });
+  }
 };
 
 export const GetRedeembyBusinessId = async (req: Request, res: Response) => {
@@ -1335,26 +1357,47 @@ export const GetRedeembyBusinessId = async (req: Request, res: Response) => {
 };
 
 export const CreateRedeem = async (req: Request, res: Response) => {
-	try {
-		const Redeem: Redeem = req.body;
-		const { title, description, memberTier } = Redeem;
+  try {
+    const token = req.cookies.authToken;
+    if (!token) {
+      return res.status(401).json({ error: "No auth token" });
+    }
+    const decodedToken = authService.decodeToken(token);
+    if (decodedToken.userType != "business") {
+      try {
+        const result = await feature5Client.promotion.findMany({
+          where: {
+            //isApprove: "Completed",
+          },
+        });
+        return res.status(200).send(result);
+      } catch (e: Error | any) {
+        throw new Error(e.message);
+      }
+    }
+    const businessId = decodedToken.businessId;
 
-		const image_url =
-			"/uploads/" +
-			req.file.path.substring(req.file.path.lastIndexOf("/") + 1);
+    const Redeem: Redeem = req.body;
+    const { title, description, memberTier } = Redeem;
 
-		const newRedeem = await feature5Client.redeem_privilege.create({
-			data: {
-				title,
-				description,
-				image_url,
-				memberTier,
-			},
-		});
+    const memberTierNumber = parseInt(memberTier);
+    const image_url =
+      "/uploads/" + req.file.path.substring(req.file.path.lastIndexOf("/") + 1);
 
-		res.json(newRedeem);
-	} catch (err) {
-		const error = err as Error;
-		res.status(500).json({ error: error.message });
-	}
+    const newRedeem = await feature5Client.redeem_privilege.create({
+      data: {
+        title,
+        description,
+        image_url,
+        memberTier: memberTierNumber,
+        businessId: businessId,
+      },
+    });
+
+    res.json(newRedeem);
+  } catch (err) {
+    const error = err as Error;
+    console.log(err);
+    res.status(500).json({ error: error.message });
+  }
 };
