@@ -744,6 +744,16 @@ export const createOnlineOrder = async (req: any, res: Response) => {
                 })),
         });
 
+      const DriverStatus = await feature4Client.driver_list.update({
+          where: {
+           driverId: driverId,
+          },data: {
+            driver_status : "On_delivery",
+          }
+      });
+      console.log("Driver Status: ", DriverStatus);
+    
+    res.clearCookie("onlineOrderItemCart");
     res.status(201).json({
       message: "Order created successfully",
       order: newOrder,
