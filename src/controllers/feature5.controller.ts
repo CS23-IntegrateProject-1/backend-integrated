@@ -133,35 +133,56 @@ export const AdvertisementEditbyId = async (req: Request, res: Response) => {
 
     // const image_url =
     //   "/uploads/" + req.file.path.substring(req.file.path.lastIndexOf("/") + 1);
-    let image_url;
-    if (req.file.path.includes("/"))
-      image_url =
-        "/uploads/" +
-        req.file.path.substring(req.file.path.lastIndexOf("/") + 1);
-    else if (req.file.path.includes("\\"))
-      image_url =
-        "/uploads/" +
-        req.file.path.substring(req.file.path.lastIndexOf("\\") + 1);
+    if (req.file) {
+	let image_url;
+	if (req.file.path.includes("/")) {
+	image_url =
+		"/uploads/" + req.file.path.substring(req.file.path.lastIndexOf("/") + 1);
+	} else if (req.file.path.includes("\\")) {
+	image_url =
+		"/uploads/" +
+		req.file.path.substring(req.file.path.lastIndexOf("\\") + 1);
+	}
+	const isApprove = "In_progress";
 
-    const isApprove = "In_progress";
+	const EditAd = await feature5Client.ad_business.update({
+	where: {
+		advertisementId: advertisementId,
+	},
+	data: {
+		name,
+		description,
+		image_url,
+		cost,
+		start_date,
+		end_date,
+		customer_type,
+		target_group,
+		isApprove,
+	},
+	});
+	res.json(EditAd);
+    }
+    else{
+	const isApprove = "In_progress";
 
-    const EditAd = await feature5Client.ad_business.update({
-      where: {
-        advertisementId: advertisementId,
-      },
-      data: {
-        name,
-        description,
-        image_url,
-        cost,
-        start_date,
-        end_date,
-        customer_type,
-        target_group,
-        isApprove,
-      },
-    });
-    res.json(EditAd);
+	const EditAd = await feature5Client.ad_business.update({
+	where: {
+		advertisementId: advertisementId,
+	},
+	data: {
+		name,
+		description,
+		cost,
+		start_date,
+		end_date,
+		customer_type,
+		target_group,
+		isApprove,
+	},
+	});
+	res.json(EditAd);
+    }
   } catch (err) {
     const error = err as Error;
     console.log(err);
@@ -396,34 +417,54 @@ export const VoucherEditbyId = async (req: Request, res: Response) => {
     const venueId = parseInt(req.body.venueId);
     const voucherId = parseInt(req.body.voucherId);
 
-    let voucher_image;
-    if (req.file.path.includes("/")) {
-      voucher_image =
-        "/uploads/" +
-        req.file.path.substring(req.file.path.lastIndexOf("/") + 1);
-    } else if (req.file.path.includes("\\")) {
-      voucher_image =
-        "/uploads/" +
-        req.file.path.substring(req.file.path.lastIndexOf("\\") + 1);
-    }
+    if (req.file) {
+	let voucher_image;
+		if (req.file.path.includes("/")) {
+		voucher_image =
+			"/uploads/" + req.file.path.substring(req.file.path.lastIndexOf("/") + 1);
+		} else if (req.file.path.includes("\\")) {
+		voucher_image =
+			"/uploads/" +
+			req.file.path.substring(req.file.path.lastIndexOf("\\") + 1);
+		}
+		const isApprove = "In_progress";
 
-    const isApprove = "In_progress";
+		const EditVoucher = await feature5Client.voucher.update({
+		where: {
+			voucherId: voucherId,
+		},
+		data: {
+			voucher_name,
+			voucher_image,
+			start_date,
+			end_date,
+			description,
+			venueId,
+			isApprove,
+		},
+		});
+		res.json(EditVoucher);
+	}
+	else{
+		const isApprove = "In_progress";
 
-    const EditVoucher = await feature5Client.voucher.update({
-      where: {
-        voucherId: voucherId,
-      },
-      data: {
-        voucher_name,
-        voucher_image,
-        start_date,
-        end_date,
-        description,
-        venueId,
-        isApprove,
-      },
-    });
-    res.json(EditVoucher);
+		const EditVoucher = await feature5Client.voucher.update({
+			where: {
+			voucherId: voucherId,
+			},
+			data: {
+			voucher_name,
+			start_date,
+			end_date,
+			description,
+			venueId,
+			isApprove,
+			},
+		});
+		res.json(EditVoucher);
+	}
+
+    
   } catch (err) {
     const error = err as Error;
     console.log(err);
@@ -1240,7 +1281,22 @@ export const GetRedeembyId = async (req: Request, res: Response) => {
   }
 };
 
+export const GetDeleteRedeembyId = async (req: Request, res: Response) => {
+	try {
+		const { redeemId } = req.params;
+		const GetDeletebyId = await feature5Client.redeem_privilege.delete({
+			where: {
+				redeemId: parseInt(redeemId),
+			},
+		});
 
+		res.json(GetDeletebyId);
+	} catch (err) {
+		const error = err as Error;
+    console.log(err)
+		res.status(500).json({ error: error.message });
+	}
+};
 
 export const GetDeleteRedeembyId = async (req: Request, res: Response) => {
 	try {
