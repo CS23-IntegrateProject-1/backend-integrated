@@ -220,12 +220,14 @@ model Business_user {
 }
 
 model Chat_Room_Logs {
-  logId         Int       @id @default(autoincrement())
+  logId         Int          @id @default(autoincrement())
   userId        Int
   chatRoomId    Int
-  access_status Boolean   @default(true)
-  Chat_room     Chat_room @relation(fields: [chatRoomId], references: [chatRoomId])
-  User          User      @relation(fields: [userId], references: [userId])
+  access_status Boolean      @default(true)
+  reservationId Int?
+  reservation   Reservation? @relation(fields: [reservationId], references: [reservationId])
+  Chat_room     Chat_room    @relation(fields: [chatRoomId], references: [chatRoomId])
+  User          User         @relation(fields: [userId], references: [userId])
 
   @@index([chatRoomId], map: "Chat_Room_Logs_chatRoomId_fkey")
   @@index([userId], map: "Chat_Room_Logs_userId_fkey")
@@ -864,14 +866,14 @@ model Recommendation {
 }
 
 model Redeem_privilege {
-  redeemId    Int           @id @default(autoincrement())
+  redeemId    Int            @id @default(autoincrement())
   title       String
   description String
   memberTier  Int
-  image_url   String?       @db.Text
-  bussinessId Int?
-  bussiness   Business_user? @relation(fields: [bussinessId], references: [businessId])
-  Member_tier Member_tier   @relation(fields: [memberTier], references: [tierId])
+  image_url   String?        @db.Text
+  businessId  Int?
+  bussiness   Business_user? @relation(fields: [businessId], references: [businessId])
+  Member_tier Member_tier    @relation(fields: [memberTier], references: [tierId])
 
   @@index([memberTier], map: "Redeem_privilege_memberTier_fkey")
 }
@@ -902,6 +904,7 @@ model Reservation {
   Reservation_table        Reservation_table[]
   Share_reserve            Share_reserve?
   Transaction              Transaction?
+  Chat_Room_Logs           Chat_Room_Logs[]
 
   @@index([branchId], map: "Reservation_branchId_fkey")
   @@index([depositId], map: "Reservation_depositId_fkey")
