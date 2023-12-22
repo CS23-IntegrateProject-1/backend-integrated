@@ -313,6 +313,7 @@ export const createReservation = async (req: Request, res: Response) => {
                         chatRoomId: checkChatRoomId?.chatRoomId,
                         userId: userId,
                         access_status: true,
+                        reservationId: newReservation.reservationId,
                     },
                 });
             }
@@ -1183,6 +1184,23 @@ export const checkOut = async (req: Request, res: Response) => {
             },
             data: {
                 status: "Available",
+            },
+        });
+
+        if (reservationId == undefined){
+            res.status(500).json({"error": "reservationId not found"})
+        }
+        const logId = await feature6Client.chat_Room_Logs.findFirst({
+            where: {
+                reservationId: reservationId
+            },
+        });
+        await feature6Client.chat_Room_Logs.update({
+            where: {
+                logId: logId?.logId,
+            },
+            data: {
+                access_status: false,
             },
         });
 
