@@ -20,7 +20,11 @@ import {
 	getAllPromotion,
 	rejectPromotion,
 	ApprovePromotion,
-	fixComplainTicket
+	fixComplainTicket,
+	statistic,
+	getAllVenue,
+	createVenue,
+	updateVenue
 } from "../controllers/feature14.controller";
 
 const feature14Router = Router();
@@ -59,6 +63,11 @@ feature14Router.put("/accountUpdate/:id",updateAccount);
 
 //feature14Router.post("/createPromotionApproval",createPromotionApproval);
 
+// ! NEW2 ==================================================
+feature14Router.get("/getStatistic",statistic);
+feature14Router.get("/getAllVenue",getAllVenue);
 
+feature14Router.post("/createVenue",createVenue);
+feature14Router.post("/updateVenue/:id",updateVenue);	
 
 export default feature14Router;
