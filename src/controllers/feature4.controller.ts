@@ -1045,7 +1045,7 @@ export const showCanceledOrderDetail = async (req: any, res: Response) => {
 export const changeOrderStatusCompleted = async (req: any, res: Response) => {
   try {
       console.log(req.body);
-      const onlineOrderId = req.body.onlineOrderId;
+      const onlineOrderId = req.params.orderId;
       await feature4Client.online_orders.update({
           where: {
               onlineOrderId: onlineOrderId,
