@@ -2385,3 +2385,129 @@ const getSeatDynamicPriceId = async (req: Request) => {
 
 //   return price.id;
 // }
+
+export const createDeliveryOrderSession = async (req: Request, res: Response) => {
+  try {
+    // const { onlineOrderId } = authService.decodeToken(
+    //   req.cookies.onlineOrdercookies
+    // );
+    const onlineOrderId = parseInt(req.params.onlineOrderId);
+
+    const priceResponse = await getDeliveryOrderPriceDynamic(req, res);
+
+    if (isNotError) {
+      const session = await stripe.checkout.sessions.create({
+        line_items: [
+          {
+            price: priceResponse,
+            quantity: 1,
+          },
+        ],
+        mode: "payment",
+        success_url: `${process.env.CLIENT_URL}/map/food-delivery/completed`,
+        cancel_url: `${process.env.CLIENT_URL}/onlineorder-cancel`,
+      } as any);
+
+      await feature8Client.online_orders.update({
+        where: {
+          onlineOrderId: onlineOrderId,
+        },
+        data: {
+          status: "Completed",
+        },
+      });
+
+      const online_orders = await feature8Client.online_orders.findUnique({
+        where: {
+          onlineOrderId: onlineOrderId,
+        },
+        select: {
+          driverId: true,
+        },
+      })
+      const driverId = online_orders?.driverId;
+      console.log(driverId)
+
+      await feature8Client.driver_list.update({
+        where: {
+          driverId: driverId,
+        },
+        data: {
+          driver_status: "Available",
+        }
+      })
+
+      
+
+      return res.status(200).json({ url: session.url });
+    }
+  } catch (error) {
+    return res.json(error);
+  }
+};
+
+const getDeliveryOrderPriceDynamic = async (req: Request, res: Response) => {
+  const product = await stripe.products.create({
+    name: "Delivery",
+    description: "Pay for Delivery",
+  });
+  // const totalCostCookies = req.cookies.totalCost;
+  // const secretKey = process.env.JWT_SECRET as string;
+  // if (!totalCostCookies) {
+  //   isNotError = false;
+  //   return res.status(401).json({ message: "Invalid reservation token." });
+  // }
+  try {
+    // const decoded = jwt.verify(totalCostCookies, secretKey) as JwtPayload;
+    // const { totalValue } = decoded;
+    // const { onlineOrderId } = decoded;
+    const onlineOrderId = parseInt(req.params.onlineOrderId);
+    
+
+    const onlineOrder = await feature8Client.online_orders.findUnique({
+      where: { onlineOrderId: Number(onlineOrderId) },
+      select: { venueId: true, total_amount: true}
+    });
+    const venueId = onlineOrder?.venueId;
+    const totalAmount = onlineOrder?.total_amount;
+
+    if (!venueId) {
+      return res.status(404).json({ message: "Venue not found" });
+    }
+
+    if(!totalAmount){
+      return res.status(404).json({ message: "Total amount not found" });
+    }
+
+    // const depositQueryResult = await feature8Client.deposit.findFirst({
+    //   where: {
+    //     venueId: venueId,
+    //   },
+    //   select: {
+    //     depositId: true,
+    //     deposit_amount: true,
+    //   },
+    // });
+    
+
+    // const deposit_amount = depositQueryResult?.deposit_amount;
+    
+    const totalAmount2: any = totalAmount!.toFixed(2);
+    
+    const movedDecimalNumber = totalAmount2 * 100;
+      console.log(movedDecimalNumber);
+    const strPrice = movedDecimalNumber.toString();
+      console.log(strPrice);
+    const price = await stripe.prices.create({
+      unit_amount_decimal: strPrice,
+      currency: "thb",
+      product: product.id,
+    });
+    return price.id;
+  } catch (e) {
+    console.log(e);
+    return res.status(500).json(e);
+  }
+};
+
+
