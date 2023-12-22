@@ -778,7 +778,6 @@ model Place_nearby_cache {
 model Point {
   amount        Int
   month_created DateTime @default(now())
-  amount_used   Int?
   userId        Int
   pointId       Int      @id @default(autoincrement())
   User          User     @relation(fields: [userId], references: [userId])
