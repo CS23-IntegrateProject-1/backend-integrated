@@ -36,7 +36,7 @@ feature10Router.post("/getTotalPriceByReservationId",getTotalPriceByReservationI
 feature10Router.post("/bookMovieSeat", bookSeatAndSendCookie);
 feature10Router.post("/getReservationById", getReservationById);
 feature10Router.post("/getShowsByFilmIdandDate", getShowsByFilmIdandDate);
-feature10Router.get("/getSeatByShowId", getSeatByShowId);
+feature10Router.post("/getSeatByShowId", getSeatByShowId);
 feature10Router.get("/getReservationByUserId", getReservationByUserId);
 
 
