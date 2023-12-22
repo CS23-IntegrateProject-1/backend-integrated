@@ -124,7 +124,7 @@ export const getAvailableTables = async (req: Request) => {
         const openString = open.toISOString().split("T")[1].split(".")[0];
         const [hours, minutes, seconds] = openString.split(":").map(Number);
         const openMS = TodayDate.setHours(hours, minutes, seconds);
-        const openDate = addHours(new Date(openMS), 0);
+        const openDate = addHours(new Date(openMS), 7);
         const closeString = close.toISOString().split("T")[1].split(".")[0];
         const [closehours, closeminutes, closeseconds] = closeString
             .split(":")
@@ -137,12 +137,14 @@ export const getAvailableTables = async (req: Request) => {
             closeminutes,
             closeseconds
         );
-        const closeDate = addHours(new Date(closeMS), 0);
-        const twoHoursBeforeClose = subHours(closeDate, 2);
+        const closeDate = addHours(new Date(closeMS), 7);
+        const twoHoursBeforeClose = addHours(closeDate, 5);
         if (DateTimeStart < openDate || DateTimeStart > twoHoursBeforeClose) {
             return { error: "Reservation time is not within valid hours" };
         }
 
+        console.log("openDate", openDate);
+        console.log("closeDate", closeDate);
         const overlappingReservations = await prisma.reservation.findMany({
             where: {
                 venueId,
