@@ -1,3 +1,5 @@
+import { Term_of_services } from "@prisma/client";
+
 type TosShowWebResponse = {
   user_id: number;
   consented: boolean;
@@ -13,8 +15,6 @@ export type TosUpdateDBResponse = TosShowDBResponse;
 export type TosUpdateWebResponse = TosShowWebResponse;
 
 export type TosStoreWebResponse = TosShowWebResponse;
-
-export type TosStoreDBResponse = TosShowDBResponse;
 
 export function makeTosWebResponse(
   data: TosShowDBResponse,
@@ -35,7 +35,7 @@ export function makeTosUpdateWebResponse(
 }
 
 export function makeTosStoreWebResponse(
-  data: TosStoreDBResponse,
+  data: Term_of_services,
 ): TosStoreWebResponse {
   return {
     user_id: data.userId,
