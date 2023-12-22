@@ -675,6 +675,10 @@ export const updateCartItemQuantity = async (req: any, res: Response) => {
 //[{"userId":2,"itemId":"38","name":"demo","quantity":1,"price":"222"},{"userId":2,"itemId":"25","name":"Win","quantity":1,"price":"1000"}]
 //%5B%7B%22userId%22%3A2%2C%22itemId%22%3A%2225%22%2C%22name%22%3A%22Win%22%2C%22quantity%22%3A1%2C%22price%22%3A%221000%22%7D%2C%7B%22userId%22%3A2%2C%22itemId%22%3A%2238%22%2C%22name%22%3A%22demo%22%2C%22quantity%22%3A1%2C%22price%22%3A%22222%22%7D%5D
 
+
+
+
+//for posting data from delivery address on checkout page
 export const createOnlineOrder = async (req: any, res: Response) => {
   try {
     const userId = req.userId;
