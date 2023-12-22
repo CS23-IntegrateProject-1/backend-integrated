@@ -1240,22 +1240,7 @@ export const GetRedeembyId = async (req: Request, res: Response) => {
   }
 };
 
-export const GetDeleteRedeembyId = async (req: Request, res: Response) => {
-	try {
-		const { redeemId } = req.params;
-		const GetDeletebyId = await feature5Client.redeem_privilege.delete({
-			where: {
-				redeemId: parseInt(redeemId),
-			},
-		});
 
-		res.json(GetDeletebyId);
-	} catch (err) {
-		const error = err as Error;
-    console.log(err)
-		res.status(500).json({ error: error.message });
-	}
-};
 
 export const GetDeleteRedeembyId = async (req: Request, res: Response) => {
 	try {
