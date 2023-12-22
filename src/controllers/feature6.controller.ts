@@ -949,7 +949,7 @@ export const createOfflineReservation = async (req: Request, res: Response) => {
             });
 
             const reservationId = newReservation.reservationId;
-            const checkInTime = addHours(new Date(), 0);
+            const checkInTime = addHours(new Date(), 7);
 
             const defaultCheckoutTime = new Date();
             defaultCheckoutTime.setHours(0, 0, 0, 0);
@@ -987,7 +987,7 @@ export const checkIn = async (req: Request, res: Response) => {
         const reservationId = parseInt(req.params.reservationId);
         const authToken = req.body.authToken;
         const { userType } = authService.decodeToken(authToken);
-        const checkInTime = addHours(new Date(), 0);
+        const checkInTime = addHours(new Date(), 7);
         const reservation = await feature6Client.reservation.findUnique({
             where: { reservationId },
         });
@@ -1119,7 +1119,7 @@ export const qrCode = async (req: Request, res: Response) => {
 export const checkOut = async (req: Request, res: Response) => {
     try {
         const reservationId = parseInt(req.params.reservationId);
-        const checkOutTime = addHours(new Date(), 0);
+        const checkOutTime = addHours(new Date(), 7);
 
         const reservation = await feature6Client.reservation.findUnique({
             where: { reservationId },
