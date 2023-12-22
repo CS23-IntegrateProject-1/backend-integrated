@@ -1153,7 +1153,8 @@ export const getUserSavedPlace = async (req: Request, res: Response) => {
             capacity: true,
             chatRoomId: true,
             Location: true,
-            website_url: true
+            website_url: true,
+            venue_picture: true,
           }
         }
       }})
