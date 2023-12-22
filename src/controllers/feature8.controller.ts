@@ -2062,11 +2062,11 @@ export const createCheckoutSession = async (req: Request, res: Response) => {
         mode: "payment",
         success_url: `${process.env.CLIENT_URL}/`,
         cancel_url: `${process.env.CLIENT_URL}/checkout-cancel`,
+        
       } as any);
       // res.clearCookie("reservationToken");
       // return res.status(200).json({ url: session.url });
-      res.status(200).json({ url: session.url });
-
+      
       await feature8Client.reservation.update({
         where: {
           reservationId: reservationId,
@@ -2075,8 +2075,7 @@ export const createCheckoutSession = async (req: Request, res: Response) => {
           isPaymentSuccess: "Completed",
         },
       });
-      
-
+      res.status(200).json({ url: session.url });
       const token = req.cookies.authToken;
 
       if (!token) {
