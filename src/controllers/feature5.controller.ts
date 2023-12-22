@@ -812,24 +812,34 @@ export const GetMembertierPrivilleges = async (req: Request, res: Response) => {
 export const GetExpireDate = async (req: Request, res: Response) => {
   const { userId } = authService.decodeToken(req.cookies.authToken);
   try {
+    const GetPointId = await feature5Client.point.findFirst({
+      where: {
+        userId: userId,
+      },
+      select: {
+        pointId: true,
+      },
+    });
+
     const GetDate = await feature5Client.point.findUnique({
       where: {
-        pointId: userId,
+        pointId: GetPointId?.pointId,
       },
       select: {
         month_created: true,
       },
     });
 
+
     if (GetDate && GetDate.month_created) {
       // Convert the fetched date string to a JavaScript Date object
       const currentDate = new Date(GetDate.month_created);
-
       // Increase the date by 1 year
       currentDate.setFullYear(currentDate.getFullYear() + 1);
 
       // Now, currentDate represents the date increased by 1 year
       res.json({ currentDate });
+      
     } else {
       res.status(404).json({ message: "Date not found" });
     }
@@ -868,10 +878,19 @@ export const GetExpireDate = async (req: Request, res: Response) => {
 export const Getpointused = async (req: Request, res: Response) => {
   const { userId } = authService.decodeToken(req.cookies.authToken);
 
+  const GetPointId = await feature5Client.point.findFirst({
+    where: {
+      userId: userId,
+    },
+    select: {
+      pointId: true,
+    },
+  });
+
   try {
     const Getpointused = await feature5Client.point.findUnique({
       where: {
-        pointId: userId,
+        pointId: GetPointId?.pointId,
       },
       select: {
         amount: true,
