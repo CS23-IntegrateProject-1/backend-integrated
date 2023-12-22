@@ -5,6 +5,7 @@ import { Stripe } from "stripe";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import { Request, Response } from "express";
 import reservationService from "../services/movie/reservation.service";
+// import { is } from "ramda";
 
 const feature8Client = new PrismaClient();
 
@@ -2042,7 +2043,14 @@ const stripe = new Stripe(process.env.STRIP_KEY ?? "");
 export const createCheckoutSession = async (req: Request, res: Response) => {
   try {
     const priceResponse = await getDynamicPriceId(req, res);
-
+    const reservationToken = req.cookies.reservationToken;
+    const secretKey = process.env.JWT_SECRET as string;
+    if (!reservationToken) {
+      isNotError = false;
+      return res.status(401).json({ message: "Invalid reservation token." });
+    }
+    const decoded = jwt.verify(reservationToken, secretKey) as JwtPayload;
+    const { reservationId } = decoded;
     if (isNotError) {
       const session = await stripe.checkout.sessions.create({
         line_items: [
@@ -2052,15 +2060,95 @@ export const createCheckoutSession = async (req: Request, res: Response) => {
           },
         ],
         mode: "payment",
-        success_url: `${process.env.CLIENT_URL}/checkout-success`,
+        success_url: `${process.env.CLIENT_URL}/`,
         cancel_url: `${process.env.CLIENT_URL}/checkout-cancel`,
       } as any);
+      // res.clearCookie("reservationToken");
+      // return res.status(200).json({ url: session.url });
+      res.status(200).json({ url: session.url });
 
-      return res.status(200).json({ url: session.url });
+      await feature8Client.reservation.update({
+        where: {
+          reservationId: reservationId,
+        },
+        data: {
+          isPaymentSuccess: "Completed",
+        },
+      });
+      
+
+      const token = req.cookies.authToken;
+
+      if (!token) {
+        isNotError = false;
+        return res.status(404).json({ error: "not verify" });
+      }
+      const decodetoken = authService.decodeToken(token);
+      const userId = decodetoken.userId;
+      
+      const venueId = await feature8Client.reservation.findUnique({
+        where: { reservationId: Number(reservationId) },
+      });
+      const venue = await feature8Client.venue.findUnique({
+        where: { venueId: Number(venueId?.venueId) },
+      });
+      if (!venue) {
+        isNotError = false;
+        return res.status(404).json({ error: "Venue not found" });
+      }
+      
+      // const session = await stripe.checkout.sessions.create({
+      //   line_items: [
+      //     {
+      //       price: priceResponse,
+      //       quantity: 1,
+      //     },
+      //   ],
+      //   mode: "payment",
+      //   success_url: `${process.env.CLIENT_URL}/`,
+      //   cancel_url: `${process.env.CLIENT_URL}/checkout-cancel`,
+      // } as any);
+      
+      const total = await feature8Client.orders.findUnique({
+        where: {
+          reservedId: reservationId,
+        },
+        select: {
+          total_amount: true,
+        },
+      })
+
+      const newTransaction = await feature8Client.transaction.create({
+        data: {
+          userId: userId,
+          venueId: venue.venueId,
+          reserveId: reservationId,
+        }
+      });
+      
+      
+      await feature8Client.transaction_detail.create({
+        data: {
+          transactionId: newTransaction.transactionId ,
+          detail: "",
+          status: "",
+          timestamp: new Date(),
+          total_amount: total?.total_amount ?? 0,
+        }
+      });
+      // console.log(venueId)
+      // console.log(userId)
+      // console.log(reservationId)
+      // console.log(priceResponse + "priceResponse")
+      return;
+
+      
     }
-  } catch (error) {
-    return res.json(error);
+    }
+    catch (error) {
+      return res.json(error);
   }
+  // return res.clearCookie("reservationToken");
 };
 
 const getDynamicPriceId = async (req: Request, res: Response) => {
@@ -2094,7 +2182,16 @@ const getDynamicPriceId = async (req: Request, res: Response) => {
       currency: "thb",
       product: product.id,
     });
+    await feature8Client.reservation.update({
+      where: {
+        reservationId: reservationId,
+      },
+      data: {
+        isPaymentSuccess: "Completed",
+      },
+    });
     return price.id;
+    
   } catch (e) {
     console.log(e);
     return res.status(500).json(e);
