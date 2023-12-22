@@ -64,7 +64,9 @@ const expandBio = (profile: Profile): ExpandedProfile => {
 
   if (!isNil(profile.Point) && profile.Point.length >= 1) {
     profile["member_point"] = profile.Point[0].amount;
-    profile["member_point_used"] = isNil(profile.Point[0].amount_used) ? 0 : profile.Point[0].amount_used;
+    profile["member_point_used"] = isNil(profile.Point[0].amount_used)
+      ? 0
+      : profile.Point[0].amount_used;
   } else {
     profile["member_point"] = 0;
     profile["member_point_used"] = 0;
