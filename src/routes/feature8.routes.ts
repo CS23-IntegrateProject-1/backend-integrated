@@ -67,6 +67,7 @@ import {
     getlatestOrderMenuOrderUpdate,
     getOrdersAndTableNos,
     getBusinessId,
+    createDeliveryOrderSession,
 } from "../controllers/feature8.controller";
 
 const feature8Router = Router();
@@ -146,6 +147,7 @@ feature8Router.post("/add_venue_promptpay", addVenuePromptpay);
 feature8Router.post("/create-checkout-session", createCheckoutSession);
 feature8Router.post("/create-deposit-session/:reservationId", createDepositSession);
 feature8Router.post("/create-seat-session", createSeatSessionnn);
+feature8Router.post("/create-delivery-session/:onlineOrderId", createDeliveryOrderSession);
 
 // patch method
 feature8Router.patch("/update_creditcard/:creditCardId", updateCreditCard);
