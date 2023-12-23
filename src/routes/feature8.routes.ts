@@ -70,7 +70,9 @@ import {
     getBusinessId,
     createDeliveryOrderSession,
     BusinessuserIdToVenueId,
-    updateAdDB,
+    completePaymentDelivery,
+    completePaymentD,
+    completePaymentC,
     completePayment,
 } from "../controllers/feature8.controller";
 
@@ -154,8 +156,10 @@ feature8Router.post("/create-deposit-session/:reservationId", createDepositSessi
 feature8Router.post("/create-seat-session", createSeatSessionnn);
 feature8Router.post("/create-delivery-session/:onlineOrderId", createDeliveryOrderSession);
 feature8Router.post("/create-ad-session/:advertisementId", createAdSession);
-feature8Router.post("/update-ad-session/:advertisementId", updateAdDB);
 feature8Router.post('/complete-payment/:sessionId/:advertisementId', completePayment);
+feature8Router.post("/complete-payment-delivery/:sessionId/:onlineOrderId", completePaymentDelivery);
+feature8Router.post('/complete-paymentD/:sessionId/:reservationId', completePaymentD);
+feature8Router.post('/complete-paymentC/:sessionId/:reservationId', completePaymentC);
 // patch method
 feature8Router.patch("/update_creditcard/:creditCardId", updateCreditCard);
 feature8Router.patch("/update_venue_creditcard/:venueId", updateVenueCreditCard);
