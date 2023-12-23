@@ -592,6 +592,8 @@ export const getCountPerDay = async (req: Request, res: Response) => {
         const startOfToday = addHours(startOfDay(today), 0);
         const endOfToday = addHours(endOfDay(today), 0);
 
+        console.log("start:",startOfToday)
+        console.log("end:",endOfToday)
         const transactionsToday = await feature6Client.transaction.findMany({
             where: {
                 AND: [
@@ -639,7 +641,7 @@ export const getCountPerDay = async (req: Request, res: Response) => {
                 Reservation_table: true,
             },
         });
-
+        // console.log(reservationsToday)
         let ReservationCount = 0;
         reservationsToday.forEach((reservation) => {
             ReservationCount += reservation.Reservation_table.length;
@@ -851,7 +853,7 @@ export const createOfflineReservation = async (req: Request, res: Response) => {
         const concatDatetime = `${reserve_date} ${time}`;
         const reserved_time = new Date(concatDatetime);
         // Use the previous functions to check availability and find a suitable table
-        const newreserveTime = addHours(new Date(reserved_time), 0);
+        const newreserveTime = addHours(new Date(reserved_time), 7);
         // const entry_time = addMinutes(new Date(reserved_time), -30);
         req.body.reserve_date = reserve_date;
         req.body.time = time;
@@ -919,12 +921,13 @@ export const createOfflineReservation = async (req: Request, res: Response) => {
                     reserved_time: new Date(newreserveTime),
                     entry_time: new Date(newreserveTime),
                     status: "Check_in",
-                    isPaidDeposit: "Pending",
+                    isPaidDeposit: "Completed",
                     isReview: false,
                     depositId: depositId[0].depositId,
                     branchId: branchId,
                     phone: phone_num,
                     name: name,
+                    isPaymentSuccess: "Completed"
                 },
             });
 
@@ -1127,11 +1130,11 @@ export const checkOut = async (req: Request, res: Response) => {
         if (!reservation) {
             return res.status(404).json({ error: "Reservation not found" });
         }
-        if (reservation.status !== "Check_in") {
+        if (reservation.status !== "Check_in" ) {
             return res.status(400).json({ error: "Check-Out not success" });
         }
         if(reservation.isPaymentSuccess === "Pending"){
-            return res.status(200).send(402);
+            return res.status(200).json("Payment Require");
         }
 
         const checkOutLog = await feature6Client.check_in_log.update({
@@ -1235,14 +1238,5 @@ export const uploadTableTypeImage = async (req: Request, res: Response) => {
         res.status(200).json({ payload: "oh yeaaa" });
     } catch (err) {
         res.status(500).json({ err: "sorry something wrong" });
-    }
-};
-
-export const testTimezone = async (req: Request, res: Response) => {
-    try {
-        getAvailableTables(req);
-        res.status(200).json("Success");
-    } catch (e) {
-        res.status(500).json(e);
     }
 };
