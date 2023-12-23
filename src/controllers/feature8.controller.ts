@@ -2547,7 +2547,7 @@ export const BusinessuserIdToVenueId = async (req: Request, res: Response) => {
 //For Ad
 export const createAdSession = async (req: Request, res: Response) => {
   try {
-
+    const advertisementId = parseInt(req.params.advertisementId);
     const priceResponse = await getAdDynamicPriceId(req, res);
 
     if (isNotError) {
@@ -2559,22 +2559,22 @@ export const createAdSession = async (req: Request, res: Response) => {
           },
         ],
         mode: "payment",
-        success_url: `${process.env.CLIENT_URL}/`,
+        success_url: `${process.env.CLIENT_URL}/business/Notification/advertisement/${advertisementId}/{CHECKOUT_SESSION_ID}`,
         cancel_url: `${process.env.CLIENT_URL}/`,
       } as any);
       
-      const advertisementId = parseInt(req.params.advertisementId);
+      // const advertisementId = parseInt(req.params.advertisementId);
 
-      await feature8Client.ad_business.update({
-        where: {
-          advertisementId: advertisementId,
-        },
-        data: {
-          isApprove: "In_progress",
-        },
-      });
+      // await feature8Client.ad_business.update({
+      //   where: {
+      //     advertisementId: advertisementId,
+      //   },
+      //   data: {
+      //     isApprove: "In_progress",
+      //   },
+      // });
 
-      return res.status(200).json({ url: session.url });
+      return res.status(200).json({ url: session.url , sessionId: session.id });
 
     }
   } catch (error) {
@@ -2619,5 +2619,61 @@ const getAdDynamicPriceId = async (req: Request, res: Response) => {
   } catch (e) {
     console.log(e);
     return res.status(500).json(e);
+  }
+};
+
+
+
+export const updateAdDB = async (req: Request, res: Response) => {
+  try {
+
+    const advertisementId = parseInt(req.params.advertisementId);
+
+    // Update ad_business in your database
+    await feature8Client.ad_business.update({
+      where: {
+        advertisementId: (advertisementId),
+      },
+      data: {
+        isApprove: 'In_progress',
+      },
+    });
+
+    return res.status(200).json({ success: true });
+  } catch (error) {
+    console.error('Error updating ad_business:', error);
+    return res.status(500).json({ success: false, error: 'Internal Server Error' });
+  }
+};
+
+
+export const completePayment = async (req: Request, res: Response) => {
+  try {
+    const { sessionId, advertisementId } = req.params;
+
+    // Verify the session with Stripe
+    const session = await stripe.checkout.sessions.retrieve(sessionId);
+
+    // Check if payment was successful
+    if (session.payment_status === 'paid') {
+      // Update your database with the payment confirmation
+      await feature8Client.ad_business.update({
+        where: {
+          advertisementId: parseInt(advertisementId),
+        },
+        data: {
+          isApprove: 'In_progress',
+        },
+      });
+
+      // Perform any additional actions or send a success response
+      return res.status(200).json({ success: true, message: 'Payment successful' });
+    } else {
+      // Handle unsuccessful payment
+      return res.status(400).json({ success: false, message: 'Payment failed' });
+    }
+  } catch (error) {
+    console.error('Error completing payment:', error);
+    return res.status(500).json({ success: false, error: 'Internal Server Error' });
   }
 };
