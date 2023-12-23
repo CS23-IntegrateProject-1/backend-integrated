@@ -194,10 +194,40 @@ export const AdminApprove = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const { isApprove } = req.body;
+    
     const ApproveAd = await feature5Client.ad_business.update({
       where: { advertisementId: parseInt(id) },
       data: { isApprove },
+  
     });
+
+    const advertisement = await feature5Client.ad_business.findUnique({
+      where: { advertisementId: parseInt(id) },
+      select: { name: true, cost: true },
+    });
+
+    if (!advertisement) {
+      return res.status(404).json({ error: "Advertisement not found" });
+    }
+
+    const { name, cost } = advertisement;
+
+
+    if (isApprove === "Awaiting_payment") {
+      const title = `Your advertisement "${name}" Accepted from admin`;
+      const message = `Please proceed with the payment for the advertisement "${name}" with a cost of ${cost}.`;
+      const isApprove = "Awaiting_payment";
+
+      await feature5Client.notification_ad_business.create({
+        data: {
+          title,
+          message,
+          isApprove: isApprove,
+          advertisementId: parseInt(id),
+        }
+      });
+    }
+    
     res.json(ApproveAd);
   } catch (err) {
     const error = err as Error;
