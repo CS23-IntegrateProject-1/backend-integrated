@@ -3,33 +3,10 @@ import { error } from "console";
 import { addHours, subHours } from "date-fns";
 import { Request } from "express";
 
-// function convertTZ(date: string | Date, tzString: string): Date {
-//     return new Date(
-//         (typeof date === "string" ? new Date(date) : date).toLocaleString("en-US", { timeZone: tzString })
-//     );
-// }
-
-// // usage: Asia/Jakarta is GMT+7
-// const result = convertTZ("2012/04/20 10:10:30 +0000", "Asia/Bangkok");
-// console.log(result); // Tue Apr 20 2012 17:10:30 GMT+0700 (Western Indonesia Time)
-
-// // Resulting value is a regular Date() object
-// console.log(result.getHours()); // 17
-
-// // Bonus: You can also put a Date object as the first argument
-// const currentDate = new Date();
-// // console.log(currentDate)
-// const convertedDate = convertTZ(currentDate, "Asia/Bangkok");
-// console.log(convertedDate); // current date-time in Jakarta.
-
 export const getAvailableTables = async (req: Request) => {
     try {
         const prisma = new PrismaClient();
         const { venueId, reserve_date, branchId, time } = req.body;
-        // const token = req.cookies.authToken;
-        // if (!token) {
-        //     throw new Error("No auth token");
-        // }
 
         const concatDatetime = `${reserve_date} ${time}`;
         const reservedTimeStart = new Date(concatDatetime);
@@ -201,7 +178,6 @@ export const getAvailableTables = async (req: Request) => {
             guestAmount: req.body.guest_amount,
         };
         return availableTables2;
-        // res.status(200).json({ availableTables });
     } catch (e) {
         return error(e);
     }
