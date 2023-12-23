@@ -2060,22 +2060,21 @@ export const createCheckoutSession = async (req: Request, res: Response) => {
           },
         ],
         mode: "payment",
-        success_url: `${process.env.CLIENT_URL}/`,
+        success_url: `${process.env.CLIENT_URL}/checkout-success/${reservationId}/{CHECKOUT_SESSION_ID}`,
         cancel_url: `${process.env.CLIENT_URL}/checkout-cancel`,
         
       } as any);
       // res.clearCookie("reservationToken");
       // return res.status(200).json({ url: session.url });
       
-      await feature8Client.reservation.update({
-        where: {
-          reservationId: reservationId,
-        },
-        data: {
-          isPaymentSuccess: "Completed",
-        },
-      });
-      res.status(200).json({ url: session.url });
+      // await feature8Client.reservation.update({
+      //   where: {
+      //     reservationId: reservationId,
+      //   },
+      //   data: {
+      //     isPaymentSuccess: "Completed",
+      //   },
+      // });
       const token = req.cookies.authToken;
 
       if (!token) {
@@ -2107,38 +2106,45 @@ export const createCheckoutSession = async (req: Request, res: Response) => {
       //   success_url: `${process.env.CLIENT_URL}/`,
       //   cancel_url: `${process.env.CLIENT_URL}/checkout-cancel`,
       // } as any);
-      
-      const total = await feature8Client.orders.findUnique({
-        where: {
-          reservedId: reservationId,
-        },
-        select: {
-          total_amount: true,
-        },
-      })
+      try {
+        const total = await feature8Client.orders.findUnique({
+          where: {
+            reservedId: reservationId,
+          },
+          select: {
+            total_amount: true,
+          },
+        })
+  
+        console.log("reserve", reservationId)
+        const newTransaction = await feature8Client.transaction.create({
+          data: {
+            userId: userId,
+            venueId: venue.venueId,
+            reserveId: reservationId,
+          }
+        });
+        
+        
+        await feature8Client.transaction_detail.create({
+          data: {
+            transactionId: newTransaction.transactionId ,
+            detail: "",
+            status: "",
+            timestamp: new Date(),
+            total_amount: total?.total_amount ?? 0,
+          }
+        });
+        // console.log(venueId)
+        // console.log(userId)
+        // console.log(reservationId)
+        // console.log(priceResponse + "priceResponse")
+      } catch (error) {
+        console.log(error)
+      }
+     
+      res.status(200).json({ url: session.url });
 
-      const newTransaction = await feature8Client.transaction.create({
-        data: {
-          userId: userId,
-          venueId: venue.venueId,
-          reserveId: reservationId,
-        }
-      });
-      
-      
-      await feature8Client.transaction_detail.create({
-        data: {
-          transactionId: newTransaction.transactionId ,
-          detail: "",
-          status: "",
-          timestamp: new Date(),
-          total_amount: total?.total_amount ?? 0,
-        }
-      });
-      // console.log(venueId)
-      // console.log(userId)
-      // console.log(reservationId)
-      // console.log(priceResponse + "priceResponse")
       return;
 
       
@@ -2181,14 +2187,14 @@ const getDynamicPriceId = async (req: Request, res: Response) => {
       currency: "thb",
       product: product.id,
     });
-    await feature8Client.reservation.update({
-      where: {
-        reservationId: reservationId,
-      },
-      data: {
-        isPaymentSuccess: "Completed",
-      },
-    });
+    // await feature8Client.reservation.update({
+    //   where: {
+    //     reservationId: reservationId,
+    //   },
+    //   data: {
+    //     isPaymentSuccess: "Completed",
+    //   },
+    // });
     return price.id;
     
   } catch (e) {
@@ -2722,6 +2728,37 @@ export const completePaymentD = async (req: Request, res: Response) => {
         },
         data: {
           isPaidDeposit: "Completed",
+        },
+      });
+
+      // Perform any additional actions or send a success response
+      return res.status(200).json({ success: true, message: 'Payment successful' });
+    } else {
+      // Handle unsuccessful payment
+      return res.status(400).json({ success: false, message: 'Payment failed' });
+    }
+  } catch (error) {
+    console.error('Error completing payment:', error);
+    return res.status(500).json({ success: false, error: 'Internal Server Error' });
+  }
+};
+
+export const completePaymentC = async (req: Request, res: Response) => {
+  try {
+    const { sessionId, reservationId } = req.params;
+
+    // Verify the session with Stripe
+    const session = await stripe.checkout.sessions.retrieve(sessionId);
+
+    // Check if payment was successful
+    if (session.payment_status === 'paid') {
+      // Update your database with the payment confirmation
+      await feature8Client.reservation.update({
+        where: {
+          reservationId: parseInt(reservationId),
+        },
+        data: {
+          isPaymentSuccess: "Completed",
         },
       });
 
