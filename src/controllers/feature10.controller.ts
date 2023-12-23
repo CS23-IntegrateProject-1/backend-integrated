@@ -314,9 +314,6 @@ export const bookSeatAndSendCookie = async (req: Request, res: Response) => {
         httpOnly: true,
         sameSite: "none",
         secure: true,
-        //
-        maxAge: 1200,
-        //
       }
     );
 

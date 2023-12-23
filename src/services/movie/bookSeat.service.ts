@@ -26,7 +26,7 @@ class bookSeatService {
   createCookie(reservationIds: number[], userId: number) {
     const secretKey = process.env.JWT_SECRET as string;
     return jwt.sign({ reservationIds, userId }, secretKey, {
-      expiresIn: 5 * 60,
+      expiresIn: 20 * 60,
     });
   }
 
