@@ -150,8 +150,8 @@ export const forDialogflow = async (req: Request, res: Response) => {
       else if(responseData.result.intent?.displayName === "Change Username - yes - name"){
         // const newUsername =responseData.result.parameters?.fields?.user.structValue?.fields?.name.stringValue;
         // console.log(newUsername);
-        console.log(queryText)
-        console.log(sessionId)
+        // console.log(queryText)
+        // console.log(sessionId)
 
         //update username in database according to sessionID
         await feature12Client.user.update({
@@ -260,8 +260,9 @@ async function updateEntityType() {
         },
       } as { entityType: IEntityType };
 
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const [response] = await client.updateEntityType(request);
-      console.log('DialogflowEntity updated:', response);
+      // console.log('DialogflowEntity updated:', response);
     }
   }
 }
