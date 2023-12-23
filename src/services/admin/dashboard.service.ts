@@ -25,7 +25,7 @@ class DashboardService {
 
 			return {
 				normalCustomer: (normalCustomer / allUser) * 100,
-				LoyalCustomer: (LoyalCustomer / allUser) * 100,
+				loyalCustomer: (LoyalCustomer / allUser) * 100,
 			};
 		} catch (e) {
 			console.log(e);
