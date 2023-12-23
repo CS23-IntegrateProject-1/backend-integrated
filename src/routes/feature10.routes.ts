@@ -18,6 +18,7 @@ import {
   getSeatByShowId,
   getReservationByUserId,
   getShowsByTheaterIdandScreenIdandDate,
+  deleteReservation
 } from "../controllers/feature10.controller";
 
 const feature10Router = Router();
@@ -39,6 +40,7 @@ feature10Router.post("/getShowsByFilmIdandDate", getShowsByFilmIdandDate);
 feature10Router.post("/getSeatByShowId", getSeatByShowId);
 feature10Router.get("/getReservationByUserId", getReservationByUserId);
 feature10Router.post("/getShowsByTheaterIdandScreenIdandDate", getShowsByTheaterIdandScreenIdandDate);
+feature10Router.get("/deleteReservation", deleteReservation);
 
 
 
