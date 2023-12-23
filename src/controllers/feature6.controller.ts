@@ -1041,7 +1041,7 @@ export const checkIn = async (req: Request, res: Response) => {
                 },
             });
 
-            const entry_time = addHours(new Date(), 0);
+            const entry_time = addHours(new Date(), 7);
             await feature6Client.reservation.update({
                 where: { reservationId },
                 data: {
