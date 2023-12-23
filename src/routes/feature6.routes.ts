@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { getAllTable } from "../controllers/feature6.controller";
+import { getAllTable, testTimezone } from "../controllers/feature6.controller";
 import { getAllReservation } from "../controllers/feature6.controller";
 import { getMyReservationByStatus } from "../controllers/feature6.controller";
 import { getVenueById } from "../controllers/feature6.controller";
@@ -10,6 +10,7 @@ import { checkInStatus } from "../controllers/feature6.controller";
 
 //IMPORT FOR BUSINESS SIDE
 // import { getAllTableTypeByVenueId } from "../controllers/feature6.controller";
+import { getAllTableByVenueId } from "../controllers/feature6.controller";
 import { getTableByTableId } from "../controllers/feature6.controller";
 import { getCountPerDay } from "../controllers/feature6.controller";
 import { getAllReservationOfVenue } from "../controllers/feature6.controller";
@@ -44,7 +45,7 @@ feature6Router.get("/checkin/status/:reservationId", checkInStatus);
 feature6Router.get("/MyTable/:tableId", getTableByTableId);
 feature6Router.get("/Dashboard/", getCountPerDay);
 feature6Router.get("/allReservationOfVenue", getAllReservationOfVenue);
-
+feature6Router.get("/allTableByVenueId", getAllTableByVenueId);
 //POST METHOD
 feature6Router.post("/createReservation", createReservation);
 feature6Router.post("/createTable", createTable);
@@ -66,6 +67,9 @@ feature6Router.post("/cancel/:reservationId", cancelReservation);
 feature6Router.post("/checkIn/:reservationId", checkIn);
 feature6Router.post("/checkOut/:reservationId", checkOut);
 feature6Router.get("/qrcode/:reservationId", qrCode);
+
+
+feature6Router.get("/test", testTimezone);
 export default feature6Router;
 
 //Upload Image

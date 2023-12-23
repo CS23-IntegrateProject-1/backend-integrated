@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { compose, identity, path } from "ramda";
+import { ifElse, always, compose, identity, isNil, path } from "ramda";
 import { z } from "zod";
 
 import {
@@ -9,22 +9,29 @@ import {
 } from "../../services/feature1";
 import {
   CreditCardCreateRequest,
-  makeCreditCardCreateResponse,
+  makeCreditCardCreateResponse as makeCreditCardResponse,
   makeErrorResponse,
   makeVenueShowWebResponse,
+  makeCreditCardListResponse,
+  makeVenuePromptPayShowWebResponse,
+  MulterRequest,
 } from "./models";
+import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 
 export interface IVenueController {
   update: (req: Request, res: Response) => unknown;
   show: (req: Request, res: Response) => unknown;
+  showOpeningHours: (req: Request, res: Response) => unknown;
   updateOpeningHours: (req: Request, res: Response) => unknown;
   updatePromptPay: (req: Request, res: Response) => unknown;
+  showPromptPay: (req: Request, res: Response) => unknown;
 
   createCreditCard: (req: Request, res: Response) => unknown;
   showCreditCard: (req: Request, res: Response) => unknown;
-  updateCeditCard: (req: Request, res: Response) => unknown;
   indexCreditCard: (req: Request, res: Response) => unknown;
   deleteCreditCard: (req: Request, res: Response) => unknown;
+
+  showPriceRange: (req: Request, res: Response) => unknown;
 }
 
 const VenueUpdatePayload = z.object({
@@ -52,9 +59,12 @@ const OpeningHourPayload: z.ZodType<DayToString> = z.object({
 
 const PromptPayPayload = z.object({
   promptpay_number: z.number(),
+  phone_number: z.string(),
 });
 
 const getBusinessId = compose(Number, path(["params", "businessId"]));
+
+const getCreditCardId = compose(Number, path(["params", "id"]));
 
 const CreateCreditCardPayload = z.object({
   card_number: z.string(),
@@ -65,8 +75,41 @@ const CreateCreditCardPayload = z.object({
   expiration_date: z.string().datetime(),
 });
 
+const makeResponse = compose(
+  makeCreditCardListResponse,
+  ifElse(isNil, always([]), identity),
+);
+
 class VenueController implements IVenueController {
   private service: IVenueService = new VenueService(new VenueRepository());
+
+  async showOpeningHours(req: Request, res: Response) {
+    const businessId = getBusinessId(req);
+
+    try {
+      const result = await this.service.showOpeningHours(businessId);
+
+      return res.json(result);
+    } catch (e) {
+      return res.status(500).json(makeErrorResponse("Internal server error"));
+    }
+  }
+
+  async showPromptPay(req: Request, res: Response) {
+    const businessId = getBusinessId(req);
+
+    try {
+      const result = await this.service.showPromptPay(businessId);
+
+      if (isNil(result)) {
+        return res.status(404).json(makeErrorResponse("Prompt Pay Not found"));
+      }
+
+      return res.json(makeVenuePromptPayShowWebResponse(result));
+    } catch (e) {
+      return res.status(500).json(makeErrorResponse("Internal server error"));
+    }
+  }
 
   async createCreditCard(req: Request, res: Response) {
     const businessId = getBusinessId(req);
@@ -85,34 +128,70 @@ class VenueController implements IVenueController {
     try {
       const response = await this.service.createCreditCard(businessId, request);
 
-      return res.json(makeCreditCardCreateResponse(response));
+      return res.json(makeCreditCardResponse(response));
     } catch (e) {
       return res.status(500).json(makeErrorResponse("Internal server error"));
     }
   }
 
+  // TODO: handle AuthZ
   async showCreditCard(req: Request, res: Response) {
-    identity(req);
-    identity(res);
-    throw new Error("Unimplemented");
-  }
+    const businessId = getBusinessId(req);
+    const creditCardId = getCreditCardId(req);
 
-  async updateCeditCard(req: Request, res: Response) {
-    identity(req);
-    identity(res);
-    throw new Error("Unimplemented");
+    try {
+      const response = await this.service.showCreditCard(
+        businessId,
+        creditCardId,
+      );
+
+      if (isNil(response)) {
+        return res
+          .status(404)
+          .json(makeErrorResponse("Credit card with given id does not exist"));
+      }
+
+      return res.json(makeCreditCardResponse(response));
+    } catch (e) {
+      return res.status(500).json(makeErrorResponse("Internal server error"));
+    }
   }
 
   async indexCreditCard(req: Request, res: Response) {
-    identity(req);
-    identity(res);
-    throw new Error("Unimplemented");
+    const businessId = getBusinessId(req);
+
+    try {
+      const response =
+        await this.service.listCreditCardsByBusinessId(businessId);
+
+      return res.json(makeResponse(response));
+    } catch (e) {
+      return res.status(500).json(makeErrorResponse("Internal server error"));
+    }
   }
 
+  // TODO: Handle AuthZ
   async deleteCreditCard(req: Request, res: Response) {
-    identity(req);
-    identity(res);
-    throw new Error("Unimplemented");
+    const businessId = getBusinessId(req);
+    const creditCardId = getCreditCardId(req);
+
+    try {
+      await this.service.deleteCreditCard(businessId, creditCardId);
+
+      return res.status(200).send();
+    } catch (e) {
+      if (e instanceof PrismaClientKnownRequestError) {
+        if (e.code === "P2025") {
+          return res
+            .status(404)
+            .json(
+              makeErrorResponse("Credit card with given id does not exist"),
+            );
+        }
+      }
+
+      return res.status(500).json(makeErrorResponse("Internal server error"));
+    }
   }
 
   async updatePromptPay(req: Request, res: Response) {
@@ -128,6 +207,7 @@ class VenueController implements IVenueController {
       await this.service.updatePromptPay(
         businessId,
         promptPay.promptpay_number,
+        promptPay.phone_number,
       );
 
       return res.status(200).send();
@@ -170,14 +250,33 @@ class VenueController implements IVenueController {
 
   async update(req: Request, res: Response) {
     const businessId = getBusinessId(req);
-    const venue = await VenueUpdatePayload.safeParseAsync(req.body);
+    let venueMap = req.body;
+    venueMap = { ...venueMap, capacity: Number(venueMap.capacity) };
+    const venue = await VenueUpdatePayload.safeParseAsync(venueMap);
+    const filename = (req as MulterRequest)?.file?.filename ?? null;
 
     if (!venue.success) {
       return res.status(400).json(makeErrorResponse("Invalid request"));
     }
 
     try {
-      const response = await this.service.updateVenue(businessId, venue.data);
+      const response = await this.service.updateVenue(
+        businessId,
+        venue.data,
+        filename,
+      );
+
+      return res.json(response);
+    } catch (e) {
+      return res.status(500).json(makeErrorResponse("Internal Server Error"));
+    }
+  }
+
+  async showPriceRange(req: Request, res: Response) {
+    const businessId = getBusinessId(req);
+
+    try {
+      const response = await this.service.getPriceRange(businessId);
 
       return res.json(response);
     } catch (e) {
