@@ -67,6 +67,13 @@ class MajorAPIController {
       await majorAPIService.deleteOutdatedScreens();
       await majorAPIService.deleteOutdatedTheaters();
 
+      await majorAPIService.editSeat();
+      await majorAPIService.editSeatType();
+      await majorAPIService.editShow();
+      await majorAPIService.editFilm();
+      await majorAPIService.editScreen();
+      await majorAPIService.editTheater();
+
       res.status(200).send("Update success");
     } catch (e: any) {
       console.log(e);
