@@ -21,21 +21,22 @@ model About_app {
 }
 
 model Ad_business {
-  advertisementId         Int                       @id @default(autoincrement())
-  name                    String
-  description             String?
-  image_url               String?                   @db.Text
-  start_date              DateTime
-  end_date                DateTime
-  cost                    Float
-  isApprove               Ad_business_isApprove
-  customer_type           Ad_business_customer_type
-  target_group            Ad_business_target_group
-  businessId              Int
-  Business_user           Business_user             @relation(fields: [businessId], references: [businessId])
-  Ad_tag                  Ad_tag[]
-  Notfication_ad_business Notfication_ad_business[]
-  Venue_transaction       Venue_transaction?
+  advertisementId          Int                        @id @default(autoincrement())
+  name                     String
+  description              String?
+  image_url                String?                    @db.Text
+  start_date               DateTime
+  end_date                 DateTime
+  cost                     Float
+  isApprove                Ad_business_isApprove
+  customer_type            Ad_business_customer_type
+  target_group             Ad_business_target_group
+  businessId               Int
+  Business_user            Business_user              @relation(fields: [businessId], references: [businessId])
+  Ad_tag                   Ad_tag[]
+  Notfication_ad_business  Notfication_ad_business[]
+  Venue_transaction        Venue_transaction?
+  Notification_ad_business Notification_ad_business[]
 
   @@index([businessId], map: "Ad_business_businessId_fkey")
 }
@@ -131,6 +132,17 @@ model Admin_user {
   Admin_privacy_policy       Admin_privacy_policy?
   Admin_system_access        Admin_system_access?
   Admin_terms_of_services    Admin_terms_of_services?
+}
+
+model Notification_ad_business {
+  notiAdBusinessId Int                   @id @default(autoincrement())
+  title            String
+  message          String
+  isApprove        Ad_business_isApprove @default(In_progress)
+  advertisementId  Int
+  Ad_business      Ad_business           @relation(fields: [advertisementId], references: [advertisementId])
+
+  @@index([advertisementId], map: "Notfication_ad_business_advertisementId_fkey")
 }
 
 model App_transaction {
