@@ -33,9 +33,10 @@ interface Recipient {
 const connectedClients: Array<Client> = [];
 
 io.on("connection", (socket) => {
-  console.log(`Socket connected: ${socket.id}`);
+  // console.log(`Socket connected: ${socket.id}`);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const id = socket.handshake.query.id as string;
-  console.log("id : ", id);
+  // console.log("id : ", id);
 
   connectedClients.push({
     sockId: socket.id,
@@ -47,11 +48,12 @@ io.on("connection", (socket) => {
   // console.log(id + " join room 1");
 
   socket.on("join-room", (data) => {
-    console.log("data", data);
+    // console.log("data", data);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     data.recipients.forEach((recipient: Recipient) => {
       const room = data.id.toString();
       socket.join(room);
-      console.log(recipient.User.username+ " Join Room " + room);
+      // console.log(recipient.User.username+ " Join Room " + room);
     });
   });
 
