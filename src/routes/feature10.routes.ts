@@ -37,7 +37,7 @@ feature10Router.post("/bookMovieSeat", bookSeatAndSendCookie);
 feature10Router.post("/getReservationById", getReservationById);
 feature10Router.post("/getShowsByFilmIdandDate", getShowsByFilmIdandDate);
 feature10Router.post("/getSeatByShowId", getSeatByShowId);
-feature10Router.get("/getReservationByUserId", getReservationByUserId);
+feature10Router.post("/getReservationByUserId", getReservationByUserId);
 feature10Router.post("/getShowsByTheaterIdandScreenIdandDate", getShowsByTheaterIdandScreenIdandDate);
 
 
