@@ -30,10 +30,10 @@ class bookSeatService {
     });
   }
 
-  async deleteLog(id: number) {
+  async deleteReservation(movieReservationToken: number) {
     const response = await this.prisma.reservation_logs.delete({
       where: {
-        reservationId: id,
+        reservationId: movieReservationToken,
       },
     });
     return response;

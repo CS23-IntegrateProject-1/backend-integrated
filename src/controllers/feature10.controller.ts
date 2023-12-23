@@ -140,7 +140,10 @@ export const getFilmsByTheaterId = async (req: Request, res: Response) => {
   }
 };
 
-export const getShowsByTheaterIdandScreenIdandDate = async (req: Request, res: Response) => {
+export const getShowsByTheaterIdandScreenIdandDate = async (
+  req: Request,
+  res: Response
+) => {
   try {
     const filmId = Number(req.body.filmId);
     const date = req.body.date;
@@ -229,7 +232,7 @@ export const getReservationById = async (req: Request, res: Response) => {
 //ใช้ตอนจะเอา history ของuserคนนั้น --> เรียกข้อมูลทุกอย่างหมดเลยลึ่มๆ
 export const getReservationByUserId = async (req: Request, res: Response) => {
   try {
-    const id = Number(req.body.id);
+    const id = authService.decodeToken(req.cookies.authToken).userId;
     const data = await reservationService.getReservationByUserId(id);
     res.json(data);
   } catch (e: any) {
@@ -248,6 +251,8 @@ export const bookSeatAndSendCookie = async (req: Request, res: Response) => {
     console.log("showId: ", showId);
 
     const userId = authService.decodeToken(req.cookies.authToken).userId;
+    console.log("userId: ", userId);
+
     try {
       for (const seatId of seatIds) {
         const isSeatAvailable = await bookSeatService.getMinorAvilableSeats(
@@ -310,7 +315,7 @@ export const bookSeatAndSendCookie = async (req: Request, res: Response) => {
         sameSite: "none",
         secure: true,
         //
-        maxAge: 300000,
+        maxAge: 1200,
         //
       }
     );
@@ -323,8 +328,25 @@ export const bookSeatAndSendCookie = async (req: Request, res: Response) => {
   } catch (e) {
     console.log(e);
     for (const reservationId of reservationIdsForError) {
-      await bookSeatService.deleteLog(reservationId);
+      await bookSeatService.deleteReservation(reservationId);
     }
     return res.status(500).json({ error: "Unknown Error Encountered" });
+  }
+};
+
+export const deleteReservation = async (req: Request, res: Response) => {
+  try {
+    const { resevationIds } = authService.decodeToken(
+      req.cookies.movieReservationToken
+    );
+    const data: any = [];
+    for (const reservationId of resevationIds) {
+      const response = await bookSeatService.deleteReservation(reservationId);
+      data.push(response);
+    }
+    res.json(data);
+  } catch (e: any) {
+    console.log(e);
+    res.status(500).json({ error: e.message });
   }
 };
