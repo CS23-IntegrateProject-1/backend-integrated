@@ -83,7 +83,6 @@ export const getReservationById = async (req: Request, res: Response) => {
     }
 };
 
-//Start from here
 //My Reservation Page (4 status)
 //Finished
 export const getMyReservationByStatus = async (req: Request, res: Response) => {
@@ -222,7 +221,6 @@ export const createReservation = async (req: Request, res: Response) => {
         }
 
         const newreserveTime = addHours(new Date(reserved_time), 0);
-        // const entry_time = addMinutes(new Date(reserved_time), -30);
 
         const getAvailableTablesResponse: any = await getAvailableTables(req);
         if (
@@ -247,7 +245,6 @@ export const createReservation = async (req: Request, res: Response) => {
         ) {
             return res.status(400).json({ error: "No more Available Table" });
         }
-        // console.log("getAvailableTablesResponse", getAvailableTablesResponse);
 
         const selectedTable = await findSuitableTable(
             getAvailableTablesResponse
@@ -332,7 +329,7 @@ export const createReservation = async (req: Request, res: Response) => {
                 reservationTableEntry,
             };
             res.status(200).json(responseData);
-        } // res.status(200).json(newReservation);
+        } 
     } catch (e) {
         console.log(e);
         return res.status(500).json(e);
@@ -341,7 +338,6 @@ export const createReservation = async (req: Request, res: Response) => {
 
 // BUSINESS SIDE PART
 // GET METHOD
-
 // Finished
 export const getTableByTableId = async (req: Request, res: Response) => {
     try {
@@ -563,8 +559,7 @@ export const createTableType = async (req: Request, res: Response) => {
     }
 };
 
-// In Progress
-// Some problem about time can't find
+// Finished
 export const getCountPerDay = async (req: Request, res: Response) => {
     try {
         const token = req.cookies.authToken;
@@ -592,66 +587,67 @@ export const getCountPerDay = async (req: Request, res: Response) => {
         const startOfToday = addHours(startOfDay(today), 0);
         const endOfToday = addHours(endOfDay(today), 0);
 
-        console.log("start:",startOfToday)
-        console.log("end:",endOfToday)
-        const transactionsToday = await feature6Client.transaction.findMany({
+        const transaction = await feature6Client.transaction.findMany({
             where: {
-                AND: [
-                    {
-                        Transaction_detail: {
-                            timestamp: {
-                                gte: startOfToday,
-                                lte: endOfToday,
-                            },
-                        },
-                        venueId: venueId,
-                    },
-                ],
+                Transaction_detail: {
+                    timestamp: {
+                        gte: startOfToday,
+                        lte: endOfToday
+                    }
+                },
+                venueId: venueId
             },
             include: {
-                Transaction_detail: true,
-            },
-        });
-
-        let sumRevenue: Decimal = new Decimal(0.0);
-        transactionsToday.forEach((reservation) => {
-            if (
-                reservation.Transaction_detail &&
-                reservation.Transaction_detail.total_amount
-            ) {
-                sumRevenue = sumRevenue.add(
-                    new Decimal(reservation.Transaction_detail.total_amount)
-                );
+                Transaction_detail: {
+                    select: {
+                        total_amount: true
+                    }
+                }
             }
+        })
+
+        let reserveCount: number = 0;
+        const transactionIdsArray = transaction.map(
+            (transaction) => transaction.transactionId
+        );
+
+        const reservationIdsArray = transaction.map(
+            (reserve) => reserve.reserveId
+        );
+
+        reservationIdsArray.forEach(reservationId => {
+            console.log(reservationId)
+            reserveCount++;
         });
 
-        const reservationsToday = await feature6Client.reservation.findMany({
+        const totalRevenue = await feature6Client.transaction_detail.aggregate({
             where: {
-                AND: [
-                    {
-                        reserved_time: {
-                            gte: startOfToday,
-                            lte: endOfToday,
-                        },
-                        venueId: venueId,
-                    },
-                ],
+                transactionId: {
+                    in: transactionIdsArray
+                }
             },
-            include: {
-                Reservation_table: true,
-            },
-        });
-        // console.log(reservationsToday)
-        let ReservationCount = 0;
-        reservationsToday.forEach((reservation) => {
-            ReservationCount += reservation.Reservation_table.length;
-        });
-        let CustomerCount = 0;
-        reservationsToday.forEach((reservation) => {
-            CustomerCount += reservation.guest_amount;
-        });
+            _sum: {
+                total_amount: true
+            }
+        })
 
-        res.json({ sumRevenue, ReservationCount, CustomerCount });
+        const totalGuest = await feature6Client.reservation.aggregate({
+            where: {
+                reservationId: {
+                    in: reservationIdsArray
+                }
+            },
+            _sum: {
+                guest_amount: true
+            }
+        })
+
+        const response = {
+            ReservationCount: reserveCount,
+            sumRevenue: totalRevenue._sum.total_amount,
+            CustomerCount: totalGuest._sum.guest_amount
+        }
+        res.json({ response });
     } catch (e) {
         return res.status(500).json(e);
     }

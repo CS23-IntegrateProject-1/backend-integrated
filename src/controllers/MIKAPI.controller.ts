@@ -96,7 +96,6 @@ export const ApiConfirmReserve = async (req: Request, res: Response) => {
         });
 
         res.status(200).json({ updateReservation, reservationTableEntry });
-        // }
     } catch (error) {
         console.error("Error:", error);
         throw new Error("Failed to fetch data from other website");
@@ -118,7 +117,6 @@ export const ApiReserve = async (req: Request, res: Response) => {
         const lname = req.body.lname;
 
         const phone = req.body.phone;
-        // const email = req.body.email;
         const email = "harmoni.social@gmail.com";
 
         if (!token) {
