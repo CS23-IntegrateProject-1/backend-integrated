@@ -106,15 +106,15 @@ export const addArticle = async (req: Request, res: Response) => {
     for (const file of imageFiles) {
       const imagePath = "/uploads/" + file.path.substring(file.path.lastIndexOf('/') + 1);
       const description = file.originalname
-      console.log("file path --> ", imagePath)
-      const newImage = await prisma.images.create({
+      //console.log("file path --> ", imagePath)
+      await prisma.images.create({
         data: {
           url: imagePath,
           description: description,
           articleId: newArticle.articleId,
         },
       });
-      console.log("res --> ", newImage);
+      //console.log("res --> ", newImage);
     }
 
     res.json(newArticle);
@@ -135,15 +135,6 @@ export const editArticle = async (req: Request, res: Response) => {
     const venueIds: string[] = req.body.venueIds;
     const tags: string[] = req.body.tags;
     //const imageDetails: ImageInput[] = req.body.images;
-
-    //const userId = 1;
-    //const secret: Secret = 'fwjjpjegjwpjgwej' || "";
-    //const token = req.cookies.token;
-    //if (!token)
-    //  return res.json({ error: 'Unauthorized' });
-
-    //const decoded = jwt.verify(token, secret) as CustomJwtPayload;
-    //const userId = decoded.userId;
 
     const newArticle = await prisma.article.update({
       where: { articleId: parseInt(articleId) },
