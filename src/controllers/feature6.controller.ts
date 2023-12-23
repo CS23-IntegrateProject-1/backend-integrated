@@ -589,9 +589,11 @@ export const getCountPerDay = async (req: Request, res: Response) => {
 
         const venueId = getVenueId?.venueId;
         const today = new Date();
-        const startOfToday = addHours(startOfDay(today), 0);
-        const endOfToday = addHours(endOfDay(today), 0);
+        const startOfToday = addHours(startOfDay(today), 7);
+        const endOfToday = addHours(endOfDay(today), 7);
 
+        console.log("start:",startOfToday)
+        console.log("end:",endOfToday)
         const transactionsToday = await feature6Client.transaction.findMany({
             where: {
                 AND: [
@@ -639,7 +641,7 @@ export const getCountPerDay = async (req: Request, res: Response) => {
                 Reservation_table: true,
             },
         });
-
+        // console.log(reservationsToday)
         let ReservationCount = 0;
         reservationsToday.forEach((reservation) => {
             ReservationCount += reservation.Reservation_table.length;
@@ -919,7 +921,7 @@ export const createOfflineReservation = async (req: Request, res: Response) => {
                     reserved_time: new Date(newreserveTime),
                     entry_time: new Date(newreserveTime),
                     status: "Check_in",
-                    isPaidDeposit: "Pending",
+                    isPaidDeposit: "Completed",
                     isReview: false,
                     depositId: depositId[0].depositId,
                     branchId: branchId,
@@ -949,7 +951,7 @@ export const createOfflineReservation = async (req: Request, res: Response) => {
             });
 
             const reservationId = newReservation.reservationId;
-            const checkInTime = addHours(new Date(), 7);
+            const checkInTime = addHours(new Date(), 0);
 
             const defaultCheckoutTime = new Date();
             defaultCheckoutTime.setHours(0, 0, 0, 0);
@@ -960,7 +962,7 @@ export const createOfflineReservation = async (req: Request, res: Response) => {
                     check_out_time: defaultCheckoutTime,
                 },
             });
-            const entry_time = addHours(new Date(), 7);
+            const entry_time = addHours(new Date(), 0);
             await feature6Client.reservation.update({
                 where: { reservationId },
                 data: {
@@ -987,7 +989,7 @@ export const checkIn = async (req: Request, res: Response) => {
         const reservationId = parseInt(req.params.reservationId);
         const authToken = req.body.authToken;
         const { userType } = authService.decodeToken(authToken);
-        const checkInTime = addHours(new Date(), 7);
+        const checkInTime = addHours(new Date(), 0);
         const reservation = await feature6Client.reservation.findUnique({
             where: { reservationId },
         });
@@ -1039,7 +1041,7 @@ export const checkIn = async (req: Request, res: Response) => {
                 },
             });
 
-            const entry_time = addHours(new Date(), 7);
+            const entry_time = addHours(new Date(), 0);
             await feature6Client.reservation.update({
                 where: { reservationId },
                 data: {
@@ -1119,7 +1121,7 @@ export const qrCode = async (req: Request, res: Response) => {
 export const checkOut = async (req: Request, res: Response) => {
     try {
         const reservationId = parseInt(req.params.reservationId);
-        const checkOutTime = addHours(new Date(), 7);
+        const checkOutTime = addHours(new Date(), 0);
 
         const reservation = await feature6Client.reservation.findUnique({
             where: { reservationId },
@@ -1235,14 +1237,5 @@ export const uploadTableTypeImage = async (req: Request, res: Response) => {
         res.status(200).json({ payload: "oh yeaaa" });
     } catch (err) {
         res.status(500).json({ err: "sorry something wrong" });
-    }
-};
-
-export const testTimezone = async (req: Request, res: Response) => {
-    try {
-        getAvailableTables(req);
-        res.status(200).json("Success");
-    } catch (e) {
-        res.status(500).json(e);
     }
 };
