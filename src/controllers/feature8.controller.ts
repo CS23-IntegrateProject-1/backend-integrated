@@ -2584,8 +2584,8 @@ export const createAdSession = async (req: Request, res: Response) => {
 
 const getAdDynamicPriceId = async (req: Request, res: Response) => {
   const product = await stripe.products.create({
-    name: "Deposit",
-    description: "Pay for Deposit",
+    name: "Advertisement",
+    description: "Pay for Advertisement",
   });
   
   const advertisementId = parseInt(req.params.advertisementId);
