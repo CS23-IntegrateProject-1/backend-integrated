@@ -2510,3 +2510,36 @@ const getDeliveryOrderPriceDynamic = async (req: Request, res: Response) => {
 };
 
 
+export const BusinessuserIdToVenueId = async (req: Request, res: Response) => {
+  const token = req.cookies.authToken; // token stored in authToken
+
+  if (!token) {
+    return res.status(404).json({ error: "not verify" });
+  }
+  const decodetoken = authService.decodeToken(token);
+  const businessId = decodetoken.businessId;
+    try {
+        const property = await feature8Client.property.findFirst({
+          where: {
+            businessId: parseInt(businessId),
+          },
+          select: {
+            venueId: true,
+            businessId: true,
+          },
+        });
+        if (!property) {
+          return res
+            .status(404)
+            .json({ error: "Property not found for the given businessId" });
+        }
+    
+        res.json({ property: property });
+    
+  
+    } catch (error) {
+      console.error("Error retrieving venueId:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+    
+  }

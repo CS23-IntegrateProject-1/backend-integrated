@@ -68,6 +68,7 @@ import {
     getOrdersAndTableNos,
     getBusinessId,
     createDeliveryOrderSession,
+    BusinessuserIdToVenueId,
 } from "../controllers/feature8.controller";
 
 const feature8Router = Router();
@@ -136,6 +137,7 @@ feature8Router.get("/venue", getVenueByVenueId);
 feature8Router.get("/venue/:venueId/getBusinessId" , getBusinessId);
 feature8Router.get("/venue/:venueId/getOrdersAndTableNos", getOrdersAndTableNos);
 feature8Router.get("/venue/orderchecklatest/:orderId", getlatestOrderMenuOrderUpdate);
+feature8Router.get("/venue/getVenueIdByBusinessId", BusinessuserIdToVenueId);
 
 
 // feature8Router.get("/updateorder", ShowUpdateOrder);
