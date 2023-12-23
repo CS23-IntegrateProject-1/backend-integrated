@@ -116,6 +116,9 @@ export const getOfflineAvailableTables = async (req: Request) => {
             }
         }
 
+        // ! log
+        console.log("time : ", reservedTimeStart)
+
         let open, close;
         if (notOpen) {
             const openBefore = await prisma.opening_day.findMany({
@@ -155,6 +158,9 @@ export const getOfflineAvailableTables = async (req: Request) => {
             return { error: "Reservation time is not within valid hours." };
         }
 
+        // ! log
+        console.log("Date time reserve : ", DateTimeStart)
+    
         console.log("openDate", openDate);
         console.log("closeDate", closeDate);
         console.log("twoHoursBeforeClose", twoHoursBeforeClose);
