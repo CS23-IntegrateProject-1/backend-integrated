@@ -155,6 +155,12 @@ export const getOfflineAvailableTables = async (req: Request) => {
             return { error: "Reservation time is not within valid hours." };
         }
 
+        console.log("openDate", openDate);
+        console.log("closeDate", closeDate);
+        console.log("twoHoursBeforeClose", twoHoursBeforeClose);
+        // console.log("isoStart", isoStartTime)
+        // console.log("isoEnd", isoEndTime)
+
         const overlappingReservations = await prisma.reservation.findMany({
             where: {
                 venueId,
