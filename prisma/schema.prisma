@@ -34,7 +34,6 @@ model Ad_business {
   businessId               Int
   Business_user            Business_user              @relation(fields: [businessId], references: [businessId])
   Ad_tag                   Ad_tag[]
-  Notfication_ad_business  Notfication_ad_business[]
   Venue_transaction        Venue_transaction?
   Notification_ad_business Notification_ad_business[]
 
@@ -617,16 +616,6 @@ model Notes {
   Reservation Reservation @relation(fields: [reserveId], references: [reservationId])
 }
 
-model Notfication_ad_business {
-  notiAdBusinessId Int                               @id @default(autoincrement())
-  title            String
-  message          String
-  isApprove        Notfication_ad_business_isApprove @default(In_progress)
-  advertisementId  Int
-  Ad_business      Ad_business                       @relation(fields: [advertisementId], references: [advertisementId])
-
-  @@index([advertisementId], map: "Notfication_ad_business_advertisementId_fkey")
-}
 
 model Notification {
   message            String
