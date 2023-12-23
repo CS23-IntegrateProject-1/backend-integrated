@@ -2403,42 +2403,43 @@ export const createDeliveryOrderSession = async (req: Request, res: Response) =>
           },
         ],
         mode: "payment",
-        success_url: `${process.env.CLIENT_URL}/map/food-delivery/completed`,
+        // success_url: `${process.env.CLIENT_URL}/map/food-delivery/completed`,
+        success_url: `${process.env.CLIENT_URL}/onlineorder-success/${onlineOrderId}/{CHECKOUT_SESSION_ID}`,
         cancel_url: `${process.env.CLIENT_URL}/onlineorder-cancel`,
       } as any);
 
-      await feature8Client.online_orders.update({
-        where: {
-          onlineOrderId: onlineOrderId,
-        },
-        data: {
-          status: "Completed",
-        },
-      });
+      // await feature8Client.online_orders.update({
+      //   where: {
+      //     onlineOrderId: onlineOrderId,
+      //   },
+      //   data: {
+      //     status: "Completed",
+      //   },
+      // });
 
-      const online_orders = await feature8Client.online_orders.findUnique({
-        where: {
-          onlineOrderId: onlineOrderId,
-        },
-        select: {
-          driverId: true,
-        },
-      })
-      const driverId = online_orders?.driverId;
-      console.log(driverId)
+      // const online_orders = await feature8Client.online_orders.findUnique({
+      //   where: {
+      //     onlineOrderId: onlineOrderId,
+      //   },
+      //   select: {
+      //     driverId: true,
+      //   },
+      // })
+      // const driverId = online_orders?.driverId;
+      // console.log(driverId)
 
-      await feature8Client.driver_list.update({
-        where: {
-          driverId: driverId,
-        },
-        data: {
-          driver_status: "Available",
-        }
-      })
+      // await feature8Client.driver_list.update({
+      //   where: {
+      //     driverId: driverId,
+      //   },
+      //   data: {
+      //     driver_status: "Available",
+      //   }
+      // })
 
       
 
-      return res.status(200).json({ url: session.url });
+      return res.status(200).json({ url: session.url , sessionId: session.id});
     }
   } catch (error) {
     return res.json(error);
@@ -2623,30 +2624,6 @@ const getAdDynamicPriceId = async (req: Request, res: Response) => {
 };
 
 
-
-export const updateAdDB = async (req: Request, res: Response) => {
-  try {
-
-    const advertisementId = parseInt(req.params.advertisementId);
-
-    // Update ad_business in your database
-    await feature8Client.ad_business.update({
-      where: {
-        advertisementId: (advertisementId),
-      },
-      data: {
-        isApprove: 'In_progress',
-      },
-    });
-
-    return res.status(200).json({ success: true });
-  } catch (error) {
-    console.error('Error updating ad_business:', error);
-    return res.status(500).json({ success: false, error: 'Internal Server Error' });
-  }
-};
-
-
 export const completePayment = async (req: Request, res: Response) => {
   try {
     const { sessionId, advertisementId } = req.params;
@@ -2678,6 +2655,57 @@ export const completePayment = async (req: Request, res: Response) => {
   }
 };
 
+
+export const completePaymentDelivery = async (req: Request, res: Response) => {
+  try {
+    const { sessionId, onlineOrderId } = req.params;
+
+    // Verify the session with Stripe
+    const session = await stripe.checkout.sessions.retrieve(sessionId);
+
+    // Check if payment was successful
+    if (session.payment_status === 'paid') {
+      // Update your database with the payment confirmation
+      await feature8Client.online_orders.update({
+        where: {
+          onlineOrderId: parseInt(onlineOrderId),
+        },
+        data: {
+          status: "Completed",
+        },
+      });
+
+      const online_orders = await feature8Client.online_orders.findUnique({
+        where: {
+          onlineOrderId: parseInt(onlineOrderId),
+        },
+        select: {
+          driverId: true,
+        },
+      })
+      const driverId = online_orders?.driverId;
+      console.log(driverId)
+
+      await feature8Client.driver_list.update({
+        where: {
+          driverId: driverId,
+        },
+        data: {
+          driver_status: "Available",
+        }
+      })
+
+      // Perform any additional actions or send a success response
+      return res.status(200).json({ success: true, message: 'Payment successful' });
+    } else {
+      // Handle unsuccessful payment
+      return res.status(400).json({ success: false, message: 'Payment failed' });
+    }
+  } catch (error) {
+    console.error('Error completing payment:', error);
+    return res.status(500).json({ success: false, error: 'Internal Server Error' });
+  }
+};
 export const completePaymentD = async (req: Request, res: Response) => {
   try {
     const { sessionId, reservationId } = req.params;
