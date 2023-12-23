@@ -2543,3 +2543,69 @@ export const BusinessuserIdToVenueId = async (req: Request, res: Response) => {
     }
     
   }
+
+//For Ad
+export const createAdSession = async (req: Request, res: Response) => {
+  try {
+
+    const priceResponse = await getAdDynamicPriceId(req, res);
+
+    if (isNotError) {
+      const session = await stripe.checkout.sessions.create({
+        line_items: [
+          {
+            price: priceResponse,
+            quantity: 1,
+          },
+        ],
+        mode: "payment",
+        success_url: `${process.env.CLIENT_URL}/`,
+        cancel_url: `${process.env.CLIENT_URL}/`,
+      } as any);
+
+      return res.status(200).json({ url: session.url });
+    }
+  } catch (error) {
+    return res.json(error);
+  }
+};
+
+const getAdDynamicPriceId = async (req: Request, res: Response) => {
+  const product = await stripe.products.create({
+    name: "Deposit",
+    description: "Pay for Deposit",
+  });
+  
+  const advertisementId = parseInt(req.params.advertisementId);
+  
+  try {
+
+
+    const depositQueryResult = await feature8Client.ad_business.findFirst({
+      where: {
+        advertisementId: advertisementId,
+      },
+      select: {
+        cost: true,
+      },
+    });
+
+    const deposit_amount = depositQueryResult?.cost;
+    
+    const totalAmount2: any = deposit_amount!.toFixed(2);
+    
+    const movedDecimalNumber = totalAmount2 * 100;
+      console.log(movedDecimalNumber);
+    const strPrice = movedDecimalNumber.toString();
+      console.log(strPrice);
+    const price = await stripe.prices.create({
+      unit_amount_decimal: strPrice,
+      currency: "thb",
+      product: product.id,
+    });
+    return price.id;
+  } catch (e) {
+    console.log(e);
+    return res.status(500).json(e);
+  }
+};

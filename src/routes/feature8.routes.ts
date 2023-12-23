@@ -61,6 +61,7 @@ import {
     createCheckoutSession,
     createDepositSession,
     createSeatSessionnn,
+    createAdSession,
     getTransactionReserveIdByVenueIdAndEqualToStatusCompletedAndFiltered,
     getReceipt,
     getOrderIdByAppTransactionDetailId,
@@ -150,7 +151,7 @@ feature8Router.post("/create-checkout-session", createCheckoutSession);
 feature8Router.post("/create-deposit-session/:reservationId", createDepositSession);
 feature8Router.post("/create-seat-session", createSeatSessionnn);
 feature8Router.post("/create-delivery-session/:onlineOrderId", createDeliveryOrderSession);
-
+feature8Router.post("/create-ad-session", createAdSession);
 // patch method
 feature8Router.patch("/update_creditcard/:creditCardId", updateCreditCard);
 feature8Router.patch("/update_venue_creditcard/:venueId", updateVenueCreditCard);
