@@ -989,7 +989,7 @@ export const checkIn = async (req: Request, res: Response) => {
         const reservationId = parseInt(req.params.reservationId);
         const authToken = req.body.authToken;
         const { userType } = authService.decodeToken(authToken);
-        const checkInTime = addHours(new Date(), 0);
+        const checkInTime = addHours(new Date(), 7);
         const reservation = await feature6Client.reservation.findUnique({
             where: { reservationId },
         });
