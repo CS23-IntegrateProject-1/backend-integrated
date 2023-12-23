@@ -668,6 +668,7 @@ export const CollectVoucher = async (req: Request, res: Response) => {
       },
       select: {
         point_use: true,
+        
       },
     });
 
@@ -678,10 +679,13 @@ export const CollectVoucher = async (req: Request, res: Response) => {
       select: {
         amount: true,
         pointId: true,
+        amount_used: true
       },
     });
     if (GetOriginalPoint && GetPoint) {
       const newAmount = GetOriginalPoint?.amount - (GetPoint?.point_use || 0);
+      const UpdateAmountUsed = (GetOriginalPoint?.amount_used || 0) + (GetPoint?.point_use || 0);
+      
 
       const deductPoint = await feature5Client.point.update({
         where: {
@@ -689,9 +693,11 @@ export const CollectVoucher = async (req: Request, res: Response) => {
         },
         data: {
           amount: newAmount,
+          amount_used: UpdateAmountUsed
         },
       });
       console.log(deductPoint);
+      console.log(UpdateAmountUsed)
     }
 
     res.json(voucher);
