@@ -645,7 +645,7 @@ export const getAllNotificationAdBusiness = async (
 ) => {
   try {
     const notifications =
-      await feature8Client.notfication_ad_business.findMany();
+      await feature8Client.notification_ad_business.findMany();
     res.json(notifications);
   } catch (error) {
     console.error(error);
@@ -734,7 +734,7 @@ export const getAllNotificationAdBusinessByBusinessId = async (
   const { advertisementId } = req.params;
 
   try {
-    const notifications = await feature8Client.notfication_ad_business.findMany(
+    const notifications = await feature8Client.notification_ad_business.findMany(
       {
         where: { advertisementId: parseInt(advertisementId, 10) },
       }
