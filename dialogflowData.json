@@ -31,6 +31,12 @@
         "synonyms": [
           "Mixue"
         ]
+      },
+      {
+        "value": "Shaun's Creation",
+        "synonyms": [
+          "Shaun's Creation"
+        ]
       }
     ]
   },
@@ -59,6 +65,12 @@
         "value": "Bar",
         "synonyms": [
           "Bar"
+        ]
+      },
+      {
+        "value": "restaurant",
+        "synonyms": [
+          "restaurant"
         ]
       }
     ]
