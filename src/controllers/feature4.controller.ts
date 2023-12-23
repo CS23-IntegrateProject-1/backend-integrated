@@ -686,6 +686,7 @@ export const createOnlineOrder = async (req: any, res: Response) => {
     const branchId = req.body.branchId;
     const address = req.body.address;
     const driverNote = req.body.driverNote;
+    const payment = req.body.payment;
 
     const findDriver = await feature4Client.driver_list.findFirst({
         where: {
@@ -713,6 +714,7 @@ export const createOnlineOrder = async (req: any, res: Response) => {
         driverId: driverId??0,
         driver_note: driverNote,
         status: "On_going",
+        payment_method: payment,
       },
     });
 
@@ -1046,9 +1048,31 @@ export const changeOrderStatusCompleted = async (req: any, res: Response) => {
   try {
       console.log(req.body);
       const onlineOrderId = req.params.orderId;
+      const orderWithDriver = await feature4Client.online_orders.findUnique({
+        where: {
+          onlineOrderId: parseInt(onlineOrderId),
+        },
+        include: {
+          Driver_list: true,
+        },
+      });
+  
+      const driverId = orderWithDriver?.Driver_list?.driverId;
+  
+      // Update driver status to "Available" if a driver is associated with the order
+      if (driverId) {
+        await feature4Client.driver_list.update({
+          where: {
+            driverId: driverId,
+          },
+          data: {
+            driver_status: "Available",
+          },
+        });
+      }
       await feature4Client.online_orders.update({
           where: {
-              onlineOrderId: onlineOrderId,
+              onlineOrderId: parseInt(onlineOrderId),
           },
           data: {
               status: "Completed",
@@ -1056,7 +1080,7 @@ export const changeOrderStatusCompleted = async (req: any, res: Response) => {
       });
       await feature4Client.online_orders_detail.updateMany({
         where: {
-            onlineOrderId: onlineOrderId,
+            onlineOrderId: parseInt(onlineOrderId),
         },
         data: {
             status: "Completed",
