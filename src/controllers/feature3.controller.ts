@@ -159,7 +159,7 @@ export const getVenuesPage = async (req: Request, res: Response) => {
       })
     );
 
-    console.log(filteredVenuesWithFavourite)
+    // console.log(filteredVenuesWithFavourite)
     return res.json(filteredVenuesWithFavourite);
   } catch (error) {
     console.error(error);
@@ -338,7 +338,7 @@ export const getVenBranchPage = async (req: Request, res: Response) => {
   GROUP BY
     VR.branchId;
 `;
-    console.log(VenBranchPage);
+    // console.log(VenBranchPage);
     return res.json(VenBranchPage);
   } catch (error) {
     console.error(error);
@@ -443,7 +443,7 @@ export const getReviewsBranchOverAll = async (req: Request, res: Response) => {
 
     const ReviewsBranchOverAll: ReviewsBranchOverAll_Interface[] =
       await feature3Client.$queryRaw`
-      SELECT V.name, VR.branchId, venueReviewId, AVG(VR.rating) as rating, count(review) as total_reviews
+      SELECT V.name, VB.branch_name, VR.branchId, venueReviewId, AVG(VR.rating) as rating, count(review) as total_reviews
       FROM Venue_reviews VR, Venue_branch VB, Venue V
       WHERE VR.branchId = ${branchIdInt} AND VB.branchId = VR.branchId AND VB.venueId = V.venueId
       GROUP BY branchId;
