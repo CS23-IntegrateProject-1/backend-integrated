@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { getAllTable, testTimezone } from "../controllers/feature6.controller";
+import { getAllTable } from "../controllers/feature6.controller";
 import { getAllReservation } from "../controllers/feature6.controller";
 import { getMyReservationByStatus } from "../controllers/feature6.controller";
 import { getVenueById } from "../controllers/feature6.controller";
@@ -68,8 +68,6 @@ feature6Router.post("/checkIn/:reservationId", checkIn);
 feature6Router.post("/checkOut/:reservationId", checkOut);
 feature6Router.get("/qrcode/:reservationId", qrCode);
 
-
-feature6Router.get("/test", testTimezone);
 export default feature6Router;
 
 //Upload Image
