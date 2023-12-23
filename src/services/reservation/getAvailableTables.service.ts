@@ -1,7 +1,26 @@
 import { PrismaClient, Opening_day_day } from "@prisma/client";
 import { error } from "console";
-import { addHours } from "date-fns";
+import { addHours, subHours } from "date-fns";
 import { Request } from "express";
+
+// function convertTZ(date: string | Date, tzString: string): Date {
+//     return new Date(
+//         (typeof date === "string" ? new Date(date) : date).toLocaleString("en-US", { timeZone: tzString })
+//     );
+// }
+
+// // usage: Asia/Jakarta is GMT+7
+// const result = convertTZ("2012/04/20 10:10:30 +0000", "Asia/Bangkok");
+// console.log(result); // Tue Apr 20 2012 17:10:30 GMT+0700 (Western Indonesia Time)
+
+// // Resulting value is a regular Date() object
+// console.log(result.getHours()); // 17
+
+// // Bonus: You can also put a Date object as the first argument
+// const currentDate = new Date();
+// // console.log(currentDate)
+// const convertedDate = convertTZ(currentDate, "Asia/Bangkok");
+// console.log(convertedDate); // current date-time in Jakarta.
 
 export const getAvailableTables = async (req: Request) => {
     try {
@@ -14,9 +33,11 @@ export const getAvailableTables = async (req: Request) => {
 
         const concatDatetime = `${reserve_date} ${time}`;
         const reservedTimeStart = new Date(concatDatetime);
-        const PrepareReservedTimeStart = addHours(
+
+        
+        const PrepareReservedTimeStart = subHours(
             new Date(reservedTimeStart),
-            5
+            2
         );
         const tables = await prisma.tables.findMany({
             where: { venueId, branchId, isUsing: true },
@@ -24,10 +45,10 @@ export const getAvailableTables = async (req: Request) => {
         if (tables.length === 0) {
             return { error: "No tables found in this venue" };
         }
-        const DateTimeStart: Date = addHours(new Date(reservedTimeStart), 7);
+        const DateTimeStart: Date = addHours(new Date(reservedTimeStart), 0);
         const dateOnly = DateTimeStart.toISOString().split("T")[0];
         const TodayDate = new Date(dateOnly);
-        const reservedTimeEnd = addHours(new Date(reservedTimeStart), 9);
+        const reservedTimeEnd = addHours(new Date(reservedTimeStart), 2);
         const isoStartTime = new Date(PrepareReservedTimeStart).toISOString();
         const isoEndTime = reservedTimeEnd.toISOString();
         const [year, month, d] = reserve_date.split(/[- :]/);
@@ -103,7 +124,7 @@ export const getAvailableTables = async (req: Request) => {
         const openString = open.toISOString().split("T")[1].split(".")[0];
         const [hours, minutes, seconds] = openString.split(":").map(Number);
         const openMS = TodayDate.setHours(hours, minutes, seconds);
-        const openDate = addHours(new Date(openMS), 7);
+        const openDate = addHours(new Date(openMS), 0);
         const closeString = close.toISOString().split("T")[1].split(".")[0];
         const [closehours, closeminutes, closeseconds] = closeString
             .split(":")
@@ -116,12 +137,15 @@ export const getAvailableTables = async (req: Request) => {
             closeminutes,
             closeseconds
         );
-        const closeDate = addHours(new Date(closeMS), 7);
-        const twoHoursBeforeClose = addHours(closeDate, -2);
+        const closeDate = addHours(new Date(closeMS), 0);
+        const twoHoursBeforeClose = subHours(closeDate, 2);
         if (DateTimeStart < openDate || DateTimeStart > twoHoursBeforeClose) {
             return { error: "Reservation time is not within valid hours" };
         }
 
+        console.log("openDate", openDate);
+        console.log("closeDate", closeDate);
+        console.log("twoHoursBeforeClose", twoHoursBeforeClose);
         const overlappingReservations = await prisma.reservation.findMany({
             where: {
                 venueId,

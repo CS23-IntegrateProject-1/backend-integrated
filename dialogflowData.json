@@ -54,6 +54,12 @@
         "synonyms": [
           "Club"
         ]
+      },
+      {
+        "value": "Bar",
+        "synonyms": [
+          "Bar"
+        ]
       }
     ]
   }

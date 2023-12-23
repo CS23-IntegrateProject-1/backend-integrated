@@ -67,6 +67,7 @@ feature6Router.post("/cancel/:reservationId", cancelReservation);
 feature6Router.post("/checkIn/:reservationId", checkIn);
 feature6Router.post("/checkOut/:reservationId", checkOut);
 feature6Router.get("/qrcode/:reservationId", qrCode);
+
 export default feature6Router;
 
 //Upload Image
