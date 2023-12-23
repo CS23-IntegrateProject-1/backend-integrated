@@ -853,7 +853,7 @@ export const createOfflineReservation = async (req: Request, res: Response) => {
         const concatDatetime = `${reserve_date} ${time}`;
         const reserved_time = new Date(concatDatetime);
         // Use the previous functions to check availability and find a suitable table
-        const newreserveTime = addHours(new Date(reserved_time), 0);
+        const newreserveTime = addHours(new Date(reserved_time), 7);
         // const entry_time = addMinutes(new Date(reserved_time), -30);
         req.body.reserve_date = reserve_date;
         req.body.time = time;
@@ -951,7 +951,7 @@ export const createOfflineReservation = async (req: Request, res: Response) => {
             });
 
             const reservationId = newReservation.reservationId;
-            const checkInTime = addHours(new Date(), 0);
+            const checkInTime = addHours(new Date(), 7);
 
             const defaultCheckoutTime = new Date();
             defaultCheckoutTime.setHours(0, 0, 0, 0);
@@ -962,7 +962,7 @@ export const createOfflineReservation = async (req: Request, res: Response) => {
                     check_out_time: defaultCheckoutTime,
                 },
             });
-            const entry_time = addHours(new Date(), 0);
+            const entry_time = addHours(new Date(), 7);
             await feature6Client.reservation.update({
                 where: { reservationId },
                 data: {
@@ -1121,7 +1121,7 @@ export const qrCode = async (req: Request, res: Response) => {
 export const checkOut = async (req: Request, res: Response) => {
     try {
         const reservationId = parseInt(req.params.reservationId);
-        const checkOutTime = addHours(new Date(), 0);
+        const checkOutTime = addHours(new Date(), 7);
 
         const reservation = await feature6Client.reservation.findUnique({
             where: { reservationId },
