@@ -9,14 +9,24 @@ class paymentService {
   async waitForPayment(harmoniLogs: number[]) {
     try {
       const prisma = new PrismaClient();
-      await this.delay(0.5 * 60 * 1000);
+      await this.delay(1 * 60 * 1000);
       for (const reservationId of harmoniLogs) {
         const response: any[] = await prisma.payments.findMany({
           where: {
             reservationId: reservationId,
           },
         });
-        if (response[0].payment_status != "Success") {
+        if(response[0].payment_status == "Success"){
+            await prisma.payments.update({
+                where: {
+                reservationId: reservationId,
+                },
+                data: {
+                    payment_status: "Success"
+                },
+            });
+        }
+        else if (response[0].payment_status != "Success") {
           await prisma.payments.delete({
             where: {
               reservationId: reservationId,
