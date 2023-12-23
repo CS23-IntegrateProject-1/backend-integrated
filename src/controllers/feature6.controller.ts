@@ -1041,7 +1041,7 @@ export const checkIn = async (req: Request, res: Response) => {
                 },
             });
 
-            const entry_time = addHours(new Date(), 0);
+            const entry_time = addHours(new Date(), 7);
             await feature6Client.reservation.update({
                 where: { reservationId },
                 data: {
@@ -1129,11 +1129,11 @@ export const checkOut = async (req: Request, res: Response) => {
         if (!reservation) {
             return res.status(404).json({ error: "Reservation not found" });
         }
-        if (reservation.status !== "Check_in") {
+        if (reservation.status !== "Check_in" ) {
             return res.status(400).json({ error: "Check-Out not success" });
         }
         if(reservation.isPaymentSuccess === "Pending"){
-            return res.status(200).send(402);
+            return res.status(200).json("Payment Require");
         }
 
         const checkOutLog = await feature6Client.check_in_log.update({
