@@ -2510,3 +2510,170 @@ const getDeliveryOrderPriceDynamic = async (req: Request, res: Response) => {
 };
 
 
+export const BusinessuserIdToVenueId = async (req: Request, res: Response) => {
+  const token = req.cookies.authToken; // token stored in authToken
+
+  if (!token) {
+    return res.status(404).json({ error: "not verify" });
+  }
+  const decodetoken = authService.decodeToken(token);
+  const businessId = decodetoken.businessId;
+    try {
+        const property = await feature8Client.property.findFirst({
+          where: {
+            businessId: parseInt(businessId),
+          },
+          select: {
+            venueId: true,
+            businessId: true,
+          },
+        });
+        if (!property) {
+          return res
+            .status(404)
+            .json({ error: "Property not found for the given businessId" });
+        }
+    
+        res.json({ property: property });
+    
+  
+    } catch (error) {
+      console.error("Error retrieving venueId:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+    
+  }
+
+//For Ad
+export const createAdSession = async (req: Request, res: Response) => {
+  try {
+    const advertisementId = parseInt(req.params.advertisementId);
+    const priceResponse = await getAdDynamicPriceId(req, res);
+
+    if (isNotError) {
+      const session = await stripe.checkout.sessions.create({
+        line_items: [
+          {
+            price: priceResponse,
+            quantity: 1,
+          },
+        ],
+        mode: "payment",
+        success_url: `${process.env.CLIENT_URL}/business/Notification/advertisement/${advertisementId}/{CHECKOUT_SESSION_ID}`,
+        cancel_url: `${process.env.CLIENT_URL}/`,
+      } as any);
+      
+      // const advertisementId = parseInt(req.params.advertisementId);
+
+      // await feature8Client.ad_business.update({
+      //   where: {
+      //     advertisementId: advertisementId,
+      //   },
+      //   data: {
+      //     isApprove: "In_progress",
+      //   },
+      // });
+
+      return res.status(200).json({ url: session.url , sessionId: session.id });
+
+    }
+  } catch (error) {
+    return res.json(error);
+  }
+};
+
+const getAdDynamicPriceId = async (req: Request, res: Response) => {
+  const product = await stripe.products.create({
+    name: "Advertisement",
+    description: "Pay for Advertisement",
+  });
+  
+  const advertisementId = parseInt(req.params.advertisementId);
+  
+  try {
+
+
+    const depositQueryResult = await feature8Client.ad_business.findFirst({
+      where: {
+        advertisementId: advertisementId,
+      },
+      select: {
+        cost: true,
+      },
+    });
+
+    const deposit_amount = depositQueryResult?.cost;
+    
+    const totalAmount2: any = deposit_amount!.toFixed(2);
+    
+    const movedDecimalNumber = totalAmount2 * 100;
+      console.log(movedDecimalNumber);
+    const strPrice = movedDecimalNumber.toString();
+      console.log(strPrice);
+    const price = await stripe.prices.create({
+      unit_amount_decimal: strPrice,
+      currency: "thb",
+      product: product.id,
+    });
+    return price.id;
+  } catch (e) {
+    console.log(e);
+    return res.status(500).json(e);
+  }
+};
+
+
+
+export const updateAdDB = async (req: Request, res: Response) => {
+  try {
+
+    const advertisementId = parseInt(req.params.advertisementId);
+
+    // Update ad_business in your database
+    await feature8Client.ad_business.update({
+      where: {
+        advertisementId: (advertisementId),
+      },
+      data: {
+        isApprove: 'In_progress',
+      },
+    });
+
+    return res.status(200).json({ success: true });
+  } catch (error) {
+    console.error('Error updating ad_business:', error);
+    return res.status(500).json({ success: false, error: 'Internal Server Error' });
+  }
+};
+
+
+export const completePayment = async (req: Request, res: Response) => {
+  try {
+    const { sessionId, advertisementId } = req.params;
+
+    // Verify the session with Stripe
+    const session = await stripe.checkout.sessions.retrieve(sessionId);
+
+    // Check if payment was successful
+    if (session.payment_status === 'paid') {
+      // Update your database with the payment confirmation
+      await feature8Client.ad_business.update({
+        where: {
+          advertisementId: parseInt(advertisementId),
+        },
+        data: {
+          isApprove: 'In_progress',
+        },
+      });
+
+      // Perform any additional actions or send a success response
+      return res.status(200).json({ success: true, message: 'Payment successful' });
+    } else {
+      // Handle unsuccessful payment
+      return res.status(400).json({ success: false, message: 'Payment failed' });
+    }
+  } catch (error) {
+    console.error('Error completing payment:', error);
+    return res.status(500).json({ success: false, error: 'Internal Server Error' });
+  }
+};
