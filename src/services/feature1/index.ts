@@ -14,7 +14,26 @@ import SearchRepository from "./search.repository";
 
 import SearchService, { ISearchService } from "./search.service";
 
+import HelpDeskRepository, {
+  IHelpDeskRepository,
+} from "./help_desk.repository";
+import HelpDeskService, { IHelpDeskService } from "./help_desk.service";
+
+import PaymentMethodRepository from "./payment_method.repository";
+import PaymentMethodService, {
+  IPaymentMethodService,
+} from "./payment_method.service";
+
+import PromptPayRepository from "./promptpay.repository";
+import PromptPayService, { IPromptPayService } from "./promptpay.service";
+
 export {
+  PromptPayRepository,
+  PromptPayService,
+  IPromptPayService,
+  PaymentMethodRepository,
+  PaymentMethodService,
+  IPaymentMethodService,
   VenueService,
   IVenueService,
   VenueRepository,
@@ -31,4 +50,8 @@ export {
   SearchRepository,
   SearchService,
   ISearchService,
+  HelpDeskRepository,
+  IHelpDeskRepository,
+  HelpDeskService,
+  IHelpDeskService,
 };

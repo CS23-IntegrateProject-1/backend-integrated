@@ -2,10 +2,11 @@ import { Router } from "express";
 
 // here import your controllers(function)
 import {
+  getUserId,
   mapsLocation,
   GetAllMapsLocation,
   saveUserLocation,
-  GetAllsaveUserLocation,
+  // GetAllsaveUserLocation,
   updateSavedLocation,
   deleteSavedLocation,
   deleteLocation,
@@ -13,15 +14,32 @@ import {
   getAllRestaurant,
   getAllBars,
   getAllCinema,
+  getBranchByVenueId,
   getMenuById,
   getMenusByVenueId,
-  getSetById,
-  getSetsByVenueId,
   getPaymentMethods,
   addItemToCookie,
-} from "../controllers/feature4.controller";
+  showCart,
+  saveTotal,
+  getTotal,
+  deleteItemFromCart,
+  updateCartItemQuantity,
+  changeOrderStatusCompleted,
+  changeOrderStatusCanceled,
+  showOnGoingOrder,
+  showOnGoingOrderDetail,
+  showCompletedOrder,
+  showCompletedOrderDetail,
+  showCanceledOrder,
+  showCanceledOrderDetail,
+  createOnlineOrder,
+  getReceipt,
 
+} from "../controllers/feature4.controller";
+import { customVerifyCookie } from "../middlewares/verifyCookies";
 const feature4Router = Router();
+
+feature4Router.get("/userId", getUserId);
 
 // here define your routes
 feature4Router.post("/map-data", mapsLocation);
@@ -29,22 +47,40 @@ feature4Router.get("/map-data", GetAllMapsLocation);
 feature4Router.delete("/map-data/:locationId", deleteLocation);
 
 feature4Router.post("/saved-location", saveUserLocation);
-feature4Router.get("/saved-location", GetAllsaveUserLocation);
+// feature4Router.get("/saved-location", GetAllsaveUserLocation);
 feature4Router.put("/saved-location", updateSavedLocation);
-feature4Router.delete(
-  "/saved-location/:savedLocId/:userId",
-  deleteSavedLocation
-);
-feature4Router.get("/saved-location/:savedLocId", GetUserLocationById);
+feature4Router.delete("/saved-location/:savedLocId", deleteSavedLocation);
+feature4Router.get("/saved-location", GetUserLocationById);
 
 feature4Router.get("/restaurants", getAllRestaurant);
 feature4Router.get("/bars", getAllBars);
 feature4Router.get("/cinemas", getAllCinema);
 
+feature4Router.get("/branch/:venueId/:branchId", getBranchByVenueId);
 feature4Router.get("/menu/:id", getMenuById);
 feature4Router.get("/menus/:venueId", getMenusByVenueId);
-feature4Router.get("/set/:id", getSetById);
-feature4Router.get("/sets/:venueId", getSetsByVenueId);
 feature4Router.get("/payment/:userId", getPaymentMethods);
-feature4Router.post("/cart/:itemId", addItemToCookie);
+feature4Router.post(
+  "/addItemToCookie/:itemId",
+  customVerifyCookie,
+  addItemToCookie
+);
+feature4Router.get("/showOrderCart", customVerifyCookie, showCart);
+feature4Router.post("/saveTotal/:total", saveTotal);
+feature4Router.get("/getTotal", getTotal);
+feature4Router.delete("/removeCartItem/:itemId", deleteItemFromCart);
+feature4Router.post("/updateCartItemQuantity/:itemId",customVerifyCookie, updateCartItemQuantity);
+
+//order here
+feature4Router.patch("/changeOrderStatusCompleted/:orderId", changeOrderStatusCompleted);
+feature4Router.patch("/changeOrderStatusCanceled/:orderId", changeOrderStatusCanceled);
+feature4Router.get("/showOnGoingOrder", showOnGoingOrder);
+feature4Router.get("/showCompletedOrder", showCompletedOrder);
+feature4Router.get("/showCanceledOrder", showCanceledOrder);
+feature4Router.post("/createOnlineOrder",customVerifyCookie, createOnlineOrder);
+feature4Router.get("/getReceipt", getReceipt)
+feature4Router.get("/showOnGoingOrderDetail/:orderId", showOnGoingOrderDetail);
+feature4Router.get("/showCompletedOrderDetail/:orderId", showCompletedOrderDetail);
+feature4Router.get("/showCanceledOrderDetail/:orderId", showCanceledOrderDetail);
+
 export default feature4Router;
