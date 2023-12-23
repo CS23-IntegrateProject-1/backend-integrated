@@ -2562,8 +2562,20 @@ export const createAdSession = async (req: Request, res: Response) => {
         success_url: `${process.env.CLIENT_URL}/`,
         cancel_url: `${process.env.CLIENT_URL}/`,
       } as any);
+      
+      const advertisementId = parseInt(req.params.advertisementId);
+
+      await feature8Client.ad_business.update({
+        where: {
+          advertisementId: advertisementId,
+        },
+        data: {
+          isApprove: "In_progress",
+        },
+      });
 
       return res.status(200).json({ url: session.url });
+
     }
   } catch (error) {
     return res.json(error);
