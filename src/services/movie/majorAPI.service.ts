@@ -56,6 +56,7 @@ class MajorAPIService {
           genre: Films_genre[genre],
         },
       });
+      console.log("add filmId: " + film.filmId);
     }
   }
 
@@ -72,6 +73,7 @@ class MajorAPIService {
           filmId: film.filmId,
         },
       });
+      console.log("delete filmId: " + film.filmId);
     }
   }
 
@@ -96,7 +98,6 @@ class MajorAPIService {
           film.rate !== harmoniFilm.rate;
 
         if (hasChanged) {
-          //const genre = majorFilm.genre;
           this.prisma.films.update({
             where: {
               filmId: film.filmId,
@@ -144,6 +145,7 @@ class MajorAPIService {
           screen_no: screen.screen_number,
         },
       });
+      console.log("add screenId: " + screen.screenId);
     }
     harmoniData = await getScreenFromHarmoni();
     return newDataMajor;
@@ -163,6 +165,7 @@ class MajorAPIService {
           screenId: screen.screenId,
         },
       });
+      console.log("delete screenId: " + screen.screenId);
     }
   }
 
@@ -230,6 +233,8 @@ class MajorAPIService {
           longitude: theater.longitude,
         },
       });
+      console.log("add theaterId: " + theater.theaterId);
+      
     }
   }
 
@@ -248,6 +253,8 @@ class MajorAPIService {
           theaterId: theater.theaterId,
         },
       });
+      console.log("delete theaterId: " + theater.theaterId);
+      
     }
   }
   async editTheater() {
@@ -314,6 +321,7 @@ class MajorAPIService {
           price: show.price,
         },
       });
+      console.log("add showId: " + show.showId);
     }
   }
 
@@ -331,6 +339,7 @@ class MajorAPIService {
           showId: show.showId,
         },
       });
+      console.log("delete showId: " + show.showId);
     }
   }
   async editShow() {
@@ -396,6 +405,7 @@ class MajorAPIService {
           price_modifier: seatType.price_modifier,
         },
       });
+      console.log("add seatTypeId: " + seatType.seatTypeId);
     }
   }
 
@@ -416,6 +426,7 @@ class MajorAPIService {
           seatTypeId: seatType.seatTypeId,
         },
       });
+      console.log("delete seatTypeId: " + seatType.seatTypeId);
     }
   }
   async editSeatType() {
@@ -473,6 +484,7 @@ class MajorAPIService {
           seat_no: seat.seatNo,
         },
       });
+      console.log("add seatId: " + seat.seatId);
     }
   }
 
@@ -490,6 +502,7 @@ class MajorAPIService {
           seatId: seat.seatId,
         },
       });
+      console.log("delete seatId: " + seat.seatId);
     }
   }
   async editSeat() {
