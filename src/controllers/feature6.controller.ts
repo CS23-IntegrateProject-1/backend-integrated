@@ -221,7 +221,7 @@ export const createReservation = async (req: Request, res: Response) => {
                 .json({ error: "Cannot reserve in the past." });
         }
 
-        const newreserveTime = addHours(new Date(reserved_time), 7);
+        const newreserveTime = addHours(new Date(reserved_time), 0);
         // const entry_time = addMinutes(new Date(reserved_time), -30);
 
         const getAvailableTablesResponse: any = await getAvailableTables(req);
@@ -589,28 +589,11 @@ export const getCountPerDay = async (req: Request, res: Response) => {
 
         const venueId = getVenueId?.venueId;
         const today = new Date();
-        // console.log("Today", today);
-        // console.log("Start of Today", startOfDay(today));
-        // console.log("End of Today", endOfDay(today));
-        const startOfToday = addHours(startOfDay(today), 7);
-        const endOfToday = addHours(endOfDay(today), 7);
+        const startOfToday = addHours(startOfDay(today), 0);
+        const endOfToday = addHours(endOfDay(today), 0);
 
-        // console.log("start +7",startOfToday);
-        // console.log("end +7",endOfToday);
-        // const startOfToday = startOfDay(today);
-        // const endOfToday = endOfDay(today);
-
-        // const DateTimeStart: Date = addHours(new Date(reservedTimeStart), 7);
-        // const dateOnly = DateTimeStart.toISOString().split("T")[0];
-        // const TodayDate = new Date(dateOnly);
-        // const reservedTimeEnd = addHours(new Date(reservedTimeStart), 10); // Assuming a reservation lasts for 3 hours
-        // // Convert dates to ISO-8601 format
-        // const isoStartTime = new Date(PrepareReservedTimeStart).toISOString();
-
-        // console.log(today);
-        // console.log(startOfToday);
-        // console.log(endOfToday);
-
+        console.log("start:",startOfToday)
+        console.log("end:",endOfToday)
         const transactionsToday = await feature6Client.transaction.findMany({
             where: {
                 AND: [
@@ -658,7 +641,7 @@ export const getCountPerDay = async (req: Request, res: Response) => {
                 Reservation_table: true,
             },
         });
-
+        // console.log(reservationsToday)
         let ReservationCount = 0;
         reservationsToday.forEach((reservation) => {
             ReservationCount += reservation.Reservation_table.length;
@@ -938,12 +921,13 @@ export const createOfflineReservation = async (req: Request, res: Response) => {
                     reserved_time: new Date(newreserveTime),
                     entry_time: new Date(newreserveTime),
                     status: "Check_in",
-                    isPaidDeposit: "Pending",
+                    isPaidDeposit: "Completed",
                     isReview: false,
                     depositId: depositId[0].depositId,
                     branchId: branchId,
                     phone: phone_num,
                     name: name,
+                    isPaymentSuccess: "Completed"
                 },
             });
 
@@ -971,7 +955,7 @@ export const createOfflineReservation = async (req: Request, res: Response) => {
             const checkInTime = addHours(new Date(), 7);
 
             const defaultCheckoutTime = new Date();
-            defaultCheckoutTime.setHours(7, 0, 0, 0);
+            defaultCheckoutTime.setHours(0, 0, 0, 0);
             await feature6Client.check_in_log.create({
                 data: {
                     reserveId: reservationId,
@@ -1047,7 +1031,7 @@ export const checkIn = async (req: Request, res: Response) => {
         }
 
         const defaultCheckoutTime = new Date();
-        defaultCheckoutTime.setHours(7, 0, 0, 0);
+        defaultCheckoutTime.setHours(0, 0, 0, 0);
         const isSuccess = true;
         if (isSuccess) {
             await feature6Client.check_in_log.create({
@@ -1146,11 +1130,11 @@ export const checkOut = async (req: Request, res: Response) => {
         if (!reservation) {
             return res.status(404).json({ error: "Reservation not found" });
         }
-        if (reservation.status !== "Check_in") {
+        if (reservation.status !== "Check_in" ) {
             return res.status(400).json({ error: "Check-Out not success" });
         }
         if(reservation.isPaymentSuccess === "Pending"){
-            return res.status(200).send(402);
+            return res.status(200).json("Payment Require");
         }
 
         const checkOutLog = await feature6Client.check_in_log.update({

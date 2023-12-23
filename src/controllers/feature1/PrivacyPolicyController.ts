@@ -14,7 +14,8 @@ import {
   PrismaClientValidationError,
 } from "@prisma/client/runtime/library";
 import { Prisma } from "@prisma/client";
-import { makeErrorResponse } from "./models/payment_method.model";
+import { getUserId } from ".";
+import { makeErrorResponse } from "./models";
 
 interface IPrivacyPolicyController {
   store: (req: Request, res: Response) => unknown;
@@ -23,7 +24,9 @@ interface IPrivacyPolicyController {
   destroy: (req: Request, res: Response) => unknown;
 }
 
-export class PrivacyPolicyController implements IPrivacyPolicyController {
+export default class PrivacyPolicyController
+  implements IPrivacyPolicyController
+{
   private service: IPrivacyPolicyService = new PrivacyPolicyService(
     new PrivacyPolicyRepository(),
   );
@@ -41,7 +44,7 @@ export class PrivacyPolicyController implements IPrivacyPolicyController {
 
     try {
       const response = await this.service.storePrivacyPolicy(
-        Number(req.params.userId),
+        getUserId(req),
         privacyConsent,
         cookieConsent,
       );
@@ -70,7 +73,7 @@ export class PrivacyPolicyController implements IPrivacyPolicyController {
   async show(req: Request, res: Response) {
     try {
       const response = await this.service.getPrivacyPolicyOfUser(
-        Number(req.params.userId),
+        getUserId(req),
       );
 
       const webResponse = makePrivacyPolicyWebResponse(response);
@@ -96,7 +99,7 @@ export class PrivacyPolicyController implements IPrivacyPolicyController {
 
     try {
       const response = await this.service.updatePrivacyPolicyOfUser(
-        Number(req.params.userId),
+        getUserId(req),
         privacyConsent,
         cookieConsent,
       );
@@ -120,7 +123,7 @@ export class PrivacyPolicyController implements IPrivacyPolicyController {
 
   async destroy(req: Request, res: Response) {
     try {
-      await this.service.deletePrivacyPolicyOfUser(Number(req.params.userId));
+      await this.service.deletePrivacyPolicyOfUser(getUserId(req));
 
       return res.status(200).send();
     } catch (e) {
