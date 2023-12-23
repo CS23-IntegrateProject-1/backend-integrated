@@ -72,8 +72,8 @@ feature4Router.delete("/removeCartItem/:itemId", deleteItemFromCart);
 feature4Router.post("/updateCartItemQuantity/:itemId",customVerifyCookie, updateCartItemQuantity);
 
 //order here
-feature4Router.patch("/changeOrderStatusCompleted", changeOrderStatusCompleted);
-feature4Router.patch("/changeOrderStatusCanceled", changeOrderStatusCanceled);
+feature4Router.patch("/changeOrderStatusCompleted/:orderId", changeOrderStatusCompleted);
+feature4Router.patch("/changeOrderStatusCanceled/:orderId", changeOrderStatusCanceled);
 feature4Router.get("/showOnGoingOrder", showOnGoingOrder);
 feature4Router.get("/showCompletedOrder", showCompletedOrder);
 feature4Router.get("/showCanceledOrder", showCanceledOrder);
