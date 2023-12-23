@@ -35,7 +35,7 @@ export const getOfflineAvailableTables = async (req: Request) => {
 
         // try {
         const concatDatetime = `${reserve_date} ${time}`;
-        const reservedTimeStart = new Date(concatDatetime);
+        const reservedTimeStart = addHours(new Date(concatDatetime), 7);
         const ReservedTimeStart = subHours(new Date(reservedTimeStart), 2);
 
         const tables = await prisma.tables.findMany({

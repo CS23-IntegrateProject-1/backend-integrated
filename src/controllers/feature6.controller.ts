@@ -589,8 +589,8 @@ export const getCountPerDay = async (req: Request, res: Response) => {
 
         const venueId = getVenueId?.venueId;
         const today = new Date();
-        const startOfToday = addHours(startOfDay(today), 7);
-        const endOfToday = addHours(endOfDay(today), 7);
+        const startOfToday = addHours(startOfDay(today), 0);
+        const endOfToday = addHours(endOfDay(today), 0);
 
         console.log("start:",startOfToday)
         console.log("end:",endOfToday)
@@ -927,6 +927,7 @@ export const createOfflineReservation = async (req: Request, res: Response) => {
                     branchId: branchId,
                     phone: phone_num,
                     name: name,
+                    isPaymentSuccess: "Completed"
                 },
             });
 
