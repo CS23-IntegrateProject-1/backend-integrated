@@ -2216,18 +2216,18 @@ export const createDepositSession = async (req: Request, res: Response) => {
           },
         ],
         mode: "payment",
-        success_url: `${process.env.CLIENT_URL}/my-reservation`,
+        success_url: `${process.env.CLIENT_URL}/deposit-success/${reservationId}/{CHECKOUT_SESSION_ID}`,
         cancel_url: `${process.env.CLIENT_URL}/deposit-cancel`,
       } as any);
 
-      await feature8Client.reservation.update({
-        where: {
-          reservationId: reservationId,
-        },
-        data: {
-          isPaidDeposit: "Completed",
-        },
-      });
+      // await feature8Client.reservation.update({
+      //   where: {
+      //     reservationId: reservationId,
+      //   },
+      //   data: {
+      //     isPaidDeposit: "Completed",
+      //   },
+      // });
 
       return res.status(200).json({ url: session.url });
     }
@@ -2677,3 +2677,35 @@ export const completePayment = async (req: Request, res: Response) => {
     return res.status(500).json({ success: false, error: 'Internal Server Error' });
   }
 };
+
+export const completePaymentD = async (req: Request, res: Response) => {
+  try {
+    const { sessionId, reservationId } = req.params;
+
+    // Verify the session with Stripe
+    const session = await stripe.checkout.sessions.retrieve(sessionId);
+
+    // Check if payment was successful
+    if (session.payment_status === 'paid') {
+      // Update your database with the payment confirmation
+      await feature8Client.reservation.update({
+        where: {
+          reservationId: parseInt(reservationId),
+        },
+        data: {
+          isPaidDeposit: "Completed",
+        },
+      });
+
+      // Perform any additional actions or send a success response
+      return res.status(200).json({ success: true, message: 'Payment successful' });
+    } else {
+      // Handle unsuccessful payment
+      return res.status(400).json({ success: false, message: 'Payment failed' });
+    }
+  } catch (error) {
+    console.error('Error completing payment:', error);
+    return res.status(500).json({ success: false, error: 'Internal Server Error' });
+  }
+};
+
