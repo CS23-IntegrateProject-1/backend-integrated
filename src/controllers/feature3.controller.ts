@@ -159,7 +159,7 @@ export const getVenuesPage = async (req: Request, res: Response) => {
       })
     );
 
-    console.log(filteredVenuesWithFavourite)
+    // console.log(filteredVenuesWithFavourite)
     return res.json(filteredVenuesWithFavourite);
   } catch (error) {
     console.error(error);
@@ -338,7 +338,7 @@ export const getVenBranchPage = async (req: Request, res: Response) => {
   GROUP BY
     VR.branchId;
 `;
-    console.log(VenBranchPage);
+    // console.log(VenBranchPage);
     return res.json(VenBranchPage);
   } catch (error) {
     console.error(error);
