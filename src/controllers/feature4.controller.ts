@@ -18,7 +18,6 @@ export const getUserId = async (req: any, res: Response) => {
 
     res.status(200).json({ userId: userId });
   } catch (error) {
-    console.error("Error Get UserId:", error);
     res
       .status(500)
       .json({ error: "An error occurred while saving location data" });
@@ -36,7 +35,6 @@ export const saveTotal = async (req: Request, res: Response) => {
     res.cookie("totalCost", JSON.stringify(userData));
     res.status(200).json({ success: true, message: "Added to cookies" });
   } catch (error) {
-    console.log(error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
@@ -60,7 +58,6 @@ export const mapsLocation = async (req: Request, res: Response) => {
       location: savedLocation,
     });
   } catch (error) {
-    console.error("Error saving location data:", error);
     res
       .status(500)
       .json({ error: "An error occurred while saving location data" });
@@ -80,7 +77,6 @@ export const GetAllMapsLocation = async (req: Request, res: Response) => {
       location: savedLocation,
     });
   } catch (error) {
-    console.error("Error fetching location data:", error);
     res
       .status(500)
       .json({ error: "An error occurred while fetch location data" });
@@ -102,7 +98,6 @@ export const deleteLocation = async (req: Request, res: Response) => {
       message: "Location deleted successfully",
     });
   } catch (error) {
-    console.error("Error deleting location:", error);
     res
       .status(500)
       .json({ error: "An error occurred while deleting location" });
@@ -146,7 +141,6 @@ export const saveUserLocation = async (req: Request, res: Response) => {
       location: savedLocation,
     });
   } catch (error) {
-    console.error("Error saving user's location data:", error);
     res
       .status(500)
       .json({ error: "An error occurred while saving user's location data" });
@@ -162,7 +156,6 @@ export const GetAllsaveUserLocation = async (req: Request, res: Response) => {
       location: savedLocation,
     });
   } catch (error) {
-    console.error("Error fetching user's location data:", error);
     res
       .status(500)
       .json({ error: "An error occurred while fetching user's location data" });
@@ -197,7 +190,6 @@ export const GetUserLocationById = async (req: Request, res: Response) => {
       location: savedLocation,
     });
   } catch (error) {
-    console.error("Error fetching user's location data:", error);
     res
       .status(500)
       .json({ error: "An error occurred while fetching user's location data" });
@@ -246,7 +238,6 @@ export const updateSavedLocation = async (req: Request, res: Response) => {
       location: updatedLocation,
     });
   } catch (error) {
-    console.error("Error updating user's location data:", error);
     res.status(500).json({
       error: "An error occurred while updating user's location data",
     });
@@ -278,7 +269,6 @@ export const deleteSavedLocation = async (req: Request, res: Response) => {
       message: "User's saved location data deleted successfully",
     });
   } catch (error) {
-    console.error("Error deleting user's location data:", error);
     res.status(500).json({
       error: "An error occurred while deleting user's location data",
     });
@@ -314,7 +304,6 @@ export const getAllRestaurant = async (req: Request, res: Response) => {
       restaurant: restaurants,
     });
   } catch (error) {
-    console.error("Error fetching restaurant data:", error);
     res
       .status(500)
       .json({ error: "An error occurred while fetching restaurant data" });
@@ -340,7 +329,6 @@ export const getAllBars = async (req: Request, res: Response) => {
       bars: bars,
     });
   } catch (error) {
-    console.error("Error fetching bar data:", error);
     res
       .status(500)
       .json({ error: "An error occurred while fetching bar data" });
@@ -357,7 +345,6 @@ export const getAllCinema = async (req: Request, res: Response) => {
       cinemas: cinemas,
     });
   } catch (error) {
-    console.error("Error fetching cinemas data:", error);
     res
       .status(500)
       .json({ error: "An error occurred while fetching cinemas data" });
@@ -392,7 +379,9 @@ export const getBranchByVenueId = async (req: Request, res: Response) => {
     }
     res.status(200).json(response);
   } catch (e) {
-    console.log(e);
+    res
+      .status(500)
+      .json({ error: "An error occurred while fetching cinemas data" });
   }
 }
 
@@ -407,7 +396,9 @@ export const getMenusByVenueId = async (req: Request, res: Response) => {
 
     res.status(200).json(allMenus);
   } catch (e) {
-    console.log(e);
+    res
+      .status(500)
+      .json({ error: "An error occurred while fetching cinemas data" });
   }
 };
 
@@ -422,7 +413,9 @@ export const getMenuById = async (req: Request, res: Response) => {
     });
     return res.status(200).json(menu);
   } catch (e) {
-    console.log(e);
+    res
+      .status(500)
+      .json({ error: "An error occurred while fetching cinemas data" });
   }
 };
 
@@ -443,7 +436,6 @@ export const getPaymentMethods = async (req: Request, res: Response) => {
       paymentMethods,
     });
   } catch (error) {
-    console.error("Error fetching payment methods:", error);
     res
       .status(500)
       .json({ error: "An error occurred while fetching payment methods" });
@@ -467,7 +459,7 @@ export const addItemToCookie = async (req: any, res: Response) => {
       existingCart = [];
     }
 
-    console.log("existingCart:", existingCart);
+
 
     // Check if the menu item is already in the cart
     const updatedCart = existingCart.map((item) => {
@@ -478,7 +470,6 @@ export const addItemToCookie = async (req: any, res: Response) => {
       return item;
     });
 
-    console.log("updatedCart:", updatedCart);
 
     // Add a new item if it's not in the cart
     if (
@@ -495,7 +486,7 @@ export const addItemToCookie = async (req: any, res: Response) => {
       });
     }
 
-    console.log("updatedCart after push:", updatedCart);
+
 
     // Remove the item if the quantity is 0
     const filteredCart = updatedCart.filter(
@@ -507,7 +498,6 @@ export const addItemToCookie = async (req: any, res: Response) => {
         )
     );
 
-    console.log("filteredCart:", filteredCart);
 
     // If nothing in cart, delete the cookie
     if (filteredCart.length === 0) {
@@ -518,7 +508,6 @@ export const addItemToCookie = async (req: any, res: Response) => {
     res.cookie("onlineOrderItemCart", JSON.stringify(filteredCart));
     res.status(200).json({ success: true, message: "Added to cart" });
   } catch (error) {
-    console.log(error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
@@ -534,7 +523,7 @@ export const showCart = async (req: any, res: Response) => {
     //console.log(userCart);
     res.status(200).json(userCart);
   } catch (e) {
-    console.log(e);
+    res.status(500).json({ error: "Internal Server Error" });
   }
 };
 
@@ -554,7 +543,7 @@ export const deleteMenuFromCookie = async (req: any, res: Response) => {
         res.cookie('onlineOrderItemCart', JSON.stringify(updatedCart));
         res.status(200).json({ success: true, message: 'Deleted menu from cart' });
     } catch (error) {
-        console.log(error);
+      res.status(500).json({ error: "Internal Server Error" });
     }
 }
 
@@ -576,7 +565,6 @@ export const getTotal = async (req: any, res: Response) => {
 
     res.status(200).json(total);
   } catch (error) {
-    console.error("Error calculating total:", error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
@@ -587,12 +575,12 @@ export const deleteItemFromCart = async (req: any, res: Response) => {
     if (!token) {
       return res.status(401).json({ error: "No auth token" });
     }
-    const decodedToken = authService.decodeToken(token);
-    const { userId } = decodedToken;
+    // const decodedToken = authService.decodeToken(token);
+    // const { userId } = decodedToken;
 
     const itemId = req.params.itemId;
-    console.log(userId);
-    console.log(itemId);
+    // console.log(userId);
+    // console.log(itemId);
     // Retrieve the user's cart from the 'cart' cookie or initialize an empty array
     const existingCartString = req.cookies.onlineOrderItemCart || "[]";
     let existingCart = JSON.parse(existingCartString);
@@ -602,14 +590,14 @@ export const deleteItemFromCart = async (req: any, res: Response) => {
       existingCart = [];
     }
 
-    console.log("existingCart before removal:", existingCart);
+    // console.log("existingCart before removal:", existingCart);
 
     // Filter out the item to be removed
     const updatedCart = existingCart.filter(
       (item: any) => item.itemId != itemId
     );
 
-    console.log("updatedCart:", updatedCart);
+    // console.log("updatedCart:", updatedCart);
 
     // If nothing in cart, delete the cookie
     if (updatedCart.length === 0) {
@@ -621,7 +609,6 @@ export const deleteItemFromCart = async (req: any, res: Response) => {
 
     res.status(200).json({ message: "Item removed successfully" });
   } catch (error) {
-    console.error("Error removing item from cart:", error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
@@ -646,7 +633,7 @@ export const updateCartItemQuantity = async (req: any, res: Response) => {
       existingCart = [];
     }
 
-    console.log("existingCart:", existingCart);
+    // console.log("existingCart:", existingCart);
 
     // Check if the menu item is already in the cart
     const updatedCart = existingCart.map((item: any) => {
@@ -657,13 +644,12 @@ export const updateCartItemQuantity = async (req: any, res: Response) => {
       return item;
     });
 
-    console.log("updatedCart:", updatedCart);
+    // console.log("updatedCart:", updatedCart);
 
     // Update the 'onlineOrderItemCart' cookie with the modified cart
     res.cookie("onlineOrderItemCart", JSON.stringify(updatedCart));
     res.status(200).json({ success: true, message: "Item quantity updated successfully" });
   } catch (error) {
-    console.log(error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
@@ -686,6 +672,7 @@ export const createOnlineOrder = async (req: any, res: Response) => {
     const branchId = req.body.branchId;
     const address = req.body.address;
     const driverNote = req.body.driverNote;
+    const payment = req.body.payment;
 
     const findDriver = await feature4Client.driver_list.findFirst({
         where: {
@@ -713,10 +700,11 @@ export const createOnlineOrder = async (req: any, res: Response) => {
         driverId: driverId??0,
         driver_note: driverNote,
         status: "On_going",
+        payment_method: payment,
       },
     });
 
-    console.log("this is new order "+ newOrder.onlineOrderId);
+    // console.log("this is new order "+ newOrder.onlineOrderId);
      const menuIds = userCart
             .filter((item) => item.itemId !== null) // Filter out null values
             .map((item) => parseInt(item.itemId));
@@ -727,8 +715,8 @@ export const createOnlineOrder = async (req: any, res: Response) => {
                 }
             }
         });
-        console.log("Menu IDs:", menuIds);
-        console.log("Menu:", menu);
+        // console.log("Menu IDs:", menuIds);
+        // console.log("Menu:", menu);
         
 
         await feature4Client.online_orders_detail.createMany({
@@ -744,14 +732,14 @@ export const createOnlineOrder = async (req: any, res: Response) => {
                 })),
         });
 
-      const DriverStatus = await feature4Client.driver_list.update({
+      await feature4Client.driver_list.update({
           where: {
            driverId: driverId,
           },data: {
             driver_status : "On_delivery",
           }
       });
-      console.log("Driver Status: ", DriverStatus);
+      // console.log("Driver Status: ", DriverStatus);
     
     res.clearCookie("onlineOrderItemCart");
     res.status(201).json({
@@ -759,7 +747,7 @@ export const createOnlineOrder = async (req: any, res: Response) => {
       order: newOrder,
     });
   }catch (e) {
-    console.log(e);
+    res.status(500).json({ error: "Internal Server Error" });
   }
 }
 
@@ -818,7 +806,7 @@ export const createOnlineOrder = async (req: any, res: Response) => {
         res.status(200).json(finalResponse);
     }
     catch (e) {
-        console.log(e);
+      res.status(500).json({ error: "Internal Server Error" });
     }
   }
 
@@ -845,7 +833,7 @@ export const showOnGoingOrder = async (req: any, res: Response) => {
     res.status(200).json(allOrders);
   
 } catch (e) {
-  console.log(e);
+  res.status(500).json({ error: "Internal Server Error" });
 }
 }
 
@@ -891,7 +879,6 @@ export const showOnGoingOrderDetail = async (req: any, res: Response) => {
 
     res.status(200).json(allOrders[0]);
   } catch (e) {
-    console.log(e);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 };
@@ -922,7 +909,7 @@ export const showCompletedOrder = async (req: any, res: Response) => {
     res.status(200).json(allOrders);
   
 } catch (e) {
-  console.log(e);
+  res.status(500).json({ error: "Internal Server Error" });
 }
 }
 
@@ -967,7 +954,7 @@ export const showCompletedOrderDetail = async (req: any, res: Response) => {
     }
     res.status(200).json(allOrders[0]);
   }catch (e) {
-      console.log(e);
+    res.status(500).json({ error: "Internal Server Error" });
     }
 }
 
@@ -994,7 +981,7 @@ export const showCanceledOrder = async (req: any, res: Response) => {
     res.status(200).json(allOrders);
   
 } catch (e) {
-  console.log(e);
+  res.status(500).json({ error: "Internal Server Error" });
 }
 }
 
@@ -1038,17 +1025,39 @@ export const showCanceledOrderDetail = async (req: any, res: Response) => {
     }
     res.status(200).json(allOrders[0]);
   }catch (e) {
-      console.log(e);
+    res.status(500).json({ error: "Internal Server Error" });
     }
 }
 
 export const changeOrderStatusCompleted = async (req: any, res: Response) => {
   try {
-      console.log(req.body);
-      const onlineOrderId = req.body.onlineOrderId;
+      // console.log(req.body);
+      const onlineOrderId = req.params.orderId;
+      const orderWithDriver = await feature4Client.online_orders.findUnique({
+        where: {
+          onlineOrderId: parseInt(onlineOrderId),
+        },
+        include: {
+          Driver_list: true,
+        },
+      });
+  
+      const driverId = orderWithDriver?.Driver_list?.driverId;
+  
+      // Update driver status to "Available" if a driver is associated with the order
+      if (driverId) {
+        await feature4Client.driver_list.update({
+          where: {
+            driverId: driverId,
+          },
+          data: {
+            driver_status: "Available",
+          },
+        });
+      }
       await feature4Client.online_orders.update({
           where: {
-              onlineOrderId: onlineOrderId,
+              onlineOrderId: parseInt(onlineOrderId),
           },
           data: {
               status: "Completed",
@@ -1056,7 +1065,7 @@ export const changeOrderStatusCompleted = async (req: any, res: Response) => {
       });
       await feature4Client.online_orders_detail.updateMany({
         where: {
-            onlineOrderId: onlineOrderId,
+            onlineOrderId: parseInt(onlineOrderId),
         },
         data: {
             status: "Completed",
@@ -1074,34 +1083,61 @@ export const changeOrderStatusCompleted = async (req: any, res: Response) => {
       res.status(200).json({ success: true, message: 'Order status changed' });
   }
   catch (e) {
-      console.log(e);
+    res.status(500).json({ error: "Internal Server Error" });
   }
 }
 
 export const changeOrderStatusCanceled = async (req: any, res: Response) => {
   try {
-      console.log(req.body);
-      const onlineOrderId = req.body.onlineOrderId;
-      await feature4Client.online_orders.update({
-          where: {
-              onlineOrderId: onlineOrderId,
-          },
-          data: {
-              status: "Canceled",
-          },
-      });
-      await feature4Client.online_orders_detail.updateMany({
+
+    const onlineOrderId = req.params.orderId;
+    // console.log("Received orderId:", onlineOrderId);
+
+    const orderWithDriver = await feature4Client.online_orders.findUnique({
+      where: {
+        onlineOrderId: parseInt(onlineOrderId),
+      },
+      include: {
+        Driver_list: true,
+      },
+    });
+
+    const driverId = orderWithDriver?.Driver_list?.driverId;
+
+    // Update driver status to "Available" if a driver is associated with the order
+    if (driverId) {
+      await feature4Client.driver_list.update({
         where: {
-            onlineOrderId: onlineOrderId,
+          driverId: driverId,
         },
         data: {
-            status: "Canceled",
+          driver_status: "Available",
         },
-    });
-      res.status(200).json({ success: true, message: 'Order status changed' });
-  }
-  catch (e) {
-      console.log(e);
-  }
-}
+      });
+    }
 
+    // Update order status to "Canceled"
+    await feature4Client.online_orders.update({
+      where: {
+        onlineOrderId: parseInt(onlineOrderId),
+      },
+      data: {
+        status: "Canceled",
+      },
+    });
+
+    // Update order details status to "Canceled"
+    await feature4Client.online_orders_detail.updateMany({
+      where: {
+        onlineOrderId: parseInt(onlineOrderId),
+      },
+      data: {
+        status: "Canceled",
+      },
+    });
+
+    res.status(200).json({ success: true, message: 'Order status changed' });
+  } catch (e) {
+    res.status(500).json({ success: false, message: 'Internal server error' });
+  }
+};

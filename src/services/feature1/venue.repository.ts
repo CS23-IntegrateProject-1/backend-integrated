@@ -1,27 +1,60 @@
-import { Venue_credit_card } from "@prisma/client";
+import { Opening_day, Venue_credit_card } from "@prisma/client";
 import { prismaClient } from "../../controllers/feature1.controller";
 import {
   CreditCardCreateRequest,
   Day,
   OpeningHourUpdateRequest,
+  PriceRangeDBResponse,
+  VenuePromptPayShowDBResponse,
   VenueShowDBResponse,
   VenueUpdateDBResponse,
   VenueUpdateRequest,
 } from "../../controllers/feature1/models";
+import { isNil } from "ramda";
 
 export interface IVenueRepository {
+  getPriceRangeByBusinessId(businessId: number): Promise<PriceRangeDBResponse>;
+
+  getOpeningHoursByBusinessId(businessId: number): Promise<Array<Opening_day>>;
+
   updateOpeningHours(businessId: number, data: OpeningHourUpdateRequest);
 
   getVenueByBusinessId(businessId: number): Promise<VenueShowDBResponse>;
 
-  updateVenueByBusinessId(businessId: number, data: VenueUpdateRequest);
+  updateVenueByBusinessId(
+    businessId: number,
+    data: VenueUpdateRequest,
+    filename: string | null,
+  );
 
-  updatePromptPayByBusinessId(businessId: number, promptPayNumber: number);
+  showPromptPayByBusinessId(
+    businessId: number,
+  ): Promise<VenuePromptPayShowDBResponse | null>;
+
+  updatePromptPayByBusinessId(
+    businessId: number,
+    promptPayNumber: number,
+    phoneNumber: string,
+  );
 
   createCreditCard(
     businessId: number,
     data: CreditCardCreateRequest,
   ): Promise<Venue_credit_card>;
+
+  getCreditCardById(
+    businessId: number,
+    creditCardId: number,
+  ): Promise<Venue_credit_card | null>;
+
+  listCreditCardsByBusinessId(
+    businessId: number,
+  ): Promise<Array<Venue_credit_card>>;
+
+  deleteCreditCardById(
+    businessId: number,
+    creditCardId: number,
+  ): Promise<boolean>;
 }
 
 function difference<T>(a: Set<T>, b: Set<T>): Set<T> {
@@ -29,6 +62,108 @@ function difference<T>(a: Set<T>, b: Set<T>): Set<T> {
 }
 
 class VenueRepository implements IVenueRepository {
+  async getPriceRangeByBusinessId(
+    businessId: number,
+  ): Promise<PriceRangeDBResponse> {
+    const venueId = await this.getVenueId(businessId);
+
+    const result = prismaClient.menu.aggregate({
+      where: {
+        venueId,
+      },
+      _max: {
+        price: true,
+      },
+      _min: {
+        price: true,
+      },
+    });
+
+    return result;
+  }
+
+  async getOpeningHoursByBusinessId(
+    businessId: number,
+  ): Promise<Array<Opening_day>> {
+    const venueId = await this.getVenueId(businessId);
+
+    return prismaClient.opening_day.findMany({
+      where: {
+        venueId,
+      },
+    });
+  }
+
+  async showPromptPayByBusinessId(
+    businessId: number,
+  ): Promise<VenuePromptPayShowDBResponse | null> {
+    const venueId = await this.getVenueId(businessId);
+
+    return prismaClient.venue_promptpay.findFirst({
+      where: {
+        venueId,
+      },
+      select: {
+        promptpay_no: true,
+        Venue: {
+          select: {
+            Property: {
+              select: {
+                Business_user: {
+                  select: {
+                    phone_num: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+  }
+
+  async deleteCreditCardById(
+    businessId: number,
+    creditCardId: number,
+  ): Promise<boolean> {
+    const venueId = await this.getVenueId(businessId);
+
+    const result = await prismaClient.venue_credit_card.delete({
+      where: {
+        creditCardId,
+        venueId,
+      },
+    });
+
+    return result !== null;
+  }
+
+  async listCreditCardsByBusinessId(
+    businessId,
+  ): Promise<Array<Venue_credit_card>> {
+    const venueId = await this.getVenueId(businessId);
+
+    return prismaClient.venue_credit_card.findMany({
+      where: {
+        venueId,
+      },
+    });
+  }
+
+  async getCreditCardById(
+    businessId: number,
+    creditCardId: number,
+  ): Promise<Venue_credit_card | null> {
+    const venueId = await this.getVenueId(businessId);
+
+    return prismaClient.venue_credit_card.findFirst({
+      where: {
+        creditCardId,
+        venueId,
+      },
+    });
+  }
+
   async createCreditCard(
     businessId: number,
     data: CreditCardCreateRequest,
@@ -51,21 +186,32 @@ class VenueRepository implements IVenueRepository {
   async updatePromptPayByBusinessId(
     businessId: number,
     promptPayNumber: number,
+    phoneNumber: string,
   ) {
     const venueId = await this.getVenueId(businessId);
 
-    return await prismaClient.venue_promptpay.upsert({
-      where: {
-        venueId,
-      },
-      create: {
-        venueId,
-        promptpay_no: promptPayNumber,
-      },
-      update: {
-        promptpay_no: promptPayNumber,
-      },
-    });
+    await prismaClient.$transaction([
+      prismaClient.venue_promptpay.upsert({
+        where: {
+          venueId,
+        },
+        create: {
+          venueId,
+          promptpay_no: promptPayNumber,
+        },
+        update: {
+          promptpay_no: promptPayNumber,
+        },
+      }),
+      prismaClient.business_user.update({
+        where: {
+          businessId,
+        },
+        data: {
+          phone_num: phoneNumber,
+        },
+      }),
+    ]);
   }
 
   async getOpeningHoursByVenueId(venueId: number) {
@@ -160,6 +306,7 @@ class VenueRepository implements IVenueRepository {
   async updateVenueByBusinessId(
     businessId: number,
     data: VenueUpdateRequest,
+    filename: string | null,
   ): Promise<VenueUpdateDBResponse> {
     const venueId = await this.getVenueId(businessId);
 
@@ -173,6 +320,7 @@ class VenueRepository implements IVenueRepository {
         category: data.category,
         capacity: data.capacity,
         website_url: data.website,
+        ...(!isNil(filename) && { venue_picture: `/uploads/${filename}` }),
         Location: {
           update: {
             address: data.address,
@@ -185,6 +333,7 @@ class VenueRepository implements IVenueRepository {
         category: true,
         capacity: true,
         website_url: true,
+        venue_picture: true,
         Location: {
           select: {
             address: true,

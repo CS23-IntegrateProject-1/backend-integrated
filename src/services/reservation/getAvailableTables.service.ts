@@ -1,22 +1,20 @@
 import { PrismaClient, Opening_day_day } from "@prisma/client";
 import { error } from "console";
-import { addHours } from "date-fns";
+import { addHours, subHours } from "date-fns";
 import { Request } from "express";
 
 export const getAvailableTables = async (req: Request) => {
     try {
         const prisma = new PrismaClient();
         const { venueId, reserve_date, branchId, time } = req.body;
-        // const token = req.cookies.authToken;
-        // if (!token) {
-        //     throw new Error("No auth token");
-        // }
 
         const concatDatetime = `${reserve_date} ${time}`;
         const reservedTimeStart = new Date(concatDatetime);
-        const PrepareReservedTimeStart = addHours(
+
+        
+        const PrepareReservedTimeStart = subHours(
             new Date(reservedTimeStart),
-            5
+            2
         );
         const tables = await prisma.tables.findMany({
             where: { venueId, branchId, isUsing: true },
@@ -24,10 +22,10 @@ export const getAvailableTables = async (req: Request) => {
         if (tables.length === 0) {
             return { error: "No tables found in this venue" };
         }
-        const DateTimeStart: Date = addHours(new Date(reservedTimeStart), 7);
+        const DateTimeStart: Date = addHours(new Date(reservedTimeStart), 0);
         const dateOnly = DateTimeStart.toISOString().split("T")[0];
         const TodayDate = new Date(dateOnly);
-        const reservedTimeEnd = addHours(new Date(reservedTimeStart), 9);
+        const reservedTimeEnd = addHours(new Date(reservedTimeStart), 2);
         const isoStartTime = new Date(PrepareReservedTimeStart).toISOString();
         const isoEndTime = reservedTimeEnd.toISOString();
         const [year, month, d] = reserve_date.split(/[- :]/);
@@ -103,7 +101,7 @@ export const getAvailableTables = async (req: Request) => {
         const openString = open.toISOString().split("T")[1].split(".")[0];
         const [hours, minutes, seconds] = openString.split(":").map(Number);
         const openMS = TodayDate.setHours(hours, minutes, seconds);
-        const openDate = addHours(new Date(openMS), 7);
+        const openDate = addHours(new Date(openMS), 0);
         const closeString = close.toISOString().split("T")[1].split(".")[0];
         const [closehours, closeminutes, closeseconds] = closeString
             .split(":")
@@ -116,12 +114,15 @@ export const getAvailableTables = async (req: Request) => {
             closeminutes,
             closeseconds
         );
-        const closeDate = addHours(new Date(closeMS), 7);
-        const twoHoursBeforeClose = addHours(closeDate, -2);
+        const closeDate = addHours(new Date(closeMS), 0);
+        const twoHoursBeforeClose = subHours(closeDate, 2);
         if (DateTimeStart < openDate || DateTimeStart > twoHoursBeforeClose) {
             return { error: "Reservation time is not within valid hours" };
         }
 
+        console.log("openDate", openDate);
+        console.log("closeDate", closeDate);
+        console.log("twoHoursBeforeClose", twoHoursBeforeClose);
         const overlappingReservations = await prisma.reservation.findMany({
             where: {
                 venueId,
@@ -177,7 +178,6 @@ export const getAvailableTables = async (req: Request) => {
             guestAmount: req.body.guest_amount,
         };
         return availableTables2;
-        // res.status(200).json({ availableTables });
     } catch (e) {
         return error(e);
     }

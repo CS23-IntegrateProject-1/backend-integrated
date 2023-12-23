@@ -13,6 +13,7 @@ import {
 } from "@prisma/client/runtime/library";
 import { Prisma } from "@prisma/client";
 import { makeErrorResponse } from "./models/payment_method.model";
+import { getUserId } from ".";
 
 interface ITosController {
   store: (req: Request, res: Response) => unknown;
@@ -21,10 +22,11 @@ interface ITosController {
   destroy: (req: Request, res: Response) => unknown;
 }
 
-export class TosController implements ITosController {
+export default class TosController implements ITosController {
   private service: ITosService = new TosService(new TosRepository());
 
   async store(req: Request, res: Response) {
+    const userId = getUserId(req);
     const { consent } = req.body;
 
     if (typeof consent !== "boolean") {
@@ -32,10 +34,7 @@ export class TosController implements ITosController {
     }
 
     try {
-      const response = await this.service.storeTos(
-        Number(req.params.userId),
-        consent,
-      );
+      const response = await this.service.storeTos(userId, consent);
 
       const webResponse = makeTosStoreWebResponse(response);
 
