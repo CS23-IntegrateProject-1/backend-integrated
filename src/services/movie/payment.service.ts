@@ -31,7 +31,7 @@ class paymentService {
 
           const showId = harmoniResponse.showId;
           const seatId = harmoniResponse.seatId;
-          MajorAxios.post("api/reservaion/delete", {
+          MajorAxios.post("api/reservation/delete", {
             showId,
             seatId,
           });
