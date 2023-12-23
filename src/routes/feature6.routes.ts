@@ -29,7 +29,7 @@ feature6Router.get("/allReservation", getAllReservation);
 feature6Router.get("/venue/:venueId/:branchId", getVenueById);
 feature6Router.get("/MyReservation/:reservationId", getReservationById);
 
-//Finished, Wait for Integration
+//Finished
 feature6Router.post("/MyReservation", getMyReservationByStatus);
 feature6Router.get(
     "/MyReservation/:venueId/:reservationId",
