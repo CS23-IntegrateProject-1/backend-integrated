@@ -238,17 +238,38 @@ export const editArticle = async (req: Request, res: Response) => {
     })
 
     const imageFiles = req.files as MulterFile[];
+    const oldPath = await prisma.images.findMany({
+      select: {
+        url: true
+      }
+    });
     let newImage;
     for (const file of imageFiles) {
       const imagePath = "/uploads/" + file.path.substring(file.path.lastIndexOf('/') + 1);
-      const description = file.originalname
-      newImage = await prisma.images.create({
-        data: {
-          url: imagePath,
-          description: description,
-          articleId: parseInt(articleId),
-        },
-      });
+      if (imagePath in oldPath) {
+        const imageId = await prisma.images.findFirst({
+          where: {
+            url: imagePath
+          }
+        })
+        newImage = await prisma.images.update({
+          where: { imageId: imageId?.imageId},
+          data: {
+            url: imageId?.url,
+            articleId: parseInt(articleId),
+          },
+        });
+      }
+      else { 
+        const description = file.originalname
+        newImage = await prisma.images.create({
+          data: {
+            url: imagePath,
+            description: description,
+            articleId: parseInt(articleId),
+          },
+        });
+      }
     }
 
     //for (const imageDetail of imageDetails) {
