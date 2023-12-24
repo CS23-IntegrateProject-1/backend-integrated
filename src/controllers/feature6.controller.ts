@@ -1,6 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import { Response, Request } from "express";
-import { addHours, startOfDay, endOfDay, parse, format } from "date-fns";
+import { addHours, startOfDay, endOfDay, parse, format} from "date-fns";
 import authService from "../services/auth/auth.service";
 import { genToken } from "../services/reservation/genToken.service";
 import { getAvailableTables } from "../services/reservation/getAvailableTables.service";
@@ -990,6 +990,30 @@ export const checkIn = async (req: Request, res: Response) => {
             where: { reservationId },
         });
 
+        const businessId = userType.businessId;
+        const getVenueId = await feature6Client.property.findFirst({
+            where: {
+                businessId: businessId,
+            },
+            select: {
+                venueId: true,
+            },
+        });
+        let isOwner = false;
+        if (getVenueId?.venueId === reservation?.venueId)
+          isOwner = true
+        if(isOwner === false){
+            return res.status(401).json("You are not owner of this venue");
+        }
+
+        // const entry_time = reservation?.entry_time;
+        // if(entry_time === undefined || !entry_time){
+        //     return res.status(200).json("Entry time not found");
+        // }
+        // const Entry_time = subMinutes(entry_time, 15);
+        // if(Entry_time < new Date()){
+        //     return res.status(200).json("Please wait you can check-in 15 minutes before reserve time");
+        // }
         if (userType !== "user") {
             // return res
             //     .status(401)
@@ -1074,6 +1098,7 @@ export const checkIn = async (req: Request, res: Response) => {
             return res.send(200);
         }
     } catch (e) {
+        console.log("test", e)
         return res.status(500).json(e);
     }
 };
