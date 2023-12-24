@@ -14,6 +14,8 @@ class theaterService {
     });
     return data;
   }
+
+  
 }
 
 export default new theaterService();
