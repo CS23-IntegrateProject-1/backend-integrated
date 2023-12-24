@@ -239,24 +239,16 @@ export const editArticle = async (req: Request, res: Response) => {
 
     const imageFiles = req.files as MulterFile[];
     let newImage;
-
-    if (imageFiles)
-    {
-      for (const file of imageFiles) {
-        const imagePath = "/uploads/" + file.path.substring(file.path.lastIndexOf('/') + 1);
-        const description = file.originalname
-        newImage = await prisma.images.create({
-          data: {
-            url: imagePath,
-            description: description,
-            articleId: parseInt(articleId),
-          },
-        });
-      }
-    }
-    else
-    {
-      newImage = "no change in image"
+    for (const file of imageFiles) {
+      const imagePath = "/uploads/" + file.path.substring(file.path.lastIndexOf('/') + 1);
+      const description = file.originalname
+      newImage = await prisma.images.create({
+        data: {
+          url: imagePath,
+          description: description,
+          articleId: parseInt(articleId),
+        },
+      });
     }
 
     //for (const imageDetail of imageDetails) {
