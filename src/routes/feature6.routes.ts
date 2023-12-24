@@ -9,7 +9,7 @@ import { createReservation } from "../controllers/feature6.controller";
 import { checkInStatus } from "../controllers/feature6.controller";
 
 //IMPORT FOR BUSINESS SIDE
-// import { getAllTableTypeByVenueId } from "../controllers/feature6.controller";
+import { getAllTableTypeByVenueId } from "../controllers/feature6.controller";
 import { getAllTableByVenueId } from "../controllers/feature6.controller";
 import { getTableByTableId } from "../controllers/feature6.controller";
 import { getCountPerDay } from "../controllers/feature6.controller";
@@ -25,6 +25,7 @@ const feature6Router = Router();
 // Customer side part
 //GET METHOD
 feature6Router.get("/allTable", getAllTable);
+feature6Router.get("/allTableType", getAllTableTypeByVenueId);
 feature6Router.get("/allReservation", getAllReservation);
 feature6Router.get("/venue/:venueId/:branchId", getVenueById);
 feature6Router.get("/MyReservation/:reservationId", getReservationById);
