@@ -2311,7 +2311,7 @@ export const createSeatSessionnn = async (req: Request, res: Response) => {
       ],
       mode: "payment",
       success_url: `${process.env.CLIENT_URL}/seat-success`,
-      cancel_url: `${process.env.CLIENT_URL}/seat-cancel`,
+      cancel_url: `${process.env.CLIENT_URL}/reservationFail`,
     });
 
     res.status(200).json({ url: session.url });

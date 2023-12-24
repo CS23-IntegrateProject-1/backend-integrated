@@ -763,7 +763,7 @@ model Payments {
   reservationId    Int                     @unique
   payment_date     DateTime
   payment_amount   Decimal
-  payment_method   Payments_payment_method
+  payment_method   Payments_payment_method?
   payment_status   Payments_payment_status
   Reservation_logs Reservation_logs        @relation(fields: [reservationId], references: [reservationId])
 }
