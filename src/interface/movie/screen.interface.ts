@@ -10,7 +10,7 @@ export interface Screen{
     screenId: number;
     theaterId: number;
     capacity: number;
-    scree_type: screenType;
+    screen_type: screenType;
     price: number;
     screen_no: number;
 }
