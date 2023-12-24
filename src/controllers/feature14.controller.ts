@@ -700,16 +700,6 @@ export const updateVenue = async (req: Request, res: Response) => {
 		return res.sendStatus(500).json({ error });
 	}
 };
-export const F14getBusinessId = async (req: Request) => {
-	const venueId = req.body.venueId;
-	const property = await feature14Client.property.findMany({
-		where: {
-			venueId: venueId,
-		},
-	});
-	const businessId = property[0].businessId;
-	return businessId;
-};
 ////////////////////////////////////////////////////////////////////////////////
 // export const createPromotionApproval = async(req:Request, res:Response) => {
 // 	const { isApprove ,promotionId} = req.body;

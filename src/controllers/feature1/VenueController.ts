@@ -17,8 +17,6 @@ import {
   MulterRequest,
 } from "./models";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
-import authService from "../../services/auth/auth.service";
-import { F14getBusinessId } from "../feature14.controller";
 
 export interface IVenueController {
   update: (req: Request, res: Response) => unknown;
@@ -85,18 +83,8 @@ const makeResponse = compose(
 class VenueController implements IVenueController {
   private service: IVenueService = new VenueService(new VenueRepository());
 
-  isAdmin(req: Request) {
-    const authToken = authService.decodeToken(req.cookies.authToken);
-    if (authToken.adminId !== undefined) {
-      return true;
-    }
-    return false;
-  }
-
   async showOpeningHours(req: Request, res: Response) {
-    const businessId = this.isAdmin(req)
-		? await F14getBusinessId(req)
-		: getBusinessId(req);
+    const businessId = getBusinessId(req);
 
     try {
       const result = await this.service.showOpeningHours(businessId);
@@ -108,9 +96,7 @@ class VenueController implements IVenueController {
   }
 
   async showPromptPay(req: Request, res: Response) {
-    const businessId = this.isAdmin(req)
-		? await F14getBusinessId(req)
-		: getBusinessId(req);
+    const businessId = getBusinessId(req);
 
     try {
       const result = await this.service.showPromptPay(businessId);
@@ -126,9 +112,7 @@ class VenueController implements IVenueController {
   }
 
   async createCreditCard(req: Request, res: Response) {
-    const businessId = this.isAdmin(req)
-		? await F14getBusinessId(req)
-		: getBusinessId(req);
+    const businessId = getBusinessId(req);
 
     const result = await CreateCreditCardPayload.safeParseAsync(req.body);
 
@@ -152,9 +136,7 @@ class VenueController implements IVenueController {
 
   // TODO: handle AuthZ
   async showCreditCard(req: Request, res: Response) {
-    const businessId = this.isAdmin(req)
-		? await F14getBusinessId(req)
-		: getBusinessId(req);
+    const businessId = getBusinessId(req);
     const creditCardId = getCreditCardId(req);
 
     try {
@@ -176,9 +158,7 @@ class VenueController implements IVenueController {
   }
 
   async indexCreditCard(req: Request, res: Response) {
-     const businessId = this.isAdmin(req)
-			? await F14getBusinessId(req)
-			: getBusinessId(req);
+    const businessId = getBusinessId(req);
 
     try {
       const response =
@@ -192,9 +172,7 @@ class VenueController implements IVenueController {
 
   // TODO: Handle AuthZ
   async deleteCreditCard(req: Request, res: Response) {
-    const businessId = this.isAdmin(req)
-		? await F14getBusinessId(req)
-		: getBusinessId(req);
+    const businessId = getBusinessId(req);
     const creditCardId = getCreditCardId(req);
 
     try {
@@ -217,9 +195,7 @@ class VenueController implements IVenueController {
   }
 
   async updatePromptPay(req: Request, res: Response) {
-    const businessId = this.isAdmin(req)
-		? await F14getBusinessId(req)
-		: getBusinessId(req);
+    const businessId = getBusinessId(req);
     const promptPay = req.body;
     const result = await PromptPayPayload.safeParseAsync(promptPay);
 
@@ -241,9 +217,7 @@ class VenueController implements IVenueController {
   }
 
   async updateOpeningHours(req: Request, res: Response) {
-    const businessId = this.isAdmin(req)
-		? await F14getBusinessId(req)
-		: getBusinessId(req);
+    const businessId = getBusinessId(req);
     const openingHours = req.body;
     const result = await OpeningHourPayload.safeParseAsync(openingHours);
 
@@ -261,9 +235,7 @@ class VenueController implements IVenueController {
   }
 
   async show(req: Request, res: Response) {
-    const businessId = this.isAdmin(req)
-		? await F14getBusinessId(req)
-		: getBusinessId(req);
+    const businessId = getBusinessId(req);
 
     try {
       const response = await this.service.getVenue(businessId);
@@ -277,9 +249,7 @@ class VenueController implements IVenueController {
   }
 
   async update(req: Request, res: Response) {
-    const businessId = this.isAdmin(req)
-		? await F14getBusinessId(req)
-		: getBusinessId(req);
+    const businessId = getBusinessId(req);
     let venueMap = req.body;
     venueMap = { ...venueMap, capacity: Number(venueMap.capacity) };
     const venue = await VenueUpdatePayload.safeParseAsync(venueMap);
@@ -303,9 +273,7 @@ class VenueController implements IVenueController {
   }
 
   async showPriceRange(req: Request, res: Response) {
-    const businessId = this.isAdmin(req)
-		? await F14getBusinessId(req)
-		: getBusinessId(req);
+    const businessId = getBusinessId(req);
 
     try {
       const response = await this.service.getPriceRange(businessId);

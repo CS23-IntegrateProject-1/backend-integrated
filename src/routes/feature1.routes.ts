@@ -4,7 +4,6 @@ import multerConfig from "../multerConfig";
 import {
   userAuthMiddleware,
   businessAuthMiddleware,
-  adminAuthMiddleware,
 } from "../middlewares/feature1.middleware";
 import {
   AboutController,
@@ -182,83 +181,42 @@ feature1Router.get(
   businessAuthMiddleware,
   venueController.show.bind(venueController),
 );
-feature1Router.get(
-  "/admin/venue/:venueId",
-  adminAuthMiddleware,
-  venueController.show.bind(venueController),
-)
 feature1Router.put(
   "/venue/info",
   businessAuthMiddleware,
   multerConfig.single("avatar"),
   venueController.update.bind(venueController),
 );
-feature1Router.put(
-  "/admin/venue/info/:venueId",
-  adminAuthMiddleware,
-  multerConfig.single("avatar"),
-  venueController.update.bind(venueController),
-)
 feature1Router.get(
   "/venue/promptpay",
   businessAuthMiddleware,
   venueController.showPromptPay.bind(venueController),
 );
-feature1Router.get(
-  "/admin/venue/promptpay/:venueId",
-  adminAuthMiddleware,
-  venueController.showPromptPay.bind(venueController),
-)
 feature1Router.put(
   "/venue/promptpay",
   businessAuthMiddleware,
   venueController.updatePromptPay.bind(venueController),
 );
 feature1Router.put(
-  "/admin/venue/promptpay/:venueId",
-  adminAuthMiddleware,
-  venueController.updatePromptPay.bind(venueController),
-)
-feature1Router.put(
   "/venue/opening_hours",
   businessAuthMiddleware,
   venueController.updateOpeningHours.bind(venueController),
 );
-feature1Router.put(
-  "/admin/venue/opening_hours/:venueId",
-  adminAuthMiddleware,
-  venueController.updateOpeningHours.bind(venueController),
-)
 feature1Router.get(
   "/venue/opening_hours",
   businessAuthMiddleware,
   venueController.showOpeningHours.bind(venueController),
 );
-feature1Router.get(
-  "/admin/venue/opening_hours/:venueId",
-  adminAuthMiddleware,
-  venueController.showOpeningHours.bind(venueController),
-)
 feature1Router.post(
   "/venue/credit_card",
   businessAuthMiddleware,
   venueController.createCreditCard.bind(venueController),
 );
-feature1Router.post(
-  "/admin/venue/credit_card/:venueId",
-  adminAuthMiddleware,
-  venueController.createCreditCard.bind(venueController),
-)
 feature1Router.get(
   "/venue/credit_card",
   businessAuthMiddleware,
   venueController.indexCreditCard.bind(venueController),
 );
-feature1Router.get(
-  "/admin/venue/credit_card/:venueId",
-  adminAuthMiddleware,
-  venueController.indexCreditCard.bind(venueController),
-)
 feature1Router.get(
   "/venue/credit_card/:id",
   businessAuthMiddleware,
