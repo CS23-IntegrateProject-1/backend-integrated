@@ -5,6 +5,7 @@ import { Stripe } from "stripe";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import { Request, Response } from "express";
 import reservationService from "../services/movie/reservation.service";
+import { Decimal } from "@prisma/client/runtime/library";
 // import { is } from "ramda";
 
 const feature8Client = new PrismaClient();
@@ -2064,6 +2065,7 @@ export const createCheckoutSession = async (req: Request, res: Response) => {
         cancel_url: `${process.env.CLIENT_URL}/checkout-cancel`,
         
       } as any);
+
       // res.clearCookie("reservationToken");
       // return res.status(200).json({ url: session.url });
       
@@ -2084,6 +2086,8 @@ export const createCheckoutSession = async (req: Request, res: Response) => {
       const decodetoken = authService.decodeToken(token);
       const userId = decodetoken.userId;
       
+      try {
+      
       const venueId = await feature8Client.reservation.findUnique({
         where: { reservationId: Number(reservationId) },
       });
@@ -2096,53 +2100,69 @@ export const createCheckoutSession = async (req: Request, res: Response) => {
       }
       
       // const session = await stripe.checkout.sessions.create({
-      //   line_items: [
-      //     {
-      //       price: priceResponse,
-      //       quantity: 1,
-      //     },
-      //   ],
-      //   mode: "payment",
-      //   success_url: `${process.env.CLIENT_URL}/`,
-      //   cancel_url: `${process.env.CLIENT_URL}/checkout-cancel`,
-      // } as any);
-      try {
-        const total = await feature8Client.orders.findUnique({
-          where: {
-            reservedId: reservationId,
-          },
-          select: {
-            total_amount: true,
-          },
-        })
-  
-        console.log("reserve", reservationId)
-        const newTransaction = await feature8Client.transaction.create({
-          data: {
-            userId: userId,
-            venueId: venue.venueId,
-            reserveId: reservationId,
+        //   line_items: [
+          //     {
+            //       price: priceResponse,
+            //       quantity: 1,
+            //     },
+            //   ],
+            //   mode: "payment",
+            //   success_url: `${process.env.CLIENT_URL}/`,
+            //   cancel_url: `${process.env.CLIENT_URL}/checkout-cancel`,
+            // } as any);
+            
+            const total = await feature8Client.orders.findUnique({
+              where: {
+                reservedId: reservationId,
+              },
+              select: {
+                total_amount: true,
+              },
+            })
+            
+            console.log("reserve", reservationId)
+            const newTransaction = await feature8Client.transaction.create({
+              data: {
+                userId: userId,
+                venueId: venue.venueId,
+                reserveId: reservationId,
+              }
+            });
+            
+            
+            await feature8Client.transaction_detail.create({
+              data: {
+                transactionId: newTransaction.transactionId ,
+                detail: "",
+                status: "",
+                timestamp: new Date(),
+                total_amount: total?.total_amount ?? 0,
+              }
+            });
+
+            const amount : number = Math.ceil((total?.total_amount.div(20) ?? new Decimal(0)).toNumber());
+
+            const pointId = await feature8Client.point.findFirst({
+              where: { userId: userId },
+              select: { pointId: true }, 
+            })
+            await feature8Client.point.update({
+              where: {
+                pointId: pointId?.pointId,
+              },
+              data: {
+                amount: amount
+              },
+            });
+            // console.log(venueId)
+            // console.log(userId)
+            // console.log(reservationId)
+            // console.log(priceResponse + "priceResponse")
+          } catch (error) {
+            console.log(error)
           }
-        });
-        
-        
-        await feature8Client.transaction_detail.create({
-          data: {
-            transactionId: newTransaction.transactionId ,
-            detail: "",
-            status: "",
-            timestamp: new Date(),
-            total_amount: total?.total_amount ?? 0,
-          }
-        });
-        // console.log(venueId)
-        // console.log(userId)
-        // console.log(reservationId)
-        // console.log(priceResponse + "priceResponse")
-      } catch (error) {
-        console.log(error)
-      }
-     
+          
+      console.log("111",session.url)
       res.status(200).json({ url: session.url });
 
       return;
@@ -2202,6 +2222,7 @@ const getDynamicPriceId = async (req: Request, res: Response) => {
     return res.status(500).json(e);
   }
 };
+
 
 //For Deposit
 export const createDepositSession = async (req: Request, res: Response) => {
