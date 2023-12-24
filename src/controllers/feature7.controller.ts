@@ -12,7 +12,7 @@ const feature7Client = new PrismaClient();
 export const getReservationId = async (req: any, res: Response) => {
     try {
         const reservationId = req.reservationId;
-        console.log(reservationId);
+        // console.log(reservationId);
 
         res.status(200).json(reservationId);
     }
@@ -23,7 +23,7 @@ export const getReservationId = async (req: any, res: Response) => {
 export const getMenusByVenueId = async (req: any, res: Response) => {
     try {
         const reservationId = req.reservationId;
-        console.log(reservationId);
+        // console.log(reservationId);
         const reservationInfo = await feature7Client.reservation.findUnique({
             where: {
                 reservationId: reservationId,
@@ -117,7 +117,7 @@ export const addMenuToCookie = async (req: any, res: Response) => {
         const menuId = req.params.menuId;
         const venueId = reservationInfo?.venueId;
         const branchId = reservationInfo?.branchId;
-        console.log(branchId);
+        // console.log(branchId);
         let stockRecord;
         if (venueId !== 2) {
             stockRecord = await feature7Client.stocks.findFirst({
@@ -195,10 +195,10 @@ export const addMenuToCookie = async (req: any, res: Response) => {
                 body: JSON.stringify({ branch_id: branchId }),
             });
             const data = await result.json();
-            console.log(data);
+            // console.log(data);
             stockRecord = data.filter((item: any) => item.menu_id === menuNo && item.branch_id === branchId);
-            console.log(stockRecord);
-            console.log(stockRecord[0].availibility);
+            // console.log(stockRecord);
+            // console.log(stockRecord[0].availibility);
             if (stockRecord[0].availibility == false) {
                 return res.status(404).json({ error: 'Menu item not available' });
             }
@@ -384,9 +384,9 @@ export const showCart = async (req: any, res: Response) => {
         const cartString = req.cookies.cart || '[]';
         // console.log(cartString);
         const cart = JSON.parse(cartString);
-        console.log(cart);
+        // console.log(cart);
         const userCart = cart.filter((item: any) => item.reservationId === reservationId);
-        console.log(userCart);
+        // console.log(userCart);
         res.status(200).json(userCart);
     }
     catch (e) {
@@ -469,9 +469,9 @@ export const addCartToOrderDetailsOfDineIn = async (req: any, res: Response) => 
         }
         const cartString = req.cookies.cart || '[]';
         const cart = JSON.parse(cartString);
-        console.log(cart);
+        // console.log(cart);
         const userCart = cart.filter((item: any) => item.reservationId === reservationId);
-        console.log(userCart);
+        // console.log(userCart);
         //For menu
         const menuIds = userCart
             .filter((item) => item.menuId !== null) // Filter out null values
@@ -552,7 +552,7 @@ export const addCartToOrderDetailsOfDineIn = async (req: any, res: Response) => 
                 },
             });
             const last = lastOrderDetailId!.orderDetailId;
-            console.log(lastOrderDetailId?.orderDetailId);
+            // console.log(lastOrderDetailId?.orderDetailId);
             const sentToMIK = userCart.map((item: any, index: number) => {
                 const size = userCart.length;
                 return {
@@ -563,7 +563,7 @@ export const addCartToOrderDetailsOfDineIn = async (req: any, res: Response) => 
                 };
             });
 
-            console.log(sentToMIK);
+            // console.log(sentToMIK);
             const orderMIK = await fetch(url, {
                 method: "POST",
                 headers: {
@@ -576,8 +576,8 @@ export const addCartToOrderDetailsOfDineIn = async (req: any, res: Response) => 
             if (!orderMIK.ok) {
                 throw new Error("Error in orderMIK");
             }
-            const data = await orderMIK.json();
-            console.log(data);
+            await orderMIK.json();
+            // console.log(data);
         }
         //clear cart
         res.clearCookie('userCart');
@@ -932,7 +932,7 @@ export const getAllUserVouchers = async (req: any, res: Response) => {
                 isUsed: false,
             },
         });
-        console.log(activeVouchers);
+        // console.log(activeVouchers);
         const voucherIds = activeVouchers.map((voucher) => voucher.voucherId);
         const vouchers = await feature7Client.discount_voucher.findMany({
             where: {
@@ -944,10 +944,10 @@ export const getAllUserVouchers = async (req: any, res: Response) => {
                 },
             },
         });
-        console.log(vouchers);
+        // console.log(vouchers);
         const discountVouchers = vouchers.map((voucher) => voucher.voucherId);
-        console.log(discountVouchers);
-        console.log(orderInfo?.order_date);
+        // console.log(discountVouchers);
+        // console.log(orderInfo?.order_date);
         const promotionVouchers = await feature7Client.voucher.findMany({
             where: {
                 voucherId: {
@@ -958,7 +958,7 @@ export const getAllUserVouchers = async (req: any, res: Response) => {
                 end_date: { gt: orderInfo?.order_date },
             },
         });
-        console.log(promotionVouchers);
+        // console.log(promotionVouchers);
         res.status(200).json(promotionVouchers);
     }
     catch (e) {
@@ -1060,7 +1060,7 @@ export const proceedPayment = async (req: any, res: Response) => {
         if (req.cookies.discount) {
             // Clear the discount cookie
             res.clearCookie('discount');
-            console.log('Discount cookie cleared');
+            // console.log('Discount cookie cleared');
         }
         const updateTotal = await feature7Client.orders.update({
             where: {
@@ -1079,9 +1079,9 @@ export const proceedPayment = async (req: any, res: Response) => {
 //change order status MK
 export const changeOrderStatus = async (req: any, res: Response) => {
     try {
-        console.log(req.body);
+        // console.log(req.body);
         const orderDetailId = req.body.orderDetailId;
-        console.log(orderDetailId);
+        // console.log(orderDetailId);
         await feature7Client.order_detail.update({
             where: {
                 orderDetailId: orderDetailId,
@@ -1211,7 +1211,7 @@ export const changeMenuAvailability = async (req: any, res: Response) => {
         });
         const venueId = getVenueId?.venueId;
         const branchId = req.params.branchId;
-        console.log(branchId);
+        // console.log(branchId);
         const availability = await feature7Client.stocks.findFirst({
             where: {
                 venueId: venueId,
@@ -1403,7 +1403,7 @@ export const addMenuItemsToSetsInCookies = async (req: Request, res: Response) =
             res.cookie('setItems', JSON.stringify(existingItems));
         }
 
-        console.log('existingItems:', existingItems);
+        // console.log('existingItems:', existingItems);
 
         // Clear the cookie if the array is empty
         if (existingItems.length === 0) {
@@ -1422,10 +1422,10 @@ export const showMenuItemsInCookies = async (req: Request, res: Response) => {
         const setId = parseInt(req.params.setId) || 0;
         // const venueId = parseInt(req.params.venueId);
         const menuItemsString = req.cookies.setItems || '[]';
-        console.log(menuItemsString);
+        // console.log(menuItemsString);
         const menuItems = JSON.parse(menuItemsString);
         const specific = menuItems.filter((item: any) => item.setId === setId);
-        console.log(menuItems);
+        // console.log(menuItems);
         res.status(200).json(specific);
     }
     catch (e) {
@@ -1505,7 +1505,7 @@ export const clearSetItemsInCookies = async (req: Request, res: Response) => {
         // const venueId = req.params.venueId;
         const setId = req.params.setId || "0";
         const selectedMenuItem = req.cookies.setItems || [];
-        console.log(selectedMenuItem);
+        // console.log(selectedMenuItem);
         const selectedMenuItems = JSON.parse(selectedMenuItem);
         const updated = selectedMenuItems.filter(item => item.setId !== parseInt(setId));
         res.cookie('setItems', JSON.stringify(updated));
@@ -1529,7 +1529,7 @@ export const deleteMenu = async (req: Request, res: Response) => {
                 menuId: parseInt(menuId),
             },
         });
-        console.log(setId);
+        // console.log(setId);
         await feature7Client.set_items.deleteMany({
             where: {
                 setId: {
@@ -1609,7 +1609,7 @@ export const deleteMenuItemFromSet = async (req: Request, res: Response) => {
         }
         else {
             const selectedMenuItem = req.cookies.setItems || [];
-            console.log(selectedMenuItem);
+            // console.log(selectedMenuItem);
             const selectedMenuItems = JSON.parse(selectedMenuItem);
             const updated = selectedMenuItems.filter(item => item.menuId !== parseInt(menuId) && item.setId !== parseInt(setId));
             res.cookie('setItems', JSON.stringify(updated));
@@ -1741,7 +1741,7 @@ export const deleteMenuItemBeforeAddingToSet = async (req: Request, res: Respons
         const menuId = req.body.menuId;
         const setId = "0" || req.params.setId;
         const selectedMenuItem = req.cookies.setItems || [];
-        console.log(selectedMenuItem);
+        // console.log(selectedMenuItem);
         const selectedMenuItems = JSON.parse(selectedMenuItem);
         const updated = selectedMenuItems.filter(item => item.menuId !== parseInt(menuId) || item.setId !== parseInt(setId));
         res.cookie('setItems', JSON.stringify(updated));
