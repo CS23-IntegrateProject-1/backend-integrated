@@ -643,8 +643,8 @@ export const getCountPerDay = async (req: Request, res: Response) => {
 
         const response = {
             ReservationCount: reserveCount,
-            sumRevenue: totalRevenue._sum.total_amount,
-            CustomerCount: totalGuest._sum.guest_amount
+            sumRevenue: totalRevenue._sum.total_amount ?? 0,
+            CustomerCount: totalGuest._sum.guest_amount ?? 0
         }
         res.json({ response });
     } catch (e) {
