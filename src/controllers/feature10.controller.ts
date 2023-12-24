@@ -10,6 +10,7 @@ import { AxiosError } from "axios";
 import filmsService from "../services/movie/films.service";
 import bookSeatService from "../services/movie/bookSeat.service";
 import showsService from "../services/movie/shows.service";
+import paymentService from "../services/movie/payment.service";
 
 //import majorAPIService from "../services/movie/majorAPI.service";
 
@@ -286,6 +287,7 @@ export const bookSeatAndSendCookie = async (req: Request, res: Response) => {
     console.log("Create Major reservation success");
     console.log("Creating Harmoni reservation logs");
     const harmoniLogs: number[] = [];
+    //const harmoniPaymentLogs: number[] = [];
     try {
       for (const seatId of seatIds) {
         const response = await prisma.reservation_logs.create({
@@ -295,8 +297,30 @@ export const bookSeatAndSendCookie = async (req: Request, res: Response) => {
             userId: userId,
           },
         });
+		console.log("create reservation_logs: ", response.reservationId);
+		
         harmoniLogs.push(response.reservationId);
         reservationIdsForError.push(response.reservationId);
+      }
+      let totalAmount = 0;
+      for (const reservationId of harmoniLogs) {
+        totalAmount += await reservationService.getTotalPriceByReservationId(
+          reservationId
+        );
+		console.log("totalAmount: ", totalAmount);
+		
+      }
+      for (const reservationId of harmoniLogs) {
+         await prisma.payments.create({
+          data: {
+            reservationId: reservationId,
+            payment_date: new Date(),
+            payment_amount: totalAmount,
+            payment_status: "Pending",
+          },
+        });
+        // harmoniPaymentLogs.push(response.paymentId);
+        // console.log("harmoniPaymentLogs: ", harmoniPaymentLogs);
       }
     } catch (e) {
       console.log(e);
@@ -316,10 +340,10 @@ export const bookSeatAndSendCookie = async (req: Request, res: Response) => {
         secure: true,
       }
     );
-
     console.log("Sent Cookies");
-
     console.log("Create Harmoni reservation logs success");
+
+	paymentService.waitForPayment(harmoniLogs);
 
     return res.status(200).json({ available: true });
   } catch (e) {
@@ -347,3 +371,15 @@ export const deleteReservation = async (req: Request, res: Response) => {
     res.status(500).json({ error: e.message });
   }
 };
+
+export const updatePaymentStatusToSuccess = async (req: Request, res: Response) => {
+  try {
+    const {reservationIds} = authService.decodeToken(req.cookies.movieReservationToken);
+    console.log("reservationIds: ", reservationIds);
+    const data = await paymentService.updatePaymentStatusToSuccess(reservationIds);
+    res.json(data);
+  } catch (e: any) {
+    console.log(e);
+    res.status(500).json({ error: e.message });
+  }
+}
