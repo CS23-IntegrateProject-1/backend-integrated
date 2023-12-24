@@ -848,7 +848,7 @@ export const createOfflineReservation = async (req: Request, res: Response) => {
         const concatDatetime = `${reserve_date} ${time}`;
         const reserved_time = new Date(concatDatetime);
         // Use the previous functions to check availability and find a suitable table
-        const newreserveTime = addHours(new Date(reserved_time), 7);
+        const newreserveTime = addHours(new Date(reserved_time), 0);
         // const entry_time = addMinutes(new Date(reserved_time), -30);
         req.body.reserve_date = reserve_date;
         req.body.time = time;

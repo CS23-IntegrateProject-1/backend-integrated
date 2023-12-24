@@ -7,6 +7,7 @@ import { error } from "console";
 
 export const getOfflineAvailableTables = async (req: Request) => {
     try {
+        console.log("New DATE",new Date());
         const prisma = new PrismaClient();
         const token = req.cookies.authToken;
         if (!token) {
@@ -34,7 +35,7 @@ export const getOfflineAvailableTables = async (req: Request) => {
         const { reserve_date, time, branchId } = req.body;
 
         const concatDatetime = `${reserve_date} ${time}`;
-        const reservedTimeStart = addHours(new Date(concatDatetime), 7);
+        const reservedTimeStart = addHours(new Date(concatDatetime), 0);
         const ReservedTimeStart = subHours(new Date(reservedTimeStart), 2);
 
         const tables = await prisma.tables.findMany({
@@ -159,7 +160,6 @@ export const getOfflineAvailableTables = async (req: Request) => {
 
         // ! log
         console.log("Date time reserve : ", DateTimeStart)
-    
         console.log("openDate", openDate);
         console.log("closeDate", closeDate);
         console.log("twoHoursBeforeClose", twoHoursBeforeClose);
