@@ -43,12 +43,12 @@ class paymentService {
     }
   }
 
-  async updatePaymentStatusToSuccess(paymentId: number) {
+  async updatePaymentStatusToSuccess(reservationId: number) {
     try {
       const prisma = new PrismaClient();
       await prisma.payments.update({
         where: {
-          paymentId: paymentId,
+          reservationId: reservationId,
         },
         data: {
           payment_status: "Success",

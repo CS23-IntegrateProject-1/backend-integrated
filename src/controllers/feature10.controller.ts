@@ -374,8 +374,8 @@ export const deleteReservation = async (req: Request, res: Response) => {
 
 export const updatePaymentStatusToSuccess = async (req: Request, res: Response) => {
   try {
-    const paymentId = Number(req.body.paymentId);
-    const data = await paymentService.updatePaymentStatusToSuccess(paymentId);
+    const reservationId = Number(req.body.reservationId);
+    const data = await paymentService.updatePaymentStatusToSuccess(reservationId);
     res.json(data);
   } catch (e: any) {
     console.log(e);
