@@ -1,6 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import { Response, Request } from "express";
-import { addHours, startOfDay, endOfDay, parse, format, subMinutes } from "date-fns";
+import { addHours, startOfDay, endOfDay, parse, format} from "date-fns";
 import authService from "../services/auth/auth.service";
 import { genToken } from "../services/reservation/genToken.service";
 import { getAvailableTables } from "../services/reservation/getAvailableTables.service";
