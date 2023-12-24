@@ -16,17 +16,8 @@ class paymentService {
             reservationId: reservationId,
           },
         });
-        if(response[0].payment_status == "Success"){
-            await prisma.payments.update({
-                where: {
-                reservationId: reservationId,
-                },
-                data: {
-                    payment_status: "Success"
-                },
-            });
-        }
-        else if (response[0].payment_status != "Success") {
+
+        if (response[0].payment_status != "Success") {
           await prisma.payments.delete({
             where: {
               reservationId: reservationId,
@@ -50,7 +41,22 @@ class paymentService {
     } catch (e: any) {
       console.log(e);
     }
-    
+  }
+
+  async updatePaymentStatusToSuccess(paymentId: number) {
+    try {
+      const prisma = new PrismaClient();
+      await prisma.payments.update({
+        where: {
+          paymentId: paymentId,
+        },
+        data: {
+          payment_status: "Success",
+        },
+      });
+    } catch (e: any) {
+      console.log(e);
+    }
   }
 }
 

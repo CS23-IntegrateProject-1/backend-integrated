@@ -371,3 +371,14 @@ export const deleteReservation = async (req: Request, res: Response) => {
     res.status(500).json({ error: e.message });
   }
 };
+
+export const updatePaymentStatusToSuccess = async (req: Request, res: Response) => {
+  try {
+    const paymentId = Number(req.body.paymentId);
+    const data = await paymentService.updatePaymentStatusToSuccess(paymentId);
+    res.json(data);
+  } catch (e: any) {
+    console.log(e);
+    res.status(500).json({ error: e.message });
+  }
+}
