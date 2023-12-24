@@ -930,123 +930,127 @@ export const createOfflineReservation = async (req: Request, res: Response) => {
   }
 };
 
-// Finished
+
+
 export const checkIn = async (req: Request, res: Response) => {
-  try {
-    const reservationId = parseInt(req.params.reservationId);
-    const authToken = req.cookies.authToken;
-    const userType = authService.decodeToken(authToken);
-    const checkInTime = addHours(new Date(), 7);
-    const reservation = await feature6Client.reservation.findUnique({
-      where: { reservationId },
-    });
+    try {
+        const reservationId = parseInt(req.params.reservationId);
+        const authToken = req.body.authToken;
+        const { userType } = authService.decodeToken(authToken);
+        const checkInTime = addHours(new Date(), 7);
+        const reservation = await feature6Client.reservation.findUnique({
+            where: { reservationId },
+        });
 
-    const businessId = userType.businessId;
-    const getVenueId = await feature6Client.property.findFirst({
-      where: {
-        businessId: businessId,
-      },
-      select: {
-        venueId: true,
-      },
-    });
-    let isOwner = false;
-    if (getVenueId?.venueId === reservation?.venueId) isOwner = true;
-    if (isOwner == false) {
-      return res.status(400).json({ error: "You are not owner of this venue" });
+        // const businessId = userType.businessId;
+        // const getVenueId = await feature6Client.property.findFirst({
+        //   where: {
+        //     businessId: businessId,
+        //   },
+        //   select: {
+        //     venueId: true,
+        //   },
+        // });
+        // let isOwner = false;
+        // if (getVenueId?.venueId === reservation?.venueId) isOwner = true;
+        // if (isOwner == false) {
+        //   return res.status(400).json({ error: "You are not owner of this venue" });
+        // }
+    
+        // const entry_time = reservation?.entry_time;
+        // if(entry_time === undefined || !entry_time){
+        //     return res.status(200).json("Entry time not found");
+        // }
+        // const Entry_time = subMinutes(entry_time, 15);
+        // if(Entry_time < new Date()){
+        //     return res.status(200).json("Please wait you can check-in 15 minutes before reserve time");
+        // }
+        if (userType !== "user") {
+            // return res
+            //     .status(401)
+            //     .json({ error: "This user is not customer user" });
+            return res.status(200).send(401);
+        }
+        if (!reservation) {
+            // return res.status(404).json({ error: "Reservation not found" });
+            return res.status(200).send(404);
+        }
+        if (
+            reservation.status === "Cancel" ||
+            reservation.status === "Check_out"
+        ) {
+            // return res.status(400).json({ error: "Check-In not success" });
+            return res.status(200).send(400);
+        }
+
+        if (reservation.status === "Check_in") {
+            // return res.status(402).json({ error: "You have already checked in" });
+            return res.status(200).send(402);
+        }
+
+        const existingCheckInLog = await feature6Client.check_in_log.findFirst({
+            where: {
+                reserveId: reservationId,
+            },
+        });
+        if (existingCheckInLog) {
+            // return res
+            //     .status(400)
+            //     .json({ error: "You have already checked in" });
+            return res.status(200).send(400);
+        }
+
+        const defaultCheckoutTime = new Date();
+        defaultCheckoutTime.setHours(0, 0, 0, 0);
+        const isSuccess = true;
+        if (isSuccess) {
+            await feature6Client.check_in_log.create({
+                data: {
+                    reserveId: reservationId,
+                    check_in_time: checkInTime,
+                    check_out_time: defaultCheckoutTime,
+                },
+            });
+
+            const entry_time = addHours(new Date(), 7);
+            await feature6Client.reservation.update({
+                where: { reservationId },
+                data: {
+                    status: "Check_in",
+                    entry_time: entry_time,
+                },
+            });
+            const selectedTable =
+                await feature6Client.reservation_table.findFirst({
+                    where: {
+                        reserveId: reservationId,
+                    },
+                    select: {
+                        tableId: true,
+                    },
+                });
+
+            await feature6Client.tables.update({
+                where: {
+                    tableId: selectedTable?.tableId,
+                    isUsing: true,
+                },
+                data: {
+                    status: "Unavailable",
+                },
+            });
+
+            const reservationToken = genToken(reservationId);
+            res.cookie("reservationToken", reservationToken, {
+                httpOnly: true,
+                secure: true,
+                sameSite: "none",
+            });
+            return res.send(200);
+        }
+    } catch (e) {
+        return res.status(500).json(e);
     }
-
-    // const entry_time = reservation?.entry_time;
-    // if(entry_time === undefined || !entry_time){
-    //     return res.status(200).json("Entry time not found");
-    // }
-    // const Entry_time = subMinutes(entry_time, 15);
-    // if(Entry_time < new Date()){
-    //     return res.status(200).json("Please wait you can check-in 15 minutes before reserve time");
-    // }
-    if (userType !== "user") {
-      // return res
-      //     .status(401)
-      //     .json({ error: "This user is not customer user" });
-      return res.status(200).send(401);
-    }
-    if (!reservation) {
-      // return res.status(404).json({ error: "Reservation not found" });
-      return res.status(200).send(404);
-    }
-    if (reservation.status === "Cancel" || reservation.status === "Check_out") {
-      // return res.status(400).json({ error: "Check-In not success" });
-      return res.status(200).send(400);
-    }
-
-    if (reservation.status === "Check_in") {
-      // return res.status(402).json({ error: "You have already checked in" });
-      return res.status(200).send(402);
-    }
-
-    const existingCheckInLog = await feature6Client.check_in_log.findFirst({
-      where: {
-        reserveId: reservationId,
-      },
-    });
-    if (existingCheckInLog) {
-      // return res
-      //     .status(400)
-      //     .json({ error: "You have already checked in" });
-      return res.status(200).send(400);
-    }
-
-    const defaultCheckoutTime = new Date();
-    defaultCheckoutTime.setHours(0, 0, 0, 0);
-    const isSuccess = true;
-    if (isSuccess) {
-      await feature6Client.check_in_log.create({
-        data: {
-          reserveId: reservationId,
-          check_in_time: checkInTime,
-          check_out_time: defaultCheckoutTime,
-        },
-      });
-
-      const entry_time = addHours(new Date(), 7);
-      await feature6Client.reservation.update({
-        where: { reservationId },
-        data: {
-          status: "Check_in",
-          entry_time: entry_time,
-        },
-      });
-      const selectedTable = await feature6Client.reservation_table.findFirst({
-        where: {
-          reserveId: reservationId,
-        },
-        select: {
-          tableId: true,
-        },
-      });
-
-      await feature6Client.tables.update({
-        where: {
-          tableId: selectedTable?.tableId,
-          isUsing: true,
-        },
-        data: {
-          status: "Unavailable",
-        },
-      });
-
-      const reservationToken = genToken(reservationId);
-      res.cookie("reservationToken", reservationToken, {
-        httpOnly: true,
-        secure: true,
-        sameSite: "none",
-      });
-      return res.send(200);
-    }
-  } catch (e) {
-    console.log("test", e);
-    return res.status(500).json(e);
-  }
 };
 
 // Finished
