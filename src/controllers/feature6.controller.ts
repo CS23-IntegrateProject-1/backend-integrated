@@ -1,6 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import { Response, Request } from "express";
-import { addHours, startOfDay, endOfDay, parse, format} from "date-fns";
+import { addHours, startOfDay, endOfDay, parse, format } from "date-fns";
 import authService from "../services/auth/auth.service";
 import { genToken } from "../services/reservation/genToken.service";
 import { getAvailableTables } from "../services/reservation/getAvailableTables.service";
@@ -983,13 +983,13 @@ export const createOfflineReservation = async (req: Request, res: Response) => {
 export const checkIn = async (req: Request, res: Response) => {
     try {
         const reservationId = parseInt(req.params.reservationId);
-        const authToken = req.body.authToken;
-        const { userType } = authService.decodeToken(authToken);
+        const authToken = req.cookies.authToken;
+        const userType = authService.decodeToken(authToken);
         const checkInTime = addHours(new Date(), 7);
         const reservation = await feature6Client.reservation.findUnique({
             where: { reservationId },
         });
-
+        
         const businessId = userType.businessId;
         const getVenueId = await feature6Client.property.findFirst({
             where: {
