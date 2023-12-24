@@ -5,7 +5,7 @@ import { Stripe } from "stripe";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import { Request, Response } from "express";
 import reservationService from "../services/movie/reservation.service";
-import { Decimal } from "@prisma/client/runtime/library";
+import { Decimal } from "decimal.js";
 // import { is } from "ramda";
 
 const feature8Client = new PrismaClient();
