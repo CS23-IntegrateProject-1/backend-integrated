@@ -1,4 +1,5 @@
 import { PrismaClient } from "@prisma/client";
+import { addHours } from "date-fns";
 import { Response, Request } from "express";
 // import { parse } from "path";
 // import { json } from "stream/consumers";
@@ -438,6 +439,7 @@ export const addCartToOrderDetailsOfDineIn = async (req: any, res: Response) => 
 
     try {
         const reservationId = req.reservationId;
+        const newreserveTime = addHours(new Date(), 7);
         const reservationInfo = await feature7Client.reservation.findUnique({
             where: {
                 reservationId: reservationId,
@@ -461,7 +463,7 @@ export const addCartToOrderDetailsOfDineIn = async (req: any, res: Response) => 
                     branchId: branchId!,
                     reservedId: reservationId,
                     venueId: venueId!,
-                    order_date: new Date(),
+                    order_date: new Date(newreserveTime),
                     total_amount: 0,
                     // status: "On_going",
                 },
@@ -492,7 +494,7 @@ export const addCartToOrderDetailsOfDineIn = async (req: any, res: Response) => 
                     unit_price: menu.find((menu) => menu.menuId === item.menuId)?.price,
                     quantity: parseInt(item.quantity),
                     setId: null,
-                    order_time: new Date(),
+                    order_time: new Date(newreserveTime),
                     status: "On_going",
                 })),
         });
@@ -519,7 +521,7 @@ export const addCartToOrderDetailsOfDineIn = async (req: any, res: Response) => 
                     unit_price: set.find((set) => set.setId === item.setId)?.price,
                     menuId: null,
                     quantity: parseInt(item.quantity),
-                    order_time: new Date(),
+                    order_time: new Date(newreserveTime),
                     // status: "On_going",
                 })),
         });

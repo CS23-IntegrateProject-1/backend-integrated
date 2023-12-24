@@ -152,4 +152,3 @@ feature7Router.get("/completedOrderDetailsInBusiness/", businessVerifyCookie, co
 feature7Router.post("/changeOrderDetailsStatusCompleted/:orderDetailId/", changeOrderDetailStatusCompleted);
 feature7Router.post("/addMenuMIK", addMenuMIK)
 export default feature7Router;
-
