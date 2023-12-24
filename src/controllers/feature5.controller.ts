@@ -51,8 +51,8 @@ export const AdBusiness = async (req: Request, res: Response) => {
       "/uploads/" + req.file.path.substring(req.file.path.lastIndexOf("/") + 1);
 
     //date is 2023-12-23 change it to date format
-    const formattedStartDate = new Date(start_date[0]);
-    const formattedEndDate = new Date(end_date[0]);
+    const formattedStartDate = new Date(start_date);
+    const formattedEndDate = new Date(end_date);
 
     if (!Array.isArray(Tags)) {
       return res.status(400).json({ error: "Tags must be an array" });
@@ -194,10 +194,38 @@ export const AdminApprove = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const { isApprove } = req.body;
+
     const ApproveAd = await feature5Client.ad_business.update({
       where: { advertisementId: parseInt(id) },
       data: { isApprove },
     });
+
+    const advertisement = await feature5Client.ad_business.findUnique({
+      where: { advertisementId: parseInt(id) },
+      select: { name: true, cost: true },
+    });
+
+    if (!advertisement) {
+      return res.status(404).json({ error: "Advertisement not found" });
+    }
+
+    const { name, cost } = advertisement;
+
+    if (isApprove === "Awaiting_payment") {
+      const title = `Your advertisement "${name}" Accepted from admin`;
+      const message = `Please proceed with the payment for the advertisement "${name}" with a cost of ${cost}.`;
+      const isApprove = "Awaiting_payment";
+
+      await feature5Client.notification_ad_business.create({
+        data: {
+          title,
+          message,
+          isApprove: isApprove,
+          advertisementId: parseInt(id),
+        },
+      });
+    }
+
     res.json(ApproveAd);
   } catch (err) {
     const error = err as Error;
@@ -668,7 +696,6 @@ export const CollectVoucher = async (req: Request, res: Response) => {
       },
       select: {
         point_use: true,
-        
       },
     });
 
@@ -679,13 +706,13 @@ export const CollectVoucher = async (req: Request, res: Response) => {
       select: {
         amount: true,
         pointId: true,
-        amount_used: true
+        amount_used: true,
       },
     });
     if (GetOriginalPoint && GetPoint) {
       const newAmount = GetOriginalPoint?.amount - (GetPoint?.point_use || 0);
-      const UpdateAmountUsed = (GetOriginalPoint?.amount_used || 0) + (GetPoint?.point_use || 0);
-      
+      const UpdateAmountUsed =
+        (GetOriginalPoint?.amount_used || 0) + (GetPoint?.point_use || 0);
 
       const deductPoint = await feature5Client.point.update({
         where: {
@@ -693,11 +720,11 @@ export const CollectVoucher = async (req: Request, res: Response) => {
         },
         data: {
           amount: newAmount,
-          amount_used: UpdateAmountUsed
+          amount_used: UpdateAmountUsed,
         },
       });
       console.log(deductPoint);
-      console.log(UpdateAmountUsed)
+      console.log(UpdateAmountUsed);
     }
 
     res.json(voucher);
@@ -836,7 +863,6 @@ export const GetExpireDate = async (req: Request, res: Response) => {
       },
     });
 
-
     if (GetDate && GetDate.month_created) {
       // Convert the fetched date string to a JavaScript Date object
       const currentDate = new Date(GetDate.month_created);
@@ -845,7 +871,6 @@ export const GetExpireDate = async (req: Request, res: Response) => {
 
       // Now, currentDate represents the date increased by 1 year
       res.json({ currentDate });
-      
     } else {
       res.status(404).json({ message: "Date not found" });
     }
