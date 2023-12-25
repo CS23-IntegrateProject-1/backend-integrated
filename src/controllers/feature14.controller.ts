@@ -809,3 +809,57 @@ export const F14getBusinessId = async (req: Request) => {
 // 		return res.sendStatus(500).json({ error });
 // 	}
 // };
+export const getVenueDataByVenueId = async (req: Request, res: Response) => {
+	try {
+		const venue = await feature14Client.venue.findUnique({
+			where: {
+				venueId: parseInt(req.params.venueId),
+			},
+			select: {
+				name: true,
+				description: true,
+				Location: {
+					select: {
+						locationId: true,
+						address: true,
+					},
+				},
+				category: true,
+				capacity: true,
+				website_url: true,
+			},
+		});
+		return res.status(200).json(venue);
+	} catch (error) {
+		return res.status(500).json({ error });
+	}
+};
+
+export const setVenueDataByVenueId = async (req: Request, res: Response) => {
+	try {
+		const nameDescription = await feature14Client.venue.update({
+			where: {
+				venueId: parseInt(req.params.venueId),
+			},
+			data: {
+				name: req.body.name,
+				description: req.body.description,
+				category: req.body.category,
+				capacity: parseInt(req.body.capacity),
+				website_url: req.body.website_url,
+			},
+		});
+		const address = await feature14Client.location.update({
+			where: {
+				locationId: parseInt(req.params.locationId),
+			},
+			data: {
+				address: req.body.address,
+			},
+		});
+		return res.status(200).json({ nameDescription, address });
+	} catch (error) {
+		console.log(error);
+		return res.status(500).json({ error });
+	}
+};
