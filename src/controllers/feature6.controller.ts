@@ -328,7 +328,7 @@ export const createReservation = async (req: Request, res: Response) => {
                 reservationTableEntry,
             };
             res.status(200).json(responseData);
-        } 
+        }
     } catch (e) {
         console.log(e);
         return res.status(500).json(e);
@@ -591,19 +591,19 @@ export const getCountPerDay = async (req: Request, res: Response) => {
                 Transaction_detail: {
                     timestamp: {
                         gte: startOfToday,
-                        lte: endOfToday
-                    }
+                        lte: endOfToday,
+                    },
                 },
-                venueId: venueId
+                venueId: venueId,
             },
             include: {
                 Transaction_detail: {
                     select: {
-                        total_amount: true
-                    }
-                }
-            }
-        })
+                        total_amount: true,
+                    },
+                },
+            },
+        });
 
         let reserveCount: number = 0;
         const transactionIdsArray = transaction.map(
@@ -614,38 +614,38 @@ export const getCountPerDay = async (req: Request, res: Response) => {
             (reserve) => reserve.reserveId
         );
 
-        reservationIdsArray.forEach(reservationId => {
-            console.log(reservationId)
+        reservationIdsArray.forEach((reservationId) => {
+            console.log(reservationId);
             reserveCount++;
         });
 
         const totalRevenue = await feature6Client.transaction_detail.aggregate({
             where: {
                 transactionId: {
-                    in: transactionIdsArray
-                }
+                    in: transactionIdsArray,
+                },
             },
             _sum: {
-                total_amount: true
-            }
-        })
+                total_amount: true,
+            },
+        });
 
         const totalGuest = await feature6Client.reservation.aggregate({
             where: {
                 reservationId: {
-                    in: reservationIdsArray
-                }
+                    in: reservationIdsArray,
+                },
             },
             _sum: {
-                guest_amount: true
-            }
-        })
+                guest_amount: true,
+            },
+        });
 
         const response = {
             ReservationCount: reserveCount,
             sumRevenue: totalRevenue._sum.total_amount ?? 0,
-            CustomerCount: totalGuest._sum.guest_amount ?? 0
-        }
+            CustomerCount: totalGuest._sum.guest_amount ?? 0,
+        };
         res.json({ response });
     } catch (e) {
         return res.status(500).json(e);
@@ -922,7 +922,7 @@ export const createOfflineReservation = async (req: Request, res: Response) => {
                     branchId: branchId,
                     phone: phone_num,
                     name: name,
-                    isPaymentSuccess: "Completed"
+                    isPaymentSuccess: "Completed",
                 },
             });
 
@@ -983,34 +983,61 @@ export const createOfflineReservation = async (req: Request, res: Response) => {
 export const checkIn = async (req: Request, res: Response) => {
     try {
         const reservationId = parseInt(req.params.reservationId);
-        const authToken = req.body.authToken;
-        const { userType } = authService.decodeToken(authToken);
+        const authToken = req.cookies.authToken;
+        const userType = authService.decodeToken(authToken);
+
         const checkInTime = addHours(new Date(), 7);
         const reservation = await feature6Client.reservation.findUnique({
             where: { reservationId },
         });
 
-        if (userType !== "user") {
-            // return res
-            //     .status(401)
-            //     .json({ error: "This user is not customer user" });
-            return res.status(200).send(401);
+        const businessId = userType.businessId;
+        const getVenueId = await feature6Client.property.findFirst({
+            where: {
+                businessId: businessId,
+            },
+            select: {
+                venueId: true,
+            },
+        });
+        let isOwner = false;
+        if (getVenueId?.venueId === reservation?.venueId) isOwner = true;
+
+        if (isOwner == false) {
+            return res
+                .status(400)
+                .json({ error: "You are not owner of this venue" });
         }
+        // const entry_time = reservation?.entry_time;
+        // if(entry_time === undefined || !entry_time){
+        //     return res.status(200).json("Entry time not found");
+        // }
+        // const Entry_time = subMinutes(entry_time, 15);
+        // if(Entry_time < new Date()){
+        //     return res.status(200).json("Please wait you can check-in 15 minutes before reserve time");
+        // }
+        // if (1 + 1 == 2) {
+        //     console.log("You are the owner but not the one who take her heart")
+        //     return res
+        //         .status(400)
+        //         .json({ error: "Please restart your computer" });
+        // }
         if (!reservation) {
-            // return res.status(404).json({ error: "Reservation not found" });
-            return res.status(200).send(404);
+            return res.status(404).json({ error: "Reservation not found" });
         }
         if (
             reservation.status === "Cancel" ||
             reservation.status === "Check_out"
         ) {
-            // return res.status(400).json({ error: "Check-In not success" });
-            return res.status(200).send(400);
+            return res.status(400).json({ error: "Check-In not success" });
+            //   return res.status(200).send(400);
         }
 
         if (reservation.status === "Check_in") {
-            // return res.status(402).json({ error: "You have already checked in" });
-            return res.status(200).send(402);
+            return res
+                .status(402)
+                .json({ error: "You have already checked in" });
+            //   return res.status(200).send(402);
         }
 
         const existingCheckInLog = await feature6Client.check_in_log.findFirst({
@@ -1019,10 +1046,10 @@ export const checkIn = async (req: Request, res: Response) => {
             },
         });
         if (existingCheckInLog) {
-            // return res
-            //     .status(400)
-            //     .json({ error: "You have already checked in" });
-            return res.status(200).send(400);
+            return res
+                .status(400)
+                .json({ error: "You have already checked in" });
+            //   return res.status(200).send(400);
         }
 
         const defaultCheckoutTime = new Date();
@@ -1074,6 +1101,7 @@ export const checkIn = async (req: Request, res: Response) => {
             return res.send(200);
         }
     } catch (e) {
+        console.log("test", e);
         return res.status(500).json(e);
     }
 };
@@ -1092,7 +1120,7 @@ export const qrCode = async (req: Request, res: Response) => {
             return res.status(404).json({ error: "Reservation not found" });
         }
 
-        if(reservation.isPaidDeposit === "Pending"){
+        if (reservation.isPaidDeposit === "Pending") {
             return res.status(200).send(402);
         }
         const qrCodeData = {
@@ -1125,10 +1153,10 @@ export const checkOut = async (req: Request, res: Response) => {
         if (!reservation) {
             return res.status(404).json({ error: "Reservation not found" });
         }
-        if (reservation.status !== "Check_in" ) {
+        if (reservation.status !== "Check_in") {
             return res.status(400).json({ error: "Check-Out not success" });
         }
-        if(reservation.isPaymentSuccess === "Pending"){
+        if (reservation.isPaymentSuccess === "Pending") {
             return res.status(200).json("Payment Require");
         }
 
@@ -1166,12 +1194,12 @@ export const checkOut = async (req: Request, res: Response) => {
             },
         });
 
-        if (reservationId == undefined){
-            res.status(500).json({"error": "reservationId not found"})
+        if (reservationId == undefined) {
+            res.status(500).json({ error: "reservationId not found" });
         }
         const logId = await feature6Client.chat_Room_Logs.findFirst({
             where: {
-                reservationId: reservationId
+                reservationId: reservationId,
             },
         });
         await feature6Client.chat_Room_Logs.update({
@@ -1227,6 +1255,31 @@ export const checkInStatus = async (req: Request, res: Response) => {
     }
 };
 
+// //Upload Image
+// export const uploadTableTypeImage = async (req: Request, res: Response) => {
+//     try {
+//         const { tableTypeDetailId } = req.body;
+//         let image_url;
+//         if (req.file.path.includes("/"))
+//             image_url = "/uploads/" + req.file.path.substring(req.file.path.lastIndexOf('/') + 1);
+//         else if (req.file.path.includes("\\"))
+//             image_url = "/uploads/" + req.file.path.substring(req.file.path.lastIndexOf('\\') + 1);
+
+//         const image = await feature6Client.table_type_detail.update({
+//             where: {
+//                 tableTypeDetailId: parseInt(tableTypeDetailId),
+//             },
+//             data: {
+//                 image_url: image_url,
+//             }
+//         })
+
+//         res.status(200).json(image);
+//     } catch (err) {
+//         res.status(500).json({ err: "sorry something wrong" });
+//     }
+// };
+
 //Upload Image
 export const uploadTableTypeImage = async (req: Request, res: Response) => {
     try {
@@ -1234,4 +1287,4 @@ export const uploadTableTypeImage = async (req: Request, res: Response) => {
     } catch (err) {
         res.status(500).json({ err: "sorry something wrong" });
     }
-};
+}

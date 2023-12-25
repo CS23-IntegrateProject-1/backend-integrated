@@ -24,6 +24,8 @@ import {
 	getAllVenue,
 	createVenue,
 	updateVenue,
+	getVenueDataByVenueId,
+	setVenueDataByVenueId,
 } from "../controllers/feature14.controller";
 
 const feature14Router = Router();
@@ -71,5 +73,8 @@ feature14Router.get("/getAllVenue", getAllVenue);
 
 feature14Router.post("/createVenue", createVenue);
 feature14Router.post("/updateVenue/:id", updateVenue);
+
+feature14Router.get("/getVenueName/:venueId", getVenueDataByVenueId);
+feature14Router.post("/setVenueName/:venueId/:locationId", setVenueDataByVenueId);
 
 export default feature14Router;

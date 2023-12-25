@@ -104,7 +104,11 @@ export const addArticle = async (req: Request, res: Response) => {
 
     //var newImage;
     for (const file of imageFiles) {
-      const imagePath = "/uploads/" + file.path.substring(file.path.lastIndexOf('/') + 1);
+      let imagePath;
+      if (file.path.includes("/"))
+        imagePath = "/uploads/" + file.path.substring(file.path.lastIndexOf('/') + 1);
+      else if (file.path.includes("\\"))
+        imagePath = "/uploads/" + file.path.substring(file.path.lastIndexOf('\\') + 1);
       const description = file.originalname
       console.log("file path --> ", imagePath)
       const newImage = await prisma.images.create({
@@ -233,30 +237,29 @@ export const editArticle = async (req: Request, res: Response) => {
       }
     }
 
-    await prisma.images.deleteMany({
-      where: { articleId: parseInt(articleId) }
-    })
-
+    
     const imageFiles = req.files as MulterFile[];
-    let newImage;
-
-    if (imageFiles)
-    {
-      for (const file of imageFiles) {
-        const imagePath = "/uploads/" + file.path.substring(file.path.lastIndexOf('/') + 1);
-        const description = file.originalname
-        newImage = await prisma.images.create({
-          data: {
-            url: imagePath,
-            description: description,
-            articleId: parseInt(articleId),
-          },
-        });
-      }
+    console.log(imageFiles)
+    if (imageFiles.length !== 0) {
+      await prisma.images.deleteMany({
+        where: { articleId: parseInt(articleId) }
+      })
     }
-    else
-    {
-      newImage = "no change in image"
+    let newImage;
+    for (const file of imageFiles) {
+      let imagePath;
+      if (file.path.includes("/"))
+        imagePath = "/uploads/" + file.path.substring(file.path.lastIndexOf('/') + 1);
+      else if (file.path.includes("\\"))
+        imagePath = "/uploads/" + file.path.substring(file.path.lastIndexOf('\\') + 1);
+      const description = file.originalname
+      newImage = await prisma.images.create({
+        data: {
+          url: imagePath,
+          description: description,
+          articleId: parseInt(articleId),
+        },
+      });
     }
 
     //for (const imageDetail of imageDetails) {

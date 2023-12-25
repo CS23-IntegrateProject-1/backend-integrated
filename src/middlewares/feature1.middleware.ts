@@ -7,10 +7,11 @@ const FRONTEND_URL = process.env.FRONTEND_URL || "";
 enum AuthKind {
   user = 'user',
   business = 'business',
+  admin = 'admin',
 }
 
 const makeAuthMiddleware = (kind: AuthKind) => {
-  if (kind !== AuthKind.user && kind !== AuthKind.business) {
+  if (kind !== AuthKind.user && kind !== AuthKind.business && kind !== AuthKind.admin) {
     throw new Error("Invalid user type");
   }
 
@@ -46,3 +47,4 @@ const makeAuthMiddleware = (kind: AuthKind) => {
   
   export const userAuthMiddleware = makeAuthMiddleware(AuthKind.user);
   export const businessAuthMiddleware = makeAuthMiddleware(AuthKind.business);
+  export const adminAuthMiddleware = makeAuthMiddleware(AuthKind.admin);

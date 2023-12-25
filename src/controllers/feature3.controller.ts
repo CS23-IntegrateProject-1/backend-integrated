@@ -375,11 +375,11 @@ export const getVenDetailMenu = async (req: Request, res: Response) => {
 
   try {
     const VenDetailMenu = await feature3Client.$queryRaw`
-      SELECT DISTINCT M.venueId, M.menuId, M.name, M.description, M.price, M.image
+      SELECT DISTINCT M.venueId, M.menuId, M.name, M.description, M.price, M.image, M.isused
       FROM Venue V
       JOIN Venue_branch VB ON V.venueId = VB.venueId
       LEFT JOIN Menu M ON V.venueId = M.venueId
-      WHERE VB.branchId = ${branchIdInt}
+      WHERE VB.branchId = ${branchIdInt} AND M.isused = "1"
       ORDER BY V.venueId;
     `;
 
