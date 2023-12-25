@@ -3,9 +3,9 @@
     "name": "venue",
     "entries": [
       {
-        "value": "Foo Bar Baz",
+        "value": "ThongLhor Station",
         "synonyms": [
-          "Foo Bar Baz"
+          "ThongLhor Station"
         ]
       },
       {
@@ -21,21 +21,15 @@
         ]
       },
       {
-        "value": "7Eleven",
+        "value": "7Eleven1",
         "synonyms": [
-          "7Eleven"
+          "7Eleven1"
         ]
       },
       {
         "value": "Mixue",
         "synonyms": [
           "Mixue"
-        ]
-      },
-      {
-        "value": "Shaun's Creation",
-        "synonyms": [
-          "Shaun's Creation"
         ]
       }
     ]
@@ -53,24 +47,6 @@
         "value": "Restaurant",
         "synonyms": [
           "Restaurant"
-        ]
-      },
-      {
-        "value": "Club",
-        "synonyms": [
-          "Club"
-        ]
-      },
-      {
-        "value": "Bar",
-        "synonyms": [
-          "Bar"
-        ]
-      },
-      {
-        "value": "restaurant",
-        "synonyms": [
-          "restaurant"
         ]
       }
     ]
