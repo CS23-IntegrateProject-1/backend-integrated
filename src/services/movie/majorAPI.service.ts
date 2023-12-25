@@ -61,7 +61,7 @@ class MajorAPIService {
   }
 
   async deleteOutdatedFilms() {
-    const majorData: Film[] = await this.getFilmsFromMajor();
+    const majorData: RecievedFilm[] = await this.getFilmsFromMajor();
     const harmoniData: Film[] = await getFilmFromHarmoni();
     const deletedDataMajor: Film[] = harmoniData.filter(
       (hFilm) => !majorData.some((film) => film.filmId === hFilm.filmId)
@@ -78,27 +78,29 @@ class MajorAPIService {
   }
 
   async editFilm() {
-    const majorData: Film[] = await this.getFilmsFromMajor();
+    const majorData: RecievedFilm[] = await this.getFilmsFromMajor();
     const harmoniData: Film[] = await getFilmFromHarmoni();
 
-    for (const film of majorData) {
+    const updatePromise = majorData.map(async (film) => {
       const harmoniFilm = harmoniData.find(
         (hFilm) => hFilm.filmId === film.filmId
       );
 
       if (harmoniFilm) {
         const hasChanged =
-          film.name !== harmoniFilm.name ||
-          film.genre !== harmoniFilm.genre ||
-          film.language !== harmoniFilm.language ||
-          film.synopsis !== harmoniFilm.synopsis ||
-          film.release_date !== harmoniFilm.release_date ||
-          film.duration !== harmoniFilm.duration ||
-          film.poster_img !== harmoniFilm.poster_img ||
-          film.rate !== harmoniFilm.rate;
+          film.name != harmoniFilm.name ||
+          film.genre != harmoniFilm.genre ||
+          film.language != harmoniFilm.language ||
+          film.synopsis != harmoniFilm.synopsis ||
+          film.releaseDate.toString() !=
+            harmoniFilm.release_date.toISOString() ||
+          film.duration != harmoniFilm.duration ||
+          film.posterImg != harmoniFilm.poster_img ||
+          film.rate != harmoniFilm.rate;
 
         if (hasChanged) {
-          this.prisma.films.update({
+          console.log("edit filmId: " + film.filmId);
+          return this.prisma.films.update({
             where: {
               filmId: film.filmId,
             },
@@ -107,16 +109,16 @@ class MajorAPIService {
               genre: Films_genre[film.genre],
               language: film.language,
               synopsis: film.synopsis,
-              release_date: film.release_date,
+              release_date: film.releaseDate,
               duration: film.duration,
-              poster_img: film.poster_img,
+              poster_img: film.posterImg,
               rate: film.rate,
             },
           });
         }
       }
-      console.log("edit filmId: " + film.filmId);
-    }
+    });
+    await Promise.all(updatePromise);
   }
   //
   async getScreenFromMajor() {
@@ -152,7 +154,7 @@ class MajorAPIService {
   }
 
   async deleteOutdatedScreens() {
-    const majorData: Screen[] = await this.getScreenFromMajor();
+    const majorData: RecievedScreen[] = await this.getScreenFromMajor();
     const harmoniData: Screen[] = await getScreenFromHarmoni();
     const deletedDataMajor: Screen[] = harmoniData.filter(
       (hScreen) =>
@@ -170,39 +172,40 @@ class MajorAPIService {
   }
 
   async editScreen() {
-    const majorData: Screen[] = await this.getScreenFromMajor();
+    const majorData: RecievedScreen[] = await this.getScreenFromMajor();
     const harmoniData: Screen[] = await getScreenFromHarmoni();
 
-    for (const screen of majorData) {
+    const updatePromise = majorData.map(async (screen) => {
       const harmoniScreen = harmoniData.find(
         (hScreen) => hScreen.screenId === screen.screenId
       );
 
       if (harmoniScreen) {
         const hasChanged =
-          screen.theaterId !== harmoniScreen.theaterId ||
-          screen.capacity !== harmoniScreen.capacity ||
-          screen.screen_type !== harmoniScreen.screen_type ||
-          screen.price !== harmoniScreen.price ||
-          screen.screen_no !== harmoniScreen.screen_no;
+          screen.theaterId != harmoniScreen.theaterId ||
+          screen.capacity != harmoniScreen.capacity ||
+          screen.screenType != harmoniScreen.screen_type ||
+          screen.price != harmoniScreen.price ||
+          screen.screen_number != harmoniScreen.screen_no;
 
         if (hasChanged) {
-          this.prisma.screens.update({
+          console.log("edit screenId: " + screen.screenId);
+          return this.prisma.screens.update({
             where: {
               screenId: screen.screenId,
             },
             data: {
               theaterId: screen.theaterId,
               capacity: screen.capacity,
-              screen_type: Screens_screen_type[screen.screen_type],
+              screen_type: Screens_screen_type[screen.screenType],
               price: screen.price,
-              screen_no: screen.screen_no,
+              screen_no: screen.screen_number,
             },
           });
         }
       }
-      console.log("edit screenId: " + screen.screenId);
-    }
+    });
+    await Promise.all(updatePromise);
   }
 
   //
@@ -234,12 +237,11 @@ class MajorAPIService {
         },
       });
       console.log("add theaterId: " + theater.theaterId);
-      
     }
   }
 
   async deleteOutdatedTheaters() {
-    const majorData: Theater[] = await this.getTheatersFromMajor();
+    const majorData: RecievedTheater[] = await this.getTheatersFromMajor();
     const harmoniData: Theater[] = await getTheaterFromHarmoni();
 
     const deletedDataMajor: Theater[] = harmoniData.filter(
@@ -254,45 +256,46 @@ class MajorAPIService {
         },
       });
       console.log("delete theaterId: " + theater.theaterId);
-      
     }
   }
   async editTheater() {
-    const majorData: Theater[] = await this.getTheatersFromMajor();
+    const majorData: RecievedTheater[] = await this.getTheatersFromMajor();
     const harmoniData: Theater[] = await getTheaterFromHarmoni();
 
-    for (const theater of majorData) {
+    const updatePromise = majorData.map(async (theater) => {
       const harmoniTheater = harmoniData.find(
         (hTheater) => hTheater.theaterId === theater.theaterId
       );
 
       if (harmoniTheater) {
         const hasChanged =
-          theater.name !== harmoniTheater.name ||
-          theater.address !== harmoniTheater.address ||
-          theater.phone_num !== harmoniTheater.phone_num ||
-          theater.promptpay_num !== harmoniTheater.promptpay_num ||
-          theater.latitude !== harmoniTheater.latitude ||
-          theater.longitude !== harmoniTheater.longitude;
+          theater.name != harmoniTheater.name ||
+          theater.address != harmoniTheater.address ||
+          theater.phoneNum != harmoniTheater.phone_num ||
+          theater.promptPayNum != harmoniTheater.promptpay_num ||
+          theater.latitude != harmoniTheater.latitude ||
+          theater.longitude != harmoniTheater.longitude;
 
         if (hasChanged) {
-          this.prisma.theaters.update({
+
+          console.log("edit theaterId: " + theater.theaterId);
+          return this.prisma.theaters.update({
             where: {
               theaterId: theater.theaterId,
             },
             data: {
               name: theater.name,
               address: theater.address,
-              phone_num: theater.phone_num,
-              promptpay_num: theater.promptpay_num,
+              phone_num: theater.phoneNum,
+              promptpay_num: theater.promptPayNum,
               latitude: theater.latitude,
               longitude: theater.longitude,
             },
           });
         }
       }
-      console.log("edit theaterId: " + theater.theaterId);
-    }
+    });
+    await Promise.all(updatePromise);
   }
   //
   async getShowFromMajor() {
@@ -326,7 +329,7 @@ class MajorAPIService {
   }
 
   async deleteOutdatedShows() {
-    const majorData: Show[] = await this.getShowFromMajor();
+    const majorData: RecievedShow[] = await this.getShowFromMajor();
     const harmoniData: Show[] = await getShowFromHarmoni();
 
     const deletedDataMajor: Show[] = harmoniData.filter(
@@ -343,41 +346,49 @@ class MajorAPIService {
     }
   }
   async editShow() {
-    const majorData: Show[] = await this.getShowFromMajor();
+    const majorData: RecievedShow[] = await this.getShowFromMajor();
     const harmoniData: Show[] = await getShowFromHarmoni();
 
-    for (const show of majorData) {
+    const updatePromise = majorData.map((show) => {
       const harmoniShow = harmoniData.find(
         (hShow) => hShow.showId === show.showId
       );
 
       if (harmoniShow) {
+        const harmoniDate: string = harmoniShow.date.toISOString();
+        const harmoniStartTime: string = harmoniShow.start_time.toISOString();
+        const harmoniEndTime: string = harmoniShow.end_time.toISOString();
+        const majorDate: string = show.date.toString();
+        const majorStartTime: string = show.startTime.toString();
+        const majorEndTime: string = show.endTime.toString();
         const hasChanged =
-          show.screenId !== harmoniShow.screenId ||
-          show.filmId !== harmoniShow.filmId ||
-          show.date !== harmoniShow.date ||
-          show.start_time !== harmoniShow.start_time ||
-          show.end_time !== harmoniShow.end_time ||
-          show.price !== harmoniShow.price;
+          show.screenId != harmoniShow.screenId ||
+          show.filmId != harmoniShow.filmId ||
+          majorDate != harmoniDate ||
+          majorStartTime != harmoniStartTime ||
+          majorEndTime != harmoniEndTime ||
+          show.price != harmoniShow.price;
 
         if (hasChanged) {
-          this.prisma.shows.update({
+          console.log("edit showId: " + show.showId);
+
+          return this.prisma.shows.update({
             where: {
-              showId: show.showId,
+              showId: harmoniShow.showId,
             },
             data: {
               screenId: show.screenId,
               filmId: show.filmId,
               date: show.date,
-              start_time: show.start_time,
-              end_time: show.end_time,
+              start_time: show.startTime,
+              end_time: show.endTime,
               price: show.price,
             },
           });
         }
       }
-      console.log("edit showId: " + show.showId);
-    }
+    });
+    await Promise.all(updatePromise);
   }
   ////////////////////////////////////
   async getSeatTypeFromMajor() {
@@ -410,7 +421,7 @@ class MajorAPIService {
   }
 
   async deleteOutdatedSeatTypes() {
-    const majorData: SeatType[] = await this.getSeatTypeFromMajor();
+    const majorData: RecievedSeatType[] = await this.getSeatTypeFromMajor();
     const harmoniData: SeatType[] = await getSeatTypeFromHarmoni();
 
     const deletedDataMajor: SeatType[] = harmoniData.filter(
@@ -430,35 +441,35 @@ class MajorAPIService {
     }
   }
   async editSeatType() {
-    const majorData: SeatType[] = await this.getSeatTypeFromMajor();
+    const majorData: RecievedSeatType[] = await this.getSeatTypeFromMajor();
     const harmoniData: SeatType[] = await getSeatTypeFromHarmoni();
 
-    for (const seatType of majorData) {
+    const updatePromise = majorData.map(async (seatType) => {
       const harmoniSeatType = harmoniData.find(
         (hSeatType) => hSeatType.seatTypeId === seatType.seatTypeId
       );
 
       if (harmoniSeatType) {
         const hasChanged =
-          seatType.type_name !== harmoniSeatType.type_name ||
-          seatType.description !== harmoniSeatType.description ||
-          seatType.price_modifier !== harmoniSeatType.price_modifier;
+          seatType.typeName != harmoniSeatType.type_name ||
+          seatType.description != harmoniSeatType.description ||
+          seatType.price_modifier != harmoniSeatType.price_modifier;
 
         if (hasChanged) {
-          this.prisma.seat_types.update({
+          return this.prisma.seat_types.update({
             where: {
               seatTypeId: seatType.seatTypeId,
             },
             data: {
-              type_name: seatType.type_name,
+              type_name: seatType.typeName,
               description: seatType.description,
               price_modifier: seatType.price_modifier,
             },
           });
         }
       }
-      console.log("edit seatTypeId: " + seatType.seatTypeId);
-    }
+    });
+    await Promise.all(updatePromise);
   }
   //
   async getSeatFromMajor() {
@@ -489,7 +500,7 @@ class MajorAPIService {
   }
 
   async deleteOutdatedSeats() {
-    const majorData: Seat[] = await this.getSeatFromMajor();
+    const majorData: RecievedSeat[] = await this.getSeatFromMajor();
     const harmoniData: Seat[] = await getSeatFromHarmoni();
 
     const deletedDataMajor: Seat[] = harmoniData.filter(
@@ -506,38 +517,39 @@ class MajorAPIService {
     }
   }
   async editSeat() {
-    const majorData: Seat[] = await this.getSeatFromMajor();
+    const majorData: RecievedSeat[] = await this.getSeatFromMajor();
     const harmoniData: Seat[] = await getSeatFromHarmoni();
 
-    for (const seat of majorData) {
+    const updatePromise = majorData.map(async (seat) => {
       const harmoniSeat = harmoniData.find(
         (hSeat) => hSeat.seatId === seat.seatId
       );
 
       if (harmoniSeat) {
         const hasChanged =
-          seat.screenId !== harmoniSeat.screenId ||
-          seat.seatTypeId !== harmoniSeat.seatTypeId ||
-          seat.seat_row !== harmoniSeat.seat_row ||
-          seat.seat_no !== harmoniSeat.seat_no;
+          seat.screenId != harmoniSeat.screenId ||
+          seat.seatTypeId != harmoniSeat.seatTypeId ||
+          seat.seatRow != harmoniSeat.seat_row ||
+          seat.seatNo != harmoniSeat.seat_no;
 
         if (hasChanged) {
+          console.log("edit seatId: " + seat.seatId);
           // await this.prisma.seats.update({4
-          this.prisma.seats.update({
+          return this.prisma.seats.update({
             where: {
               seatId: seat.seatId,
             },
             data: {
               screenId: seat.screenId,
               seatTypeId: seat.seatTypeId,
-              seat_row: seat.seat_row,
-              seat_no: seat.seat_no,
+              seat_row: seat.seatRow,
+              seat_no: seat.seatNo,
             },
           });
         }
       }
-      console.log("edit seatId: " + seat.seatId);
-    }
+    });
+    await Promise.all(updatePromise);
   }
   //
   async getPaymentFromMajor() {
