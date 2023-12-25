@@ -2685,7 +2685,7 @@ export const completePayment = async (req: Request, res: Response) => {
           advertisementId: parseInt(advertisementId),
         },
         data: {
-          isApprove: 'In_progress',
+          isApprove: 'Completed',
         },
       });
 
