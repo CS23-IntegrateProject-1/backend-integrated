@@ -276,11 +276,7 @@ export const ApprovePromotion = async (req: Request, res: Response) => {
 //===============================Voucher Approval==============================
 export const getAllVoucher = async (req: Request, res: Response) => {
 	try {
-		const voucher = await feature14Client.voucher.findMany({
-			where: {
-				isApprove: "In_progress",
-			},
-		});
+		const voucher = await feature14Client.voucher.findMany();
 
 		return res.status(200).json(voucher);
 	} catch (error) {
