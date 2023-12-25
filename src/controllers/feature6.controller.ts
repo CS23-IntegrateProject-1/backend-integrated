@@ -1255,27 +1255,36 @@ export const checkInStatus = async (req: Request, res: Response) => {
     }
 };
 
+// //Upload Image
+// export const uploadTableTypeImage = async (req: Request, res: Response) => {
+//     try {
+//         const { tableTypeDetailId } = req.body;
+//         let image_url;
+//         if (req.file.path.includes("/"))
+//             image_url = "/uploads/" + req.file.path.substring(req.file.path.lastIndexOf('/') + 1);
+//         else if (req.file.path.includes("\\"))
+//             image_url = "/uploads/" + req.file.path.substring(req.file.path.lastIndexOf('\\') + 1);
+
+//         const image = await feature6Client.table_type_detail.update({
+//             where: {
+//                 tableTypeDetailId: parseInt(tableTypeDetailId),
+//             },
+//             data: {
+//                 image_url: image_url,
+//             }
+//         })
+
+//         res.status(200).json(image);
+//     } catch (err) {
+//         res.status(500).json({ err: "sorry something wrong" });
+//     }
+// };
+
 //Upload Image
 export const uploadTableTypeImage = async (req: Request, res: Response) => {
     try {
-        const { tableTypeDetailId } = req.body;
-        let image_url;
-        if (req.file.path.includes("/"))
-            image_url = "/uploads/" + req.file.path.substring(req.file.path.lastIndexOf('/') + 1);
-        else if (req.file.path.includes("\\"))
-            image_url = "/uploads/" + req.file.path.substring(req.file.path.lastIndexOf('\\') + 1);
-
-        const image = await feature6Client.table_type_detail.update({
-            where: {
-                tableTypeDetailId: parseInt(tableTypeDetailId),
-            },
-            data: {
-                image_url: image_url,
-            }
-        })
-
-        res.status(200).json(image);
+        res.status(200).json({ payload: "oh yeaaa" });
     } catch (err) {
         res.status(500).json({ err: "sorry something wrong" });
     }
-};
+}
