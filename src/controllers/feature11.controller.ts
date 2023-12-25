@@ -239,11 +239,12 @@ export const editArticle = async (req: Request, res: Response) => {
 
     
     const imageFiles = req.files as MulterFile[];
-    const oldPath = await prisma.images.findMany({
-      select: {
-        url: true
-      }
-    });
+    console.log(imageFiles)
+    if (imageFiles.length !== 0) {
+      await prisma.images.deleteMany({
+        where: { articleId: parseInt(articleId) }
+      })
+    }
     let newImage;
     for (const file of imageFiles) {
       let imagePath;
@@ -251,33 +252,14 @@ export const editArticle = async (req: Request, res: Response) => {
         imagePath = "/uploads/" + file.path.substring(file.path.lastIndexOf('/') + 1);
       else if (file.path.includes("\\"))
         imagePath = "/uploads/" + file.path.substring(file.path.lastIndexOf('\\') + 1);
-      if (imagePath in oldPath) {
-        const imageId = await prisma.images.findFirst({
-          where: {
-            url: imagePath
-          }
-        })
-        newImage = await prisma.images.update({
-          where: { imageId: imageId?.imageId},
-          data: {
-            url: imageId?.url,
-            articleId: parseInt(articleId),
-          },
-        });
-      }
-      else { 
-        await prisma.images.deleteMany({
-          where: { articleId: parseInt(articleId) }
-        })
-        const description = file.originalname
-        newImage = await prisma.images.create({
-          data: {
-            url: imagePath,
-            description: description,
-            articleId: parseInt(articleId),
-          },
-        });
-      }
+      const description = file.originalname
+      newImage = await prisma.images.create({
+        data: {
+          url: imagePath,
+          description: description,
+          articleId: parseInt(articleId),
+        },
+      });
     }
 
     //for (const imageDetail of imageDetails) {
