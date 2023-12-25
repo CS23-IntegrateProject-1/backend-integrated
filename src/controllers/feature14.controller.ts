@@ -115,7 +115,7 @@ export const getAllVenue = async (req: Request, res: Response) => {
 				const commission = revenue._sum.total_amount?.times(0.1);
 				return {
 					...venue,
-					revenue: revenue._sum.total_amount,
+					revenue: revenue._sum.total_amount ?? 0,
 					commission: commission,
 				};
 			})
