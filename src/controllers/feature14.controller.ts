@@ -131,11 +131,7 @@ export const getAllVenue = async (req: Request, res: Response) => {
 //===============================Report Ticket==============================
 export const getAllComplainTicket = async (req: Request, res: Response) => {
 	try {
-		const report_ticket = await feature14Client.complain_ticket.findMany({
-			where: {
-				status: "Pending",
-			},
-		});
+		const report_ticket = await feature14Client.complain_ticket.findMany();
 		return res.status(200).json({ report_ticket });
 	} catch (error) {
 		return res.status(500).json({ error });
