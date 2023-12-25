@@ -104,7 +104,11 @@ export const addArticle = async (req: Request, res: Response) => {
 
     //var newImage;
     for (const file of imageFiles) {
-      const imagePath = "/uploads/" + file.path.substring(file.path.lastIndexOf('/') + 1);
+      let imagePath;
+      if (file.path.includes("/"))
+        imagePath = "/uploads/" + file.path.substring(file.path.lastIndexOf('/') + 1);
+      else if (file.path.includes("\\"))
+        imagePath = "/uploads/" + file.path.substring(file.path.lastIndexOf('\\') + 1);
       const description = file.originalname
       console.log("file path --> ", imagePath)
       const newImage = await prisma.images.create({
@@ -233,10 +237,7 @@ export const editArticle = async (req: Request, res: Response) => {
       }
     }
 
-    await prisma.images.deleteMany({
-      where: { articleId: parseInt(articleId) }
-    })
-
+    
     const imageFiles = req.files as MulterFile[];
     const oldPath = await prisma.images.findMany({
       select: {
@@ -245,7 +246,11 @@ export const editArticle = async (req: Request, res: Response) => {
     });
     let newImage;
     for (const file of imageFiles) {
-      const imagePath = "/uploads/" + file.path.substring(file.path.lastIndexOf('/') + 1);
+      let imagePath;
+      if (file.path.includes("/"))
+        imagePath = "/uploads/" + file.path.substring(file.path.lastIndexOf('/') + 1);
+      else if (file.path.includes("\\"))
+        imagePath = "/uploads/" + file.path.substring(file.path.lastIndexOf('\\') + 1);
       if (imagePath in oldPath) {
         const imageId = await prisma.images.findFirst({
           where: {
@@ -261,6 +266,9 @@ export const editArticle = async (req: Request, res: Response) => {
         });
       }
       else { 
+        await prisma.images.deleteMany({
+          where: { articleId: parseInt(articleId) }
+        })
         const description = file.originalname
         newImage = await prisma.images.create({
           data: {
