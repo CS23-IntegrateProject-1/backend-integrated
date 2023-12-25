@@ -848,7 +848,7 @@ export const createOfflineReservation = async (req: Request, res: Response) => {
         const concatDatetime = `${reserve_date} ${time}`;
         const reserved_time = new Date(concatDatetime);
         // Use the previous functions to check availability and find a suitable table
-        const newreserveTime = addHours(new Date(reserved_time), 0);
+        const newreserveTime = addHours(new Date(reserved_time), 7);
         // const entry_time = addMinutes(new Date(reserved_time), -30);
         req.body.reserve_date = reserve_date;
         req.body.time = time;
@@ -1258,7 +1258,23 @@ export const checkInStatus = async (req: Request, res: Response) => {
 //Upload Image
 export const uploadTableTypeImage = async (req: Request, res: Response) => {
     try {
-        res.status(200).json({ payload: "oh yeaaa" });
+        const { tableTypeDetailId } = req.body;
+        let image_url;
+        if (req.file.path.includes("/"))
+            image_url = "/uploads/" + req.file.path.substring(req.file.path.lastIndexOf('/') + 1);
+        else if (req.file.path.includes("\\"))
+            image_url = "/uploads/" + req.file.path.substring(req.file.path.lastIndexOf('\\') + 1);
+
+        const image = await feature6Client.table_type_detail.update({
+            where: {
+                tableTypeDetailId: parseInt(tableTypeDetailId),
+            },
+            data: {
+                image_url: image_url,
+            }
+        })
+
+        res.status(200).json(image);
     } catch (err) {
         res.status(500).json({ err: "sorry something wrong" });
     }
