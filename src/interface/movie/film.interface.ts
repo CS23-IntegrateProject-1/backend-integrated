@@ -26,7 +26,7 @@ export interface Film {
   genre: Genre;
   language: string;
   synopsis: string;
-  release_date: string;
+  release_date: Date;
   duration: number;
   poster_img: string;
   rate: number;
@@ -38,7 +38,7 @@ export interface RecievedFilm {
   genre: Genre;
   language: string;
   synopsis: string;
-  releaseDate: string;
+  releaseDate: Date;
   duration: number;
   posterImg: string;
   rate: number;
